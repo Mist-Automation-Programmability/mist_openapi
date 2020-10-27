@@ -24,66 +24,14 @@ properties:
     description: |
       list of NTP servers specific to this device. By default, those in Site Settings will be used
     items:
-      type: object
+      type: string
   port_config:
-    type: object
-    required:
-      - ge-0/0/0
-      - ge-0/0/1
-      - 'ge-0/0/8-16,ge-1/0/0-47'
-      - '*'
-    properties:
-      ge-0/0/0:
-        type: object
-        required:
-          - usage
-          - aggregated
-          - description
-        properties:
-          usage:
-            type: string
-            minLength: 1
-          aggregated:
-            type: boolean
-          description:
-            type: string
-            minLength: 1
-      ge-0/0/1:
-        type: object
-        required:
-          - usage
-          - dynamic_usage
-        properties:
-          usage:
-            type: string
-            minLength: 1
-          dynamic_usage:
-            type: string
-            minLength: 1
-      'ge-0/0/8-16,ge-1/0/0-47':
-        type: object
-        required:
-          - usage
-        properties:
-          usage:
-            type: string
-            minLength: 1
-      '*':
-        type: object
-        required:
-          - usage
-        properties:
-          usage:
-            type: string
-            minLength: 1
+    anyOf:
+      - $ref: ./device_switch_objects/switch_port_config.v1.yaml
   radius_config:
     type: object
-    required:
-      - auth_servers_timeout
-      - auth_servers_retries
-      - auth_servers
-      - acct_servers
-      - acct_interim_interval
+    description: |
+      per-switch radius_config overwrite, optional
     properties:
       auth_servers_timeout:
         type: number
@@ -94,82 +42,40 @@ properties:
         uniqueItems: true
         minItems: 1
         items:
-          type: object
-          properties:
-            host:
-              type: string
-              minLength: 1
-            port:
-              type: number
-            secret:
-              type: string
-              minLength: 1
-          required:
-            - host
-            - port
-            - secret
+          $ref: ./server_objects/auth_server.v1.yaml
       acct_servers:
         type: array
         uniqueItems: true
         minItems: 1
         items:
-          type: object
-          properties:
-            host:
-              type: string
-              minLength: 1
-            port:
-              type: number
-            secret:
-              type: string
-              minLength: 1
-          required:
-            - host
-            - port
-            - secret
+          $ref: ./server_objects/acct_server.v1.yaml
       acct_interim_interval:
         type: number
   port_usages:
-    type: object
+    anyOf:
+      - $ref: ./device_switch_objects/switch_port_usage.v1.yaml
   networks:
-    type: object
+    $ref: ./device_switch_objects/switch_network.v1.yaml
   managed:
     type: boolean
+    description: |
+      default is false, for an adopted switch, we don’t overwrite their existing configs automatically
   disable_auto_config:
     type: boolean
+    description: |
+      default is false, for a claimed switch, we control the configs by default. This option (disables the behavior)
   additional_config_cmds:
     type: array
     items:
-      type: object
+      type: string
   vars:
     type: object
-    required:
-      - RADIUS_SECRET
-      - RADIUS_IP1
-    properties:
-      RADIUS_SECRET:
-        type: string
-        minLength: 1
-      RADIUS_IP1:
-        type: string
-        minLength: 1
+    description: |
+      a dictionary of name->value, the vars can then be used in Wlans. This can overwrite those from Site Vars
   deviceprofile_id:
     type: string
     minLength: 1
+    description: ''
   image1_url:
     type: string
     minLength: 1
-required:
-  - ip_config
-  - oob_ip_config
-  - other_ip_configs
-  - port_config
-  - radius_config
-  - port_usages
-  - networks
-  - managed
-  - disable_auto_config
-  - additional_config_cmds
-  - vars
-  - deviceprofile_id
-  - image1_url
