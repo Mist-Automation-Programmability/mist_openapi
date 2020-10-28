@@ -349,29 +349,32 @@ x-examples:
 properties:
   rtsa:
     type: object
-    required:
-      - enabled
-      - app_waking
-      - disable_pressure_sensor
-      - disable_dead_reckoning
-      - track_asset
+    description: |
+      managed mobility
     properties:
       enabled:
         type: boolean
       app_waking:
         type: boolean
+        description: |
+          default is false
       disable_pressure_sensor:
         type: boolean
       disable_dead_reckoning:
         type: boolean
       track_asset:
         type: boolean
+        description: asset tracking related
   wifi:
     $ref: ./site_objects/site_wifi.v1.yaml
   persist_config_on_device:
     type: boolean
+    description: |
+      whether to store the config on AP, default is false
   device_updown_threshold:
-    type: number
+    description: |
+      sending AP_DISCONNECTED event in device-updowns only if AP_CONNECTED is not seen within the threshold, in minutes, 0 - 30, default is 0
+    type: integer
   occupancy:
     $ref: ./site_objects/occupancy_analytics.v1.yaml
   zone_occupancy_alert:
@@ -380,6 +383,8 @@ properties:
     $ref: ./device_ap_objects/ap.radio.v1.yaml
   enable_channel_144:
     type: boolean
+    description: |
+      whether to enable channel 144 (some older clients may not support it), default is false
   rogue:
     $ref: ./site_objects/site_rogue.v1.yaml
   led:
@@ -390,65 +395,54 @@ properties:
     $ref: ./site_objects/auto_upgrade.v1.yaml
   status_portal:
     type: object
-    required:
-      - enabled
-      - hostnames
     properties:
       enabled:
         type: boolean
       hostnames:
         type: array
         items:
-          type: object
+          type: string
   remote_syslog:
     $ref: ./site_objects/remote_syslog.v1.yaml
   engagement:
     $ref: ./site_objects/engagement.v1.yaml
   analytic:
     type: object
-    required:
-      - enabled
+    description: ''
     properties:
       enabled:
         type: boolean
+        description: |
+          enable Advanced Analytic feature, default is false (using SUB-ANA license)
   flags:
     type: object
-    required:
-      - way1
-      - way2
-      - teleport
-    properties:
-      way1:
-        type: number
-      way2:
-        type: number
-      teleport:
-        type: boolean
+    description: |
+      name/val pair objects for location engine to use
   ble_config:
     $ref: ./device_ap_objects/ap.ble.v1.yaml
   wids:
     $ref: ./site_objects/wids.v1.yaml
   proxy:
     type: object
-    required:
-      - url
+    description: |
+      Proxy Configuration for APs to talk to Mist
     properties:
       url:
         type: string
         minLength: 1
   ssh_keys:
     type: array
+    description: |
+      when limit_ssh_access = true in Org Setting, list of SSH public keys provided by Mist Support to install onto APs (see Org:Setting)
     items:
       type: object
+      description: ''
   mxtunnel:
     $ref: ./common/mxtunnel.v1.yaml
   gateway_mgmt:
     $ref: ./site_objects/site_gateway.v1.yaml
   skyatp:
     type: object
-    required:
-      - enabled
-      - send_ip_mac_mapping
     properties:
       enabled:
         type: boolean
@@ -456,19 +450,20 @@ properties:
         type: boolean
   switch_mgmt:
     type: object
-    required:
-      - root_password
-      - config_revert_timer
     properties:
       root_password:
         type: string
         minLength: 1
+        description: switches root password
       config_revert_timer:
-        type: number
+        type: integer
+        description: 'the rollback timer for commit confirmed. Default is 10, valid range should be 1-30.'
   ntp_servers:
     type: array
+    description: |
+      list of NTP servers
     items:
-      type: object
+      type: string
   ip_config:
     $ref: ./device_switch_objects/switch.ip.v1.yaml
   networks:
@@ -478,158 +473,38 @@ properties:
   other_ip_configs:
     $ref: ./device_switch_objects/ip_l3.v1.yaml
   routings:
-    type: object
-    required:
-      - master
-      - corp
-    properties:
-      master:
-        type: object
-      corp:
-        type: object
-        required:
-          - networks
-          - ospf
-        properties:
+    anyOf:
+      - properties:
           networks:
             type: array
             items:
-              type: object
+              type: string
           ospf:
             type: object
+    type: object
   port_usages:
     $ref: ./device_switch_objects/switch_port_usage.v1.yaml
   radius_config:
-    type: object
-    required:
-      - auth_servers_timeout
-      - auth_servers_retries
-      - auth_servers
-      - acct_servers
-      - acct_interim_interval
-      - network
-    properties:
-      auth_servers_timeout:
-        type: number
-      auth_servers_retries:
-        type: number
-      auth_servers:
-        type: array
-        uniqueItems: true
-        minItems: 1
-        items:
-          $ref: ./server_objects/auth_server.v1.yaml
-      acct_servers:
-        type: array
-        uniqueItems: true
-        minItems: 1
-        items:
-          $ref: ./server_objects/acct_server.v1.yaml
-      acct_interim_interval:
-        type: number
-      network:
-        type: string
-        minLength: 1
+    $ref: ./template_switch/template_switch_radius.v1.yaml
   switch_matching:
-    type: object
-    required:
-      - enable
-      - rules
-    properties:
-      enable:
-        type: boolean
-      rules:
-        type: array
-        uniqueItems: true
-        minItems: 1
-        items:
-          type: object
-          properties:
-            name:
-              type: string
-              minLength: 1
-            'match_name[0:3]':
-              type: string
-              minLength: 1
-            match_model:
-              type: string
-              minLength: 1
-            port_config:
-              type: object
-              properties:
-                ge-0/0/0:
-                  type: object
-                  required:
-                    - usage
-                  properties:
-                    usage:
-                      type: string
-                      minLength: 1
-                'ge-0/0/8-16,ge-1/0/0-47':
-                  type: object
-                  required:
-                    - usage
-                  properties:
-                    usage:
-                      type: string
-                      minLength: 1
-                '*':
-                  type: object
-                  required:
-                    - usage
-                  properties:
-                    usage:
-                      type: string
-                      minLength: 1
-              required:
-                - ge-0/0/0
-                - 'ge-0/0/8-16,ge-1/0/0-47'
-                - '*'
-            additional_config_cmds:
-              type: array
-              items:
-                type: object
-          required:
-            - name
-            - 'match_name[0:3]'
-            - match_model
+    $ref: ./template_switch/template_switch_matching.v1.yaml
   additional_config_cmds:
     type: array
+    description: 'additional CLI commands to append to the generated switches config '
     items:
-      type: object
+      type: string
+  report_gatt:
+    type: boolean
+    description: |
+      default is false; whether AP should periodically connect to BLE devices and report GATT device info (device name, manufacturer name, serial number, battery %, temperature, humidity)
+  track_anonymous_devices:
+    description: |
+      default is false; whether to track anonymous BLE assets (requires ‘track_asset’ enabled)
+    type: boolean
+  track_asset:
+    type: boolean
+    description: |
+      enable Asset Tracking, default is false (using SUB-AST license)
 required:
-  - rtsa
-  - wifi
-  - persist_config_on_device
-  - device_updown_threshold
-  - occupancy
-  - zone_occupancy_alert
-  - radio_config
-  - enable_channel_144
-  - rogue
-  - led
-  - vars
-  - auto_upgrade
-  - status_portal
-  - remote_syslog
-  - engagement
-  - analytic
-  - flags
-  - ble_config
-  - wids
-  - proxy
-  - ssh_keys
-  - mxtunnel
-  - gateway_mgmt
-  - skyatp
-  - switch_mgmt
-  - ntp_servers
-  - ip_config
-  - networks
-  - oob_ip_config
-  - other_ip_configs
-  - routings
-  - port_usages
   - radius_config
   - switch_matching
-  - additional_config_cmds
