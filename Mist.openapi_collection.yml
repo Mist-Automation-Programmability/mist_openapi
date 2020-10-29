@@ -7162,18 +7162,15 @@ paths:
                   added:
                     type: array
                     items:
-                      required: []
-                      properties: {}
+                      type: string
                   duplicated:
                     type: array
                     items:
-                      required: []
-                      properties: {}
+                      type: string
                   error:
                     type: array
                     items:
-                      required: []
-                      properties: {}
+                      type: string
                   inventory_added:
                     type: array
                     uniqueItems: true
@@ -7277,7 +7274,6 @@ paths:
                 - properties:
                     op:
                       type: string
-                      minLength: 1
                       enum:
                         - delete
                       default: delete
@@ -7299,6 +7295,7 @@ paths:
                       default: assign
                       enum:
                         - assign
+                      minLength: 1
                     site_id:
                       type: string
                       description: target site id
@@ -7348,10 +7345,10 @@ paths:
                 properties:
                   op:
                     type: string
-                    minLength: 1
-                    default: delete
                     enum:
                       - delete
+                      - assign
+                    minLength: 1
                   success:
                     type: array
                     items:
@@ -7440,39 +7437,32 @@ paths:
         schema:
           type: string
     post:
-      description: |-
-        If the request is successful, an email will also be sent to the user with a link to ```https://manage.mist.com/verify/invite?token=:token&expire=1459632743&org=OrgName```
-
-
-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        email|string|email - admin_id is not exposed
-        first_name|string|first name, used in the invitation text
-        last_name|string|last name
-        privileges|list|list of privileges the admin has on the orgs/sites
-        scope|string|site / org / sitegroup
-        role|string|admin / write / read / helpdesk
-        site_id|string|site id
-        hours|int|optional, how long the invite should be valid, default is 1 day. Max is capped at 1 week.
+      description: 'If the request is successful, an email will also be sent to the user with a link to ```https://manage.mist.com/verify/invite?token=:token&expire=1459632743&org=OrgName```'
       operationId: inviteOrgAdmin
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                email: joe@abc.com
-                first_name: John
-                hours: 24
-                last_name: Smith
-                privileges:
-                  - role: admin
-                    scope: org
-                  - role: admin
-                    scope: site
-                    site_id: d96e3952-53e8-4266-959a-45acd55f5114
-              type: object
+              $ref: ./models/admin.v1.yaml
+            examples:
+              example-1:
+                value:
+                  first_name: string
+                  last_name: string
+                  privileges:
+                    - scope: string
+                      org_id: string
+                      name: string
+                      role: string
+                      msp_id: string
+                      orggroup_ids:
+                        - string
+                      msp_name: string
+                      org_name: string
+                      site_id: string
+                      sitegroup_ids:
+                        - string
+                  email: user@example.com
       responses:
         '200':
           content:
@@ -7513,19 +7503,31 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                hours: 24
-                privileges:
-                  - role: admin
-                    scope: org
-                  - role: admin
-                    scope: site
-                    site_id: d96e3952-53e8-4266-959a-45acd55f5114
-              type: object
+              $ref: ./models/admin.v1.yaml
+            examples:
+              example-1:
+                value:
+                  first_name: string
+                  last_name: string
+                  privileges:
+                    - scope: string
+                      org_id: string
+                      name: string
+                      role: string
+                      msp_id: string
+                      orggroup_ids:
+                        - string
+                      msp_name: string
+                      org_name: string
+                      site_id: string
+                      sitegroup_ids:
+                        - string
+                  email: user@example.com
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema: {}
           description: Successful response
       summary: updateOrgAdminInvite
       tags:
@@ -7547,7 +7549,32 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.license.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    licenses:
+                      - order_id: string
+                        subscription_id: string
+                        type: string
+                        start_time: 0
+                        end_time: 0
+                        quantity: 0
+                    amendments:
+                      - id: string
+                        subscription_id: string
+                        type: string
+                        start_time: 0
+                        end_time: 0
+                        quantity: 0
+                    summary:
+                      SUB-MAN: 0
+                      SUB-LOC: 0
+                    entitled:
+                      SUB-MAN: 0
+                      SUB-LOC: 0
           description: Successful response
       summary: getOrgLicencesSummary
       tags:
@@ -7560,36 +7587,128 @@ paths:
         schema:
           type: string
     put:
-      description: Undo Move Org License to Another Org
-      operationId: undoMoveOrgLicenseToAnotherOrg
+      description: |-
+        Move, Undo Move or Delete Org License to Another Org
+        If the admin has admin privilege against the org_id and dst_org_id, he can move some of the licenses to another Org. Given that: 1. the specified license is currently active 2. there’s enough licenses left in the specified license (by subscription_id) 3. there will still be enough entitled licenses for the type of license after the amendment
+      operationId: moveOrDeleteOrgLicenseToAnotherOrg
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                amendment_id: 2b9116ab-cd1e-e897-6e08-31fccd88e792
-                op: unamend
+              description: ''
+              oneOf:
+                - properties:
+                    op:
+                      type: string
+                      minLength: 1
+                      default: amend
+                      enum:
+                        - amend
+                    subscription_id:
+                      type: string
+                      minLength: 1
+                    dst_org_id:
+                      type: string
+                      minLength: 1
+                    quantity:
+                      type: number
+                  required:
+                    - op
+                    - subscription_id
+                    - dst_org_id
+                    - quantity
+                - properties:
+                    op:
+                      type: string
+                      default: unamend
+                      enum:
+                        - unamend
+                    amendment_id:
+                      type: string
+                  required:
+                    - op
+                    - amendment_id
+                - properties:
+                    op:
+                      type: string
+                      default: delete
+                      enum:
+                        - delete
+                    license_id:
+                      type: string
+                    '':
+                      type: string
               type: object
+            examples:
+              move:
+                value:
+                  op: amend
+                  subscription_id: SUB-0000144
+                  dst_org_id: 3eff35f7-c218-894e-bca2-24e5325601cc
+                  quantity: 10
+              undo_move:
+                value:
+                  op: unamend
+                  amendment_id: 2b9116ab-cd1e-e897-6e08-31fccd88e792
+              delete:
+                value:
+                  op: delete
+                  license_id: 2b9116ab-cd1e-e897-6e08-31fccd88e782
       responses:
         '200':
           content:
             application/json: {}
           description: Successful response
-      summary: undoMoveOrgLicenseToAnotherOrg
+      summary: moveOrDeleteOrgLicenseToAnotherOrg
       tags:
         - Licenses
         - Organization
   '/api/v1/orgs/{org_id}/licenses/usages':
     get:
       description: |-
-        #### Response Parameters
-        **Parameter**|**Type**|**Description** 
-        usages|object|subscriptions and their quantities
+        Get Licenses Usage by Sites
+        This shows license usage (i.e. needed) based on the features enabled for the site.
       operationId: getOrgLicencesBySite
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                description: ''
+                minItems: 1
+                uniqueItems: true
+                items:
+                  type: object
+                  properties:
+                    site_id:
+                      type: string
+                      minLength: 1
+                    num_devices:
+                      type: number
+                    usages:
+                      type: object
+                      required:
+                        - SUB-MAN
+                        - SUB-LOC
+                      description: subscriptions and their quantities
+                      properties:
+                        SUB-MAN:
+                          type: number
+                        SUB-LOC:
+                          type: number
+                  required:
+                    - site_id
+                    - num_devices
+                    - usages
+              examples:
+                example-1:
+                  value:
+                    - site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+                      num_devices: 80
+                      usages:
+                        SUB-MAN: 60
+                        SUB-LOC: 30
           description: Successful response
       summary: getOrgLicencesBySite
       tags:
@@ -7603,39 +7722,128 @@ paths:
           type: string
   '/api/v1/orgs/{org_id}/logs':
     get:
-      description: |-
-        #### Supported Filters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        site_id|string|site id
-        admin_name|string|admin name or email
-        message|string|message
-
-
-        #### Response Parameters
-        The logs are always sorted by time in descending order
-
-
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        timestamp|long|start time, in epoch
-        site_id|string|site id
-        org_id|string|org id
-        admin_id|string|admin id
-        admin_name|string|name of the admin that performs the action
-        message|string|log message
-        before|object|the diff, before
-        after|object|the diff, after
+      description: Get a list of change logs for the current Org
       operationId: getOrgLogs
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  total:
+                    type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      type: object
+                      properties:
+                        timestamp:
+                          type: number
+                          description: 'start time, in epoch'
+                        site_id:
+                          type: string
+                          minLength: 1
+                          description: site id
+                        org_id:
+                          type: string
+                          minLength: 1
+                          description: org id
+                        admin_id:
+                          type: string
+                          minLength: 1
+                          description: admin id
+                        admin_name:
+                          type: string
+                          minLength: 1
+                          description: name of the admin that performs the action
+                        message:
+                          type: string
+                          minLength: 1
+                          description: log message
+                        id:
+                          type: string
+                          minLength: 1
+                        before:
+                          type: object
+                          description: 'the diff, before'
+                        after:
+                          type: object
+                          description: 'the diff, after'
+                      required:
+                        - timestamp
+                        - site_id
+                        - org_id
+                        - admin_id
+                        - admin_name
+                        - message
+                required:
+                  - start
+                  - end
+                  - limit
+                  - total
+                  - results
+              examples:
+                example-1:
+                  value:
+                    start: 1428939600
+                    end: 1428954000
+                    limit: 100
+                    total: 135
+                    results:
+                      - timestamp: 1431382121
+                        site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+                        org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                        admin_id: 72bfa2bd-e58a-4670-9d20-a1468f7a6f58
+                        admin_name: test@mistsys.com
+                        message: TEST AUDIT
+                        id: c6f9347b-b0a4-4a23-b927-fa9249f2ffb2
           description: Successful response
       summary: getOrgLogs
       tags:
         - Audit Logs
         - Organization
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: site_id
+          description: site id
+        - schema:
+            type: string
+          in: query
+          name: admin_name
+          description: admin name or email
+        - schema:
+            type: string
+          in: query
+          name: message
+          description: message
+        - schema:
+            type: integer
+          in: query
+          name: start
+        - schema:
+            type: integer
+          in: query
+          name: end
+        - schema:
+            type: integer
+          in: query
+          name: limit
+        - schema:
+            type: integer
+          in: query
+          name: page
     parameters:
       - in: path
         name: org_id
@@ -7644,22 +7852,89 @@ paths:
           type: string
   '/api/v1/orgs/{org_id}/logs/count':
     get:
-      description: |-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        distinct|string|admin_id / admin_name / message / site_id, default is admin_name
+      description: Count by Distinct Attributes of Audit Logs
       operationId: countOrgLogsByDistinctAttributes
       parameters:
-        - example: '{{distinct}}'
-          in: query
+        - in: query
           name: distinct
           schema:
             type: string
+            default: admin_name
+            enum:
+              - admin_id
+              - admin_name
+              - message
+              - site_id
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: admin_id
+        - schema:
+            type: string
+          in: query
+          name: admin_name
+        - schema:
+            type: string
+          in: query
+          name: site_id
+        - schema:
+            type: string
+          in: query
+          name: message
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  distinct:
+                    type: string
+                    minLength: 1
+                  total:
+                    type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required:
+                        - admin_name
+                        - count
+                      properties:
+                        admin_name:
+                          type: string
+                          minLength: 1
+                        count:
+                          type: number
+                required:
+                  - start
+                  - end
+                  - limit
+                  - distinct
+                  - total
+                  - results
+              examples:
+                example-1:
+                  value:
+                    start: 1511967600
+                    end: 1513177200
+                    limit: 10
+                    distinct: admin_name
+                    total: 2
+                    results:
+                      - admin_name: John Smith john.smith@corp.com
+                        count: 61
+                      - admin_name: Eric Sky eric@corp.com
+                        count: 44
           description: Successful response
       summary: countOrgLogsByDistinctAttributes
       tags:
@@ -7678,7 +7953,27 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.mxcluster.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    name: string
+                    tunterm_hosts:
+                      - string
+                    tunterm_ap_subnets:
+                      - string
+                    radsec:
+                      enabled: true
+                      server_name: string
+                      servers:
+                        - host: string
+                          port: 0
+                    id: string
+                    org_id: string
+                    created_time: 0
+                    modified_time: 0
           description: Successful response
       summary: getOrgMxEdgeClusters
       tags:
@@ -7691,41 +7986,51 @@ paths:
         schema:
           type: string
     post:
-      description: |
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        tunterm_hosts|list|hostnames or IPs where a Mist Tunnel will use as the Peer (i.e. they are reachable from AP)
-        tunterm_ap_subnets|list|list of subnets where we allow AP to establish Mist Tunnels from
+      description: Create MxCluster
       operationId: createOrgMxEdgeCluster
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                name: Guest Cluster
-                radsec:
-                  acct_servers:
-                    - host: 1.2.3.4
-                      port: 1812
-                      secret: testing123
-                  auth_servers:
-                    - host: 1.2.3.4
-                      port: 1812
-                      secret: testing123
-                    - host: radius.internal
-                      port: 1812
-                      secret: testing123
-                  enabled: true
-                tunterm_ap_subnets:
-                  - 0.0.0.0/0
-                tunterm_hosts:
-                  - guest-sj1.corp.com
-              type: object
+              $ref: ./models/mxcluster.v1.yaml
+            examples:
+              example-1:
+                value:
+                  name: string
+                  tunterm_hosts:
+                    - string
+                  tunterm_ap_subnets:
+                    - string
+                  radsec:
+                    enabled: true
+                    server_name: string
+                    servers:
+                      - host: string
+                        port: 0
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.mxcluster.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    name: string
+                    tunterm_hosts:
+                      - string
+                    tunterm_ap_subnets:
+                      - string
+                    radsec:
+                      enabled: true
+                      server_name: string
+                      servers:
+                        - host: string
+                          port: 0
+                    id: string
+                    org_id: string
+                    created_time: 0
+                    modified_time: 0
           description: Successful response
       summary: createOrgMxEdgeCluster
       tags:
@@ -7750,7 +8055,27 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.mxcluster.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    name: string
+                    tunterm_hosts:
+                      - string
+                    tunterm_ap_subnets:
+                      - string
+                    radsec:
+                      enabled: true
+                      server_name: string
+                      servers:
+                        - host: string
+                          port: 0
+                    id: string
+                    org_id: string
+                    created_time: 0
+                    modified_time: 0
           description: Successful response
       summary: getOrgMxEdgeClusterDetails
       tags:
@@ -7768,19 +8093,51 @@ paths:
         schema:
           type: string
     put:
-      description: Update ORg MxEdge Cluster
+      description: Update Org MxEdge Cluster
       operationId: updateOrgMxEdgeCluster
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                name: Guest Cluster
-              type: object
+              $ref: ./models/mxcluster.v1.yaml
+            examples:
+              example-1:
+                value:
+                  name: string
+                  tunterm_hosts:
+                    - string
+                  tunterm_ap_subnets:
+                    - string
+                  radsec:
+                    enabled: true
+                    server_name: string
+                    servers:
+                      - host: string
+                        port: 0
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.mxcluster.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    name: string
+                    tunterm_hosts:
+                      - string
+                    tunterm_ap_subnets:
+                      - string
+                    radsec:
+                      enabled: true
+                      server_name: string
+                      servers:
+                        - host: string
+                          port: 0
+                    id: string
+                    org_id: string
+                    created_time: 0
+                    modified_time: 0
           description: Successful response
       summary: updateOrgMxEdgeCluster
       tags:
@@ -7788,23 +8145,16 @@ paths:
         - Organization
   '/api/v1/orgs/{org_id}/mxedges':
     get:
-      description: |-
-        #### Response Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        mxcluster_id|string|MxCluster this MxEdge belongs to
-        tunterm_ip_config|object|ip configuration of the Mist Tunnel interface
-        services|list|list of services to run, tunterm only for now
-        tunterm_port_config|object|ethernet port configurations
-        separate_upstream_downstream|boolean|weather to separate upstream / downstream ports. default is false where all ports will be used.
-        downstream_ports|list|list of ports to be used for downstream (to AP) purpose
-        upstream_ports|list|list of ports to be used for upstrea purpose (to LAN)
-        upstream_port_vlan_id|int|native VLAN id for upstream ports, default is 1
+      description: Get Org MxEdges
       operationId: getOrgMxEdges
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/mxedge.v1.yaml
           description: Successful response
       summary: getOrgMxEdges
       tags:
