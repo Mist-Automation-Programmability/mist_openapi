@@ -9253,7 +9253,11 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.rftemplate.v1.yaml
           description: Successful response
       summary: getOrgRfTemplates
       tags:
@@ -9267,57 +9271,19 @@ paths:
         schema:
           type: string
     post:
-      description: |-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        name|string|The name of the RF template
-        country_code|string|optional, country code to use. If specified, this gets applied to all sites using the RF Template
-        model_specific|object|overwrites for a specific model. If a band is specified, it will shadow the default.
-        channels|list|list of channels, null or empty array means auto
-        bandwidth|int|channel width for the band, 20 / 40 / 80, 80 is only applicable for band_5
-        power|int|tx power of the radio, 0 mean auto
-        power_min|int|when power=0, min tx power to use, HW-specific values will be used if not set
-        power_max|int|when power=0, max tx power to use, HW-specific values will be used if not set
-        preamble|string|short / long / auto, default is short
+      description: Create Org RF Template
       operationId: createOrgRfTemplate
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                band_24:
-                  bandwidth: 20
-                  channels:
-                    - 1
-                    - 6
-                    - 11
-                  disabled: false
-                  power: 16
-                band_5:
-                  bandwidth: 40
-                  channels: null
-                  disabled: false
-                  power: 0
-                  power_max: 18
-                  power_min: 10
-                  preamble: short
-                country_code: US
-                model_specific:
-                  AP61:
-                    band_5:
-                      bandwidth: 40
-                      channels:
-                        - 100
-                        - 104
-                      disabled: false
-                      power: 0
-                name: 5G-Restricted
-              type: object
+              $ref: ./models/rftemplate.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.rftemplate.v1.yaml
           description: Successful response
       summary: createOrgRfTemplate
       tags:
@@ -9325,19 +9291,7 @@ paths:
         - Organization
   '/api/v1/orgs/{org_id}/rftemplates/{rftemplate_id}':
     delete:
-      description: |-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        name|string|The name of the RF template
-        country_code|string|optional, country code to use. If specified, this gets applied to all sites using the RF Template
-        model_specific|object|overwrites for a specific model. If a band is specified, it will shadow the default.
-        channels|list|list of channels, null or empty array means auto
-        bandwidth|int|channel width for the band, 20 / 40 / 80, 80 is only applicable for band_5
-        power|int|tx power of the radio, 0 mean auto
-        power_min|int|when power=0, min tx power to use, HW-specific values will be used if not set
-        power_max|int|when power=0, max tx power to use, HW-specific values will be used if not set
-        preamble|string|short / long / auto, default is short
+      description: Delete Org RF Template
       operationId: deleteOrgRfTemplate
       responses:
         '200':
@@ -9353,12 +9307,15 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.rftemplate.v1.yaml
           description: Successful response
       summary: getOrgRfTemplateDetails
       tags:
         - RF Templates
         - Organization
+      description: Get Org RF Template Details
     parameters:
       - in: path
         name: org_id
@@ -9371,31 +9328,19 @@ paths:
         schema:
           type: string
     put:
-      description: |-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        name|string|The name of the RF template
-        country_code|string|optional, country code to use. If specified, this gets applied to all sites using the RF Template
-        model_specific|object|overwrites for a specific model. If a band is specified, it will shadow the default.
-        channels|list|list of channels, null or empty array means auto
-        bandwidth|int|channel width for the band, 20 / 40 / 80, 80 is only applicable for band_5
-        power|int|tx power of the radio, 0 mean auto
-        power_min|int|when power=0, min tx power to use, HW-specific values will be used if not set
-        power_max|int|when power=0, max tx power to use, HW-specific values will be used if not set
-        preamble|string|short / long / auto, default is short
+      description: 'Update Org RF Template '
       operationId: updateOrgRfTemplate
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                name: 5G-Restricted
-              type: object
+              $ref: ./models/rftemplate.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.rftemplate.v1.yaml
           description: Successful response
       summary: updateOrgRfTemplate
       tags:
@@ -9419,9 +9364,18 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                name: John Smith
+              description: ''
               type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+              required:
+                - name
+            examples:
+              example-1:
+                value:
+                  name: John Smith
       responses:
         '200':
           content:
@@ -9431,6 +9385,7 @@ paths:
       tags:
         - SDK Clients
         - Organization
+      description: Update SDK Client
   '/api/v1/orgs/{org_id}/sdkinvites':
     parameters:
       - in: path
@@ -9439,31 +9394,56 @@ paths:
         schema:
           type: string
     post:
-      description: |-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        name|string|name, will show up in mobile
-        quota_limited|boolean|whether quota limiting is enabled , default is False
-        quota|int|number of time this invite can be used
-        enabled|boolean|default is true
+      description: Create SDK Invite
       operationId: createSdkInvite
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                name: Macy's
-              type: object
+              $ref: ./models/sdkinvite.v1.yaml
+            examples:
+              example-1:
+                value:
+                  name: string
+                  quota_limited: true
+                  quota: 0
+                  enabled: true
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.sdkinvite.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    id: string
+                    name: string
+                    enabled: true
+                    quota: 0
+                    created_time: 0
+                    expire_time: 0
           description: Successful response
       summary: createSdkInvite
       tags:
         - SDK Invites
         - Organization
+    get:
+      summary: ''
+      tags:
+        - SDK Invites
+        - Organization
+      operationId: getSdkInvites
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.sdkinvite.v1.yaml
+      description: Get SDK Invites
   '/api/v1/orgs/{org_id}/sdkinvites/{sdkinvite_id}':
     delete:
       operationId: revokeSdkInvite
@@ -9476,17 +9456,67 @@ paths:
       tags:
         - SDK Invites
         - Organization
+      description: Revoke SDK Invite
+    get:
+      operationId: getSdkInviteDetails
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./models/responses/response.sdkinvite.v1.yaml
+          description: Successful response
+      summary: getSdkInviteDetails
+      tags:
+        - SDK Invites
+        - Organization
+      description: Get SDK Invite Details
+    parameters:
+      - in: path
+        name: org_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: sdkinvite_id
+        required: true
+        schema:
+          type: string
+    put:
+      summary: updateSdkInvite
+      operationId: updateSdkInvite
+      tags:
+        - SDK Invites
+        - Organization
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./models/responses/response.sdkinvite.v1.yaml
+      description: Update SDK Invite
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./models/sdkinvite.v1.yaml
+  '/api/v1/orgs/{org_id}/sdkinvites/{sdkinvite_id}/qrcode':
     get:
       operationId: getSdkInviteQrCode
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: string
+                format: binary
           description: Successful response
       summary: getSdkInviteQrCode
       tags:
         - SDK Invites
         - Organization
+      description: Revoke SDK Invite
     parameters:
       - in: path
         name: org_id
@@ -9511,19 +9541,24 @@ paths:
         schema:
           type: string
     post:
-      description: |-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        email|string|Required. Email address
+      description: Send SDK Invite by Email
       operationId: sendSdkInviteEmail
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                email: test@abc.com
+              description: ''
               type: object
+              properties:
+                email:
+                  type: string
+                  minLength: 1
+              required:
+                - email
+            examples:
+              example-1:
+                value:
+                  email: test@abc.com
       responses:
         '200':
           content:
@@ -9546,19 +9581,24 @@ paths:
         schema:
           type: string
     post:
-      description: |-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        number|string|Required. Phone number
+      description: Send SDK Invite by SMS
       operationId: sendSdkInviteSms
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                number: '14081234567'
+              description: ''
               type: object
+              properties:
+                number:
+                  type: string
+                  minLength: 1
+              required:
+                - number
+            examples:
+              example-1:
+                value:
+                  number: '14081234567'
       responses:
         '200':
           content:
@@ -9576,32 +9616,37 @@ paths:
         schema:
           type: string
     post:
-      description: |-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        name|string|name for identification purpose
-        default|boolean|whether this is the default template when there are multiple templates
+      description: Create SDK Template
       operationId: createSdkTemplate
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                bg_image: 'http://p.imgci.com/db/PICTURES/CMS/227700/227791.4.jpg'
-                btn_flr_bgcolor: '#282828'
-                default: true
-                header_txt: Mist
-                name: default
-                search_txtcolor: '#282828'
-                welcome_msg: Welcome to Mist
-              type: object
+              $ref: ./models/sdktemplate.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.sdktemplate.v1.yaml
           description: Successful response
       summary: createSdkTemplate
+      tags:
+        - SDK Templates
+        - Organization
+    get:
+      summary: getSdkTemplates
+      operationId: getSdkTemplates
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.sdktemplate.v1.yaml
+      description: Get SDK Templates
       tags:
         - SDK Templates
         - Organization
@@ -9617,6 +9662,7 @@ paths:
       tags:
         - SDK Templates
         - Organization
+      description: Delete SDK Template
     parameters:
       - in: path
         name: org_id
@@ -9634,15 +9680,30 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                name: default
-              type: object
+              $ref: ./models/sdktemplate.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.sdktemplate.v1.yaml
           description: Successful response
       summary: updateSdkTemplate
+      tags:
+        - SDK Templates
+        - Organization
+      description: Update SDK Template
+    get:
+      summary: getSdkTemplateDetails
+      operationId: getSdkTemplateDetails
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./models/responses/response.sdktemplate.v1.yaml
+      description: Get SDK Template Details
       tags:
         - SDK Templates
         - Organization
@@ -11177,12 +11238,15 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/wlan.v1.yaml
           description: Successful response
       summary: getOrgWlanDerived
       tags:
         - Wlans
         - Organization
+      description: Get Org WLAN Derived
     parameters:
       - in: path
         name: org_id
