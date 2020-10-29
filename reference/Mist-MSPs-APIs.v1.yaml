@@ -1,0 +1,1402 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: tmunzer@juniper.net
+    name: Thomas Munzer
+  description: |
+    > *Version 0.2.5*
+    >
+    > Date: October 22th, 2020
+    >
+
+    *This is still a Work In Progress.*
+
+    --- 
+
+    #### Available Postman Envinronments
+    * [US Environment](https://documenter.getpostman.com/view/224925/SzYgQufe)
+    * [EU Environment](https://documenter.getpostman.com/view/11418445/TVCe28uT)
+
+    ---
+    #### Useful links
+    * [Mist Homepage](https://www.mist.com)
+    * [Mist Documentation](https://www.mist.com/documentation)
+    * [Official API Documentation](https://api.mist.com/api/v1/docs/Home) (Mist account required)
+    * [Mist Blog](https://www.mist.com/news/?md_post_type=post)
+    * [Mist Updates](https://www.mist.com/documentation/category/product-updates/)
+  title: Mist MSP API
+  version: 0.2.5
+servers:
+  - description: Mist AWS US
+    url: 'https://api.mist.com/api/v1/msps'
+  - description: Mist AWS EU
+    url: 'https://api.eu.mist.com/api/v1/msps'
+  - description: Mist GCP US
+    url: 'https://api.gc1.mist.com/api/v1/msps'
+paths: 
+  /api/v1/msps:
+    post:
+      summary: Create MSP
+      tags:
+        - MSP
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  name:
+                    type: string
+                    minLength: 1
+                  id:
+                    type: string
+                    minLength: 1
+                  created_time:
+                    type: number
+                  modified_time:
+                    type: number
+                required:
+                  - name
+                  - id
+                  - created_time
+                  - modified_time
+      operationId: createMsp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+              required:
+                - name
+            examples:
+              example-1:
+                value:
+                  name: MSP
+      description: Create MSP account
+   
+  '/{msp_id}':
+    delete:
+      description: |
+        Deleting MSP removes the MSP and OrgGroup under the MSP as well as all privileges associated with them. It does not remove any Org or Admins
+      operationId: deleteMsp
+      parameters:
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json: {}
+          description: Successful response
+      summary: deleteMsp
+      tags:
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+    put:
+      description: '"Update MSP"'
+      operationId: updateMsp
+      parameters:
+        - example: application/json
+          in: header
+          name: Accept
+          schema:
+            type: string
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+        - example: application/json
+          in: header
+          name: Content-Type
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+              required:
+                - name
+            examples:
+              example-1:
+                value:
+                  name: MSP
+      responses:
+        '200':
+          content:
+            application/json: {}
+          description: Successful response
+      summary: updateMsp
+      tags:
+        - MSP
+  '/{msp_id}/admins':
+    get:
+      description: Get MSP Admins
+      operationId: getMspAdmins
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                description: ''
+                minItems: 1
+                uniqueItems: true
+                items:
+                  $ref: ./models/admin.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    - admin_id: 456b7016-a916-a4b1-78dd-72b947c152b7
+                      first_name: Joe
+                      last_name: Smith
+                      email: jsmith@mycorp.org
+                      privileges:
+                        - scope: msp
+                          role: admin
+                        - scope: org
+                          org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                          role: admin
+                        - scope: orggroup
+                          orggroup_id: 507f1bab-13ba-73e2-f291-2bcb8d1362b0
+                          role: read
+                example-2:
+                  value:
+                    - admin_id: string
+                      first_name: string
+                      last_name: string
+                      email: userexample@email
+                      privileges:
+                        - scope: string
+                          org_id: string
+                          name: string
+                          role: string
+                          msp_id: string
+                          orggroup_ids:
+                            - string
+                          msp_name: string
+                          org_name: string
+                          site_id: string
+                          sitegroup_ids:
+                            - string
+          description: Successful response
+      summary: getMspAdmins
+      tags:
+        - Admins
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+  '/{msp_id}/admins/{admin_id}':
+    delete:
+      description: |
+        This removes all privileges this admin has against the MSP. This goes deep all the way to the sites
+      operationId: revokeMspAdmin
+      parameters:
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json: {}
+          description: Successful response
+      summary: revokeMspAdmin
+      tags:
+        - Admins
+        - MSP
+    get:
+      description: |-
+        #### Response Parameters
+        **Parameter**|**Type**|**Description** 
+        :-------------: |:-------------: |:-------------: 
+        admin_id|string|admin id
+        first_name|string|first name
+        last_name|string|last name
+        privileges|list|list of privileges the admin has on the MSP / Orgs / OrgGroups
+        scope|string|msp / org / orggroup
+        role|string|admin / write / read / helpdesk
+      operationId: getMspAdminDetails
+      responses:
+        '200':
+          content:
+            application/json: {}
+          description: Successful response
+      summary: getMspAdminDetails
+      tags:
+        - Admins
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: admin_id
+        required: true
+        schema:
+          type: string
+    put:
+      description: |-
+        #### Body Parameters
+        **Parameter**|**Type**|**Description** 
+        :-------------: |:-------------: |:-------------: 
+        first_name|string|first name
+        last_name|string|last name
+        privileges|list|list of privileges the admin has on the MSP / Orgs / OrgGroups
+        scope|string|msp / org / orggroup
+        role|string|admin / write / read / helpdesk
+      operationId: updateMspAdmin
+      parameters:
+        - example: application/json
+          in: header
+          name: Accept
+          schema:
+            type: string
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+        - example: application/json
+          in: header
+          name: Content-Type
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./models/admin.v1.yaml
+            examples:
+              example-1:
+                value:
+                  admin_id: string
+                  first_name: string
+                  last_name: string
+                  email: userexample@email
+                  privileges:
+                    - scope: string
+                      org_id: string
+                      name: string
+                      role: string
+                      msp_id: string
+                      orggroup_ids:
+                        - string
+                      msp_name: string
+                      org_name: string
+                      site_id: string
+                      sitegroup_ids:
+                        - string
+      responses:
+        '200':
+          content:
+            application/json: {}
+          description: Successful response
+      summary: updateMspAdmin
+      tags:
+        - Admins
+        - MSP
+  '/{msp_id}/inventory/{mac}':
+    get:
+      description: Get Inventoy By device MAC address
+      operationId: getMspInventoryByMac
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  serial:
+                    type: string
+                    minLength: 1
+                  model:
+                    type: string
+                    minLength: 1
+                  type:
+                    type: string
+                    minLength: 1
+                  mac:
+                    type: string
+                    minLength: 1
+                  org_id:
+                    type: string
+                    minLength: 1
+                  site_id:
+                    type: string
+                    minLength: 1
+                required:
+                  - serial
+                  - model
+                  - type
+                  - mac
+                  - org_id
+                  - site_id
+              examples:
+                example-1:
+                  value:
+                    serial: FXLH2015150025
+                    model: AP200
+                    type: ap
+                    mac: 5c5b35000018
+                    org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                    site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+          description: Successful response
+      summary: getMspInventoryByMac
+      tags:
+        - Inventory
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: mac
+        required: true
+        schema:
+          type: string
+  '/{msp_id}/invites':
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+    post:
+      description: |
+        #### Body Parameters
+        **Parameter**|**Type**|**Description** 
+        :-------------: |:-------------: |:-------------: 
+        email|string|email - admin_id is not exposed
+        name|string|name, used in the invitation text
+        privileges|list|list of privileges the admin has on the MSP / Orgs / OrgGroups
+        scope|string|msp / org / orggroup
+        role|string|admin / write / read
+        hours|int|optional, how long the invite should be valid, default is 1 day. Max is capped at 1 week.
+
+
+        Note: An email will also be sent to the user with a link to https://manage.mist.com/verify/invite?token=:token
+      operationId: inviteMspAdmin
+      parameters:
+        - example: application/json
+          in: header
+          name: Accept
+          schema:
+            type: string
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+        - example: application/json
+          in: header
+          name: Content-Type
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./models/admin.v1.yaml
+            examples:
+              example-1:
+                value:
+                  first_name: string
+                  last_name: string
+                  privileges:
+                    - scope: string
+                      org_id: string
+                      name: string
+                      role: string
+                      msp_id: string
+                      orggroup_ids:
+                        - string
+                      msp_name: string
+                      org_name: string
+                      site_id: string
+                      sitegroup_ids:
+                        - string
+                  email: user@example.com
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./models/responses/response.admin.v1.yaml
+          description: Successful response
+      summary: inviteMspAdmin
+      tags:
+        - Admins
+        - MSP
+  '/{msp_id}/invites/{invite_id}':
+    delete:
+      description: Delete admin invite
+      operationId: uninviteMspAdmin
+      parameters:
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json: {}
+          description: Successful response
+      summary: uninviteMspAdmin
+      tags:
+        - Admins
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: invite_id
+        required: true
+        schema:
+          type: string
+    put:
+      description: Update MSP admin invite
+      operationId: updateMspAdminInvite
+      parameters:
+        - example: application/json
+          in: header
+          name: Accept
+          schema:
+            type: string
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+        - example: application/json
+          in: header
+          name: Content-Type
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./models/admin.v1.yaml
+            examples:
+              example-1:
+                value:
+                  first_name: string
+                  last_name: string
+                  privileges:
+                    - scope: string
+                      org_id: string
+                      name: string
+                      role: string
+                      msp_id: string
+                      orggroup_ids:
+                        - string
+                      msp_name: string
+                      org_name: string
+                      site_id: string
+                      sitegroup_ids:
+                        - string
+                  email: user@example.com
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./models/responses/response.admin.v1.yaml
+          description: Successful response
+      summary: updateMspAdminInvite
+      tags:
+        - Admins
+        - MSP
+  '/{msp_id}/orggroups':
+    get:
+      description: Get MSP Org Groups
+      operationId: getMspOrgGroups
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                description: ''
+                minItems: 1
+                uniqueItems: true
+                items:
+                  $ref: ./models/responses/response.orggroup.v1.yaml
+          description: Successful response
+      summary: getMspOrgGroups
+      tags:
+        - Org Groups
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+    post:
+      description: Create MSP Org Group
+      operationId: createMspOrgGroup
+      parameters:
+        - example: application/json
+          in: header
+          name: Accept
+          schema:
+            type: string
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+        - example: application/json
+          in: header
+          name: Content-Type
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                name:
+                  $ref: ./models/orggroup.v1.yaml
+              required:
+                - name
+            examples:
+              example-1:
+                value:
+                  name:
+                    org_ids:
+                      - string
+                    name: string
+      responses:
+        '200':
+          content:
+            application/json: {}
+          description: Successful response
+      summary: createMspOrgGroup
+      tags:
+        - Org Groups
+        - MSP
+  '/{msp_id}/orggroups/{orggroup_id}':
+    delete:
+      description: Delete MSP Org Group
+      operationId: deleteMspOrgGroup
+      parameters:
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json: {}
+          description: Successful response
+      summary: deleteMspOrgGroup
+      tags:
+        - Org Groups
+        - MSP
+    get:
+      description: Get MSP Org Group Details
+      operationId: getMspOrgGroupDetails
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./models/responses/response.orggroup.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    org_ids:
+                      - string
+                    name: string
+                    id: string
+                    msp_id: string
+                    created_time: 0
+                    modified_time: 0
+          description: Successful response
+      summary: getMspOrgGroupDetails
+      tags:
+        - Org Groups
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: orggroup_id
+        required: true
+        schema:
+          type: string
+  '/{msp_id}/orgs':
+    get:
+      description: Get MSP Orgs
+      operationId: getMspOrgs
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                description: ''
+                minItems: 1
+                uniqueItems: true
+                items:
+                  $ref: ./models/responses/response.org.v1.yaml
+          description: Successful response
+      summary: getMspOrgs
+      tags:
+        - Org
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+    post:
+      description: Create MSP Org
+      operationId: createMspOrg
+      parameters:
+        - example: application/json
+          in: header
+          name: Accept
+          schema:
+            type: string
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+        - example: application/json
+          in: header
+          name: Content-Type
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./models/org.v1.yaml
+            examples:
+              example-1:
+                value:
+                  orggroup_ids:
+                    - string
+                  name: string
+                  allow_mist: true
+                  session_expiry: 0
+                  alarmtemplate_id: string
+      responses:
+        '200':
+          content:
+            application/json: {}
+          description: Successful response
+      summary: createMspOrg
+      tags:
+        - Org
+        - MSP
+    put:
+      description: |-
+        #### Body Parameters
+        **Parameter**|**Type**|**Description** 
+        :-------------: |:-------------: |:-------------: 
+        op|string|unassign
+        org_ids|list|list of org_id
+      operationId: unassignMspOrg
+      parameters:
+        - example: application/json
+          in: header
+          name: Accept
+          schema:
+            type: string
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+        - example: application/json
+          in: header
+          name: Content-Type
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                op:
+                  type: string
+                  minLength: 1
+                  enum:
+                    - assign
+                org_ids:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - op
+                - org_ids
+            examples:
+              example-1:
+                value:
+                  op: assign
+                  org_ids:
+                    - 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+        description: ''
+      responses:
+        '200':
+          content:
+            application/json: {}
+          description: Successful response
+      summary: unassignMspOrg
+      tags:
+        - Org
+        - MSP
+  '/{msp_id}/orgs/{org_id}':
+    get:
+      description: Get MSP Org Details
+      operationId: getMspOrgDetails
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./models/responses/response.org.v1.yaml
+          description: Successful response
+      summary: getMspOrgDetails
+      tags:
+        - Org
+        - Organization
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: org_id
+        required: true
+        schema:
+          type: string
+  '/{msp_id}/search':
+    get:
+      description: |-
+        #### Query Parameters
+        **Parameter**|**Type**|**Description** 
+        :-------------: |:-------------: |:-------------: 
+        type|string|orgs
+        q|string|search string
+      operationId: searchMspOrgGroup
+      parameters:
+        - example: orgs
+          in: query
+          name: type
+          schema:
+            type: string
+            enum:
+              - orgs
+          description: orgs
+          required: true
+        - example: '{{q}}'
+          in: query
+          name: q
+          schema:
+            type: string
+          description: search string
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limit
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  page:
+                    type: number
+                  limit:
+                    type: number
+                  total:
+                    type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required:
+                        - type
+                        - text
+                        - id
+                      properties:
+                        type:
+                          type: string
+                          minLength: 1
+                        text:
+                          type: string
+                          minLength: 1
+                        id:
+                          type: string
+                          minLength: 1
+                required:
+                  - page
+                  - limit
+                  - total
+                  - results
+              examples:
+                example-1:
+                  value:
+                    page: 0
+                    limit: 0
+                    total: 0
+                    results:
+                      - type: string
+                        text: string
+                        id: string
+          description: Successful response
+      summary: searchMspOrgGroup
+      tags:
+        - Org Groups
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+  '/{msp_id}/ssoroles':
+    get:
+      description: Get MSP SSO Roles
+      operationId: getMspSsoRoles
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.ssorole.v1.yaml
+          description: Successful response
+      summary: getMspSsoRoles
+      tags:
+        - SSO/SAML
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+    post:
+      description: |
+        #### Body Parameters
+        **Parameter**|**Type**|**Description** 
+        :-------------: |:-------------: |:-------------: 
+        name|string|name that would match the Role from SSO Login. unique per Org, maximum length is 32
+        privileges|list|see Authentication>Privileges
+      operationId: createMspSsoRole
+      parameters:
+        - example: application/json
+          in: header
+          name: Accept
+          schema:
+            type: string
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+        - example: application/json
+          in: header
+          name: Content-Type
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./models/ssorole.v1.yaml
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./models/responses/response.ssorole.v1.yaml
+          description: Successful response
+      summary: createMspSsoRole
+      tags:
+        - SSO/SAML
+        - MSP
+  '/{msp_id}/ssoroles/{ssorole_id}':
+    delete:
+      description: Delete MSP SSO Roles
+      operationId: deleteMspSsoRoles
+      parameters:
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json: {}
+          description: Successful response
+      summary: deleteMspSsoRoles
+      tags:
+        - SSO/SAML
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: ssorole_id
+        required: true
+        schema:
+          type: string
+    put:
+      description: |
+        #### Body Parameters
+        **Parameter**|**Type**|**Description** 
+        :-------------: |:-------------: |:-------------: 
+        name|string|name that would match the Role from SSO Login. unique per Org, maximum length is 32
+        privileges|list|see Authentication>Privileges
+      operationId: updateMspSsoRole
+      parameters:
+        - example: application/json
+          in: header
+          name: Accept
+          schema:
+            type: string
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+        - example: application/json
+          in: header
+          name: Content-Type
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./models/ssorole.v1.yaml
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./models/responses/response.ssorole.v1.yaml
+          description: Successful response
+      summary: updateMspSsoRole
+      tags:
+        - SSO/SAML
+        - MSP
+  '/{msp_id}/ssos':
+    get:
+      description: Get MSP SSO Config
+      operationId: getMspSso
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.sso.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    - name: string
+                      idp_cert: string
+                      idp_sso_url: string
+                      custom_logout_url: string
+                      nameid_format: string
+                      idp_sign_algo: string
+                      type: string
+                      issuer: string
+                      id: string
+                      msp_id: string
+                      org_id: string
+                      domain: string
+                      created_time: 0
+                      modified_time: 0
+          description: Successful response
+      summary: getMspSso
+      tags:
+        - SSO/SAML
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+    post:
+      description: |
+        #### Body Parameters
+        **Parameter**|**Type**|**Description** 
+        :-------------: |:-------------: |:-------------: 
+        name|string|name
+        issuer|string|IDP issuer URL
+        idp_cert|string|IDP Cert (used to verify the signed response)
+        idp_sso_url|string|IDP Single-Sign-On URL
+        idp_sign_algo|string|signing algorithm for SAML Assertion
+        nameid_format|string|email (default) / unspecified
+        ignore_unmatched_roles|boolean|ignore any unmatched roles provided in assertion. By default, an assertion is treated as invalid for any unmatched role
+        default_role|string|default role to assign if there’s no match. By default, an assertion is treated as invalid when there’s no role matched
+        custom_logout_url|string|optional, a URL we will redirect the user after user logout from Mist (for some IdP which supports a custom logout URL that is different from SP-initiated SLO process)
+      operationId: createMspSso
+      parameters:
+        - example: application/json
+          in: header
+          name: Accept
+          schema:
+            type: string
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+        - example: application/json
+          in: header
+          name: Content-Type
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./models/sso.v1.yaml
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./models/responses/response.sso.v1.yaml
+          description: Successful response
+      summary: createMspSso
+      tags:
+        - SSO/SAML
+        - MSP
+  '/{msp_id}/ssos/{sso_id}':
+    delete:
+      description: Delete MSP SSO Config
+      operationId: deleteMspSso
+      parameters:
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json: {}
+          description: Successful response
+      summary: deleteMspSso
+      tags:
+        - SSO/SAML
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: sso_id
+        required: true
+        schema:
+          type: string
+    put:
+      description: Update MSP SSO config
+      operationId: updateMspSso
+      parameters:
+        - example: application/json
+          in: header
+          name: Accept
+          schema:
+            type: string
+        - example: '{{csrftoken}}'
+          in: header
+          name: X-CSRFToken
+          schema:
+            type: string
+        - example: application/json
+          in: header
+          name: Content-Type
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                name: onelogin
+              type: object
+      responses:
+        '200':
+          content:
+            application/json: {}
+          description: Successful response
+      summary: updateMspSso
+      tags:
+        - SSO/SAML
+        - MSP
+  '/{msp_id}/ssos/{sso_id}/failures':
+    get:
+      description: Get MSP SSO Latest Failures
+      operationId: getMspSsoLatestFailures
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required:
+                        - timestamp
+                        - detail
+                        - saml_assertion_xml
+                      properties:
+                        timestamp:
+                          type: number
+                        detail:
+                          type: string
+                          minLength: 1
+                        saml_assertion_xml:
+                          type: string
+                          minLength: 1
+                required:
+                  - results
+              examples:
+                example-1:
+                  value:
+                    results:
+                      - timestamp: 0
+                        detail: string
+                        saml_assertion_xml: string
+          description: Successful response
+      summary: getMspSsoLatestFailures
+      tags:
+        - SSO/SAML
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: sso_id
+        required: true
+        schema:
+          type: string
+  '/{msp_id}/ssos/{sso_id}/metadata':
+    get:
+      description: Get MSP SSO SAML Metadata
+      operationId: getMspSsoSamlMetadata
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  acs_url:
+                    type: string
+                    minLength: 1
+                  logout_url:
+                    type: string
+                    minLength: 1
+                  metadata_xml:
+                    type: string
+                    minLength: 1
+                required:
+                  - acs_url
+                  - logout_url
+                  - metadata_xml
+              examples:
+                example-1:
+                  value:
+                    acs_url: 'https://api.mist.com/api/v1/saml/llDfa13f/login'
+                    logout_url: 'https://api.mist.com/api/v1/saml/llDfa13f/logout'
+                    metadata_xml: '<?xml version="1.0" encoding="UTF-8"?><md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://saml-llDfa13f.mist.com" validUntil="2027-10-12T21:59:01Z" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"><md:SPSSODescriptor AuthnRequestsSigned="false" WantAssertionsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"><md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat><md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="None" index="0" isDefault="true"/></md:SPSSODescriptor></md:EntityDescriptor>'
+          description: Successful response
+      summary: getMspSsoSamlMetadata
+      tags:
+        - SSO/SAML
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: sso_id
+        required: true
+        schema:
+          type: string
+  '/{msp_id}/ssos/{sso_id}/metadata.xml':
+    get:
+      description: Download MSP SSO SAML Metadata
+      operationId: downloadMspSsoSamlMetadata
+      responses:
+        '200':
+          description: OK
+          content:
+            application/xml:
+              schema:
+                type: object
+                properties: {}
+      summary: downloadMspSsoSamlMetadata
+      tags:
+        - SSO/SAML
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: sso_id
+        required: true
+        schema:
+          type: string
+  '/{msp_id}/stats/licenses':
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+    get:
+      description: Get MSP Licences
+      operationId: getMspOrgLicenses
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: ./models/responses/response.license.v1.yaml
+          description: Successful response
+      summary: createMsp
+      tags:
+        - MSP
+  '/{msp_id}/stats/orgs':
+    get:
+      description: Get MSP Orgs Stats
+      operationId: getMspOrgStats
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.org_stats.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    - orggroup_ids:
+                        - {}
+                      name: string
+                      id: string
+                      msp_id: string
+                      created_time: 0
+                      modified_time: 0
+                      allow_mist: true
+                      session_expiry: 0
+                      alarmtemplate_id: string
+                      num_sites: 0
+                      num_devices: 0
+                      num_inventory: 0
+                      num_devices_connected: 0
+                      num_devices_disconnected: 0
+                      sle:
+                        - path: string
+                          user_minutes:
+                            total: 0
+                            ok: 0
+          description: Successful response
+      summary: getMspOrgStats
+      tags:
+        - Org
+        - MSP
+    parameters:
+      - in: path
+        name: msp_id
+        required: true
+        schema:
+          type: string
+ 
+components:
+  schemas: {}
