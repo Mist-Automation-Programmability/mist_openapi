@@ -8810,7 +8810,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ./models/server_objects/response.mxtunnel.v1.yaml
+                $ref: ./models/responses/response.mxtunnel.v1.yaml
               examples:
                 example-1:
                   value:
@@ -8858,7 +8858,9 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.mxtunnel.v1.yaml
           description: Successful response
       summary: getOrgMxTunnelsDetails
       tags:
@@ -8882,13 +8884,13 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                name: HQ
-              type: object
+              $ref: ./models/common/mxtunnel.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.mxtunnel.v1.yaml
           description: Successful response
       summary: updateOrgMxTunnel
       tags:
@@ -8901,7 +8903,78 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/networktemplate.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    - name: string
+                      switch_mgmt:
+                        config_revert_timer: 0
+                      networks:
+                        vlan_id: 0
+                        subnet: string
+                        gateway: string
+                        dns:
+                          - string
+                        dns_suffix:
+                          - string
+                      radius_config:
+                        auth_servers_timeout: 0
+                        auth_servers_retries: 0
+                        auth_servers:
+                          - host: string
+                            port: 0
+                            secret: string
+                        acct_servers:
+                          - host: string
+                            secret: string
+                            port: 0
+                        acct_interim_interval: 0
+                      port_usages:
+                        '':
+                          mode: access
+                          all_networks: true
+                          stp_edge: true
+                          port_network: string
+                          mtu: 0
+                          networks:
+                            - string
+                          disabled: true
+                          description: string
+                          voip_network: string
+                          port_auth: string
+                          enable_mac_auth: true
+                          "bypass_auth_when_server_down\t": true
+                          guest_network: string
+                          speed: string
+                          duplex: half
+                          disable_autoneg: true
+                          mac_limit: 0
+                          poe_disabled: true
+                          storm_control:
+                            percentage: 0
+                            no_broadcast: true
+                            "no_unknown_unicast\t": true
+                            no_multicast: true
+                            no_registered_multicast: true
+                      switch_matching:
+                        enable: true
+                        rules:
+                          - name: string
+                            'match_name[0:3]': string
+                            match_model: string
+                            port_config:
+                              usage: string
+                              aggregated: true
+                              description: string
+                              dynamic_usage: true
+                            additional_config_cmds:
+                              - string
+                            match_role: string
           description: Successful response
       summary: getOrgNetworkTemplates
       tags:
@@ -8914,115 +8987,19 @@ paths:
         schema:
           type: string
     post:
-      description: |-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        name|string|The name of the RF template
-        country_code|string|optional, country code to use. If specified, this gets applied to all sites using the RF Template
-        model_specific|object|overwrites for a specific model. If a band is specified, it will shadow the default.
-        channels|list|list of channels, null or empty array means auto
-        bandwidth|int|channel width for the band, 20 / 40 / 80, 80 is only applicable for band_5
-        power|int|tx power of the radio, 0 mean auto
-        power_min|int|when power=0, min tx power to use, HW-specific values will be used if not set
-        power_max|int|when power=0, max tx power to use, HW-specific values will be used if not set
-        preamble|string|short / long / auto, default is short
+      description: Update Org Network Templates
       operationId: createOrgNetworkTemplate
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                name: xxx
-                networks:
-                  corp:
-                    vlan_id: 600
-                  default:
-                    vlan_id: 1
-                  guest:
-                    vlan_id: 700
-                  mgmt:
-                    vlan_id: 500
-                port_usages:
-                  ap:
-                    all_networks: false
-                    description: WAP
-                    disabled: false
-                    mode: trunk
-                    networks:
-                      - guest
-                      - corp
-                    port_network: mgmt
-                    stp_edge: true
-                  default:
-                    mode: access
-                    port_network: default
-                    stp_edge: false
-                  dynamic:
-                    mode: dynamic
-                    rules:
-                      - equals: SENSOR
-                        expression: '[0:3]'
-                        src: lldp_system_name
-                        usage: iot
-                      - equals: SENSOR
-                        expression: '[0:3]'
-                        src: radius_username
-                        usage: iot
-                  iot:
-                    mode: access
-                    port_network: default
-                    stp_edge: true
-                  uplink:
-                    all_networks: true
-                    mode: trunk
-                    port_network: null
-                    stp_edge: false
-                  user:
-                    bypass_auth_when_server_down: false
-                    enable_mac_auth: false
-                    guest_network: null
-                    mode: access
-                    port_auth: dot1x
-                    stp_edge: true
-                radius_config:
-                  acct_interim_interval: 0
-                  acct_servers:
-                    - host: 1.2.3.4
-                      port: 1812
-                      secret: testing123
-                  auth_servers:
-                    - host: 1.2.3.4
-                      port: 1812
-                      secret: testing123
-                    - host: radius.internal
-                      port: 1812
-                      secret: testing123
-                  auth_servers_retries: 3
-                  auth_servers_timeout: 5
-                switch_matching:
-                  enable: true
-                  rules:
-                    - match_model: EX4300
-                      'match_name[0:3]': abc
-                      name: match by name
-                      port_config:
-                        '*':
-                          usage: default
-                        ge-0/0/0:
-                          usage: uplink
-                        'ge-0/0/8-16,ge-1/0/0-47':
-                          usage: ap
-                    - match_role: access
-                      name: match by role
-                      port_config:
-                        ge-0/0/0:
-                          usage: uplink
-              type: object
+              $ref: ./models/networktemplate.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.networktemplate.v1.yaml
           description: Successful response
       summary: createOrgNetworkTemplate
       tags:
@@ -9040,58 +9017,15 @@ paths:
         required: true
         schema:
           type: string
-    post:
-      description: |-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        name|string|org name
-        session_expiry|int|how long the login session should last, in minutes, default is 1440 (24 hours), between 10 (min) and 20160 (2 weeks)
-        alarmtemplate_id|string|Alarm Template ID, the default Alarm Template to use for the Org, can be override by Site
-        orggroup_ids|list|list of OrgGroup ids
-        allow_mist|boolean|whether to allow Mist to look at this org, default is True
-      operationId: createOrg
-      parameters:
-        - example: application/json
-          in: query
-          name: Accept
-          schema:
-            type: string
-        - example: '{{csrftoken}}'
-          in: query
-          name: X-CSRFToken
-          schema:
-            type: string
-        - example: application/json
-          in: query
-          name: Content-Type
-          schema:
-            type: string
+    put:
+      description: Update Org Network Template
+      operationId: updateOrgNetworkTemplates
+      parameters: []
       requestBody:
         content:
           application/json:
             schema:
-              description: ''
-              type: object
-              properties:
-                alarmtemplate_id:
-                  type: string
-                  minLength: 1
-                allow_mist:
-                  type: boolean
-                name:
-                  type: string
-                  minLength: 1
-                orggroup_ids:
-                  type: array
-                session_expiry:
-                  type: number
-              required:
-                - alarmtemplate_id
-                - allow_mist
-                - name
-                - orggroup_ids
-                - session_expiry
+              $ref: ./models/networktemplate.v1.yaml
             examples:
               example-1:
                 value:
@@ -9104,20 +9038,56 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.networktemplate.v1.yaml
           description: Successful response
       summary: createOrg
       tags:
         - Org
-        - Organization
+        - Network Templates
+    get:
+      summary: ''
+      operationId: getOrgNetworkTemplateDetails
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./models/responses/response.networktemplate.v1.yaml
+      description: Get Org Network Templates Details
+      tags:
+        - Org
+        - Network Templates
   '/api/v1/orgs/{org_id}/ocdevices/outbound_ssh_cmd':
     get:
-      description: Get Org Juniper Devices command
+      description: |-
+        Get Org Juniper Devices command
+
+        Juniper devices can be managed/adopted by Mist. Currently outbound-ssh + netconf is used.
+        A few lines of CLI commands are generated per-Org, allowing the Juniper devices to phone home to Mist.
       operationId: getOrgJuniperDevicesCommand
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  cmd:
+                    type: string
+                    minLength: 1
+                required:
+                  - cmd
+              examples:
+                example-1:
+                  value:
+                    cmd: |-
+                      set system services ssh...
+                      ...
+                      set system services outbound-ssh client mist ...
           description: Successful response
       summary: getOrgJuniperDevicesCommand
       tags:
@@ -9131,7 +9101,7 @@ paths:
           type: string
   '/api/v1/orgs/{org_id}/psks':
     get:
-      description: Filter Org Psks
+      description: Get Org Psks
       operationId: filterOrgPsks
       parameters:
         - example: '{{psk_name}}'
@@ -9142,7 +9112,11 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.psk.v1.yaml
           description: Successful response
       summary: filterOrgPsks
       tags:
@@ -9155,25 +9129,19 @@ paths:
         schema:
           type: string
     post:
-      description: " #### Body Parameters\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n name|string|a name for the PSK\r\n passphrase|string|passphrase of the PSK (8-63 character or 64 in hex)\r\n ssid|string|SSID this PSK should be applicable to\r\n usage|string|multi (default) / single\r\n vlan_id|int|VLAN for this PSK key\r\n mac|string|if usage==single, the mac that this PSK ties to, empty if auto-binding"
+      description: Create Org PSK
       operationId: createOrgPsk
       requestBody:
         content:
           application/json:
             schema:
-              example: |-
-                {
-                    "name": "test_api",
-                    "passphrase": "foryoureyesonly",
-                    "ssid": "MLN",
-                    "usage": "multi",
-                    "vlan_id": 417
-                }
-              type: string
+              $ref: ./models/psk.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.psk.v1.yaml
           description: Successful response
       summary: createOrgPsk
       tags:
@@ -9187,50 +9155,41 @@ paths:
         schema:
           type: string
     post:
-      description: |-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        name|string|a name for the PSK
-        passphrase|string|passphrase of the PSK (8-63 character or 64 in hex)
-        ssid|string|SSID this PSK should be applicable to
-        usage|string|multi (default) / single
-        vlan_id|int|VLAN for this PSK key
-        mac|string|if usage==single, the mac that this PSK ties to, empty if auto-binding
+      description: |
+        Import PSK from CSV file
       operationId: importOrgPskJson
-      requestBody:
-        content:
-          application/json:
-            schema:
-              example: |-
-                [
-                    {
-                        "name": "Common",
-                        "ssid": "warehouse",
-                        "passphrase": "foryoureyesonly",
-                        "usage": "single",
-                        "vlan_id": 35,
-                        "mac": "a31425f31278"
-                    },
-                    {
-                        "name": "Justin",
-                        "ssid": "reception",
-                        "passphrase": "visible",
-                        "usage": "multi",
-                        "vlan_id": 1002,
-                        "mac": null
-                    }    
-                ]
-              type: string
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.psk.v1.yaml
           description: Successful response
       summary: importOrgPskJson
       tags:
         - PSKs
         - Organization
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: ./models/psk.v1.yaml
+        description: |-
+          PSK Import CSV File Format
+          name,ssid,passphrase,usage,vlan_id,mac
+          Common,warehouse,foryoureyesonly,single,35,a31425f31278
+          Justin,reception,visible,multi,1002,
   '/api/v1/orgs/{org_id}/psks/{psk_id}':
     delete:
       operationId: deleteOrgPsk
@@ -9243,17 +9202,21 @@ paths:
       tags:
         - PSKs
         - Organization
+      description: Delete Org PSK
     get:
       operationId: getOrgPskDetails
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.psk.v1.yaml
           description: Successful response
       summary: getOrgPskDetails
       tags:
         - PSKs
         - Organization
+      description: Get Org PSK Details
     parameters:
       - in: path
         name: org_id
@@ -9271,20 +9234,19 @@ paths:
         content:
           application/json:
             schema:
-              example: |-
-                {
-                    "vlan_id": 20
-                }
-              type: string
+              $ref: ./models/psk.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.psk.v1.yaml
           description: Successful response
       summary: updateOrgPsk
       tags:
         - PSKs
         - Organization
+      description: 'Update Org PSK '
   '/api/v1/orgs/{org_id}/rftemplates':
     get:
       operationId: getOrgRfTemplates
@@ -9297,6 +9259,7 @@ paths:
       tags:
         - RF Templates
         - Organization
+      description: Get Org RF Template
     parameters:
       - in: path
         name: org_id
