@@ -13,7 +13,7 @@ servers:
     url: 'https://api.eu.mist.com/api/v1/orgs'
   - description: Mist GCP US
     url: 'https://api.gc1.mist.com/api/v1/orgs'
-paths: 
+paths:
   '/{org_id}':
     delete:
       description: Delete Org
@@ -40,15 +40,7 @@ paths:
         schema:
           type: string
     put:
-      description: |-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        name|string|org name
-        session_expiry|int|how long the login session should last, in minutes, default is 1440 (24 hours), between 10 (min) and 20160 (2 weeks)
-        alarmtemplate_id|string|Alarm Template ID, the default Alarm Template to use for the Org, can be override by Site
-        orggroup_ids|list|list of OrgGroup ids
-        allow_mist|boolean|whether to allow Mist to look at this org, default is True
+      description: Update Organization
       operationId: updateOrg
       parameters:
         - example: application/json
@@ -70,29 +62,16 @@ paths:
         content:
           application/json:
             schema:
-              description: ''
-              type: object
-              properties:
-                name:
-                  type: string
-                  minLength: 1
-                session_expiry:
-                  type: number
-                alarmtemplate_id:
-                  type: string
-                  minLength: 1
-                orggroup_ids:
-                  type: array
-                  items:
-                    type: string
-                allow_mist:
-                  type: boolean
-              required:
-                - name
-                - session_expiry
-                - alarmtemplate_id
-                - orggroup_ids
-                - allow_mist
+              $ref: ../models/org.v1.yaml
+            examples:
+              example-1:
+                value:
+                  orggroup_ids:
+                    - string
+                  name: string
+                  allow_mist: true
+                  session_expiry: 0
+                  alarmtemplate_id: string
       responses:
         '200':
           content:
@@ -147,20 +126,7 @@ paths:
         - Organization
   '/{org_id}/admins':
     get:
-      description: |-
-        Get a list of people who can manage the Site/Org under the Org
-
-        #### Response Parameters
-        **Parameter**|**Type**|**Description** 
-        admin_id|string|admin id
-        first_name|string|first name
-        last_name|string|last name
-        privileges|list|list of privileges the admin has on the orgs/sites
-        scope|string|site / org / sitegroup
-        role|string|admin / write / read
-        site_id|string|site id
-        first_name|string|for a invite, this is the original name used
-        last_name|string|for a invite, this is the original name used
+      description: Get a list of people who can manage the Site/Org under the Org
       operationId: getOrgAdmins
       responses:
         '200':
@@ -172,53 +138,7 @@ paths:
                 minItems: 1
                 uniqueItems: true
                 items:
-                  type: object
-                  properties:
-                    invite_id:
-                      type: string
-                      minLength: 1
-                    email:
-                      type: string
-                      minLength: 1
-                    first_name:
-                      type: string
-                      minLength: 1
-                    last_name:
-                      type: string
-                      minLength: 1
-                    privileges:
-                      type: array
-                      uniqueItems: true
-                      minItems: 1
-                      items:
-                        type: object
-                        properties:
-                          scope:
-                            type: string
-                            minLength: 1
-                          site_id:
-                            type: string
-                            minLength: 1
-                          role:
-                            type: string
-                            minLength: 1
-                          sitegroup_id:
-                            type: string
-                          msp_id:
-                            type: string
-                        required:
-                          - scope
-                          - site_id
-                          - role
-                    expire_time:
-                      type: number
-                  required:
-                    - invite_id
-                    - email
-                    - first_name
-                    - last_name
-                    - privileges
-                    - expire_time
+                  $ref: ../models/responses/response.admin.v1.yaml
           description: Successful response
       summary: getOrgAdmins
       tags:
@@ -262,15 +182,7 @@ paths:
         schema:
           type: string
     put:
-      description: |-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        admin_id|string|admin id
-        privileges|list|list of privileges the admin has on the orgs/sites
-        scope|string|site / org / sitegroup
-        role|string|admin / write / read / helpdesk / none
-        site_id|string|site id
+      description: Update Admin
       operationId: updateOrgAdmin
       parameters:
         - example: application/json
@@ -292,49 +204,7 @@ paths:
         content:
           application/json:
             schema:
-              description: ''
-              type: object
-              properties:
-                invite_id:
-                  type: string
-                  minLength: 1
-                email:
-                  type: string
-                  minLength: 1
-                first_name:
-                  type: string
-                  minLength: 1
-                last_name:
-                  type: string
-                  minLength: 1
-                privileges:
-                  type: array
-                  uniqueItems: true
-                  minItems: 1
-                  items:
-                    required:
-                      - scope
-                      - site_id
-                      - role
-                    properties:
-                      scope:
-                        type: string
-                        minLength: 1
-                      site_id:
-                        type: string
-                        minLength: 1
-                      role:
-                        type: string
-                        minLength: 1
-                expire_time:
-                  type: number
-              required:
-                - invite_id
-                - email
-                - first_name
-                - last_name
-                - privileges
-                - expire_time
+              $ref: ../models/admin.v1.yaml
             examples:
               example-1:
                 value:
@@ -350,7 +220,9 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ../models/responses/response.admin.v1.yaml
           description: Successful response
       summary: updateOrgAdmin
       tags:
@@ -374,49 +246,51 @@ paths:
                     minItems: 1
                     items:
                       required:
-                        - id
-                        - timestamp
-                        - site_id
                         - type
                         - count
-                        - acked
-                        - acked_time
-                        - note
                       properties:
-                        id:
-                          type: string
-                          minLength: 1
-                        timestamp:
-                          type: number
-                        site_id:
-                          type: string
-                          minLength: 1
                         type:
                           type: string
                           minLength: 1
                         count:
                           type: number
-                        acked:
-                          type: boolean
-                        acked_time:
-                          type: number
-                        note:
-                          type: string
-                          minLength: 1
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  distinct:
+                    type: string
+                    minLength: 1
+                  total:
+                    type: number
+                  percentage:
+                    type: number
                 required:
                   - results
+                  - start
+                  - end
+                  - limit
+                  - distinct
+                  - total
+                  - percentage
               examples:
                 example-1:
                   value:
                     results:
-                      - id: string
-                        timestamp: 0
-                        site_id: string
-                        type: string
-                        count: 0
-                        acked: true
-                        acked_time: 0
-                        note: string
+                      - type: device_down
+                        count: 1
+                      - type: gateway_down
+                        count: 1
+                      - type: switch_down
+                        count: 1
+                    start: 1603882664.9144216
+                    end: 1603969064.914436
+                    limit: 10
+                    distinct: type
+                    total: 3
+                    percentage: 100
           description: Successful response
       summary: countOrgAlarms
       tags:
@@ -446,42 +320,61 @@ paths:
                     minItems: 1
                     items:
                       required:
-                        - id
-                        - timestamp
-                        - site_id
                         - type
                         - count
-                        - acked
-                        - acked_time
-                        - note
                       properties:
-                        id:
-                          type: string
-                          minLength: 1
-                        timestamp:
-                          type: number
-                        site_id:
-                          type: string
-                          minLength: 1
                         type:
                           type: string
                           minLength: 1
                         count:
                           type: number
-                        acked:
-                          type: boolean
-                        acked_time:
-                          type: number
-                        note:
-                          type: string
-                          minLength: 1
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  distinct:
+                    type: string
+                    minLength: 1
+                  total:
+                    type: number
+                  percentage:
+                    type: number
                 required:
                   - results
+                  - start
+                  - end
+                  - limit
+                  - distinct
+                  - total
+                  - percentage
           description: Successful response
       summary: searchOrgAlarms
       tags:
         - Alarms
         - Organization
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: type
+        - schema:
+            type: number
+          in: query
+          name: start
+        - schema:
+            type: number
+          in: query
+          name: end
+        - schema:
+            type: integer
+          in: query
+          name: page
+        - schema:
+            type: integer
+          in: query
+          name: limit
     parameters:
       - in: path
         name: org_id
@@ -495,6 +388,12 @@ paths:
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ''
       summary: getOrgAlarmTemplates
       tags:
         - Alarm Templates
@@ -6993,8 +6892,7 @@ paths:
       tags:
         - WXLAN Tunnels
         - Organization
-   
-tags:  
+tags:
   - name: Alarms
   - name: Asset
   - name: Asset Filters
@@ -7129,7 +7027,6 @@ tags:
   - name: Tickets
   - name: MSP
   - name: Org Groups
-
   - name: RF Template
   - name: Security Policies
   - name: Organization
