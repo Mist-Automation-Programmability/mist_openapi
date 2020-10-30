@@ -12388,12 +12388,17 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.wlan.v1.yaml
           description: Successful response
       summary: getOrgWlans
       tags:
         - Wlans
         - Organization
+      description: Get Org Wlans
     parameters:
       - in: path
         name: org_id
@@ -12401,58 +12406,19 @@ paths:
         schema:
           type: string
     post:
-      description: " #### Body Parameters \r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\nssid|string|the name of the SSID\r\nenabled|boolean|if this wlan is enabled, default is True\r\nauth|object|authentication/security policies\r\ntype|string|open / psk / wep / eap / psk-tkip / psk-wpa2-tkip, default is open\r\npairwise|list|when type=psk / eap, one of more of wpa2-ccmp / wpa1-tkip / wpa1-ccmp / wpa2-tkip, default is [wpa2-ccmp]\r\npsk|string|when type=psk, 8-64 characters, or 64 hex characters\r\nwep\\_as\\_secondary_auth|boolean|enable WEP as secondary auth\r\nkeys|list|when type=wep, four 10-character or 26-character hex string, null can be used. All keys, if provided, have to be in the same length\r\nkey_idx|int|when type=wep, 1 to 4, default is 1\r\nmulti\\_psk\\_only|boolean|whether to only use multi_psk, default is false\r\nprivate\\_wlan|boolean|whether private wlan is enabled. only applicable to multi_psk mode\r\nenable\\_mac\\_auth|boolean|whether to enable MAC Auth, uses the same auth_servers, default is false\r\neap_reauth|boolean|whether to trigger EAP reauth when the session ends, default is false\r\nroam_mode|string|none (default) / OKC / 11r\r\napply_to|string|site / wxtags / aps\r\nwxtag\\_ids|list|list of wxtag_ids\r\nap_ids|list|list of device ids\r\nband|string|which radio the wlan should apply to, both (default) / 24 / 5\r\nband\\_steer|boolean|whether to enable band_steering, this works only when band==both, default is false\r\nband\\_steer\\_force_band5|boolean|force dual-band capable client to connect to 5G, default is false\r\nisolation|boolean|whether to allow clients to talk to each other, defualt is false\r\narp_filter|boolean|whether to enable smart arp filter, default is false\r\nlimit_bcast|boolean|whether to list bcast (i.e. only allow certain bcast packets to go through), default is false\r\nallow\\_mdns|boolean|only applicable when limit_bcast==true, which allows mDNS / Bonjour packets to go through, default is false\r\nallow\\_ipv6\\_ndp|boolean|only applicable when limit_bcast==true, which allows or disallows ipv6 Neighbor Discovery packets to go through, default is true\r\nno\\_static_ip|boolean|whether to only allow client that we've learned from DHCP exchange to talk, default is false\r\nno\\_static_dns|boolean|whether to only allow client to use DNS that we've learned from DHCP response, default is false\r\nenable\\_wireless_bridging|boolean|whether to enable wireless bridging, which allows more broadcast packets to go through\r\nblock\\_blacklist_clients|boolean|whether to block the clients in the blacklist (up to first 256 macs)\r\nvlan_enabled|boolean|if vlan tagging is enabled, default is false\r\nvlan_id|int|Jan-94\r\nvlan_pooling|boolean|vlan pooling allows AP to place client on different VLAN using a deterministic algorithm, default is false\r\nvlan_ids|list|list of VLAN ids\r\nhide_ssid|boolean|whether to hide SSID in beacon, default is false\r\nschedule|object|WLAN operating schedule, default is disabled\r\nhours|object|time ranges, the key is mon / tue / wed / thu / fri / sat / sun, the value is time range in HH:MM-HH:MM (24-hour format), the minimum resolution is 30 minute\r\nmax_idletime|int|max idle time in seconds, default is 1800. valid range is 60-86400\r\nsle_excluded|boolean|whether to exclude this WLAN from SLE metrics, default is false\r\n\r\nNOTE: specifically, enable\\_wireless_bridging allows forwarding of DHCP response to client not associated with the AP\r\n\r\n #### RADIUS Parameters \r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\nName|Type|Description\r\nauth\\_servers\\_nas_id|string|optional, up to 48 bytes, will be dynamically generated if not provided. used only for authentication servers\r\nauth\\_servers\\_nas_ip|string|optional, NAS-IP-ADDRESS to use\r\nauth\\_servers_timeout|int|radius auth session timeout, default is 5\r\nauth\\_servers_retries|int|radius auth session retries, default is 3\r\nauth_servers|list|list of RADIUS authentication servers, at least one is needed if auth type == eap, order matters where the first one is treated as primary\r\nhost|string|ip / hostname of RADIUS server\r\nport|int|port of RADIUS server, default is 1812 for auth server and 1813 for acct server\r\nsecret|string|secret of RADIUS server\r\nacct_servers|list|list of RADIUS accounting servers, optional, order matters where the first one is treated as primary\r\nacct\\_interim_interval|int|how frequently should interim accounting be reported, 60-65535. default is 0 (use one specified in Access-Accept request from RADIUS Server). Very frequent messages can affect the performance of the radius server, 600 and up is recommended when enabled\r\ncoa_server|object|COA (change of authorization) server, optional\r\ndisable\\_event\\_timestamp_check|boolean|whether to disable Event-Timestamp Check, which is used to replay-protection, default is false (i.e. for better security)\r\ndynamic_vlan|object|for 802.1x\r\nenabled|boolean|whether to enable dynamic vlan, default is false\r\ntype|string|standard (using Tunnel-Private-Group-ID, widely supported), airespace-interface-name (Airespace/Cisco)\r\nvlans|object|map between vlan_id (as string) to airespace interface names (comma-separated) or null for stndard mapping\r\ndefault\\_vlan\\_id|int|vlan_id to use when there's no match from RADIUS, default is 999\r\nlocal\\_vlan\\_ids|list|vlan_ids to be locally bridged\r\nradsec|object|RadSec related, once enabled, auth\\_servers / acct\\_servers / coa_server will be ignored\r\nserver_name|string|name of the server to verify (against the cacerts in Org Setting)\r\ndns\\_server\\_rewrite|object|for radius_group-based DNS server (rewrite DNS request depending on the Group RADIUS server returns)\r\nradius\\_groups|object|map between radius_group and the desired DNS server (IPv4 only)\r\n\r\n#### Airwatch Parameters \r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\nairwatch|object|Airwatch related\r\nconsole_url|string|console URL\r\napi_key|string|API Key\r\nusername|string|username\r\npassword|string|password\r\n\r\n#### Cisco CWA Parameters \r\nCisco CWA (central web authentication) required RADIUS with COA in order to work. See CWA for more details.\r\n\r\n\r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\ncisco_cwa|object|Cisco CWA Related\r\nenabled|boolean|whether to enable CWA,\r\nallowed_subnets|list|list of CIDRs\r\nallowed_hostnames|list|list of hostnames without http(s):// (matched by substring)\r\n\r\n#### QoS Parameters \r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\noverwrite|boolean|whether to overwrite QoS\r\nclass|string|background / best_effort (default) / video / voice\r\n\r\n#### Data Tunnels Parameters \r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\ninterface|string|where this WLAN will be connected to. all (all external ports, default) / eth0 / eth1 / wxtunnel / mxtunnel / site_mxedge\r\nwxtunnel_id|string|when interface=wxtunnel, id of the WXLAN Tunnel\r\nwxtunnel_remote_id|string|when interface=wxtunnel, remote tunnel identifier\r\nmxtunnel_id|string|when interface=mxtunnel, id of the Mist Tunnel\r\n\r\n#### Others Parameters \r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\ndtim|int|dtim, default is 2\r\ndisable_wmm|boolean|whether to disable WMM, default is false\r\ndisable_uapsd|boolean|whether to disable U-APSD, default is false\r\nuse_eapol_v1|boolean|if auth.type=='eap' or 'psk', should only be set for legacy client, such as pre-2004, 802.11b devices\r\nlegacy_overds|boolean|legacy devices requires the Over-DS (for Fast BSS Transition) bit set (while our chip doesn't support it). Warning! Enabling this will cause problem for iOS devices.\r\nhostname_ie|boolean|include hostname inside IE in AP beacons / probe responses, default is false\r\n\r\n#### Data Rates Parameters \r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\nrateset|object|rateset (data rates to support)\r\nmin_rssi|int|Minimum RSSI for client to connect, 0 means not enforcing\r\ntemplate|string|no-legacy (basically no 11b and only supports 6 or 12 and up for 11a/g) / compatible (allow more, the default for now) / high-density (only 11n and 11ac) / custom\r\nlegacy|list|list of supported rates (IE=1) and extended supported rates (IE=50), append 'b' at the end to indicate it being basic/mandatory\r\nht|string|MCS bitmasks for 4 streams (16-bit for each stream, MCS0 is least significant bit), e.g.'00ff 00f0 001f'limits HT rates to MCS 0-7 for 1 stream, MCS 4-7 for 2 stream (i.e. MCS 12-15), MCS 1-5 for 3 stream (i.e. MCS 16-20)\r\nvht|string|MCS bitmasks for 4 streams (16-bit for each stream, MCS0 is least significant bit), e.g.'03ff 01ff 00ff'limits VHT rates to MCS 0-9 for 1 stream, MCS 0-8 for 2 streams, and MCS 0-7 for 3 streams.\r\ndisable_11ax|boolean|some old WLAN drivers may not be compatible , default is false\r\n\r\n#### Rate Limit Parameters \r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\nwlan_limit_up_enabled|boolean|if uplink limiting for whole wlan is enabled, default is false\r\nwlan_limit_up|int|kbps\r\nwlan_limit_down_enabled|boolean|if downlink limiting for whole wlan is enabled, default is false\r\nwlan_limit_down|int|kbps\r\nclient_limit_up_enabled|boolean|if uplink limiting per-client is enabled, default is false\r\nclient_limit_up|int|kbps\r\nclient_limit_down_enabled|boolean|if downlink limiting per-client is enabled, default is false\r\nclient_limit_down|int|kbps\r\napp_limit|object|bandwidth limiting for apps (applies to up/down)\r\napps|object|map from app key to bandwidth in kbps. app key defined in'Get Application List\r\nwxtag_ids|object|map from wxtag_id of Hostname Wxlan Tags to bandwidth in kbps"
+      description: Create Org Wlan
       operationId: createOrgWlan
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                acct_interim_interval: 600
-                acct_servers:
-                  - host: 1.2.3.4
-                    port: 1812
-                    secret: testing123
-                auth:
-                  enable_mac_auth: true
-                  multi_psk_only: false
-                  psk: foryoureyesonly
-                  type: psk
-                auth_servers:
-                  - host: 1.2.3.4
-                    port: 1812
-                    secret: testing123
-                  - host: radius.internal
-                    port: 1812
-                    secret: testing123
-                auth_servers_nas_id: 5c5b350e0101-nas
-                auth_servers_nas_ip: 15.3.1.5
-                auth_servers_retries: 3
-                auth_servers_timeout: 5
-                band: both
-                band_steer: false
-                band_steer_force_band5: false
-                coa_server:
-                  disable_event_timestamp_check: false
-                  enabled: true
-                  ip: 1.2.3.4
-                  port: 3799
-                  secret: testing456
-                dynamic_vlan:
-                  default_vlan_id: 999
-                  enabled: true
-                  type: standard
-                  vlans:
-                    '131': default
-                    '322': 'fast,video'
-                enabled: true
-                hide_ssid: false
-                ssid: corporate
-              type: object
+              $ref: ./models/wlan.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.wlan.v1.yaml
           description: Successful response
       summary: createOrgWlan
       tags:
@@ -12498,17 +12464,21 @@ paths:
       tags:
         - Wlans
         - Organization
+      description: Delete Org WLAN
     get:
       operationId: getOrgWLANDetails
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.wlan.v1.yaml
           description: Successful response
       summary: getOrgWLANDetails
       tags:
         - Wlans
         - Organization
+      description: Get Org Wlan Detail
     parameters:
       - in: path
         name: org_id
@@ -12526,20 +12496,19 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                auth:
-                  psk: foryoureyesonly
-                  type: psk
-              type: object
+              $ref: ./models/wlan.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.wlan.v1.yaml
           description: Successful response
       summary: updateOrgWlan
       tags:
         - Wlans
         - Organization
+      description: Update Org Wlan
   '/api/v1/orgs/{org_id}/wlans/{wlan_id}/portal_image':
     delete:
       operationId: deleteOrgWlanPortalImage
@@ -12552,6 +12521,7 @@ paths:
       tags:
         - Wlans
         - Organization
+      description: Delete Org WLAN Portal Image
     parameters:
       - in: path
         name: org_id
@@ -12564,18 +12534,8 @@ paths:
         schema:
           type: string
     post:
-      description: |-
-        #### Request
-        A multi-part POST
-
-        ```
-        "json": a JSON string describing your upload
-        "file": a binary file
-        ```
+      description: Upload Org WLAN Portal Image
       operationId: uploadOrgWlanPortalImage
-      requestBody:
-        content:
-          text/plain: {}
       responses:
         '200':
           content:
@@ -12585,6 +12545,19 @@ paths:
       tags:
         - Wlans
         - Organization
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                json:
+                  type: string
+                  description: JSON string describing your upload
+                file:
+                  type: string
+                  format: binary
+                  description: binary file
   '/api/v1/orgs/{org_id}/wlans/{wlan_id}/portal_template':
     parameters:
       - in: path
@@ -12598,120 +12571,19 @@ paths:
         schema:
           type: string
     put:
-      description: "Edit a Portal Template\r\n#### Body Parameters \r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\npageTitle|string|'Welcome'\r\nmessage|string|'Please enjoy the complimentary Wifi'\r\ncolor|string|'#1074bc'\r\ncolorDark|string|'#0b5183'\r\ncolorLight|string|'#3589c6'\r\nalignment|string|defines alignment on portal. 'left' is default.\r\npassphraseLabel|string|Passphrase\r\npassphraseError|string|error message when invalid passphrase is provided\r\ntos|boolean|default is true\r\ntosText|string|text of the Terms of Service\r\ntosAcceptLabel|string|prefix of the label of the link to go to /tos\r\ntosLink|string|label of the link to go to /tos\r\ntosError|string|error message when tos not accepted\r\nbackLink|string|label of the link to go back to /logon\r\nsignInLabel|string|label of the button to /signin\r\npoweredBy|string|\"whether to show 'Powered by Mist', default is true\"\r\nemail|boolean|\"whether email field is required, default is false\"\r\nemailLabel|string|label of email field\r\nemailError|string|error message when email not provided\r\nname|boolean|\"whether name field is required, default is false\"\r\nnameLabel|string|label of name field\r\nnameError|string|error message when name not provided\r\ncompany|boolean|\"whether company field is required, default is false\"\r\ncompanyLabel|string|label of company field\r\ncompanyError|string|error message when company not provided\r\nrequiredFieldLabel|string|label to denote required field\r\nfield1|boolean|whether to ask field1\r\nfield1Label|string|label of field1\r\nfield1Required|boolean|whether field1 is required field\r\nfield1Error|string|error message when field1 not provided\r\nfield2|boolean|whether to ask field2\r\nfield2Label|string|label of field2\r\nfield2Required|boolean|whether field2 is required field\r\nfield2Error|string|error message when field2 not provided\r\nfield3|boolean|whether to ask field3\r\nfield3Label|string|label of field3\r\nfield3Required|boolean|whether field3 is required field\r\nfield3Error|string|error message when field3 not provided\r\nfield4|boolean|whether to ask field4\r\nfield4Label|string|label of field4\r\nfield4Required|boolean|whether field4 is required field\r\nfield4Error|string|error message when field4 not provided\r\noptout|boolean|whether to display 'Do Not Store My Personal Information'\r\noptoutLabel|string|label for 'Do Not Store My Personal Information'\r\nauthButtonPassphrase|string|label for passphrase auth button\r\npassphraseTitle|string|Title for passphrase details page\r\npassphraseMessage|string|'Login using passphrase'\r\npassphraseSubmit|string|'Sign in'\r\npassphraseCancel|string|'Cancel'\r\nauthButtonGoogle|string|label for Google auth button\r\nauthButtonFacebook|string|label for Facebook auth button\r\nauthButtonSms|string|label for SMS auth button\r\nemailAccessDomainError|string|error message when a user has valid social login but doesn't match specified email domains.\r\nsmsNumberFieldLabel|string|label for field to provide mobile number\r\nsmsCarrierFieldLabel|string|label for mobile carrier drop-down list\r\nsmsNumberSubmit|string|label for submit button for code generation\r\nsmsNumberCancel|string|label for canceling mobile details for SMS auth\r\nsmsNumberTitle|string|Title for phone number details\r\nsmsCodeMessage|string|'Enter the confirmation code'\r\nsmsCodeFieldLabel|string|'Confirmation Code'\r\nsmsCodeSubmit|string|Label for confirmation code submit button\r\nsmsCodeCancel|string|Label for cancel confirmation code submission\r\nsmsCodeError|string|error message when confirmation code is invalid\r\nsmsHaveAccessCode|string|Label for checkbox to specify that the user has access code\r\nsmsValidityDuration|int|how long confirmation code should be considered valid (in minutes)\r\nsmsMessageFormat|string|format of access code sms message.'{{code}}'and'{{duration}}'are place holders and should be retained as is.\r\nsponsorEmail|string|label for Sponsor Email\r\nsponsorName|string|label for Sponsor Name\r\nsponsorSubmit|string|submit button label to notify sponsor about guest request\r\nsponsorStatusDenied|string|text to display when sponsor denies request\r\nsponsorStatusApproved|string|text to display if sponsor approves request\r\nsponsorStatusPending|string|text to display if request is still pending\r\nsponsorEmailError|string|'Please provide valid sponsor email'\r\nsponsorNameError|string|'Please provide sponsor's name'\r\nsponsorBackLink|string|'Go back and edit request form'\r\nsponsorCancel|string|'Cancel'\r\nsponsorInfoApproved|string|'Your request was approved by'\r\nsponsorInfoDenied|string|'Your request was denied by'\r\nsponsorInfoPending|string|'Your notification has been sent to'\r\nsponsorNotePending|string|'Please wait for them to acknowledge.'\r\nauthButtonSponsor|string|label for Sponsor auth button\r\nauthButtonAmazon|string|label for Amazon auth button\r\nauthButtonAzure|string|label for Azure auth button\r\nauthButtonEmail|string|label for Email auth button\r\nauthButtonMicrosoft|string|label for Microsoft auth button\r\nsmsCarrierDefault|string|'Please Select'\r\nsmsCarrierError|string|'Please select a mobile carrier'\r\nsmsCodeTitle|string|'Access Code'\r\nsmsCountryFieldLabel|string|'Country Code'\r\nsmsCountryFormat|string|'+1'\r\nsmsNumberError|string|'Invalid Mobile Number'\r\nsmsNumberFormat|string|'2125551212 (digits only)'\r\nsmsNumberMessage|string|'We will send an access code to your mobile number which you can use to connect to the WiFi network. Message and data rates may apply.'\r\nsmsUsernameFormat|string|'username'\r\naccessCodeAlternateEmail|string|'Use alternate email address'\r\nemailMessage|string|'We will email you an authentication code which you can use to connect to the WiFi network.'\r\nemailCodeError|string|'Please provide valid alternate email'\r\nemailCancel|string|'Cancel'\r\nemailFieldLabel|string|'Enter your email address'\r\nemailTitle|string|'Sign in with Email'\r\nemailSubmit|string|'Send Access Code'\r\nauthLabel|string|'Connect to WiFi with'"
+      description: Update Org WLAN Portal Template
       operationId: updateOrgWlanPortalTemplate
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                accessCodeAlternateEmail: Use alternate email address
-                alignment: left
-                authButtonAmazon: Sign in with Amazon
-                authButtonAzure: Sign in with Azure
-                authButtonEmail: Sign in with Email
-                authButtonFacebook: Sign in with Facebook
-                authButtonGoogle: Sign in with Google
-                authButtonMicrosoft: Sign in with Microsoft
-                authButtonPassphrase: Sign in with Passphrase
-                authButtonSms: Sign in with Text Message
-                authButtonSponsor: Sign in as Guest
-                authLabel: Connect to WIFI with
-                backLink: Back to Sign In
-                color: '#1074bc'
-                colorDark: '#0b5183'
-                colorLight: '#3589c6'
-                company: true
-                companyError: Please provide company name
-                companyLabel: Company
-                email: true
-                emailAccessDomainError: Access is restricted by email domain
-                emailCancel: Cancel
-                emailCodeError: Please provide valid alternate email
-                emailError: Please provide valid email
-                emailFieldLabel: Enter your email address
-                emailLabel: Email
-                emailMessage: We will email you an authentication code which you can use to connect to the WiFi network.
-                emailSubmit: Send Access Code
-                emailTitle: Sign in with Email
-                field1: true
-                field1Error: Please provide field1
-                field1Label: Custom1
-                field1Required: true
-                field2: true
-                field2Error: Please provide field2
-                field2Label: Custom1
-                field2Required: false
-                field3: true
-                field3Error: Please provide field3
-                field3Label: Custom1
-                field3Required: false
-                field4: true
-                field4Error: Please provide field4
-                field4Label: Custom1
-                field4Required: false
-                message: Please enjoy the complimentary Wifi
-                name: true
-                nameError: Please provide your name
-                nameLabel: Name
-                optout: false
-                optoutLabel: Do not store
-                pageTitle: Welcome
-                passphraseCancel: Cancel
-                passphraseError: Invalid Passphrase
-                passphraseLabel: Passphrase
-                passphraseMessage: Enter the secret passphrase to access the WiFi network.
-                passphraseSubmit: Sign In
-                passphraseTitle: Sign in with Passphrase
-                poweredBy: true
-                requiredFieldLabel: required
-                signInLabel: Sign In
-                smsCarrierDefault: Please Select
-                smsCarrierError: Please select a mobile carrier
-                smsCarrierFieldLabel: Mobile Carrier
-                smsCodeCancel: Cancel
-                smsCodeError: Invalid Access Code
-                smsCodeFieldLabel: Confirmation Code
-                smsCodeMessage: Enter the confirmation code
-                smsCodeSubmit: Sumbit Code
-                smsCodeTitle: Access Code
-                smsCountryFieldLabel: Country Code
-                smsCountryFormat: '+1'
-                smsHaveAccessCode: I have an access code
-                smsMessageFormat: 'Code {{code}} expires in {{duration}} minutes.'
-                smsNumberCancel: Cancel
-                smsNumberError: Invalid Mobile Number
-                smsNumberFieldLabel: Mobile Number
-                smsNumberFormat: 2125551212 (digits only)
-                smsNumberMessage: We will send an access code to your mobile number which you can use to connect to the WiFi network. Message and data rates may apply.
-                smsNumberSubmit: Sign In
-                smsNumberTitle: Text Message Confirmation
-                smsUsernameFormat: username
-                smsValidityDuration: 5
-                sponsorBackLink: Go back and edit request form
-                sponsorCancel: Cancel
-                sponsorEmail: Sponsor Email
-                sponsorEmailError: Please provide valid sponsor email
-                sponsorInfoApproved: Your request was approved by
-                sponsorInfoDenied: Your request was denied by
-                sponsorInfoPending: Your notification has been sent to
-                sponsorName: Sponsor Name
-                sponsorNameError: Please provide sponsor name
-                sponsorNotePending: Please wait for them to acknowledge.
-                sponsorStatusApproved: Your request was approved
-                sponsorStatusDenied: Your request was denied
-                sponsorStatusPending: Notification Sent
-                sponsorSubmit: Notify Sponsor
-                tos: true
-                tosAcceptLabel: I accept the Terms of Service
-                tosError: Please review and accept terms of service
-                tosLink: Terms of Service
-                tosText: terms of service
-              type: object
+              $ref: ./models/wlan_objects/wlan.portal_template.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/wlan_objects/wlan.portal_template.v1.yaml
           description: Successful response
       summary: updateOrgWlanPortalTemplate
       tags:
@@ -12723,12 +12595,17 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.wxlan_rule.v1.yaml
           description: Successful response
       summary: getOrgWxlanRules
       tags:
         - WXLAN Rules
         - Organization
+      description: Get Org WxRules
     parameters:
       - in: path
         name: org_id
@@ -12736,33 +12613,19 @@ paths:
         schema:
           type: string
     post:
-      description: " #### Body Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n name|string|The name of the rule\r\n enabled|boolean|enabled or not, default is true\r\n order|int|the order how rules would be looked up, > 0 and bigger order got matched first, -1 means LAST, uniqueness not checked\r\n src_wxtags|uuid|tag list to determine if this rule would match\r\n dst_allow_wxtags|uuid|tag list to indicate these tags are allowed access\r\n dst_deny_wxtags|uuid|tag list to indicate these tags are blocked access\r\n blocked_apps|string|blocked apps (always blocking, ignoring action), the key of Get Application List\r\n action|string|type of action, allow / block"
+      description: Create Org WxRule
       operationId: createOrgWxlanRule
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                action: allow
-                blocked_apps:
-                  - mist
-                  - all-videos
-                dst_allow_wxtags:
-                  - fff34466-eec0-3756-6765-381c728a6037
-                  - eee2c7b0-d1d0-5a30-f349-e35fa43dc3b3
-                dst_deny_wxtags:
-                  - aaa34466-eec0-3756-6765-381c728a6037
-                  - bbb2c7b0-d1d0-5a30-f349-e35fa43dc3b3
-                name: Guest
-                order: 1
-                src_wxtags:
-                  - 8bfc2490-d726-3587-038d-cb2e71bd2330
-                  - 3aa8e73f-9f46-d827-8d6a-567bb7e67fc9
-              type: object
+              $ref: ./models/wxlan_rule.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.wxlan_rule.v1.yaml
           description: Successful response
       summary: createOrgWxlanRule
       tags:
@@ -12774,12 +12637,15 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.wxlan_rule.v1.yaml
           description: Successful response
       summary: getOrgWxlanRulesDerived
       tags:
         - WXLAN Rules
         - Organization
+      description: Get Derived Org WxRule
     parameters:
       - in: path
         name: org_id
@@ -12798,17 +12664,21 @@ paths:
       tags:
         - WXLAN Rules
         - Organization
+      description: Delete Org WxRule
     get:
       operationId: getOrgWxlanRuleDetails
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.wxlan_rule.v1.yaml
           description: Successful response
       summary: getOrgWxlanRuleDetails
       tags:
         - WXLAN Rules
         - Organization
+      description: Get Org WxRule Details
     parameters:
       - in: path
         name: org_id
@@ -12826,18 +12696,19 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                name: Guest
-              type: object
+              $ref: ./models/wxlan_rule.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.wxlan_rule.v1.yaml
           description: Successful response
       summary: updateOrgWxlanRule
       tags:
         - WXLAN Rules
         - Organization
+      description: Update Org WxRule
   '/api/v1/orgs/{org_id}/wxtags':
     get:
       operationId: getOrgWxlanTags
