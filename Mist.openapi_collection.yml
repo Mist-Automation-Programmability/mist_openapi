@@ -12715,12 +12715,38 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.wxlan_tag.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    - type: match
+                      name: string
+                      match: wlan_id
+                      values:
+                        - string
+                      op: in
+                      resource_mac: string
+                      mac: string
+                      services:
+                        - string
+                      last_ips:
+                        - string
+                      subnet: string
+                      specs:
+                        - protocol: tcp
+                          subnet:
+                            - string
+                          port_range: string
           description: Successful response
       summary: getOrgWxlanTags
       tags:
         - WXLAN Tags
         - Organization
+      description: Get WxLAN Tags
     parameters:
       - in: path
         name: org_id
@@ -12728,23 +12754,19 @@ paths:
         schema:
           type: string
     post:
-      description: " #### Body Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n name|string|the name\r\n type|string|match / client / resource / subnet\r\n match|string|type of match, wlan_id / ap_id / client_mac / ip_range_subnet / radius_group / radius_username / radius_attr / hostname / app / port\r\n op|string|in / not_in, default is in\r\n values|list|list of values to match\r\n\r\n* type:\r\n * client: created manually (e.g. on wireless client table, when they spot a device of interest, they can create an wxlan tag for it\r\n * resource: created automatically when we discover a network resource\r\n * subnet: create automatically when a subnet is discovered\r\n* match:\r\n * wlan_id, ap_id: values are a list of Wlan / Device ids\r\n * client_mac: values are a list of MAC addresses\r\n* radius_group: this is a smart tag that matches RADIUS-Filter-ID, Airespace-ACL-Name (VendorID=14179, VendorType=6) / Aruba-User-Role (VendorID=14823, VendorType=1)\r\n* radius_username: this matches the ATTR-User-Name(1)\r\n* radius_class: thie matches the ATTR-Class(25)\r\n* radius_attr: the values are [ “6=1”, “26=10.2.3.4” ], this support other RADIUS attributes where we know the type\r\n* radius_vendor: the values are [ “14179.10=1”, “14178.16=1.2.3.4” ], this matches vendor attributes and will be dynamically evaluated"
+      description: Create WxLAN Tag
       operationId: createOrgWxlan
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                match: radius_group
-                name: VIP
-                type: match
-                values:
-                  - vip
-              type: object
+              $ref: ./models/wxlan_tag.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.wxlan_tag.v1.yaml
           description: Successful response
       summary: createOrgWxlan
       tags:
@@ -12756,12 +12778,40 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                description: ''
+                minItems: 1
+                uniqueItems: true
+                items:
+                  type: object
+                  required:
+                    - key
+                    - name
+                    - group
+                  properties:
+                    key:
+                      type: string
+                      minLength: 1
+                    name:
+                      type: string
+                      minLength: 1
+                    group:
+                      type: string
+                      minLength: 1
+              examples:
+                example-1:
+                  value:
+                    - key: gmail
+                      name: Gmail - web/app
+                      group: Emails
           description: Successful response
       summary: getOrgApplicationList
       tags:
         - WXLAN Tags
         - Organization
+      description: Get Application List
     parameters:
       - in: path
         name: org_id
@@ -12780,17 +12830,21 @@ paths:
       tags:
         - WXLAN Tags
         - Organization
+      description: Delete WxLAN Tag
     get:
       operationId: getOrgWxlanTagDetails
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.wxlan_tag.v1.yaml
           description: Successful response
       summary: getOrgWxlanTagDetails
       tags:
         - WXLAN Tags
         - Organization
+      description: Get WxLAN Tag Details
     parameters:
       - in: path
         name: org_id
@@ -12808,30 +12862,53 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                name: conference room
-              type: object
+              $ref: ./models/wxlan_tag.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.wxlan_tag.v1.yaml
           description: Successful response
       summary: updateOrgWxlan
       tags:
         - WXLAN Tags
         - Organization
+      description: Update WxLAN Tag
   '/api/v1/orgs/{org_id}/wxtags/{wxtag_id}/clients':
     get:
       operationId: getOrgCurrentMatchingClientsOfAWxlanTag
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                description: ''
+                minItems: 1
+                uniqueItems: true
+                items:
+                  type: object
+                  required:
+                    - mac
+                    - since
+                  properties:
+                    mac:
+                      type: string
+                      minLength: 1
+                    since:
+                      type: number
+              examples:
+                example-1:
+                  value:
+                    - mac: 5684dae9ac8b
+                      since: 1428939600
           description: Successful response
       summary: getOrgCurrentMatchingClientsOfAWxlanTag
       tags:
         - WXLAN Tags
         - Organization
+      description: Get Current Matching Clients of a WXLAN Tag
     parameters:
       - in: path
         name: org_id
@@ -12849,12 +12926,17 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.wxlan_tunnel.v1.yaml
           description: Successful response
       summary: getOrgWxlanTunnels
       tags:
         - WXLAN Tunnels
         - Organization
+      description: Get Org WxLAN Tunnels
     parameters:
       - in: path
         name: org_id
@@ -12862,35 +12944,19 @@ paths:
         schema:
           type: string
     post:
-      description: " #### Body Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n name|string|The name of the tunnel\r\n peers|list|list of remote peers’ IP or hostname\r\n is_static|boolean|whether it’s static/unmanaged (i.e. no control session), default is False. As the session configurations are not compatible, cannot be toggled.\r\n secret|string|secret, ‘’ if no auth is used\r\n use_udp|boolean|whether to use UDP instead of IP (proto=115, which is default of L2TPv3). Default is false\r\n udp_port|int|udp port if use_udp=true\r\n hello_interval|float|in seconds, used as heartbeat to detect if a tunnel is alive. AP will try another peer after missing N hellos specified by hello_retries. between 1 and 300, default is 60 seconds\r\n hello_retries|int|between 2 and 30, default is 7\r\n mtu|int|0 to enable PMTU, 552-1500 to start PMTU with a lower MTU, default is 0\r\n router_id|string|optional, overwrite the router-id in SCCRQ control message, default is “0” or null, can also be an IPv4 address\r\n hostname|string|optional, overwrite the hostname in SCCRQ control message, default is “” or null, %H and %M can be used, which will be replace with corresponding values. %H: name of the ap if provided (and will be stripped so it can be used for hostname) and fallbacks to MAC, %M: MAC (e.g. 5c5b350e0060)\r\n for_mgmt|boolean|default is false, determined during creation time and cannot be toggled. A management tunnel cannot be used by wxlan rule or by wlan\r\n sessions|list|sessions to be established with the tunnel. Has to be >= 1 in order for this tunnel to be useful. For management tunnel, it can only have 1\r\n remote_id|string|remote-id of the session, has to be unique in the same tunnel\r\n ethertype|string|ethernet / vlan, default is ethernet\r\n use_ap_as_session_ids|boolean|whether to use AP (last 4 bytes of MAC currently) as session ids, default is false.\r\n ap_session_id|string|if use_ap_as_session_ids=true, only apmac is supported right now. This is the name WLAN should use for wxtunnel_remote_id\r\n remote_session_id|int|1-4294967295\r\n local_session_id|int|1-4294967295\r\n pseudo_8021ad_enabled|boolean|optional, default is False. Enables the pseudo 802.1ad QinQ mode where the AP device drops the outer vlan tag (QinQ). This mode is useful when tunneling Mist AP’s to some aggregation routers.\r\n comment|string|optional, user-specified string for display purpose\r\n dmvpn|object|Dynamic Multipoint VPN configurations\r\n enabled|boolean|whether DMVPN is enabled (default is false)\r\n host_routes|list|optional; list of IPv4 DMVPN peer host ip-addresses to which traffic is forwarded\r\n holding_time|int|optional; the holding time for NHRP ‘registration requests’ and ‘resolution replies’ sent from the Mist AP (in seconds); default 600\r\n ipsec|object|IPSec-related configurations; requires DMVPN be enabled\r\n enabled|boolean|whether ipsec is enabled (default is false); requires DMVPN be enabled\r\n psk|boolean|ipsec pre-shared key"
+      description: Create Org WxAN Tunnel
       operationId: createOrgWxlanTunnel
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                for_mgmt: false
-                hello_interval: 60
-                hello_retries: 3
-                hostname: ''
-                is_static: false
-                mtu: 0
-                name: HQ
-                peers:
-                  - 63.3.2.4
-                router_id: '0'
-                secret: secret used for tunnel
-                sessions:
-                  - comment: something about this session
-                    ethertype: ethernet
-                    remote_id: vpn1
-                udp_port: 1701
-                use_udp: true
-              type: object
+              $ref: ./models/wxlan_tunnel.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.wxlan_tunnel.v1.yaml
           description: Successful response
       summary: createOrgWxlanTunnel
       tags:
@@ -12908,17 +12974,21 @@ paths:
       tags:
         - WXLAN Tunnels
         - Organization
+      description: Delete Org WxLAN Tunnel
     get:
       operationId: getOrgWxlanTunnelDetails
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.wxlan_tunnel.v1.yaml
           description: Successful response
       summary: getOrgWxlanTunnelDetails
       tags:
         - WXLAN Tunnels
         - Organization
+      description: Get Org WxLAN Tunnel Details
     parameters:
       - in: path
         name: org_id
@@ -12936,18 +13006,19 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                name: HQ
-              type: object
+              $ref: ./models/wxlan_tunnel.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.wxlan_tunnel.v1.yaml
           description: Successful response
       summary: updateOrgWxlanTunnel
       tags:
         - WXLAN Tunnels
         - Organization
+      description: Update Org WxLAN Tunnel
   '/api/v1/sites/{site_id}':
     delete:
       operationId: deleteSite
@@ -12960,7 +13031,17 @@ paths:
       tags:
         - Site
     get:
-      description: " #### Response Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n name|string|Required. The name of the site\r\n timezone|string|Timezone the site is at\r\n country_code|string|country code for the site (for AP config generation), in two-character\r\n latlng|latlng|site location\r\n address|string|full address of the site\r\n lat|float|latitude\r\n lng|float|longitude"
+      description: |2-
+         #### Response Parameter
+        **Parameter**|**Type**|**Description** 
+         :-------------: |:-------------: |:-------------: 
+         name|string|Required. The name of the site
+         timezone|string|Timezone the site is at
+         country_code|string|country code for the site (for AP config generation), in two-character
+         latlng|latlng|site location
+         address|string|full address of the site
+         lat|float|latitude
+         lng|float|longitude
       operationId: getSiteInfo
       responses:
         '200':
