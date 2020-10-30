@@ -9713,12 +9713,20 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                description: ''
+                minItems: 1
+                uniqueItems: true
+                items:
+                  $ref: ./models/responses/response.secpolicy.v1.yaml
           description: Successful response
       summary: getOrgSecurityPolicies
       tags:
         - Security Policy
         - Organization
+      description: Get Org Security Policies
     parameters:
       - in: path
         name: org_id
@@ -9726,31 +9734,501 @@ paths:
         schema:
           type: string
     post:
-      description: "#### Body Parameters \r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\nssid|string|the name of the SSID\r\nenabled|boolean|if this wlan is enabled, default is True\r\nauth|object|authentication/security policies\r\ntype|string|open / psk / wep / eap / psk-tkip / psk-wpa2-tkip, default is open\r\npairwise|list|when type=psk / eap, one of more of wpa2-ccmp / wpa1-tkip / wpa1-ccmp / wpa2-tkip, default is [wpa2-ccmp]\r\npsk|string|when type=psk, 8-64 characters, or 64 hex characters\r\nwep\\_as\\_secondary_auth|boolean|enable WEP as secondary auth\r\nkeys|list|when type=wep, four 10-character or 26-character hex string, null can be used. All keys, if provided, have to be in the same length\r\nkey_idx|int|when type=wep, 1 to 4, default is 1\r\nmulti\\_psk\\_only|boolean|whether to only use multi_psk, default is false\r\nprivate\\_wlan|boolean|whether private wlan is enabled. only applicable to multi_psk mode\r\nenable\\_mac\\_auth|boolean|whether to enable MAC Auth, uses the same auth_servers, default is false\r\neap_reauth|boolean|whether to trigger EAP reauth when the session ends, default is false\r\nroam_mode|string|none (default) / OKC / 11r\r\napply_to|string|site / wxtags / aps\r\nwxtag\\_ids|list|list of wxtag_ids\r\nap_ids|list|list of device ids\r\nband|string|which radio the wlan should apply to, both (default) / 24 / 5\r\nband\\_steer|boolean|whether to enable band_steering, this works only when band==both, default is false\r\nband\\_steer\\_force_band5|boolean|force dual-band capable client to connect to 5G, default is false\r\nisolation|boolean|whether to allow clients to talk to each other, defualt is false\r\narp_filter|boolean|whether to enable smart arp filter, default is false\r\nlimit_bcast|boolean|whether to list bcast (i.e. only allow certain bcast packets to go through), default is false\r\nallow\\_mdns|boolean|only applicable when limit_bcast==true, which allows mDNS / Bonjour packets to go through, default is false\r\nallow\\_ipv6\\_ndp|boolean|only applicable when limit_bcast==true, which allows or disallows ipv6 Neighbor Discovery packets to go through, default is true\r\nno\\_static_ip|boolean|whether to only allow client that we've learned from DHCP exchange to talk, default is false\r\nno\\_static_dns|boolean|whether to only allow client to use DNS that we've learned from DHCP response, default is false\r\nenable\\_wireless_bridging|boolean|whether to enable wireless bridging, which allows more broadcast packets to go through\r\nblock\\_blacklist_clients|boolean|whether to block the clients in the blacklist (up to first 256 macs)\r\nvlan_enabled|boolean|if vlan tagging is enabled, default is false\r\nvlan_id|int|Jan-94\r\nvlan_pooling|boolean|vlan pooling allows AP to place client on different VLAN using a deterministic algorithm, default is false\r\nvlan_ids|list|list of VLAN ids\r\nhide_ssid|boolean|whether to hide SSID in beacon, default is false\r\nschedule|object|WLAN operating schedule, default is disabled\r\nhours|object|time ranges, the key is mon / tue / wed / thu / fri / sat / sun, the value is time range in HH:MM-HH:MM (24-hour format), the minimum resolution is 30 minute\r\nmax_idletime|int|max idle time in seconds, default is 1800. valid range is 60-86400\r\nsle_excluded|boolean|whether to exclude this WLAN from SLE metrics, default is false\r\n\r\nNOTE: specifically, enable\\_wireless_bridging allows forwarding of DHCP response to client not associated with the AP\r\n\r\n #### RADIUS Parameters \r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\nName|Type|Description\r\nauth\\_servers\\_nas_id|string|optional, up to 48 bytes, will be dynamically generated if not provided. used only for authentication servers\r\nauth\\_servers\\_nas_ip|string|optional, NAS-IP-ADDRESS to use\r\nauth\\_servers_timeout|int|radius auth session timeout, default is 5\r\nauth\\_servers_retries|int|radius auth session retries, default is 3\r\nauth_servers|list|list of RADIUS authentication servers, at least one is needed if auth type == eap, order matters where the first one is treated as primary\r\nhost|string|ip / hostname of RADIUS server\r\nport|int|port of RADIUS server, default is 1812 for auth server and 1813 for acct server\r\nsecret|string|secret of RADIUS server\r\nacct_servers|list|list of RADIUS accounting servers, optional, order matters where the first one is treated as primary\r\nacct\\_interim_interval|int|how frequently should interim accounting be reported, 60-65535. default is 0 (use one specified in Access-Accept request from RADIUS Server). Very frequent messages can affect the performance of the radius server, 600 and up is recommended when enabled\r\ncoa_server|object|COA (change of authorization) server, optional\r\ndisable\\_event\\_timestamp_check|boolean|whether to disable Event-Timestamp Check, which is used to replay-protection, default is false (i.e. for better security)\r\ndynamic_vlan|object|for 802.1x\r\nenabled|boolean|whether to enable dynamic vlan, default is false\r\ntype|string|standard (using Tunnel-Private-Group-ID, widely supported), airespace-interface-name (Airespace/Cisco)\r\nvlans|object|map between vlan_id (as string) to airespace interface names (comma-separated) or null for stndard mapping\r\ndefault\\_vlan\\_id|int|vlan_id to use when there's no match from RADIUS, default is 999\r\nlocal\\_vlan\\_ids|list|vlan_ids to be locally bridged\r\nradsec|object|RadSec related, once enabled, auth\\_servers / acct\\_servers / coa_server will be ignored\r\nserver_name|string|name of the server to verify (against the cacerts in Org Setting)\r\ndns\\_server\\_rewrite|object|for radius_group-based DNS server (rewrite DNS request depending on the Group RADIUS server returns)\r\nradius\\_groups|object|map between radius_group and the desired DNS server (IPv4 only)\r\n\r\n#### Airwatch Parameters \r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\nairwatch|object|Airwatch related\r\nconsole_url|string|console URL\r\napi_key|string|API Key\r\nusername|string|username\r\npassword|string|password\r\n\r\n#### Cisco CWA Parameters \r\nCisco CWA (central web authentication) required RADIUS with COA in order to work. See CWA for more details.\r\n\r\n\r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\ncisco_cwa|object|Cisco CWA Related\r\nenabled|boolean|whether to enable CWA,\r\nallowed_subnets|list|list of CIDRs\r\nallowed_hostnames|list|list of hostnames without http(s):// (matched by substring)\r\n\r\n#### QoS Parameters \r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\noverwrite|boolean|whether to overwrite QoS\r\nclass|string|background / best_effort (default) / video / voice\r\n\r\n#### Data Tunnels Parameters \r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\ninterface|string|where this WLAN will be connected to. all (all external ports, default) / eth0 / eth1 / wxtunnel / mxtunnel / site_mxedge\r\nwxtunnel_id|string|when interface=wxtunnel, id of the WXLAN Tunnel\r\nwxtunnel_remote_id|string|when interface=wxtunnel, remote tunnel identifier\r\nmxtunnel_id|string|when interface=mxtunnel, id of the Mist Tunnel\r\n\r\n#### Others Parameters \r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\ndtim|int|dtim, default is 2\r\ndisable_wmm|boolean|whether to disable WMM, default is false\r\ndisable_uapsd|boolean|whether to disable U-APSD, default is false\r\nuse_eapol_v1|boolean|if auth.type=='eap' or 'psk', should only be set for legacy client, such as pre-2004, 802.11b devices\r\nlegacy_overds|boolean|legacy devices requires the Over-DS (for Fast BSS Transition) bit set (while our chip doesn't support it). Warning! Enabling this will cause problem for iOS devices.\r\nhostname_ie|boolean|include hostname inside IE in AP beacons / probe responses, default is false\r\n\r\n#### Data Rates Parameters \r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\nrateset|object|rateset (data rates to support)\r\nmin_rssi|int|Minimum RSSI for client to connect, 0 means not enforcing\r\ntemplate|string|no-legacy (basically no 11b and only supports 6 or 12 and up for 11a/g) / compatible (allow more, the default for now) / high-density (only 11n and 11ac) / custom\r\nlegacy|list|list of supported rates (IE=1) and extended supported rates (IE=50), append 'b' at the end to indicate it being basic/mandatory\r\nht|string|MCS bitmasks for 4 streams (16-bit for each stream, MCS0 is least significant bit), e.g.'00ff 00f0 001f'limits HT rates to MCS 0-7 for 1 stream, MCS 4-7 for 2 stream (i.e. MCS 12-15), MCS 1-5 for 3 stream (i.e. MCS 16-20)\r\nvht|string|MCS bitmasks for 4 streams (16-bit for each stream, MCS0 is least significant bit), e.g.'03ff 01ff 00ff'limits VHT rates to MCS 0-9 for 1 stream, MCS 0-8 for 2 streams, and MCS 0-7 for 3 streams.\r\ndisable_11ax|boolean|some old WLAN drivers may not be compatible , default is false\r\n\r\n#### Rate Limit Parameters \r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\nwlan_limit_up_enabled|boolean|if uplink limiting for whole wlan is enabled, default is false\r\nwlan_limit_up|int|kbps\r\nwlan_limit_down_enabled|boolean|if downlink limiting for whole wlan is enabled, default is false\r\nwlan_limit_down|int|kbps\r\nclient_limit_up_enabled|boolean|if uplink limiting per-client is enabled, default is false\r\nclient_limit_up|int|kbps\r\nclient_limit_down_enabled|boolean|if downlink limiting per-client is enabled, default is false\r\nclient_limit_down|int|kbps\r\napp_limit|object|bandwidth limiting for apps (applies to up/down)\r\napps|object|map from app key to bandwidth in kbps. app key defined in'Get Application List\r\nwxtag_ids|object|map from wxtag_id of Hostname Wxlan Tags to bandwidth in kbps"
+      description: Create Org Security Policy
       operationId: createOrgSecurityPolicies
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                name: corporate only
-                wlans:
-                  - auth:
-                      pairwise:
-                        - wpa1-tkip
-                        - wpa2-tkip
-                      type: psk
-                    band: both
-                    ssid: office
-                  - auth:
-                      type: open
-                    band: '5'
-                    ssid: office-guest
-              type: object
+              $ref: ./models/secpoliciy.v1.yaml
+            examples:
+              example-1:
+                value:
+                  name: string
+                  wlans:
+                    - ssid: string
+                      enabled: true
+                      auth:
+                        type: string
+                        psk: string
+                        enable_mac_auth: true
+                        multi_psk_only: true
+                        pairwise:
+                          - string
+                        wep_as_secondary_auth: true
+                        keys:
+                          - string
+                        key_idx: 0
+                        eap_reauth: true
+                        owe: string
+                        private_wlan: true
+                      dynamic_psk:
+                        enabled: true
+                      roam_mode: string
+                      auth_servers_nas_id: string
+                      auth_servers_nas_ip: string
+                      auth_servers_timeout: 0
+                      auth_servers_retries: 0
+                      auth_server_selection: string
+                      auth_servers:
+                        - host: string
+                          port: 0
+                          secret: string
+                      acct_servers:
+                        - host: string
+                          secret: string
+                          port: 0
+                      acct_interim_interval: 0
+                      dynamic_vlan:
+                        enabled: true
+                        type: string
+                        vlans:
+                          - {}
+                        default_vlan_id: 0
+                        local_vlan_ids:
+                          - 0
+                      dns_server_rewrite:
+                        enabled: true
+                        radius_groups: {}
+                      coa_servers:
+                        - enabled: true
+                          ip: string
+                          port: 0
+                          secret: string
+                          disable_event_timestamp_check: true
+                      radsec:
+                        enabled: true
+                        server_name: string
+                        servers:
+                          - host: string
+                            port: 0
+                      airwatch:
+                        enabled: true
+                        console_url: string
+                        api_key: string
+                        username: string
+                        password: string
+                      cisco_cwa:
+                        enabled: true
+                        allowed_subnets:
+                          - string
+                        allowed_hostnames:
+                          - string
+                      band: string
+                      band_steer: true
+                      band_steer_force_band5: true
+                      rateset:
+                        '5':
+                          min_rssi: 0
+                          template: string
+                          legacy:
+                            - string
+                          ht: string
+                          vht: string
+                        '24':
+                          min_rssi: 0
+                          template: string
+                          legacy:
+                            - string
+                          ht: string
+                          vht: string
+                      disable_11ax: true
+                      interface: string
+                      vlan_enabled: true
+                      vlan_id: 1
+                      vlan_pooling: true
+                      vlan_ids:
+                        - 0
+                      wxtunnel_id: string
+                      wxtunnel_remote_id: string
+                      mxtunneL_id: string
+                      hide_ssid: true
+                      dtim: 0
+                      disable_wmm: true
+                      disable_uapsd: true
+                      legacy_overds: true
+                      hostname_ie: true
+                      isolation: true
+                      arp_filter: true
+                      limit_bcast: true
+                      allow_mdns: true
+                      allow_ipv6_ndp: true
+                      no_static_ip: true
+                      no_static_dns: true
+                      enable_wireless_bridging: true
+                      limit_probe_response: true
+                      block_blacklist_clients: true
+                      apply_to: string
+                      wxtag_ids:
+                        - string
+                      ap_ids:
+                        - string
+                      wlan_limit_up_enabled: true
+                      wlan_limit_up: 0
+                      wlan_limit_down_enabled: true
+                      wlan_limit_down: 0
+                      client_limit_up_enabled: true
+                      client_limit_up: 0
+                      client_limit_down_enabled: true
+                      client_limit_down: 0
+                      schedule:
+                        enabled: true
+                        hours: {}
+                      qos:
+                        overwrite: true
+                        class: string
+                      app_limit:
+                        enabled: true
+                        apps: {}
+                        wxtag_ids: {}
+                      app_qos:
+                        enabled: true
+                        apps:
+                          skype-business-voice:
+                            dscp: 0
+                          skype-business-video:
+                            dscp: 0
+                            src_subnet: string
+                            dst_subnet: string
+                        others:
+                          - protocol: string
+                            src_subnet: string
+                            dst_subnet: string
+                            port_ranges: string
+                            dscp: 0
+                      bonjour:
+                        enabled: true
+                        services:
+                          $service_name:
+                            scope: string
+                            disable_local: true
+                            radius_groups:
+                              - string
+                        additional_vlan_ids:
+                          - 0
+                      hotspot20:
+                        enabled: true
+                        operators:
+                          - string
+                        venue_name: string
+                      max_idletime: 60
+                      sle_excluded: true
+                      portal:
+                        enabled: true
+                        bypass_when_cloud_down: true
+                        auth: string
+                        passphrase_enabled: true
+                        password: string
+                        forward: true
+                        forward_url: string
+                        expire: 0
+                        privacy: true
+                        facebook_enabled: true
+                        facebook_client_id: string
+                        facebook_client_secret: string
+                        facebook_email_domains:
+                          - string
+                        google_enabled: true
+                        google_email_domains:
+                          - string
+                        amazon_enabled: true
+                        amazon_client_id: string
+                        amazon_client_secret: string
+                        amazon_email_domains:
+                          - string
+                        microsoft_enabled: true
+                        microsoft_client_id: string
+                        microsoft_client_secret: string
+                        microsoft_email_domains:
+                          - string
+                        azure_enabled: true
+                        azure_tenant_id: string
+                        azure_client_id: string
+                        azure_client_secret: string
+                        sponsor_enabled: true
+                        sponsor_email_domains:
+                          - string
+                        sponsor_link_validity_duration: 0
+                        sms_enabled: true
+                        sms_provider: string
+                        twilio_sid: string
+                        twilio_auth_token: string
+                        twilio_phone_number: string
+                        external_portal_url: string
+                        email_enabled: true
+                        portal_api_secret: string
+                        portal_image: string
+                        thumbnail: string
+                        "portal_allowed_subnets\t": string
+                        portal_allowed_hostnames: string
+                        "portal_denied_hostnames\t": string
+                        sso_issuer: string
+                        "sso_idp_cert\t": string
+                        sso_idp_sso_url: string
+                        sso_idp_sign_algo: string
+                        "sso_default_role\t": string
+                        portal_sso_url: string
+                      portal_template_url: string
+                      portal_image: 'http://example.com'
+                      thumbnail: 'http://example.com'
+                      portal_api_secret: string
+                      portal_sso_url: string
+                      portal_allowed_subnets:
+                        - string
+                      portal_allowed_hostnames:
+                        - string
+                      portal_denied_hostnames:
+                        - string
+                      use_eapol_v1: true
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.secpolicy.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    id: string
+                    name: string
+                    org_id: string
+                    created_time: 0
+                    modified_time: 0
+                    wlans:
+                      - ssid: string
+                        enabled: true
+                        auth:
+                          type: string
+                          psk: string
+                          enable_mac_auth: true
+                          multi_psk_only: true
+                          pairwise:
+                            - string
+                          wep_as_secondary_auth: true
+                          keys:
+                            - string
+                          key_idx: 0
+                          eap_reauth: true
+                          owe: string
+                          private_wlan: true
+                        dynamic_psk:
+                          enabled: true
+                        roam_mode: string
+                        auth_servers_nas_id: string
+                        auth_servers_nas_ip: string
+                        auth_servers_timeout: 0
+                        auth_servers_retries: 0
+                        auth_server_selection: string
+                        auth_servers:
+                          - host: string
+                            port: 0
+                            secret: string
+                        acct_servers:
+                          - host: string
+                            secret: string
+                            port: 0
+                        acct_interim_interval: 0
+                        dynamic_vlan:
+                          enabled: true
+                          type: string
+                          vlans:
+                            - {}
+                          default_vlan_id: 0
+                          local_vlan_ids:
+                            - 0
+                        dns_server_rewrite:
+                          enabled: true
+                          radius_groups: {}
+                        coa_servers:
+                          - enabled: true
+                            ip: string
+                            port: 0
+                            secret: string
+                            disable_event_timestamp_check: true
+                        radsec:
+                          enabled: true
+                          server_name: string
+                          servers:
+                            - host: string
+                              port: 0
+                        airwatch:
+                          enabled: true
+                          console_url: string
+                          api_key: string
+                          username: string
+                          password: string
+                        cisco_cwa:
+                          enabled: true
+                          allowed_subnets:
+                            - string
+                          allowed_hostnames:
+                            - string
+                        band: string
+                        band_steer: true
+                        band_steer_force_band5: true
+                        rateset:
+                          '5':
+                            min_rssi: 0
+                            template: string
+                            legacy:
+                              - string
+                            ht: string
+                            vht: string
+                          '24':
+                            min_rssi: 0
+                            template: string
+                            legacy:
+                              - string
+                            ht: string
+                            vht: string
+                        disable_11ax: true
+                        interface: string
+                        vlan_enabled: true
+                        vlan_id: 1
+                        vlan_pooling: true
+                        vlan_ids:
+                          - 0
+                        wxtunnel_id: string
+                        wxtunnel_remote_id: string
+                        mxtunneL_id: string
+                        hide_ssid: true
+                        dtim: 0
+                        disable_wmm: true
+                        disable_uapsd: true
+                        legacy_overds: true
+                        hostname_ie: true
+                        isolation: true
+                        arp_filter: true
+                        limit_bcast: true
+                        allow_mdns: true
+                        allow_ipv6_ndp: true
+                        no_static_ip: true
+                        no_static_dns: true
+                        enable_wireless_bridging: true
+                        limit_probe_response: true
+                        block_blacklist_clients: true
+                        apply_to: string
+                        wxtag_ids:
+                          - string
+                        ap_ids:
+                          - string
+                        wlan_limit_up_enabled: true
+                        wlan_limit_up: 0
+                        wlan_limit_down_enabled: true
+                        wlan_limit_down: 0
+                        client_limit_up_enabled: true
+                        client_limit_up: 0
+                        client_limit_down_enabled: true
+                        client_limit_down: 0
+                        schedule:
+                          enabled: true
+                          hours: {}
+                        qos:
+                          overwrite: true
+                          class: string
+                        app_limit:
+                          enabled: true
+                          apps: {}
+                          wxtag_ids: {}
+                        app_qos:
+                          enabled: true
+                          apps:
+                            skype-business-voice:
+                              dscp: 0
+                            skype-business-video:
+                              dscp: 0
+                              src_subnet: string
+                              dst_subnet: string
+                          others:
+                            - protocol: string
+                              src_subnet: string
+                              dst_subnet: string
+                              port_ranges: string
+                              dscp: 0
+                        bonjour:
+                          enabled: true
+                          services:
+                            $service_name:
+                              scope: string
+                              disable_local: true
+                              radius_groups:
+                                - string
+                          additional_vlan_ids:
+                            - 0
+                        hotspot20:
+                          enabled: true
+                          operators:
+                            - string
+                          venue_name: string
+                        max_idletime: 60
+                        sle_excluded: true
+                        portal:
+                          enabled: true
+                          bypass_when_cloud_down: true
+                          auth: string
+                          passphrase_enabled: true
+                          password: string
+                          forward: true
+                          forward_url: string
+                          expire: 0
+                          privacy: true
+                          facebook_enabled: true
+                          facebook_client_id: string
+                          facebook_client_secret: string
+                          facebook_email_domains:
+                            - string
+                          google_enabled: true
+                          google_email_domains:
+                            - string
+                          amazon_enabled: true
+                          amazon_client_id: string
+                          amazon_client_secret: string
+                          amazon_email_domains:
+                            - string
+                          microsoft_enabled: true
+                          microsoft_client_id: string
+                          microsoft_client_secret: string
+                          microsoft_email_domains:
+                            - string
+                          azure_enabled: true
+                          azure_tenant_id: string
+                          azure_client_id: string
+                          azure_client_secret: string
+                          sponsor_enabled: true
+                          sponsor_email_domains:
+                            - string
+                          sponsor_link_validity_duration: 0
+                          sms_enabled: true
+                          sms_provider: string
+                          twilio_sid: string
+                          twilio_auth_token: string
+                          twilio_phone_number: string
+                          external_portal_url: string
+                          email_enabled: true
+                          portal_api_secret: string
+                          portal_image: string
+                          thumbnail: string
+                          "portal_allowed_subnets\t": string
+                          portal_allowed_hostnames: string
+                          "portal_denied_hostnames\t": string
+                          sso_issuer: string
+                          "sso_idp_cert\t": string
+                          sso_idp_sso_url: string
+                          sso_idp_sign_algo: string
+                          "sso_default_role\t": string
+                          portal_sso_url: string
+                        portal_template_url: string
+                        portal_image: 'http://example.com'
+                        thumbnail: 'http://example.com'
+                        portal_api_secret: string
+                        portal_sso_url: string
+                        portal_allowed_subnets:
+                          - string
+                        portal_allowed_hostnames:
+                          - string
+                        portal_denied_hostnames:
+                          - string
+                        use_eapol_v1: true
           description: Successful response
       summary: createOrgSecurityPolicies
       tags:
@@ -9768,17 +10246,21 @@ paths:
       tags:
         - Security Policy
         - Organization
+      description: Delete Org Security Policy
     get:
       operationId: getOrgSecurityPolicieDetails
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.secpolicy.v1.yaml
           description: Successful response
       summary: getOrgSecurityPolicieDetails
       tags:
         - Security Policy
         - Organization
+      description: Get Org Security Policy
     parameters:
       - in: path
         name: org_id
@@ -9796,57 +10278,107 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                name: corporate only
-              type: object
+              $ref: ./models/secpoliciy.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.secpolicy.v1.yaml
           description: Successful response
       summary: updateOrgSecurityPolicies
       tags:
         - Security Policy
         - Organization
+      description: Update Org Security Policy
   '/api/v1/orgs/{org_id}/setting':
     get:
-      description: |-
-        #### Response Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        name|string|org name
-        password_policy|object|password policy
-        enabled|boolean|whether the policy is enabled, default is false
-        freshness|int|days, required if password policy is enabled
-        min_length|int|required password length, default is 8
-        requires_special_char|boolean|whether to require special character, default is false
-        requires_two_factor_auth|boolean|whether to require two-factor auth, default is false
-        ui_idle_timeout|int|automatically logout the user when UI session is inactive, 0-480 in minutes, default is 0 (disabled)
-        mgmt|object|management-related properties
-        use_wxtunnel|boolean|whether to use wxtunnel for mgmt connectivity, default is false
-        use_mxtunnel|boolean|whether to use Mist Tunnel for mgmt connectivity, default is false, this takes precedence over use_wxtunnel
-        mxtunnel_ids|list|list of Mist Tunnels
-        disable_pcap|boolean|whether to disallow Mist to analyze pcap files (this is required for marvis pcap), default is false
-        max_pkt_len|int|max_len of non-management packets to capture, default is 128, maximum is 128
-        disable_local_ssh|boolean|whether to disable local SSH (by default, local SSH is enabled with allow_mist in Org is enabled
-        limit_ssh_access|boolean|whether to allow certain SSH keys to SSH into the AP (see Site:Setting), default is false
-        fips_zeroize_password|string|password required to zeroize devices (FIPS) on site level
-        remote_syslog|object|syslog parameters
-        cacerts|list|list of PEM-encoded ca certs
-        device_cert|object|common device cert, optional
-        tags|list|list of tags
-
-
-        #### Automatic Site Assignment
-        Auto Site Assignment can be enabled to automatically assign APs to sites. Once enabled, when an AP in the Org inventory is seen online (e.g. freshly installed), we will try to use the criteria defined to identify the Site Name. Only when a non-empty Site Name is identified and the Site exists, the AP will be assigned to the site.
-
-        #### Automatic Device Naming
-        Automatic Device Naming works along with Automatic Site Assignment. When an AP that’s already assigned to a site that has no name, we will try to use the criteria defined to name the device. Only when a non-empty Name is identified and no AP with the same name exists in the same Site, the AP will be assigned the name.
+      description: Get Org Settings
       operationId: getOrgSettings
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.org_setting.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    id: string
+                    msp_id: string
+                    created_time: 0
+                    modified_time: 0
+                    name: string
+                    password_policy:
+                      enabled: true
+                      freshness: 0
+                      min_length: 8
+                      requires_special_char: true
+                      requires_two_factor_auth: true
+                    ui_idle_timeout: 0
+                    mgmt:
+                      use_wxtunnel: true
+                      use_mxtunnel: true
+                      mxtunnel_ids:
+                        - string
+                    disable_pcap: true
+                    pcap:
+                      bucket: string
+                      max_pkt_len: 0
+                    pcap_bucket_verified: true
+                    security:
+                      disable_local_ssh: true
+                      limit_ssh_access: true
+                      fips_zeroize_password: string
+                    installer:
+                      grace_period: 0
+                      extra_site_ids:
+                        - string
+                      allow_all_sites: true
+                    remote_syslog:
+                      enabled: true
+                      send_to_all_servers: true
+                      servers:
+                        - host: string
+                          port: 0
+                          protocol: udp
+                          facility: kern
+                          severity: emerg
+                          tag: string
+                    auto_site_assignment:
+                      enable: true
+                      rules:
+                        - src: name
+                          model: string
+                          value: string
+                          expression: string
+                          prefix: string
+                          suffix: string
+                          subnet: string
+                    auto_device_naming:
+                      enable: true
+                      rules:
+                        - src: name
+                          model: string
+                          value: string
+                          expression: string
+                          prefix: string
+                          suffix: string
+                          subnet: string
+                    cloudshark:
+                      apitoken: string
+                      url: string
+                    auto_deviceprofile_assignment:
+                      enable: true
+                      rules:
+                        - {}
+                    cacerts:
+                      - string
+                    device_cert:
+                      cert: string
+                      key: string
+                    tags:
+                      - string
           description: Successful response
       summary: getOrgSettings
       tags:
@@ -9859,102 +10391,97 @@ paths:
         schema:
           type: string
     put:
-      description: |-
-        #### Body Parameters
-        See `getOrgSetting` Response Parameters
+      description: Update Org Settings
       operationId: updateOrgSettings
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                auto_device_naming:
-                  enable: true
-                  rules:
-                    - expression: ...
-                      src: lldp_port_desc
-                auto_deviceprofile_assignment:
-                  enable: true
-                  rules: []
-                auto_site_assignment:
-                  enable: true
-                  rules:
-                    - expression: '[0:3]'
-                      prefix: XX-
-                      src: name
-                      suffix: '-YY'
-                    - expression: 'split(.)[1]'
-                      src: subnet
-                      subnet: 10.1.2.0/18
-                      value: s1351
-                    - expression: 'split(-)[1][0:3]'
-                      src: lldp_system_name
-                    - expression: ...
-                      src: dns_suffix
-                    - model: AP41
-                      src: model
-                      value: s1351
-                cacerts:
-                  - |-
-                    -----BEGIN CERTIFICATE-----
-                    MIIFZjCCA06gAwIBAgIIP61/1qm/uDowDQYJKoZIhvcNAQELBQE
-                    -----END CERTIFICATE-----
-                  - |-
-                    -----BEGIN CERTIFICATE-----
-                    BhMCRVMxFDASBgNVBAoMC1N0YXJ0Q29tIENBMSwwKgYDVn-----END CERTIFICATE-----
-                cloudshark:
-                  apitoken: accbd6f10c6d05c3
-                  url: 'https://cloudshark.hosted.domain'
-                device_cert:
-                  cert: |-
-                    -----BEGIN CERTIFICATE-----
-                    MIIFZjCCA06gAwIBAgIIP61/1qm/uDowDQYJKoZIhvcNAQELBQE
-                    -----END CERTIFICATE-----
-                  key: '-----BEGIN PRI...'
-                disable_pcap: false
-                installer:
-                  allow_all_sites: false
-                  extra_site_ids:
-                    - 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-                    - 52f4347e-3e4b-186c-21ca-ad5b70eb23d6
-                  grace_period: 14
-                mgmt:
-                  mxtunnel_ids:
-                    - 08cd7499-5841-51c8-e663-fb16b6f3b45e
-                  use_mxtunnel: true
-                  use_wxtunnel: false
-                password_policy:
-                  enabled: true
-                  freshness: 60
-                  min_length: 8
-                  requires_special_char: false
-                  requires_two_factor_auth: true
-                pcap:
-                  bucket: myorg-pcap
-                  max_pkt_len: 128
-                pcap_bucket_verified: true
-                remote_syslog:
-                  enabled: true
-                  send_to_all_servers: true
-                  servers:
-                    - facility: config
-                      host: syslogd.internal
-                      port: 514
-                      protocol: udp
-                      severity: info
-                      tag: ''
-                security:
-                  disable_local_ssh: false
-                  fips_zeroize_password: NUKETHESITE
-                  limit_ssh_access: false
-                tags:
-                  - beta
-                ui_idle_timeout: 10
-              type: object
+              $ref: ./models/org_setting.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.org_setting.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    id: string
+                    msp_id: string
+                    created_time: 0
+                    modified_time: 0
+                    name: string
+                    password_policy:
+                      enabled: true
+                      freshness: 0
+                      min_length: 8
+                      requires_special_char: true
+                      requires_two_factor_auth: true
+                    ui_idle_timeout: 0
+                    mgmt:
+                      use_wxtunnel: true
+                      use_mxtunnel: true
+                      mxtunnel_ids:
+                        - string
+                    disable_pcap: true
+                    pcap:
+                      bucket: string
+                      max_pkt_len: 0
+                    pcap_bucket_verified: true
+                    security:
+                      disable_local_ssh: true
+                      limit_ssh_access: true
+                      fips_zeroize_password: string
+                    installer:
+                      grace_period: 0
+                      extra_site_ids:
+                        - string
+                      allow_all_sites: true
+                    remote_syslog:
+                      enabled: true
+                      send_to_all_servers: true
+                      servers:
+                        - host: string
+                          port: 0
+                          protocol: udp
+                          facility: kern
+                          severity: emerg
+                          tag: string
+                    auto_site_assignment:
+                      enable: true
+                      rules:
+                        - src: name
+                          model: string
+                          value: string
+                          expression: string
+                          prefix: string
+                          suffix: string
+                          subnet: string
+                    auto_device_naming:
+                      enable: true
+                      rules:
+                        - src: name
+                          model: string
+                          value: string
+                          expression: string
+                          prefix: string
+                          suffix: string
+                          subnet: string
+                    cloudshark:
+                      apitoken: string
+                      url: string
+                    auto_deviceprofile_assignment:
+                      enable: true
+                      rules:
+                        - {}
+                    cacerts:
+                      - string
+                    device_cert:
+                      cert: string
+                      key: string
+                    tags:
+                      - string
           description: Successful response
       summary: updateOrgSettings
       tags:
@@ -9973,18 +10500,51 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                bucket: company-private-pcap
+              description: ''
               type: object
+              properties:
+                bucket:
+                  type: string
+                  minLength: 1
+              required:
+                - bucket
+            examples:
+              example-1:
+                value:
+                  bucket: company-private-pcap
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  bucket:
+                    type: string
+                    minLength: 1
+                  detail:
+                    type: string
+                    minLength: 1
+              examples:
+                Success:
+                  value: {}
+                Failed:
+                  value:
+                    bucket: company-private-pcap
+                    detail: failed to write bucket - 403 AccessDenied
           description: Successful response
       summary: setOrgCustomBucket
       tags:
         - Custom PCAP buckets
         - Organization
+      description: |-
+        Provide Customer Bucket Name
+        Setting up Custom PCAP Bucket Involves the following:
+
+        provide the bucket name
+        we’ll attempt to write a file MIST_TOKEN
+        you have to verify the ownership of the bucket by providing the content of the MIST_TOKEN
   '/api/v1/orgs/{org_id}/setting/pcap_bucket/verify':
     parameters:
       - in: path
@@ -9993,17 +10553,32 @@ paths:
         schema:
           type: string
     post:
-      description: |
+      description: |-
+        Verify Customer PCAP Bucket
+
         NOTE: If successful, a “VERIFIED” file will be created in the bucket
       operationId: verifyOrgCustomBucket
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                bucket: company-private-pcap
-                verify_token: eyJhbGciOiJIUzI1J9.eyJzdWIiOiIxMjM0joiMjgxOG5MDIyfQ.2rzcRvMA3Eg09NnjCAC-1EWMRtxAnFDM
+              description: ''
               type: object
+              properties:
+                bucket:
+                  type: string
+                  minLength: 1
+                verify_token:
+                  type: string
+                  minLength: 1
+              required:
+                - bucket
+                - verify_token
+            examples:
+              example-1:
+                value:
+                  bucket: company-private-pcap
+                  verify_token: eyJhbGciOiJIUzI1J9.eyJzdWIiOiIxMjM0joiMjgxOG5MDIyfQ.2rzcRvMA3Eg09NnjCAC-1EWMRtxAnFDM
       responses:
         '200':
           content:
