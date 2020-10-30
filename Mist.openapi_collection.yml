@@ -14309,6 +14309,67 @@ paths:
               - wlan_id
               - ssid
           description: type / proto / band / channel / wlan_id / ssid
+        - schema:
+            type: string
+          in: query
+          name: type
+          description: 'event type, e.g. MARVIS_EVENT_CLIENT_FBT_FAILURE'
+        - schema:
+            type: integer
+          in: query
+          name: reason_code
+          description: for assoc/disassoc events
+        - schema:
+            type: string
+          in: query
+          name: ssid
+          description: SSID Name
+        - schema:
+            type: string
+          in: query
+          name: ap
+          description: AP MAC
+        - schema:
+            type: string
+            enum:
+              - b
+              - g
+              - 'n'
+              - ac
+              - ax
+              - a
+          in: query
+          name: proto
+          description: 802.11 standard
+        - schema:
+            type: string
+            enum:
+              - '24'
+              - '5'
+          in: query
+          name: band
+          description: 24 / 5
+        - schema:
+            type: string
+          in: query
+          name: wlan_id
+          description: wlan_id
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: limit
+        - schema:
+            type: string
+          in: query
+          name: page
       responses:
         '200':
           content:
@@ -14364,6 +14425,7 @@ paths:
       tags:
         - Clients - Wireless
         - Site
+      description: Count by Distinct Attributes of Client-Events
     parameters:
       - in: path
         name: site_id
@@ -14372,21 +14434,132 @@ paths:
           type: string
   '/api/v1/sites/{site_id}/clients/search':
     get:
-      description: " #### Query Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n mac|string|partial / full MAC address\r\n hostname|string|partial / full hostname\r\n device|string|device type, e.g. Mac, Nvidia, iPhone\r\n os|string|os, e.g. Sierra, Yosemite, Windows 10\r\n model|string|model, e.g. “MBP 15 late 2013”, 6, 6s, “8+ GSM”\r\n ap|string|AP mac where the client has connected to\r\n ssid|string|SSID\r\n"
+      description: |-
+        Search Wireless Clients
+
+        NOTE: fuzzy logic can be used with ‘*’, supported filters: mac, hostname, device, os, model. E.g. /clients/search?device=Mac*&hostname=jerry
       operationId: searchSiteClients
       parameters:
+        - in: query
+          name: mac
+          schema:
+            type: string
+          description: |
+            partial / full MAC address
         - in: query
           name: hostname
           schema:
             type: string
-        - in: query
-          name: limit
-          schema:
+          description: |
+            partial / full hostname
+        - schema:
             type: string
+          in: query
+          name: device
+          description: |
+            device type, e.g. Mac, Nvidia, iPhone
+        - schema:
+            type: string
+          in: query
+          name: os
+          description: |
+            os, e.g. Sierra, Yosemite, Windows 10
+        - schema:
+            type: string
+          in: query
+          name: model
+          description: |
+            model, e.g. “MBP 15 late 2013”, 6, 6s, “8+ GSM”
+        - schema:
+            type: string
+          in: query
+          name: ap
+          description: |
+            AP mac where the client has connected to
+        - schema:
+            type: string
+          in: query
+          name: ssid
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      type: object
+                      properties:
+                        hostname:
+                          type: array
+                          items:
+                            type: string
+                        ap:
+                          type: array
+                          items:
+                            type: string
+                        ip:
+                          type: array
+                          items:
+                            type: string
+                        vlan:
+                          type: array
+                          items:
+                            type: integer
+                        mac:
+                          type: string
+                          minLength: 1
+                        device:
+                          type: array
+                          items:
+                            type: string
+                        os:
+                          type: array
+                          items:
+                            type: string
+                        model:
+                          type: array
+                          items:
+                            type: string
+                        ssid:
+                          type: array
+                          items:
+                            type: string
+                      required:
+                        - mac
+                required:
+                  - results
+              examples:
+                example-1:
+                  value:
+                    results:
+                      - hostname:
+                          - jerry
+                        ap:
+                          - 5c5b350e0492
+                          - 5c5b350eb39d
+                          - 5c5b350e03c0
+                        ip:
+                          - 192.168.5.43
+                          - 192.168.20.125
+                        vlan:
+                          - 1
+                        mac: 60f81dd250cc
+                        device:
+                          - Mac
+                        os:
+                          - Sierra
+                          - High Sierra
+                        model:
+                          - ''
+                          - MBP 15" late 2013
+                        ssid:
+                          - Guest
           description: Successful response
       summary: searchSiteClients
       tags:
@@ -14400,12 +14573,133 @@ paths:
           type: string
   '/api/v1/sites/{site_id}/clients/sessions/count':
     get:
-      description: " #### Query Parameter\r\n In addition to the filters that you can have in the search\r\n\r\n NOTE: the filters from /clients/sessions/search can also be used. (E.g. /clients/sessions/count?distinct=client_manufacture)\r\n\r\n\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\ndistinct|string|ssid, wlan_id, ap, mac, client_family, client_manufacture, client_model, client_os, default is mac"
+      description: Count by Distinct Attributes of Client Sessions
       operationId: countSiteByDistinctAttributesOfClientSessions
+      parameters:
+        - in: query
+          name: distinct
+          schema:
+            type: string
+            default: mac
+            enum:
+              - ssid
+              - wlan_id
+              - ap
+              - mac
+              - client_family
+              - client_manufacture
+              - client_model
+              - client_os
+          description: 'ssid, wlan_id, ap, mac, client_family, client_manufacture, client_model, client_os, default is mac'
+        - in: query
+          name: ap
+          schema:
+            type: string
+          description: AP MAC
+        - in: query
+          name: band
+          schema:
+            type: string
+          description: 24 /5
+        - schema:
+            type: string
+          in: query
+          name: client_family
+          description: 'E.g. “Mac”, “iPhone”, “Apple watch”'
+        - schema:
+            type: string
+          in: query
+          name: client_manufacture
+          description: E.g. “Apple”
+        - schema:
+            type: string
+          in: query
+          name: client_model
+          description: 'E.g. “8+”, “XS”'
+        - schema:
+            type: string
+          in: query
+          name: client_os
+          description: 'E.g. “Mojave”, “Windows 10”, “Linux”'
+        - schema:
+            type: string
+          in: query
+          name: ssid
+          description: SSID
+        - schema:
+            type: string
+          in: query
+          name: wlan_id
+          description: wlan_id
+        - schema:
+            type: string
+          in: query
+          name: start
+        - in: query
+          schema:
+            type: string
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limit
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  distinct:
+                    type: string
+                    minLength: 1
+                  total:
+                    type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required:
+                        - count
+                        - client_manufacture
+                      properties:
+                        count:
+                          type: number
+                        client_manufacture:
+                          type: string
+                          minLength: 1
+                required:
+                  - start
+                  - end
+                  - limit
+                  - distinct
+                  - total
+                  - results
+              examples:
+                example-1:
+                  value:
+                    start: 1511967600
+                    end: 1513177200
+                    limit: 100
+                    distinct: client_manufacture
+                    total: 20
+                    results:
+                      - count: 217
+                        client_manufacture: Apple
+                      - count: 35
+                        client_manufacture: Intel Corporate
           description: Successful response
       summary: countSiteByDistinctAttributesOfClientSessions
       tags:
@@ -14419,12 +14713,165 @@ paths:
           type: string
   '/api/v1/sites/{site_id}/clients/sessions/search':
     get:
-      description: " #### Query Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n ap|string|AP MAC\r\n band|string|5 / 24\r\n client_family|string|E.g. “Mac”, “iPhone”, “Apple watch”\r\n client_manufacture|string|E.g. “Apple”\r\n client_model|string|E.g. “8+”, “XS”\r\n client_os|string|E.g. “Mojave”, “Windows 10”, “Linux”\r\n ssid|string|SSID\r\n wlan_id|string|wlan_id"
+      description: Search Client Sessions
       operationId: searchSiteClientSessions
+      parameters:
+        - in: query
+          name: ap
+          schema:
+            type: string
+          description: AP MAC
+        - in: query
+          name: band
+          schema:
+            type: string
+          description: 24 /5
+        - schema:
+            type: string
+          in: query
+          name: client_family
+          description: 'E.g. “Mac”, “iPhone”, “Apple watch”'
+        - schema:
+            type: string
+          in: query
+          name: client_manufacture
+          description: E.g. “Apple”
+        - schema:
+            type: string
+          in: query
+          name: client_model
+          description: 'E.g. “8+”, “XS”'
+        - schema:
+            type: string
+          in: query
+          name: client_os
+          description: 'E.g. “Mojave”, “Windows 10”, “Linux”'
+        - schema:
+            type: string
+          in: query
+          name: ssid
+          description: SSID
+        - schema:
+            type: string
+          in: query
+          name: wlan_id
+          description: wlan_id
+        - schema:
+            type: string
+          in: query
+          name: start
+        - in: query
+          schema:
+            type: string
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limit
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  total:
+                    type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      type: object
+                      properties:
+                        ap:
+                          type: string
+                          minLength: 1
+                        disconnect:
+                          type: number
+                        ssid:
+                          type: string
+                          minLength: 1
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                        org_id:
+                          type: string
+                          minLength: 1
+                        site_id:
+                          type: string
+                          minLength: 1
+                        mac:
+                          type: string
+                          minLength: 1
+                        connect:
+                          type: number
+                        band:
+                          type: string
+                          minLength: 1
+                        timestamp:
+                          type: number
+                        duration:
+                          type: number
+                        client_manufacture:
+                          type: string
+                          minLength: 1
+                        wlan_id:
+                          type: string
+                          minLength: 1
+                      required:
+                        - ap
+                        - disconnect
+                        - ssid
+                        - org_id
+                        - site_id
+                        - mac
+                        - connect
+                        - band
+                        - timestamp
+                        - duration
+                        - client_manufacture
+                        - wlan_id
+                required:
+                  - start
+                  - end
+                  - limit
+                  - total
+                  - results
+              examples:
+                example-1:
+                  value:
+                    start: 1511967600
+                    end: 1513177200
+                    limit: 10
+                    total: 100
+                    results:
+                      - ap: 5c5b350e0262
+                        disconnect: 1565208448.662
+                        ssid: Dummy WLAN 2
+                        tags:
+                          - disassociate
+                        org_id: 3139f2c2-fac6-11e5-8156-0242ac110006
+                        site_id: 70e0f468-fc13-11e5-85ad-0242ac110008
+                        mac: b019c66c8348
+                        connect: 1565208388.568
+                        band: '5'
+                        timestamp: 1565208448.662
+                        duration: 60.09423865
+                        client_manufacture: Apple
+                        wlan_id: 99bb4c74-f954-4f36-b844-6b030faffabc
           description: Successful response
       summary: searchSiteClientSessions
       tags:
