@@ -14897,10 +14897,16 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                - 683b679ac024
-                - 683b679ac0245
               type: array
+              description: ''
+              minItems: 1
+              uniqueItems: true
+              items:
+                type: string
+            examples:
+              example-1:
+                value:
+                  - 683b679ac024
       responses:
         '200':
           content:
@@ -14938,17 +14944,177 @@ paths:
         - Site
   '/api/v1/sites/{site_id}/clients/{client_mac}/events':
     get:
-      description: " #### Query Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\ndistinct|string|type / proto / band / channel / wlan_id / ssid\r\n\r\nNOTE: the filters from /clients/{mac}/events can also be used. E.g. /clients/events/count?distinct=device&ssid=Guest\r\n\r\n"
+      description: |2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+         #### Query Parameter
+        **Parameter**|**Type**|**Description** 
+         :-------------: |:-------------: |:-------------: 
+        distinct|string|type / proto / band / channel / wlan_id / ssid
+
+        NOTE: the filters from /clients/{mac}/events can also be used. E.g. /clients/events/count?distinct=device&ssid=Guest
       operationId: getSiteEventsForClient
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      $ref: ./models/responses/events/client_event.v1.yaml
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  total:
+                    type: number
+                  next:
+                    type: string
+                    minLength: 1
+                required:
+                  - results
+                  - start
+                  - end
+                  - limit
+                  - total
+                  - next
+              examples:
+                example-1:
+                  value:
+                    results:
+                      - ap: string
+                        ssid: string
+                        bssid: string
+                        proto: string
+                        timestamp: 0
+                        band: string
+                        type_code: 0
+                        type: string
+                        text: string
+                        channel: 0
+                        wlan_id: string
+                    start: 0
+                    end: 0
+                    limit: 0
+                    total: 0
+                    next: string
           description: Successful response
       summary: getSiteEventsForClient
       tags:
         - Clients - Wireless
         - Site
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - b
+              - g
+              - 'n'
+          in: query
+          name: type
+          description: e.g. MARVIS_EVENT_CLIENT_DHCP_STUCK
+        - schema:
+            type: string
+            enum:
+              - a
+              - b
+              - g
+              - 'n'
+              - ac
+              - ax
+          in: query
+          name: proto
+          description: a / b / g / n / ac / ax
+        - schema:
+            type: string
+          in: query
+          name: band
+          description: 24 / 5
+        - schema:
+            type: string
+          in: query
+          name: channel
+        - schema:
+            type: string
+          in: query
+          name: wlan_id
+        - schema:
+            type: string
+          in: query
+          name: ssid
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limit
     parameters:
       - in: path
         name: site_id
@@ -14985,21 +15151,35 @@ paths:
       tags:
         - Clients - Wireless
         - Site
+      description: 'This unauthorize a client (if it’s a guest) and disconnect it. From the guest’s perspective, s/he will see the splash page again and go through the flow (e.g. Terms of Use) again.'
   '/api/v1/sites/{site_id}/devices':
     get:
-      description: |
-        Get list of devices on the site.
-
-        #### Filter Options
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        name|string|optional, device name
-        type|string|ap, switch, gateway, all, default is ap
+      description: Get list of devices on the site.
       operationId: getSiteDevices
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.device.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    model: string
+                    hw_rev: string
+                    map_id: string
+                    orientation: 0
+                    org_id: string
+                    site_id: string
+                    mac: string
+                    modified_time: 0
+                    created_time: 0
+                    tag_id: 0
+                    tag_uuid: string
+                    serial: string
+                    type: string
+                    id: string
+                    name: string
           description: Successful response
       summary: getSiteDevices
       tags:
@@ -15012,8 +15192,8 @@ paths:
         schema:
           type: string
     post:
-      description: "#### Switch-specific Parameters\r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\nrole|string|access / aggregation, default is access\r\nip_config|object|ip config (for irb)\r\noob_ip_config|object|OOB management ip settings (i.e. for vme)\r\nport_config|object|port configs\r\nntp_servers|list|list of NTP servers specific to this device. By default, those in Site Settings will be used\r\nradius_config|object|per-switch radius_config overwrite, optional\r\nmanaged|bool|default is false, for an adopted switch, we don’t overwrite their existing configs automatically\r\ndisable_auto_config|bool|default is false, for a claimed switch, we control the configs by default. This option (disables the behavior)\r\n\r\n#### Switch IP Parameters\r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\nip_config|object|ip config\r\ntype|string|static / dhcp (default)\r\nip|string|required if type==static\r\nnetmask|string|required if type==static\r\ngateway|string|required if type==static\r\ndns|list|required if type==static\r\ndns_suffix|list|if type==static\r\nvlan_id|int|management vlan id, default is 1 (untagged)"
-      operationId: createSiteDevice_Gateway_DRAFT_
+      description: Create a device
+      operationId: createSiteDevice
       requestBody:
         content:
           application/json:
@@ -15086,13 +15266,671 @@ paths:
                   RADIUS_IP1: 172.31.2.5
                   RADIUS_SECRET: 11s64632d
                 wan2_ip_config: {}
-              type: object
+              oneOf:
+                - $ref: ./models/device_ap.v1.yaml
+                - $ref: ./models/device_switch.v1.yaml
+                - $ref: ./models/device_gateway.v1.yaml
+            examples:
+              gateway:
+                value:
+                  additional_config_cmds:
+                    - set snmp community public
+                  deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+                  image1_url: 'https://url/to/image.png'
+                  ip_config:
+                    dhcp:
+                      enabled: true
+                      ip_end: 192.167.70.200
+                      ip_start: 192.167.70.100
+                      servers:
+                        - 11.2.3.4
+                      type: relay
+                    dns:
+                      - 8.8.8.8
+                      - 4.4.4.4
+                    dns_suffix:
+                      - .mist.local
+                      - .mist.com
+                    gateway: 192.168.1.1
+                    ip: 192.168.1.1
+                    network: default
+                    subnet: 192.168.1.0/24
+                    type: static
+                  managed: false
+                  name: corp-a135
+                  networks: {}
+                  ntp_servers:
+                    - pool.ntp.org
+                    - time.google.com
+                  oob_ip_config:
+                    ip: 192.168.50.3
+                    mgmt_only: true
+                    netmask: 255.255.255.0
+                    network: mgmt
+                    type: static
+                  other_ip_configs:
+                    guest:
+                      ip: 10.3.3.1
+                      netmask: 255.255.255.0
+                      type: static
+                  port_config:
+                    '*':
+                      usage: default
+                    ge-0/0/0:
+                      usage: wan
+                    ge-0/0/1-5:
+                      usage: lan
+                  port_usages: {}
+                  radius_config:
+                    acct_interim_interval: 0
+                    acct_servers:
+                      - host: 1.2.3.4
+                        port: 1812
+                        secret: testing123
+                    auth_servers:
+                      - host: 1.2.3.4
+                        port: 1812
+                        secret: testing123
+                      - host: radius.internal
+                        port: 1812
+                        secret: testing123
+                    auth_servers_retries: 3
+                    auth_servers_timeout: 5
+                  vars:
+                    RADIUS_IP1: 172.31.2.5
+                    RADIUS_SECRET: 11s64632d
+                  wan2_ip_config: {}
+              switch:
+                value:
+                  name: corp-a135
+                  role: access
+                  notes: slightly off center
+                  ip_config:
+                    type: static
+                    ip: 10.2.1.1
+                    netmask: 255.255.255.0
+                    gateway: 10.2.1.254
+                    dns:
+                      - 8.8.8.8
+                      - 4.4.4.4
+                    dns_suffix:
+                      - .mist.local
+                      - .mist.com
+                    network: default
+                  oob_ip_config: {}
+                  other_ip_configs:
+                    guest:
+                      type: static
+                      ip: 10.3.3.1
+                      netmask: 255.255.255.0
+                  ntp_servers:
+                    - pool.ntp.org
+                    - time.google.com
+                  port_config:
+                    ge-0/0/0:
+                      usage: uplink
+                      aggregated: true
+                      description: to dist-sw-01
+                    ge-0/0/1:
+                      usage: default
+                      dynamic_usage: dynamic
+                    'ge-0/0/8-16,ge-1/0/0-47':
+                      usage: ap
+                    '*':
+                      usage: default
+                  radius_config:
+                    auth_servers_timeout: 5
+                    auth_servers_retries: 3
+                    auth_servers:
+                      - host: 1.2.3.4
+                        port: 1812
+                        secret: testing123
+                      - host: radius.internal
+                        port: 1812
+                        secret: testing123
+                    acct_servers:
+                      - host: 1.2.3.4
+                        port: 1812
+                        secret: testing123
+                    acct_interim_interval: 0
+                  port_usages: {}
+                  networks: {}
+                  managed: false
+                  disable_auto_config: false
+                  additional_config_cmds:
+                    - set snmp community public
+                  vars:
+                    RADIUS_SECRET: 11s64632d
+                    RADIUS_IP1: 172.31.2.5
+                  deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+                  image1_url: 'https://url/to/image.png'
+              ap:
+                value:
+                  name: string
+                  notes: string
+                  map_id: string
+                  x: 0
+                  'y': 0
+                  orientation_overwrite: true
+                  orientation: 0
+                  height: 0
+                  radio_config:
+                    band_24:
+                      disabled: true
+                      channel: 0
+                      bandwidth: 0
+                      power: 0
+                      antenna_mode: string
+                      allow_rrm_disable: true
+                      power_min: 0
+                      power_max: 0
+                      preamble: string
+                      usage: string
+                    band_5:
+                      disabled: true
+                      channel: 0
+                      bandwidth: 0
+                      power: 0
+                      antenna_mode: string
+                      allow_rrm_disable: true
+                      power_min: 0
+                      power_max: 0
+                      preamble: string
+                      usage: string
+                    ant_gain_24: 0
+                    ant_gain_5: 0
+                    band_24_usage: string
+                    band_5_on_24_radio:
+                      disabled: true
+                      channel: 0
+                      bandwidth: 0
+                      power: 0
+                      antenna_mode: string
+                      allow_rrm_disable: true
+                      power_min: 0
+                      power_max: 0
+                      preamble: string
+                      usage: string
+                    scanning_enabled: true
+                  ip_config:
+                    type: static
+                    ip: string
+                    netmask: string
+                    gateway: string
+                    type6: string
+                    ip6: string
+                    netmask6: string
+                    gateway6: string
+                    dns:
+                      - string
+                    dns_suffix:
+                      - string
+                    vlan_id: 0
+                    mtu: 0
+                  ble_config:
+                    power_mode: string
+                    power: 0
+                    beacon_enabled: true
+                    beacon_rate_mode: string
+                    beacon_rate: 0
+                    ibeacon_enabled: true
+                    ibeacon_uuid: string
+                    ibeacon_major: 0
+                    ibeacon_minor: 0
+                    ibeacon_adv_power: -100
+                    ibeacon_beams: string
+                    eddystone_uid_enabled: true
+                    eddystone_uid_namespace: string
+                    eddystone_uid_instance: string
+                    eddystone_uid_freq_msec: 0
+                    eddystone_uid_adv_power: -100
+                    eddystone_uid_beams: string
+                    eddystone_url_enabled: true
+                    eddystone_url_url: string
+                    eddystone_url_freq_msec: 0
+                    eddystone_url_adv_power: 0
+                    eddystone_url_beams: string
+                    beam_disabled:
+                      - 0
+                    ibeacon_freq_msec: 0
+                  usb_config:
+                    enabled: true
+                    type: string
+                    host: string
+                    channel: 0
+                    port: 0
+                    verify_cert: true
+                    cacert: string
+                  aeroscout:
+                    enabled: true
+                    host: string
+                  led:
+                    enabled: true
+                    brightness: 0
+                  mesh:
+                    enabled: true
+                    role: base
+                    group: 0
+                  switch_config:
+                    enabled: true
+                    eth0:
+                      vlan_ids:
+                        - 0
+                      port_vlan_id: 0
+                    eth1:
+                      vlan_ids:
+                        - 0
+                      port_vlan_id: 0
+                    eth2:
+                      vlan_ids:
+                        - 0
+                      port_vlan_id: 0
+                    eth3:
+                      vlan_ids:
+                        - 0
+                      port_vlan_id: 0
+                    module:
+                      vlan_ids:
+                        - 0
+                      port_vlan_id: 0
+                    wds:
+                      vlan_ids:
+                        - 0
+                      port_vlan_id: 0
+                  iot_config:
+                    DO:
+                      enabled: true
+                      value: true
+                      name: string
+                      pullup: internal
+                      output: true
+                    DI1:
+                      enabled: true
+                      value: true
+                      name: string
+                      pullup: internal
+                    DI2:
+                      enabled: true
+                      value: true
+                      name: string
+                      pullup: internal
+                    A1:
+                      enabled: true
+                      value: true
+                      name: string
+                      pullup: internal
+                      output: true
+                    A2:
+                      enabled: true
+                      value: true
+                      name: string
+                      pullup: internal
+                      output: true
+                    A3:
+                      enabled: true
+                      value: true
+                      name: string
+                      pullup: internal
+                      output: true
+                    A4:
+                      enabled: true
+                      value: true
+                      name: string
+                      pullup: internal
+                      output: true
+                  disable_eth1: true
+                  disable_eth2: true
+                  disable_eth3: true
+                  disable_module: true
+                  poe_passthrough: true
+                  pwr_config:
+                    base: 0
+                  vars: {}
+                  ntp_servers:
+                    - string
+                  deviceprofile_id: string
+                  image1_url: string
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: ./models/responses/response.device_ap.v1.yaml
+                  - $ref: ./models/responses/response.device_switch.v1.yaml
+                  - $ref: ./models/responses/response.device_gateway.v1.yaml
+              examples:
+                gateway:
+                  value:
+                    id: string
+                    org_id: string
+                    site_id: string
+                    created_time: 0
+                    modified_time: 0
+                    name: corp-a135
+                    role: access
+                    notes: slightly off center
+                    ip_config:
+                      type: static
+                      ip: 10.2.1.1
+                      netmask: 255.255.255.0
+                      gateway: 10.2.1.254
+                      dns:
+                        - 8.8.8.8
+                        - 4.4.4.4
+                      dns_suffix:
+                        - .mist.local
+                        - .mist.com
+                      network: default
+                    oob_ip_config: {}
+                    other_ip_configs:
+                      guest:
+                        type: static
+                        ip: 10.3.3.1
+                        netmask: 255.255.255.0
+                    ntp_servers:
+                      - pool.ntp.org
+                      - time.google.com
+                    port_config:
+                      ge-0/0/0:
+                        usage: uplink
+                        aggregated: true
+                        description: to dist-sw-01
+                      ge-0/0/1:
+                        usage: default
+                        dynamic_usage: dynamic
+                      'ge-0/0/8-16,ge-1/0/0-47':
+                        usage: ap
+                      '*':
+                        usage: default
+                    radius_config:
+                      auth_servers_timeout: 5
+                      auth_servers_retries: 3
+                      auth_servers:
+                        - host: 1.2.3.4
+                          port: 1812
+                          secret: testing123
+                        - host: radius.internal
+                          port: 1812
+                          secret: testing123
+                      acct_servers:
+                        - host: 1.2.3.4
+                          port: 1812
+                          secret: testing123
+                      acct_interim_interval: 0
+                    port_usages: {}
+                    networks: {}
+                    managed: false
+                    disable_auto_config: false
+                    additional_config_cmds:
+                      - set snmp community public
+                    vars:
+                      RADIUS_SECRET: 11s64632d
+                      RADIUS_IP1: 172.31.2.5
+                    deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+                    image1_url: 'https://url/to/image.png'
+                switch:
+                  value:
+                    id: string
+                    org_id: string
+                    site_id: string
+                    created_time: 0
+                    modified_time: 0
+                    name: corp-a135
+                    role: access
+                    notes: slightly off center
+                    ip_config:
+                      type: static
+                      ip: 10.2.1.1
+                      netmask: 255.255.255.0
+                      gateway: 10.2.1.254
+                      dns:
+                        - 8.8.8.8
+                        - 4.4.4.4
+                      dns_suffix:
+                        - .mist.local
+                        - .mist.com
+                      network: default
+                    oob_ip_config: {}
+                    other_ip_configs:
+                      guest:
+                        type: static
+                        ip: 10.3.3.1
+                        netmask: 255.255.255.0
+                    ntp_servers:
+                      - pool.ntp.org
+                      - time.google.com
+                    port_config:
+                      ge-0/0/0:
+                        usage: uplink
+                        aggregated: true
+                        description: to dist-sw-01
+                      ge-0/0/1:
+                        usage: default
+                        dynamic_usage: dynamic
+                      'ge-0/0/8-16,ge-1/0/0-47':
+                        usage: ap
+                      '*':
+                        usage: default
+                    radius_config:
+                      auth_servers_timeout: 5
+                      auth_servers_retries: 3
+                      auth_servers:
+                        - host: 1.2.3.4
+                          port: 1812
+                          secret: testing123
+                        - host: radius.internal
+                          port: 1812
+                          secret: testing123
+                      acct_servers:
+                        - host: 1.2.3.4
+                          port: 1812
+                          secret: testing123
+                      acct_interim_interval: 0
+                    port_usages: {}
+                    networks: {}
+                    managed: false
+                    disable_auto_config: false
+                    additional_config_cmds:
+                      - set snmp community public
+                    vars:
+                      RADIUS_SECRET: 11s64632d
+                      RADIUS_IP1: 172.31.2.5
+                    deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+                    image1_url: 'https://url/to/image.png'
+                ap:
+                  value:
+                    id: string
+                    name: string
+                    org_id: string
+                    site_id: string
+                    created_time: 0
+                    modified_time: 0
+                    notes: string
+                    map_id: string
+                    x: 0
+                    'y': 0
+                    orientation_overwrite: true
+                    orientation: 0
+                    height: 0
+                    radio_config:
+                      band_24:
+                        disabled: true
+                        channel: 0
+                        bandwidth: 0
+                        power: 0
+                        antenna_mode: string
+                        allow_rrm_disable: true
+                        power_min: 0
+                        power_max: 0
+                        preamble: string
+                        usage: string
+                      band_5:
+                        disabled: true
+                        channel: 0
+                        bandwidth: 0
+                        power: 0
+                        antenna_mode: string
+                        allow_rrm_disable: true
+                        power_min: 0
+                        power_max: 0
+                        preamble: string
+                        usage: string
+                      ant_gain_24: 0
+                      ant_gain_5: 0
+                      band_24_usage: string
+                      band_5_on_24_radio:
+                        disabled: true
+                        channel: 0
+                        bandwidth: 0
+                        power: 0
+                        antenna_mode: string
+                        allow_rrm_disable: true
+                        power_min: 0
+                        power_max: 0
+                        preamble: string
+                        usage: string
+                      scanning_enabled: true
+                    ip_config:
+                      type: static
+                      ip: string
+                      netmask: string
+                      gateway: string
+                      type6: string
+                      ip6: string
+                      netmask6: string
+                      gateway6: string
+                      dns:
+                        - string
+                      dns_suffix:
+                        - string
+                      vlan_id: 0
+                      mtu: 0
+                    ble_config:
+                      power_mode: string
+                      power: 0
+                      beacon_enabled: true
+                      beacon_rate_mode: string
+                      beacon_rate: 0
+                      ibeacon_enabled: true
+                      ibeacon_uuid: string
+                      ibeacon_major: 0
+                      ibeacon_minor: 0
+                      ibeacon_adv_power: -100
+                      ibeacon_beams: string
+                      eddystone_uid_enabled: true
+                      eddystone_uid_namespace: string
+                      eddystone_uid_instance: string
+                      eddystone_uid_freq_msec: 0
+                      eddystone_uid_adv_power: -100
+                      eddystone_uid_beams: string
+                      eddystone_url_enabled: true
+                      eddystone_url_url: string
+                      eddystone_url_freq_msec: 0
+                      eddystone_url_adv_power: 0
+                      eddystone_url_beams: string
+                      beam_disabled:
+                        - 0
+                      ibeacon_freq_msec: 0
+                    usb_config:
+                      enabled: true
+                      type: string
+                      host: string
+                      channel: 0
+                      port: 0
+                      verify_cert: true
+                      cacert: string
+                    aeroscout:
+                      enabled: true
+                      host: string
+                    led:
+                      enabled: true
+                      brightness: 0
+                    mesh:
+                      enabled: true
+                      role: base
+                      group: 0
+                    switch_config:
+                      enabled: true
+                      eth0:
+                        vlan_ids:
+                          - 0
+                        port_vlan_id: 0
+                      eth1:
+                        vlan_ids:
+                          - 0
+                        port_vlan_id: 0
+                      eth2:
+                        vlan_ids:
+                          - 0
+                        port_vlan_id: 0
+                      eth3:
+                        vlan_ids:
+                          - 0
+                        port_vlan_id: 0
+                      module:
+                        vlan_ids:
+                          - 0
+                        port_vlan_id: 0
+                      wds:
+                        vlan_ids:
+                          - 0
+                        port_vlan_id: 0
+                    iot_config:
+                      DO:
+                        enabled: true
+                        value: true
+                        name: string
+                        pullup: internal
+                        output: true
+                      DI1:
+                        enabled: true
+                        value: true
+                        name: string
+                        pullup: internal
+                      DI2:
+                        enabled: true
+                        value: true
+                        name: string
+                        pullup: internal
+                      A1:
+                        enabled: true
+                        value: true
+                        name: string
+                        pullup: internal
+                        output: true
+                      A2:
+                        enabled: true
+                        value: true
+                        name: string
+                        pullup: internal
+                        output: true
+                      A3:
+                        enabled: true
+                        value: true
+                        name: string
+                        pullup: internal
+                        output: true
+                      A4:
+                        enabled: true
+                        value: true
+                        name: string
+                        pullup: internal
+                        output: true
+                    disable_eth1: true
+                    disable_eth2: true
+                    disable_eth3: true
+                    disable_module: true
+                    poe_passthrough: true
+                    pwr_config:
+                      base: 0
+                    vars: {}
+                    ntp_servers:
+                      - string
+                    deviceprofile_id: string
+                    image1_url: string
           description: Successful response
-      summary: createSiteDevice_Gateway_DRAFT_
+      summary: createSiteDevice
       tags:
         - Devices
         - Site
