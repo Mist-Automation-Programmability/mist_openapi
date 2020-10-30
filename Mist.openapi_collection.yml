@@ -13030,25 +13030,39 @@ paths:
       summary: deleteSite
       tags:
         - Site
+      description: Delete Site
     get:
-      description: |2-
-         #### Response Parameter
-        **Parameter**|**Type**|**Description** 
-         :-------------: |:-------------: |:-------------: 
-         name|string|Required. The name of the site
-         timezone|string|Timezone the site is at
-         country_code|string|country code for the site (for AP config generation), in two-character
-         latlng|latlng|site location
-         address|string|full address of the site
-         lat|float|latitude
-         lng|float|longitude
+      description: Get Site Info
       operationId: getSiteInfo
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.site.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    id: string
+                    name: string
+                    org_id: string
+                    created_time: 0
+                    modified_time: 0
+                    timezone: string
+                    country_code: string
+                    latlng:
+                      lat: 0
+                      lng: 0
+                    address: string
+                    notes: string
+                    sitegroup_ids:
+                      - string
+                    rftemplate_id: string
+                    secpolicy_id: string
+                    alarmtemplate_id: string
+                    networktemplate_id: string
           description: Successful response
-      summary: getSiteInfo
+      summary: updateSiteInfo
       tags:
         - Site
     parameters:
@@ -13057,6 +13071,60 @@ paths:
         required: true
         schema:
           type: string
+    put:
+      summary: ''
+      operationId: updateSiteInfo
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./models/responses/response.site.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    id: string
+                    name: string
+                    org_id: string
+                    created_time: 0
+                    modified_time: 0
+                    timezone: string
+                    country_code: string
+                    latlng:
+                      lat: 0
+                      lng: 0
+                    address: string
+                    notes: string
+                    sitegroup_ids:
+                      - string
+                    rftemplate_id: string
+                    secpolicy_id: string
+                    alarmtemplate_id: string
+                    networktemplate_id: string
+      description: Update Site Info
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./models/site.v1.yaml
+            examples:
+              example-1:
+                value:
+                  name: string
+                  timezone: string
+                  country_code: string
+                  latlng:
+                    lat: 0
+                    lng: 0
+                  address: string
+                  notes: string
+                  sitegroup_ids:
+                    - string
+                  rftemplate_id: string
+                  secpolicy_id: string
+                  alarmtemplate_id: string
+                  networktemplate_id: string
   '/api/v1/sites/{site_id}/alarms/ack':
     parameters:
       - in: path
@@ -13070,12 +13138,26 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                alarm_ids:
-                  - ccb8c94d-ca56-4075-932f-1f2ab444ff2c
-                  - 98ff4a3d-ec9b-4138-a42e-54fc3335179d
-                note: maintenance window
+              description: ''
               type: object
+              properties:
+                alarm_ids:
+                  type: array
+                  items:
+                    type: string
+                note:
+                  type: string
+                  minLength: 1
+              required:
+                - alarm_ids
+                - note
+            examples:
+              example-1:
+                value:
+                  alarm_ids:
+                    - ccb8c94d-ca56-4075-932f-1f2ab444ff2c
+                    - 98ff4a3d-ec9b-4138-a42e-54fc3335179d
+                  note: maintenance window
       responses:
         '200':
           content:
@@ -13085,6 +13167,7 @@ paths:
       tags:
         - Alarms
         - Site
+      description: Ack multiple Site Alarms
   '/api/v1/sites/{site_id}/alarms/ack_all':
     parameters:
       - in: path
@@ -13110,18 +13193,44 @@ paths:
       tags:
         - Alarms
         - Site
+      description: Ack all Site Alarms
   '/api/v1/sites/{site_id}/alarms/count':
     get:
       operationId: countSiteAlarms
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      $ref: ./models/responses/response.alarm.v1.yaml
+                required:
+                  - results
+              examples:
+                example-1:
+                  value:
+                    results:
+                      - id: string
+                        timestamp: 0
+                        site_id: string
+                        type: string
+                        count: 0
+                        acked: true
+                        acked_time: 0
+                        note: string
           description: Successful response
       summary: countSiteAlarms
       tags:
         - Alarms
         - Site
+      description: Count Site Alarms
     parameters:
       - in: path
         name: site_id
@@ -13134,12 +13243,54 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      $ref: ./models/responses/response.alarm.v1.yaml
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  total:
+                    type: number
+                required:
+                  - results
+                  - start
+                  - end
+                  - limit
+                  - total
           description: Successful response
       summary: getSiteAlarms
       tags:
         - Alarms
         - Site
+      description: Search Site Alarms
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: type
+        - schema:
+            type: boolean
+          in: query
+          name: acked
+        - schema:
+            type: string
+          in: query
+          name: severity
+        - schema:
+            type: string
+          in: query
+          name: group
     parameters:
       - in: path
         name: site_id
@@ -13159,11 +13310,25 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                alarm_ids:
-                  - ccb8c94d-ca56-4075-932f-1f2ab444ff2c
-                  - 98ff4a3d-ec9b-4138-a42e-54fc3335179d
+              description: ''
               type: object
+              properties:
+                alarm_ids:
+                  type: array
+                  items:
+                    type: string
+                note:
+                  type: string
+                  minLength: 1
+              required:
+                - alarm_ids
+            examples:
+              example-1:
+                value:
+                  alarm_ids:
+                    - ccb8c94d-ca56-4075-932f-1f2ab444ff2c
+                    - 98ff4a3d-ec9b-4138-a42e-54fc3335179d
+                  note: maintenance window
       responses:
         '200':
           content:
@@ -13173,6 +13338,7 @@ paths:
       tags:
         - Alarms
         - Site
+      description: Unack multiple Site Alarms
   '/api/v1/sites/{site_id}/alarms/unack_all':
     parameters:
       - in: path
@@ -13183,7 +13349,19 @@ paths:
     post:
       operationId: unackSiteAllArlarms
       requestBody:
-        content: {}
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                note:
+                  type: string
+                  minLength: 1
+            examples:
+              example-1:
+                value:
+                  note: maintenance window
       responses:
         '200':
           content:
@@ -13193,6 +13371,7 @@ paths:
       tags:
         - Alarms
         - Site
+      description: Unack all Site Alarms
   '/api/v1/sites/{site_id}/alarms/{alarm_id}/ack':
     parameters:
       - in: path
@@ -13211,9 +13390,16 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                note: maintenance window
+              description: ''
               type: object
+              properties:
+                note:
+                  type: string
+                  minLength: 1
+            examples:
+              example-1:
+                value:
+                  note: maintenance window
       responses:
         '200':
           content:
@@ -13223,6 +13409,7 @@ paths:
       tags:
         - Alarms
         - Site
+      description: Ack Site Alarm
   '/api/v1/sites/{site_id}/alarms/{alarm_id}/unack':
     parameters:
       - in: path
@@ -13238,7 +13425,19 @@ paths:
     post:
       operationId: unackSiteAlarm
       requestBody:
-        content: {}
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                note:
+                  type: string
+                  minLength: 1
+            examples:
+              example-1:
+                value:
+                  note: maintenance window
       responses:
         '200':
           content:
@@ -13248,18 +13447,44 @@ paths:
       tags:
         - Alarms
         - Site
+      description: Unack Site Alarm
   '/api/v1/sites/{site_id}/anomaly/ap/{device_id}/{metric}':
     get:
       operationId: getSiteAnomalyEventsforDevice
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  page:
+                    type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      $ref: ./models/responses/response.anomaly.v1.yaml
+                required:
+                  - start
+                  - end
+                  - limit
+                  - page
+                  - results
           description: Successful response
       summary: getSiteAnomalyEventsforDevice
       tags:
         - Insights
         - Site
+      description: Get Device Anomaly Events
     parameters:
       - in: path
         name: site_id
@@ -13282,12 +13507,37 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  page:
+                    type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      $ref: ./models/responses/response.anomaly.v1.yaml
+                required:
+                  - start
+                  - end
+                  - limit
+                  - page
+                  - results
           description: Successful response
       summary: getSiteAnomalyEventsForClient
       tags:
         - Insights
         - Site
+      description: Get Client Anomaly Events
     parameters:
       - in: path
         name: site_id
@@ -13310,12 +13560,37 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  page:
+                    type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      $ref: ./models/responses/response.anomaly.v1.yaml
+                required:
+                  - start
+                  - end
+                  - limit
+                  - page
+                  - results
           description: Successful response
       summary: getSiteAnomalyEvents
       tags:
         - Insights
         - Site
+      description: Get Site Anomaly Events
     parameters:
       - in: path
         name: site_id
@@ -13329,12 +13604,16 @@ paths:
           type: string
   '/api/v1/sites/{site_id}/assetfilters':
     get:
-      description: 'Get the list of all BLE asset filters for the given site. Each asset filter in the list operates independently. For a filter object to match an asset, all of the filter properties must match (logical ‘AND’ of each filter property). For example, the “Visitor Tags” filter below will match an asset when both the “ibeacon\_uuid” and “ibeacon_major” properties match the asset. All non-matching assets are ignored.'
+      description: Get Site Asset Filters
       operationId: getSiteAssetFilters
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.asset_filter.v1.yaml
           description: Successful response
       summary: getSiteAssetFilters
       tags:
@@ -13347,24 +13626,19 @@ paths:
         schema:
           type: string
     post:
-      description: " #### Create Asset Filter\r\n Creates a single BLE asset filter for the given site. Any subset of filter properties can be included in the filter. A matching asset must meet the conditions of all given filter properties (logical ‘AND’).\r\n\r\n\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n name|string|asset filter name\r\n disabled|boolean|optional; whether the asset filter is disabled, default is false\r\n ibeacon_uuid|string|optional; ibeacon uuid used to filter assets\r\n ibeacon_major|int|optional; ibeacon major value used to filter assets\r\n eddystone_uid_namespace|string|optional; eddystone uid namespace used to filter assets\r\n eddystone_url|string|optional; eddystone url used to filter assets\r\n mfg_company_id|int|optional; ble manufacturing-specific company-id used to filter assets"
+      description: Create Site Asset Filter
       operationId: createSiteAssetFilters
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                eddystone_uid_namespace: 2818e3868dec25629ede
-                eddystone_url: 'https://www.abc.com'
-                ibeacon_major: 13
-                ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
-                mfg_company_id: 935
-                name: Visitor Tags
-              type: object
+              $ref: ./models/asset_filter.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.asset_filter.v1.yaml
           description: Successful response
       summary: createSiteAssetFilters
       tags:
@@ -13389,12 +13663,15 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.asset_filter.v1.yaml
           description: Successful response
       summary: getSiteAssetFiltersDetails
       tags:
         - Asset Filters
         - Site
+      description: Get Site Asset Filter Details
     parameters:
       - in: path
         name: site_id
@@ -13414,13 +13691,13 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                name: Visitor Tags
-              type: object
+              $ref: ./models/asset_filter.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.asset_filter.v1.yaml
           description: Successful response
       summary: updateSiteAssetFilters
       tags:
@@ -13432,12 +13709,17 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.asset.v1.yaml
           description: Successful response
       summary: getSiteAssets
       tags:
         - Asset
         - Site
+      description: Get Site Assets
     parameters:
       - in: path
         name: site_id
@@ -13450,19 +13732,19 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                mac: a31eb04e1c38
-                name: Expensive Instrument
-              type: object
+              $ref: ./models/asset.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.asset.v1.yaml
           description: Successful response
       summary: createSiteAsset
       tags:
         - Asset
         - Site
+      description: Create Site Asset
   '/api/v1/sites/{site_id}/assets/{asset_id}':
     delete:
       operationId: deleteSiteAsset
@@ -13475,17 +13757,21 @@ paths:
       tags:
         - Asset
         - Site
+      description: Delete Site Asset
     get:
       operationId: getSiteAssetDetails
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.asset.v1.yaml
           description: Successful response
       summary: getSiteAssetDetails
       tags:
         - Asset
         - Site
+      description: Get Site Asset Details
     parameters:
       - in: path
         name: site_id
@@ -13503,18 +13789,19 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                name: conference TV
-              type: object
+              $ref: ./models/asset.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.asset.v1.yaml
           description: Successful response
       summary: updateSiteAsset
       tags:
         - Asset
         - Site
+      description: Update Site Asset
   '/api/v1/sites/{site_id}/beacons':
     get:
       operationId: getSiteBeacons
