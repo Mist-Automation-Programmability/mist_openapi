@@ -1,0 +1,126 @@
+description: |
+  NOTE: * If headers format is invalid, “X-Mist-Error”: “headers format invalid” will be sent.
+
+  If total bytes of headers exceed 1000, “X-Mist-Error”: “headers too big” will be sent.
+
+  If any header value is not string, “X-Mist-Error”: “header[%s] not a string” will be sent.
+type: object
+properties:
+  id:
+    type: string
+    minLength: 1
+  name:
+    type: string
+    minLength: 1
+  org_id:
+    type: string
+    minLength: 1
+  site_id:
+    type: string
+    minLength: 1
+  created_time:
+    type: integer
+  modified_time:
+    type: integer
+  secret:
+    type: string
+    minLength: 1
+    description: |
+      optional, when type=http-post, if provided, X-Mist-Signature in HTTP header will be the signature of HMAC_SHA1(secret, body)
+  headers:
+    type: object
+    description: |
+      custom headers: the headers name and value must be string, total bytes of headers name and value must be less than 1000
+  type:
+    type: string
+    minLength: 1
+    description: |
+      http-post (default) / splunk / google-pubsub / aws-sns
+    enum:
+      - http-post
+      - splunk
+      - google-pubsub
+      - aws-sns
+  url:
+    type: string
+    minLength: 1
+  splunk_token:
+    type: string
+    minLength: 1
+  verify_cert:
+    type: boolean
+    description: |
+      when url uses HTTPS, whether to verify the certificate, default is false
+  enabled:
+    type: boolean
+    description: |
+      whether webhook is enabled
+  topics:
+    type: array
+    description: |
+      list of subscribed topics: location/zone/vbeacon/rssizone/asset-raw/device-events/alarms/audits/client-sessions/device-updowns/occupancy-alerts/mxedge-events
+    items:
+      type: string
+      enum:
+        - location
+        - zone
+        - vbeacon
+        - rssizone
+        - asset-raw
+        - device-events
+        - alarms
+        - client-sessions
+        - device-updowns
+        - occupancy-alerts
+        - mxedge-events
+required:
+  - name
+  - url
+  - topics
+x-examples:
+  example-http_post:
+    name: analytic
+    type: http-post
+    url: 'https://username:password@hooks.abc.com/uri/...'
+    secret: secret
+    headers:
+      x-custom-1: your_custom_header_value1
+      x-custom-2: your_custom_header_value2
+    enabled: true
+    topics:
+      - location
+      - zone
+      - vbeacon
+      - rssizone
+      - asset-raw
+      - device-events
+      - alarms
+      - audits
+      - client-join
+      - client-sessions
+      - device-updowns
+      - occupancy-alerts
+      - mxedge-events
+      - calea-clients
+  example-splunk:
+    name: analytic
+    type: splunk
+    url: 'https://my.splunk.host:8088/services/collector'
+    splunk_token: token
+    verify_cert: false
+    enabled: true
+    topics:
+      - location
+      - zone
+      - vbeacon
+      - rssizone
+      - asset-raw
+      - device-events
+      - alarms
+      - audits
+      - client-join
+      - client-sessions
+      - device-updowns
+      - occupancy-alerts
+      - mxedge-events
+      - calea-clients

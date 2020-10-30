@@ -11759,26 +11759,68 @@ paths:
           type: string
   '/api/v1/orgs/{org_id}/stats/tunnels/count':
     get:
-      description: |-
-        #### Response Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        mxtunnel_id|string|Mist Tunnel ID
-        state|string|idle / wait-ctrl-reply / wait-ctrl-conn / established / established_with_sessions
-        uptime|int|uptime
-        sessions|list|list of sessions
-        remote_id|string|WxlanTunnel Remote ID
-        remote_sid|int|remote sessions id (dynamically unless Tunnel is said to be static)
-        local_sid|int|remote sessions id (dynamically unless Tunnel is said to be static)
+      description: Count Org Mx Tunnels
       operationId: countOrgMxTunnelsStats
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required:
+                        - wxtunnel_id
+                        - count
+                      properties:
+                        wxtunnel_id:
+                          type: string
+                          minLength: 1
+                        count:
+                          type: number
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  distinct:
+                    type: string
+                    minLength: 1
+                  total:
+                    type: number
+                  percentage:
+                    type: number
+                required:
+                  - results
+                  - start
+                  - end
+                  - limit
+                  - distinct
+                  - total
+                  - percentage
+              examples:
+                example-1:
+                  value:
+                    results:
+                      - wxtunnel_id: string
+                        count: 0
+                    start: 0
+                    end: 0
+                    limit: 0
+                    distinct: string
+                    total: 0
+                    percentage: 0
           description: Successful response
       summary: countOrgMxTunnelsStats
       tags:
         - MxTunnels
+        - Count
         - Organization
     parameters:
       - in: path
@@ -11788,45 +11830,87 @@ paths:
           type: string
   '/api/v1/orgs/{org_id}/stats/tunnels/search':
     get:
-      description: |-
-        #### Response Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        mxtunnel_id|string|Mist Tunnel ID
-        state|string|idle / wait-ctrl-reply / wait-ctrl-conn / established / established_with_sessions
-        uptime|int|uptime
-        sessions|list|list of sessions
-        remote_id|string|WxlanTunnel Remote ID
-        remote_sid|int|remote sessions id (dynamically unless Tunnel is said to be static)
-        local_sid|int|remote sessions id (dynamically unless Tunnel is said to be static)
+      description: Search Org MxTunnels Stats
       operationId: getOrgMxTunnelsStats
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  total:
+                    type: number
+                  start:
+                    type: number
+                  limit:
+                    type: number
+                  end:
+                    type: number
+                  results:
+                    type: array
+                    items:
+                      $ref: ./models/responses/stats/stats.mxtunnel.v1.yaml
+                required:
+                  - total
+                  - start
+                  - limit
+                  - end
+                  - results
+              examples:
+                example-1:
+                  value:
+                    total: 0
+                    start: 0
+                    limit: 0
+                    end: 0
+                    results:
+                      - org_id: string
+                        site_id: string
+                        mxedge_id: string
+                        mxcluster_id: string
+                        mxtunnel_id: string
+                        ap: string
+                        remote_ip: string
+                        remote_port: 0
+                        state: idle
+                        last_seen: 0
+                        uptime: 0
+                        tx_control_pkts: 0
+                        rx_control_pkts: 0
+                        sessions:
+                          - remote_id: string
+                            state: string
+                            remote_sid: 0
+                            local_sid: 0
           description: Successful response
       summary: getOrgMxTunnelsStats
       tags:
         - MxTunnels
+        - Search
         - Organization
-    parameters:
-      - in: path
-        name: org_id
-        required: true
-        schema:
-          type: string
-  '/api/v1/orgs/{org_id}/stats/wxrules':
-    get:
-      operationId: getOrgWxlanRulesUsage
-      responses:
-        '200':
-          content:
-            application/json: {}
-          description: Successful response
-      summary: getOrgWxlanRulesUsage
-      tags:
-        - WXLAN Rules
-        - Organization
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: mxcluster_id
+        - schema:
+            type: string
+          in: query
+          name: org_id
+        - schema:
+            type: string
+          in: query
+          name: site_id
+        - schema:
+            type: string
+          in: query
+          name: wxtunnel_id
+        - schema:
+            type: string
+          in: query
+          name: ap
     parameters:
       - in: path
         name: org_id
@@ -11835,16 +11919,19 @@ paths:
           type: string
   '/api/v1/orgs/{org_id}/subscriptions':
     delete:
-      operationId: unsubscribe
+      operationId: unsubscribeOrgAlarmsReports
       responses:
         '200':
           content:
             application/json: {}
           description: Successful response
-      summary: unsubscribe
+      summary: unsubscribeOrgAlarmsReports
       tags:
         - Subscriptions
         - Organization
+      description: |-
+        Unsubscribe from Org Alarms/Reports
+        Subscriptions define how Org Alarms/Reports are delivered to whom
     parameters:
       - in: path
         name: org_id
@@ -11852,7 +11939,7 @@ paths:
         schema:
           type: string
     post:
-      operationId: subscribe
+      operationId: subscribeOrgAlarmsReports
       requestBody:
         content: {}
       responses:
@@ -11860,22 +11947,30 @@ paths:
           content:
             application/json: {}
           description: Successful response
-      summary: subscribe
+      summary: subscribeOrgAlarmsReports
       tags:
         - Subscriptions
         - Organization
+      description: |-
+        Subscribe to Org Alarms/Reports
+        Subscriptions define how Org Alarms/Reports are delivered to whom
   '/api/v1/orgs/{org_id}/templates':
     get:
       operationId: getOrgTemplates
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.template.v1.yaml
           description: Successful response
       summary: getOrgTemplates
       tags:
         - Templates
         - Organization
+      description: Get Org Templates
     parameters:
       - in: path
         name: org_id
@@ -11883,45 +11978,19 @@ paths:
         schema:
           type: string
     post:
-      description: |-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        name|string|name of the template
-        applies|object|where this template should be applied to, can be org_id, site_ids, sitegroup_ids
-        exceptions|object|where this template should not be applied to (takes precedence)
-        org_id|string|org id, should be the same as the org, this shadows sitegroup_ids and site_ids
-        sitegroup_ids|list|list of sitegroup ids
-        site_ids|list|list of site ids
-        filter_by_deviceprofile|boolean|whether to further filter by Device Profile
-        deviceprofile_ids|list|list of Device Profile ids
+      description: Create Org Template
       operationId: createOrgTemplate
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                applies:
-                  org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
-                  site_ids:
-                    - 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-                  sitegroup_ids:
-                    - 581328b6-e382-f54e-c9dc-999983183a34
-                    - f57096b9-0c2f-4df6-c77b-ae6ae87a3d43
-                deviceprofile_ids:
-                  - 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
-                exceptions:
-                  site_ids:
-                    - 52f4347e-3e4b-186c-21ca-ad5b70eb23d6
-                  sitegroup_ids:
-                    - 90badd2e-c028-5e8e-dd8f-b3c718882b9d
-                filter_by_deviceprofile: true
-                name: west
-              type: object
+              $ref: ./models/template.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.template.v1.yaml
           description: Successful response
       summary: createOrgTemplate
       tags:
@@ -11939,17 +12008,21 @@ paths:
       tags:
         - Templates
         - Organization
+      description: Delete Org Template
     get:
       operationId: getOrgTemplateDetails
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.template.v1.yaml
           description: Successful response
       summary: getOrgTemplateDetails
       tags:
         - Templates
         - Organization
+      description: Get Org Template Details
     parameters:
       - in: path
         name: org_id
@@ -11967,18 +12040,19 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                name: west
-              type: object
+              $ref: ./models/template.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.template.v1.yaml
           description: Successful response
       summary: updateOrgTemplate
       tags:
         - Templates
         - Organization
+      description: Update Org Template
   '/api/v1/orgs/{org_id}/templates/{template_id}/clone':
     parameters:
       - in: path
@@ -11997,59 +12071,66 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                name: Cloned
+              description: ''
               type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+              required:
+                - name
+            examples:
+              example-1:
+                value:
+                  name: Cloned
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.template.v1.yaml
           description: Successful response
       summary: cloneOrgTemplate
       tags:
         - Templates
         - Organization
+      description: Clone Org Template
   '/api/v1/orgs/{org_id}/tickets':
     get:
-      description: |-
-        #### Query Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        start|string|start datetime, can be epoch or relative time like -1d, -1w; -1d if not specified
-        end|string|end datetime, can be epoch or relative time like -1d, -2h
-        duration|string|duration like 7d, 2w
-
-
-        NOTE: end & duration if both specified, will take precedence over start time
-
-
-        #### Response Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        id|string|id of the ticket
-        created_at|int|when the ticket was created
-        updated_at|int|when the ticket was last updated
-        type|string|question (default) / bug / critical
-        subject|string|subject
-        status|string|open / pending / solved / closed
-        requester|string|name of the requester
-
-
-        Ticket Status open: 
-        * `open`: Mist is working on it 
-        * `pending`: ticket is open and Requester attention is needed (e.g. Mist is asking for some more information) 
-        * `solved`: ticket is marked as solved / considered by Mist (requester can update it, causing it to re-open; or rate it) 
-        * `closed`: ticket is archived and cannot be changed
+      description: Get Tickets of an Org
       operationId: getOrgTickets
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.ticket.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    - id: string
+                      created_at: 0
+                      updated_at: 0
+                      subject: string
+                      status: open
+                      type: string
+                      requester: string
           description: Successful response
       summary: getOrgTickets
       tags:
         - Tickets
         - Organization
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
     parameters:
       - in: path
         name: org_id
@@ -12057,27 +12138,35 @@ paths:
         schema:
           type: string
     post:
-      description: |
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        subject|string|Required subject (usually short)
-        type|string|question (default) / bug / critical
-        comment|string|Required description
+      description: Create a support ticket
       operationId: createOrgTicket
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                comment: where do I configure WPA1 / WPA2 / Auto?
-                subject: question regarding WPA
-                type: question
-              type: object
+              $ref: ./models/ticket.v1.yaml
+            examples:
+              example-1:
+                value:
+                  subject: string
+                  type: question
+                  comment: string
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    id: string
+                    created_at: 0
+                    updated_at: 0
+                    subject: string
+                    status: open
+                    type: string
+                    requester: string
+              schema:
+                $ref: ./models/responses/response.ticket.v1.yaml
           description: Successful response
       summary: createOrgTicket
       tags:
@@ -12085,40 +12174,24 @@ paths:
         - Organization
   '/api/v1/orgs/{org_id}/tickets/{ticket_id}':
     get:
-      description: |-
-        #### Query Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        start|string|start datetime, can be epoch or relative time like -1d, -1w; -1d if not specified
-        end|string|end datetime, can be epoch or relative time like -1d, -2h
-        duration|string|duration like 7d, 2w
-
-
-        NOTE: end & duration if both specified, will take precedence over start time
-
-
-        #### Response Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        id|string|id of the ticket
-        created_at|int|when the ticket was created
-        updated_at|int|when the ticket was last updated
-        type|string|question (default) / bug / critical
-        subject|string|subject
-        status|string|open / pending / solved / closed
-        requester|string|name of the requester
-
-
-        Ticket Status open: 
-        * `open`: Mist is working on it 
-        * `pending`: ticket is open and Requester attention is needed (e.g. Mist is asking for some more information) 
-        * `solved`: ticket is marked as solved / considered by Mist (requester can update it, causing it to re-open; or rate it) 
-        * `closed`: ticket is archived and cannot be changed
+      description: Get support ticket details
       operationId: getOrgTicketDetails
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.ticket.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    id: string
+                    created_at: 0
+                    updated_at: 0
+                    subject: string
+                    status: open
+                    type: string
+                    requester: string
           description: Successful response
       summary: getOrgTicketDetails
       tags:
@@ -12136,23 +12209,19 @@ paths:
         schema:
           type: string
     put:
-      description: |-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        subject|string|subject (usually short)
-        type|string|question (default) / bug / critical
-        status|string|open / solved
+      description: Update support ticket
       operationId: updateOrgTicket
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                status: solved
-                subject: question regarding WPA/WPA2
-                type: question
-              type: object
+              $ref: ./models/ticket.v1.yaml
+            examples:
+              example-1:
+                value:
+                  subject: string
+                  type: question
+                  comment: string
       responses:
         '200':
           content:
@@ -12175,13 +12244,7 @@ paths:
         schema:
           type: string
     post:
-      description: |
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        subject|string|Required subject (usually short)
-        type|string|question (default) / bug / critical
-        comment|string|Required description
+      description: Add Comment to support ticket
       operationId: addOrgTicketComment
       requestBody:
         content:
@@ -12190,6 +12253,27 @@ paths:
               example:
                 comment: this is urgent
               type: object
+              properties:
+                comment:
+                  type: string
+            examples:
+              example-1:
+                value:
+                  comment: this is urgent
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+            examples:
+              example-1:
+                value:
+                  comment: string
+                  file: string
       responses:
         '200':
           content:
@@ -12205,12 +12289,17 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.webhook.v1.yaml
           description: Successful response
       summary: getOrgWebhooks
       tags:
         - Webhooks
         - Organization
+      description: Get Org Webhooks
     parameters:
       - in: path
         name: org_id
@@ -12218,25 +12307,19 @@ paths:
         schema:
           type: string
     post:
-      description: " #### Body Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n name|string|name of the webhook\r\n enabled|boolean|whether webhook is enabled\r\n topics|list|list of subscribed topics: device-events/alarms/audits/client-sessions\r\n type|string|http-post (default) / splunk / google-pubsub / aws-sns\r\n url|string|url\r\n headers|object|custom headers: the headers name and value must be string, total bytes of headers name and value must be less than 1000\r\n secret|string|optional, when type=http-post, if provided, X-Mist-Signature in HTTP header will be the signature of HMAC_SHA1(secret, body)\r\n verify_cert|boolean|when url uses HTTPS, whether to verify the certificate, default is false\r\n\r\n* If headers format is invalid, “X-Mist-Error”: “headers format invalid” will be sent.\r\n* If total bytes of headers exceed 1000, “X-Mist-Error”: “headers too big” will be sent.\r\n* If any header value is not string, “X-Mist-Error”: “header[%s] not a string” will be sent."
+      description: Create Org Webhook
       operationId: createOrgWebhook
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                headers:
-                  x-custom-1: your_custom_header_value1
-                  x-custom-2: your_custom_header_value2
-                name: analytic
-                secret: secret
-                type: http-post
-                url: 'https://username:password@hooks.abc.com/uri/...'
-              type: object
+              $ref: ./models/webhook.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.webhook.v1.yaml
           description: Successful response
       summary: createOrgWebhook
       tags:
@@ -12254,17 +12337,21 @@ paths:
       tags:
         - Webhooks
         - Organization
+      description: Delete Org Webhook
     get:
       operationId: getOrgWebhookDetails
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.webhook.v1.yaml
           description: Successful response
       summary: getOrgWebhookDetails
       tags:
         - Webhooks
         - Organization
+      description: Get Org Webhook Details
     parameters:
       - in: path
         name: org_id
@@ -12282,18 +12369,19 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                name: analytic
-              type: object
+              $ref: ./models/webhook.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.webhook.v1.yaml
           description: Successful response
       summary: updateOrgWebhook
       tags:
         - Webhooks
         - Organization
+      description: Update Org Webhook
   '/api/v1/orgs/{org_id}/wlans':
     get:
       operationId: getOrgWlans
