@@ -15528,6 +15528,150 @@ paths:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
          #### Query Parameter
         **Parameter**|**Type**|**Description** 
          :-------------: |:-------------: |:-------------: 
@@ -21286,49 +21430,48 @@ paths:
                     current:
                       type: object
                       required:
-                        - ''
+                        - '{device_type}'
                       description: |
                         ml stats, per client_type
-                      properties:
-                        '':
-                          type: object
-                          required:
-                            - ple
-                            - level
-                            - int
-                            - completed
-                            - src
-                            - quality
-                            - timestamp
-                          properties:
-                            ple:
-                              type: number
-                              description: internal
-                            level:
-                              type: integer
-                              description: |
-                                level of learning
-                            int:
-                              description: |
-                                internal
-                              type: integer
-                            completed:
-                              type: number
-                              description: |
-                                learning completeness to the next level
-                            src:
-                              type: string
-                              minLength: 1
-                              description: where the PLF comes from. machine (PLF from last learning) / device (last learnt PLF from this device) / model (model of the client device) / overwrite (from ML overwrite)
-                            quality:
-                              type: string
-                              minLength: 1
-                              description: |
-                                from 0 - 4, 4 being most accurate
-                            timestamp:
-                              type: number
-                              description: |
-                                epoch, last updated
+                      additionalProperties:
+                        type: object
+                        required:
+                          - ple
+                          - level
+                          - int
+                          - completed
+                          - src
+                          - quality
+                          - timestamp
+                        properties:
+                          ple:
+                            type: number
+                            description: internal
+                          level:
+                            type: integer
+                            description: |
+                              level of learning
+                          int:
+                            description: |
+                              internal
+                            type: integer
+                          completed:
+                            type: number
+                            description: |
+                              learning completeness to the next level
+                          src:
+                            type: string
+                            minLength: 1
+                            description: where the PLF comes from. machine (PLF from last learning) / device (last learnt PLF from this device) / model (model of the client device) / overwrite (from ML overwrite)
+                          quality:
+                            type: string
+                            minLength: 1
+                            description: |
+                              from 0 - 4, 4 being most accurate
+                          timestamp:
+                            type: number
+                            description: |
+                              epoch, last updated
                     beacon_id:
                       type: string
                       description: |
@@ -21393,27 +21536,26 @@ paths:
               schema:
                 description: ''
                 type: object
-                properties:
-                  '':
-                    type: object
-                    required:
-                      - ple
-                      - int
-                      - completed
-                      - quality
-                    properties:
-                      ple:
-                        type: number
-                        description: internal
-                      int:
-                        type: number
-                        description: internal
-                      completed:
-                        type: number
-                      quality:
-                        type: string
-                        minLength: 1
-                        description: 'from 0 - 4, 4 being most accurate'
+                additionalProperties:
+                  type: object
+                  required:
+                    - ple
+                    - int
+                    - completed
+                    - quality
+                  properties:
+                    ple:
+                      type: number
+                      description: internal
+                    int:
+                      type: number
+                      description: internal
+                    completed:
+                      type: number
+                    quality:
+                      type: string
+                      minLength: 1
+                      description: 'from 0 - 4, 4 being most accurate'
                 required:
                   - ''
               examples:
@@ -22511,6 +22653,7 @@ paths:
       tags:
         - Packet Captures
         - Site
+      description: Stop current capture
     get:
       description: Get Capturing status
       operationId: getSiteCapturingStatus
@@ -22613,49 +22756,216 @@ paths:
         schema:
           type: string
     post:
-      description: Initiate a Client Packet Capture
+      description: Initiate a Packet Capture
       operationId: startSiteRadiotapPacketCapture
       requestBody:
         content:
           application/json:
             schema:
               description: ''
+              oneOf:
+                - description: Initiate a Client Packet Capture
+                  properties:
+                    type:
+                      type: string
+                      minLength: 1
+                      enum:
+                        - client
+                      description: client
+                      default: client
+                    client_mac:
+                      type: string
+                      minLength: 1
+                      description: 'client mac, required if type==client; optional otherwise'
+                    num_packets:
+                      description: 'number of packets to capture, 0 for unlimited, default is 1024 for client-capture'
+                      default: 1024
+                      type: integer
+                    duration:
+                      description: 'duration of the capture, in seconds, default is 600, maximum is 86400'
+                      default: 600
+                      type: integer
+                    max_pkt_len:
+                      type: integer
+                    includes_mcast:
+                      type: boolean
+                      description: ''
+                    ssid:
+                      description: optional filter by ssid
+                      type:
+                        - string
+                        - 'null'
+                    ap_mac:
+                      type:
+                        - string
+                        - 'null'
+                  required:
+                    - type
+                - description: Initiate a packet Capture for New Wireless Client Associations
+                  properties:
+                    type:
+                      type: string
+                      minLength: 1
+                      enum:
+                        - new_assoc
+                      default: new_assoc
+                      description: new-assoc
+                    client_mac:
+                      type: string
+                      minLength: 1
+                      description: 'client mac, required if type==client; optional otherwise'
+                    num_packets:
+                      description: 'number of packets to capture, 0 for unlimited, default is 100 for new association'
+                      default: 1024
+                      type: integer
+                    duration:
+                      description: 'duration of the capture, in seconds, default is 600, maximum is 86400'
+                      default: 600
+                      type: integer
+                    max_pkt_len:
+                      type: integer
+                    includes_mcast:
+                      type: boolean
+                      description: ''
+                    ssid:
+                      description: optional filter by ssid
+                      type:
+                        - string
+                        - 'null'
+                    ap_mac:
+                      type:
+                        - string
+                        - 'null'
+                  required:
+                    - type
+                - description: Initiate a Wired Packet Capture
+                  properties:
+                    type:
+                      type: string
+                      minLength: 1
+                      enum:
+                        - wired
+                      description: wired
+                      default: wired
+                    num_packets:
+                      description: 'number of packets to capture, 0 for unlimited, default is 1024 for wired-capture'
+                      default: 1024
+                      type: integer
+                    duration:
+                      description: 'duration of the capture, in seconds, default is 600, maximum is 86400'
+                      default: 600
+                      type: integer
+                    max_pkt_len:
+                      type: integer
+                      description: 'max_len of each packet to capture, default is 128, maximum is 2048'
+                      default: 128
+                      maximum: 2048
+                    tcpdump_expression:
+                      type: string
+                      description: tcpdump expression
+                    ap_mac:
+                      type:
+                        - string
+                        - 'null'
+                    format:
+                      type: string
+                      enum:
+                        - pcap
+                        - string
+                        - stream+pcap
+                      default: pcap
+                  required:
+                    - type
+                - description: Initiate a WLAN Packet Capture
+                  properties:
+                    type:
+                      type: string
+                      minLength: 1
+                      description: wlan
+                      default: wlan
+                      enum:
+                        - wlan
+                    num_packets:
+                      description: 'number of packets to capture, 0 for unlimited, default is 1024 for wlan-capture'
+                      default: 1024
+                      type: integer
+                    duration:
+                      description: 'duration of the cpture, in seconds, default is 600, maximum is 86400'
+                      default: 600
+                      type: integer
+                    max_pkt_len:
+                      type: integer
+                      description: 'max_len of each packet to capture, default is 128, maximum is 2048'
+                      default: 128
+                      maximum: 2048
+                    ap_mac:
+                      type:
+                        - string
+                        - 'null'
+                    format:
+                      type: string
+                      enum:
+                        - pcap
+                        - string
+                        - stream+pcap
+                      default: pcap
+                    wlan_id:
+                      type: string
+                      description: WLAN ID
+                    band:
+                      type: string
+                      description: '2.4 / 5, default is 2.4'
+                      default: '2.4'
+                      enum:
+                        - '2.4'
+                        - '5'
+                  required:
+                    - type
+                - description: Initiate a Radiotap Packet Capture
+                  properties:
+                    type:
+                      type: string
+                      minLength: 1
+                      description: radiotap
+                      default: radiotap
+                      enum:
+                        - radiotap
+                    num_packets:
+                      description: 'number of packets to capture, 0 for unlimited, default is 1024 for radiotap-capture'
+                      default: 1024
+                      type: integer
+                    duration:
+                      description: 'duration of the cpture, in seconds, default is 600, maximum is 86400'
+                      default: 600
+                      type: integer
+                    max_pkt_len:
+                      type: integer
+                      description: 'max_len of each packet to capture, default is 128, maximum is 2048'
+                      default: 128
+                      maximum: 2048
+                    ap_mac:
+                      type:
+                        - string
+                        - 'null'
+                    format:
+                      type: string
+                      enum:
+                        - pcap
+                        - string
+                        - stream+pcap
+                      default: pcap
+                    band:
+                      type: string
+                      description: '2.4 / 5, default is 2.4'
+                      default: '2.4'
+                      enum:
+                        - '2.4'
+                        - '5'
+                  required:
+                    - type
               type: object
-              properties:
-                type:
-                  type: string
-                  minLength: 1
-                client_mac:
-                  type: string
-                  minLength: 1
-                  description: 'client mac, required if type==client; optional otherwise'
-                num_packets:
-                  description: 'number of packets to capture, 0 for unlimited, default is 1024 for client-capture, 100 for new association'
-                  default: 1024
-                  type: integer
-                duration:
-                  description: 'duration of the cpture, in seconds, default is 600, maximum is 86400'
-                  default: 600
-                  type: integer
-                max_pkt_len:
-                  type: integer
-                includes_mcast:
-                  type: boolean
-                  description: ''
-                ssid:
-                  description: optional filter by ssid
-                  type:
-                    - string
-                    - 'null'
-                ap_mac:
-                  type:
-                    - string
-                    - 'null'
-              required:
-                - type
-                - max_pkt_len
             examples:
-              example-1:
+              Client Packet Capture:
                 value:
                   type: client
                   client_mac: 60a10a773412
@@ -22664,6 +22974,38 @@ paths:
                   max_pkt_len: 128
                   includes_mcast: false
                   ssid: null
+                  ap_mac: null
+              New Wireless Client Associations Packet Capture:
+                value:
+                  type: new_assoc
+                  num_packets: 100
+                  duration: 600
+                  max_pkt_len: 128
+                  includes_mcast: false
+                  ssid: null
+                  ap_mac: null
+                  client_mac: 60a10a773412
+              Wired Packet Capture:
+                value:
+                  type: wired
+                  num_packets: 100
+                  duration: 600
+                  max_pkt_len: 68
+                  tcpdump_expression: tcp port 80
+                  ap_mac: null
+              Wlan Packet Capture:
+                value:
+                  type: wlan
+                  num_packets: 100
+                  duration: 600
+                  max_pkt_len: 68
+                  ap_mac: null
+              Radiotap Packet Capture:
+                value:
+                  type: wlan
+                  num_packets: 100
+                  duration: 600
+                  max_pkt_len: 68
                   ap_mac: null
       responses:
         '200':
@@ -22683,15 +23025,38 @@ paths:
           name: name
           schema:
             type: string
+        - schema:
+            type: string
+          in: query
+          name: page
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.psk.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    - id: string
+                      name: string
+                      org_id: string
+                      site_id: string
+                      created_time: 0
+                      modified_time: 0
+                      passphrase: stringst
+                      ssid: string
+                      usage: multi
+                      vlan_id: 0
+                      mac: string
           description: Successful response
       summary: filterSitePsks
       tags:
         - PSKs
         - Site
+      description: Get Site PSKs
     parameters:
       - in: path
         name: site_id
@@ -22699,25 +23064,42 @@ paths:
         schema:
           type: string
     post:
-      description: " #### Body Parameters\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n name|string|a name for the PSK\r\n passphrase|string|passphrase of the PSK (8-63 character or 64 in hex)\r\n ssid|string|SSID this PSK should be applicable to\r\n usage|string|multi (default) / single\r\n vlan_id|int|VLAN for this PSK key\r\n mac|string|if usage==single, the mac that this PSK ties to, empty if auto-binding"
+      description: Create Site PSK
       operationId: createSitePsk
       requestBody:
         content:
           application/json:
             schema:
-              example: |-
-                {
-                    "name": "test_api",
-                    "passphrase": "foryoureyesonly",
-                    "ssid": "MLN",
-                    "usage": "multi",
-                    "vlan_id": 417
-                }
-              type: string
+              $ref: ./models/psk.v1.yaml
+            examples:
+              example-1:
+                value:
+                  name: string
+                  passphrase: stringst
+                  ssid: string
+                  usage: multi
+                  vlan_id: 0
+                  mac: string
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.psk.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    id: string
+                    name: string
+                    org_id: string
+                    site_id: string
+                    created_time: 0
+                    modified_time: 0
+                    passphrase: stringst
+                    ssid: string
+                    usage: multi
+                    vlan_id: 0
+                    mac: string
           description: Successful response
       summary: createSitePsk
       tags:
@@ -22735,17 +23117,35 @@ paths:
       tags:
         - PSKs
         - Site
+      description: Delete Site PSK
     get:
       operationId: getSitePskDetails
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.psk.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    id: string
+                    name: string
+                    org_id: string
+                    site_id: string
+                    created_time: 0
+                    modified_time: 0
+                    passphrase: stringst
+                    ssid: string
+                    usage: multi
+                    vlan_id: 0
+                    mac: string
           description: Successful response
       summary: getSitePskDetails
       tags:
         - PSKs
         - Site
+      description: Get Site PSK Details
     parameters:
       - in: path
         name: site_id
@@ -22763,33 +23163,76 @@ paths:
         content:
           application/json:
             schema:
-              example: |-
-                {
-                    "vlan_id": 20
-                }
-              type: string
+              $ref: ./models/psk.v1.yaml
+            examples:
+              example-1:
+                value:
+                  name: string
+                  passphrase: stringst
+                  ssid: string
+                  usage: multi
+                  vlan_id: 0
+                  mac: string
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.psk.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    id: string
+                    name: string
+                    org_id: string
+                    site_id: string
+                    created_time: 0
+                    modified_time: 0
+                    passphrase: stringst
+                    ssid: string
+                    usage: multi
+                    vlan_id: 0
+                    mac: string
           description: Successful response
       summary: updateSitePsk
       tags:
         - PSKs
         - Site
+      description: Update Site PSK
   '/api/v1/sites/{site_id}/rfdiags':
     get:
-      description: " #### Response Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n type|string|sdkclient / client / asset\r\n sdkclient_id|string|if type==sdkclient, sdkclient_id of this recording\r\n sdkclient_uuid|string|if type==sdkclient, device_id of sdkclient\r\n asset_id|string|if type==asset, id of the asset\r\n mac|string|if type==client or type==asset, mac of the device\r\n start_time|int|timestamp of the recording (the start)\r\n end_time|int|timestamp of end of recording\r\n duration|int|recording length in seconds, max is 120\r\n ready|boolean|whether it’s ready for playback\r\n url|string|URL to a JSON file that contains an array of frames, each frame is the same format\r\n raw_events|string|URL to a JSON file that contains array of raw location diag events\r\n frame_count|int|Number of frames in the output\r\n sdkclient_name|string|if type==sdkclient, name of the sdkclient\r\n client_name|string|if type==client, hostname of the client\r\n asset_name|string|if type==asset, name of the asset\r\n next|string|Optional. id of the next recoding if present. Only valid for site survey."
-      operationId: listSiteRecordings
+      description: List RF Glass Recording
+      operationId: getSiteSiteRfdiagRecording
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.rfdiag.v1.yaml
           description: Successful response
-      summary: listSiteRecordings
+      summary: getSiteSiteRfdiagRecording
       tags:
         - RF Glass
         - Site
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limit
     parameters:
       - in: path
         name: site_id
@@ -22797,22 +23240,19 @@ paths:
         schema:
           type: string
     post:
-      description: " #### Body Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n name|string|name of the recording, the name of the sdk client would be a good default choice\r\ntype|string|sdkclient / client/ asset\r\nsdkclient_id|string|if type==sdkclient, sdkclient_id of this recording\r\nmac|string|if type==client or asset, mac of the device\r\nduration|int|recording length in seconds, max is 180. Default value is also 180."
+      description: Start RF Glass Recording
       operationId: startSiteRecording
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                duration: 120
-                name: Troubleshooting
-                sdkclient_id: de87bf9d-183f-e383-cc68-6ba43947d403
-                type: sdkclient
-              type: object
+              $ref: ./models/rfdiag.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.rfdiag.v1.yaml
           description: Successful response
       summary: startSiteRecording
       tags:
@@ -22820,15 +23260,16 @@ paths:
         - Site
   '/api/v1/sites/{site_id}/rfdiags/{rfdiag_id}':
     get:
-      description: |
-        Download raw_events blob
-      operationId: downloadSiteRecording
+      description: Get RF Diage Recording Details
+      operationId: getSiteRfdiagRecordingDetails
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.rfdiag.v1.yaml
           description: Successful response
-      summary: downloadSiteRecording
+      summary: deleteSiteRfdiagRecording
       tags:
         - RF Glass
         - Site
@@ -22844,35 +23285,34 @@ paths:
         schema:
           type: string
     put:
-      operationId: updateSiteRecording
+      operationId: updateSiteRfdiagRecording
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                name: Trouble-Shoot
-              type: object
+              $ref: ./models/rfdiag.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.rfdiag.v1.yaml
           description: Successful response
-      summary: updateSiteRecording
+      summary: updateSiteRfdiagRecording
       tags:
         - RF Glass
         - Site
-  '/api/v1/sites/{site_id}/rfdiags/{rfdiag_id}/download':
+      description: |
+        Update Recording
     delete:
-      operationId: deleteSiteRecording
+      summary: ''
+      operationId: deleteSiteRfdiagRecording
       responses:
         '200':
-          content:
-            application/json: {}
-          description: Successful response
-      summary: deleteSiteRecording
-      tags:
-        - RF Glass
-        - Site
+          description: OK
+      description: |
+        Delete Recording
+  '/api/v1/sites/{site_id}/rfdiags/{rfdiag_id}/download':
     parameters:
       - in: path
         name: site_id
@@ -22884,6 +23324,15 @@ paths:
         required: true
         schema:
           type: string
+    get:
+      summary: downloadSiteRfdiagRecording
+      operationId: downloadSiteRfdiagRecording
+      responses:
+        '200':
+          description: OK
+      description: |-
+        Download Recording
+        Download raw_events blob
   '/api/v1/sites/{site_id}/rfdiags/{rfdiag_id}/stop':
     parameters:
       - in: path
@@ -22899,7 +23348,7 @@ paths:
     post:
       description: |
         If the recording session is active for the given rfdiag_id, it will finish the recording. duration and end_time will be updated to reflect the correct values.
-      operationId: stopSiteRecording
+      operationId: stopSiteRfdiagRecording
       requestBody:
         content:
           application/json:
@@ -22915,7 +23364,7 @@ paths:
           content:
             application/json: {}
           description: Successful response
-      summary: stopSiteRecording
+      summary: stopSiteRfdiagRecording
       tags:
         - RF Glass
         - Site
@@ -22928,15 +23377,82 @@ paths:
           name: distinct
           schema:
             type: string
+            default: bssid
+            enum:
+              - bssid
+              - ssid
+              - ap
+              - type
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limie
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required:
+                        - count
+                        - bssid
+                      properties:
+                        count:
+                          type: number
+                        bssid:
+                          type: string
+                          minLength: 1
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  total:
+                    type: number
+                required:
+                  - results
+                  - start
+                  - end
+                  - limit
+                  - total
+              examples:
+                example-1:
+                  value:
+                    results:
+                      - count: 1
+                        bssid: 38ff363c8c4c
+                      - count: 1
+                        bssid: 60d02c2394cc
+                    start: 1538071200
+                    end: 1538074800
+                    limit: 10
+                    total: 2
           description: Successful response
       summary: countSiteRogueEvents
       tags:
         - Rogues
         - Site
+      description: Count Rogue Events
     parameters:
       - in: path
         name: site_id
@@ -22952,15 +23468,130 @@ paths:
           name: type
           schema:
             type: string
+            default: others
+            enum:
+              - honeypot
+              - lan
+              - others
+              - spoof
+          description: 'honeypot (honeypots) / lan (wired rogue) / others / spoof, default is others'
+        - schema:
+            type: string
+          in: query
+          name: ssid
+          description: ssid of the network detected as threat
+        - schema:
+            type: string
+          in: query
+          name: bssid
+          description: bssid of the network detected as threat
+        - schema:
+            type: string
+          in: query
+          name: ap_mac
+          description: mac of the device that had strongest signal strength for ssid/bssid pair
+        - schema:
+            type: string
+          in: query
+          name: channel
+          description: channel over which ap_mac heard ssid/bssid pair
+        - schema:
+            type: boolean
+          in: query
+          name: seen_on_lan
+          description: 'whether the reporting AP see a wireless client (on LAN) connecting to it  '
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limit
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required:
+                        - ssid
+                        - bssid
+                        - timestamp
+                        - ap
+                        - rssi
+                        - channel
+                      properties:
+                        ssid:
+                          type: string
+                          minLength: 1
+                        bssid:
+                          type: string
+                          minLength: 1
+                        timestamp:
+                          type: number
+                        ap:
+                          type: string
+                          minLength: 1
+                        rssi:
+                          type: number
+                        channel:
+                          type: number
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  total:
+                    type: number
+                required:
+                  - results
+                  - start
+                  - end
+                  - limit
+                  - total
+              examples:
+                example-1:
+                  value:
+                    results:
+                      - ssid: MyHomeNetwork
+                        bssid: 38ff363c8c4c
+                        timestamp: 1538074612
+                        ap: 5c5b350e10030
+                        rssi: -54
+                        channel: 136
+                      - ssid: Home-Office
+                        bssid: 60d02c2394cc
+                        timestamp: 1538074612
+                        ap: 5c5b350e10030
+                        rssi: -59
+                        channel: 11
+                    start: 1538071200
+                    end: 1538074800
+                    limit: 10
+                    total: 2
           description: Successful response
       summary: searchSiteRogueEvents
       tags:
         - Rogues
         - Site
+      description: Search Rogue Events
     parameters:
       - in: path
         name: site_id
@@ -22973,12 +23604,30 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  seen_as_client:
+                    type: boolean
+                  manufacture:
+                    type: string
+                    minLength: 1
+                required:
+                  - seen_as_client
+                  - manufacture
+              examples:
+                example-1:
+                  value:
+                    seen_as_client: true
+                    manufacture: Intel Corporate
           description: Successful response
       summary: getSiteRogueAPDetails
       tags:
         - Rogues
         - Site
+      description: Get Rogue AP Details
     parameters:
       - in: path
         name: site_id
@@ -23015,14 +23664,106 @@ paths:
       tags:
         - Rogues
         - Site
+      description: Send Deauth frame to clients connected to a Rogue AP
   '/api/v1/sites/{site_id}/rrm/current':
     get:
-      description: " #### Response Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n status|string|unknown / updating / ready\r\n timestamp|long|time where the status was updated\r\n band_24|object|proposal on band 2.4G, key is ap_id, value is the proposal\r\n curr_channel|int|current channel\r\n curr_power|int|current tx power\r\n curr_bandwidth|int|current bandwidth\r\n channel|int|proposed channel\r\n power|int|proposed tx power\r\n bandwidth|int|proposed bandwidth\r\n band_24_metric|object|metric about 2.4G\r\n band_5_metric|object|metric about 5G\r\n noise|float|average noise in dBm\r\n cochannel_neighbors|float|average number of co-channel neighbors\r\n neighbors|float|average number of neighbors\r\n density|float|defined by how APs can hear from one and another, 0 - 1 (everyone can hear everyone)\r\n rftemplate|object|RF Template if used if it uses RFTemplate from Org"
+      description: Get Current Channel Planning
       operationId: getSiteCurrentChannelPlanning
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.rrm.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    band_24: {}
+                    band_24_metric:
+                      noise: -88.5
+                      cochannel_neighbors: 0
+                      neighbors: 0.5
+                      density: 0.05
+                      naps_by_channel:
+                        '1': 1
+                        '11': 1
+                      avg_aps_per_channel: 0.6666666666666666
+                      naps_by_power:
+                        '6': 2
+                      channel_distribution_uniformity: 1
+                    band_5: {}
+                    band_5_metric:
+                      noise: -90.5
+                      cochannel_neighbors: 0
+                      neighbors: 0.5
+                      density: 0
+                      naps_by_channel:
+                        '36': 1
+                        '116': 1
+                      avg_aps_per_channel: 0.15384615384615385
+                      naps_by_power:
+                        '13': 1
+                        '15': 1
+                      channel_distribution_uniformity: 1
+                    status: ready
+                    timestamp: 1604281725
+                    rftemplate:
+                      model_specific:
+                        AP41:
+                          ant_gain_5: 0
+                          band_5:
+                            disabled: false
+                            power_min: 8
+                            power_max: 15
+                            power: null
+                            preamble: short
+                            channels: null
+                            bandwidth: 40
+                      band_24:
+                        ant_gain: 0
+                        disabled: false
+                        power_min: 3
+                        power_max: 11
+                        power: null
+                        preamble: short
+                        channels:
+                          - 1
+                          - 6
+                          - 11
+                        bandwidth: 20
+                      ant_gain_24: 0
+                      ant_gain_5: 0
+                      band_5:
+                        ant_gain: 0
+                        disabled: false
+                        power_min: 9
+                        power_max: 16
+                        power: null
+                        preamble: short
+                        channels:
+                          - 36
+                          - 40
+                          - 44
+                          - 48
+                          - 52
+                          - 56
+                          - 60
+                          - 64
+                          - 100
+                          - 104
+                          - 108
+                          - 112
+                          - 116
+                        bandwidth: 80
+                      country_code: FR
+                      band_24_usage: '24'
+                      id: b3f20330-xxxx-xxxx-xxxx-0d8727140b1d
+                      name: Lab
+                      org_id: 203d3d02-xxxx-xxxx-xxxx-76896a3330f4
+                      created_time: 1594743723
+                      modified_time: 1603117193
+                    rftemplate_id: b3f20330-xxxx-xxxx-xxxx-0d8727140b1d
+                    rftemplate_name: Lab
           description: Successful response
       summary: getSiteCurrentChannelPlanning
       tags:
@@ -23036,12 +23777,65 @@ paths:
           type: string
   '/api/v1/sites/{site_id}/rrm/current/devices/{device_id}/band/{band}':
     get:
-      description: " #### Request Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\nband|string|24 / 5\r\n\r\n #### Response Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n channel|int|channel\r\n noise|float|noise floor\r\n non_wifi|float|non-wifi RF utilization\r\n wifi|float|WIFI RF utilization\r\n rssi|int|the avg RSSI heard from neighbor APs (that belongs to the same site)\r\n other_rssi|int|the avg RSSI heard from other APs (that does NOT belongs to the same site)\r\n max_other_ssid|string|SSID from other AP that we heard from with the max RSSI\r\n util_score|float|utilization score, 0-1, lower means less utilization (cleaner RF)\r\n insite_channel_weight|float|channel weight score, 0-1, lower means less utilization (cleaner RF)"
+      description: Get Current RRM Considerations for an AP on a Specific Band
       operationId: getSiteCurrentRrmConsiderationsForAnApOnASpecificBand
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      type: object
+                      properties:
+                        channel:
+                          type: number
+                        noise:
+                          type: number
+                        util_score:
+                          type: number
+                          description: 'utilization score, 0-1, lower means less utilization (cleaner RF)'
+                        util_score_other:
+                          type: number
+                          description: 'other utilization score, 0-1, lower means less utilization (cleaner RF)'
+                        util_score_non_wifi:
+                          type: number
+                          description: 'non-wifi utilization score, 0-1, lower means less utilization (cleaner RF)'
+                        other_ssid:
+                          type: string
+                          minLength: 1
+                          description: SSID from other AP that we heard from with the max RSSI
+                        other_rssi:
+                          type: number
+                          description: the avg RSSI heard from other APs (that does NOT belongs to the same site)
+                      required:
+                        - channel
+                        - noise
+                        - util_score
+                        - util_score_other
+                        - util_score_non_wifi
+                required:
+                  - results
+              examples:
+                example-1:
+                  value:
+                    results:
+                      - channel: 36
+                        noise: -78
+                        non_wifi: 0.08
+                        wifi: 0.13
+                        rssi: -48
+                        other_rssi: -66
+                        other_ssid: Rivendell5G
+                        util_score: 0.1
+                        util_score_other: 0.05
+                        util_score_non_wifi: 0.01
           description: Successful response
       summary: getSiteCurrentRrmConsiderationsForAnApOnASpecificBand
       tags:
@@ -23063,15 +23857,38 @@ paths:
         required: true
         schema:
           type: string
+          enum:
+            - '24'
+            - '5'
+        description: radio band
   '/api/v1/sites/{site_id}/rrm/events':
     get:
-      description: " #### Query Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\nband|string|24 / 5, required\r\n\r\n #### Response Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n timestamp|string|timestamp of the event\r\n event|string|schedule-site-rrm / triggered-site-rrm / interference-ap-co-channel / rrm-radar\r\n band|string|for 2.4G or 5G\r\n ap_id|string|ap id\r\n channel|string|channel for the band from rrm\r\n bandwidth|string|channel width for the band 20/40/80\r\n power|string|tx power of the radio\r\n pre_channel|string|(previously) channel for the band, 0 means no previously available\r\n pre_bandwidth|string|(previously) channel width for the band 20/40/80, 0 means no previously available\r\n pre_power|string|(previously) tx power of the radio, 0 means no previously available\r\n next|string|the link to query next set of results. value is null if no next page exists."
+      description: ''
       operationId: getSiteRrmEvents
       parameters:
         - in: query
           name: band
           schema:
             type: string
+            enum:
+              - '24'
+              - '5'
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
       responses:
         '200':
           content:
