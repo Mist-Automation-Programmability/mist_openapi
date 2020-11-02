@@ -15360,6 +15360,174 @@ paths:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
          #### Query Parameter
         **Parameter**|**Type**|**Description** 
          :-------------: |:-------------: |:-------------: 
@@ -20729,17 +20897,106 @@ paths:
           type: string
   '/api/v1/sites/{site_id}/insights/rogues/clients':
     get:
-      description: " #### Query Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n duration|string|1d / 1h, default is 1d\r\n limit|int|max number of results, default = 100"
+      description: Get Rogue Clients
       operationId: getSiteRogueClients
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  next:
+                    type: string
+                    minLength: 1
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required:
+                        - bssid
+                        - ap_mac
+                        - client_mac
+                        - num_aps
+                        - band
+                        - avg_rssi
+                        - annotation
+                      properties:
+                        bssid:
+                          type: string
+                          minLength: 1
+                        ap_mac:
+                          type: string
+                          minLength: 1
+                        client_mac:
+                          type: string
+                          minLength: 1
+                        num_aps:
+                          type: number
+                        band:
+                          type: string
+                          minLength: 1
+                        avg_rssi:
+                          type: number
+                        annotation:
+                          type: string
+                          minLength: 1
+                required:
+                  - start
+                  - end
+                  - limit
+                  - next
+                  - results
+              examples:
+                example-1:
+                  value:
+                    start: 1428939600
+                    end: 1428954000
+                    limit: 100
+                    next: /api/v1/sites/a3eda150-ab3f-11e4-aa18-13e21dd250cc/rogues/clients?start=1498482000&end=1498485600&limit=10&interval=1h
+                    results:
+                      - bssid: d8-97-ba-76-b5-aa
+                        ap_mac: 5c-5b-35-0e-02-1c
+                        client_mac: 34-f8-32-13-57-c2
+                        num_aps: 2
+                        band: '5'
+                        avg_rssi: -63.9
+                        annotation: whitelist
           description: Successful response
       summary: getSiteRogueClients
       tags:
         - Rogues
         - Site
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: duration
+          description: '1d / 1h, default is 1d  '
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limit
     parameters:
       - in: path
         name: site_id
@@ -20752,12 +21009,62 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  interval:
+                    type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required: []
+                      properties: {}
+                required:
+                  - start
+                  - end
+                  - interval
+                  - results
+              examples:
+                example-1:
+                  value:
+                    start: 1428939600
+                    end: 1428954000
+                    interval: 3600
+                    results:
+                      - {}
           description: Successful response
       summary: getSiteInsightMetrics
       tags:
         - Insights
         - Site
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limit
+      description: |-
+        Get Site Insight Metrics
+        See metrics possibilities at /api/v1/const/insight_metrics
     parameters:
       - in: path
         name: site_id
@@ -20771,12 +21078,38 @@ paths:
           type: string
   '/api/v1/sites/{site_id}/licenses/usages':
     get:
-      description: " #### Response Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n usages|object|subscriptions and their quantities\r\n org_titled|object|license entitlement for the entire org"
+      description: This shows license usage (i.e. needed) based on the features enabled for the site.
       operationId: getSiteLicenseUsage
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  usages:
+                    type: object
+                    description: subscriptions and their quantities
+                  org_entitled:
+                    type: object
+                    description: license entitlement for the entire org
+                  trial_enabled:
+                    type: boolean
+                required:
+                  - usages
+                  - org_entitled
+                  - trial_enabled
+              examples:
+                example-1:
+                  value:
+                    usages:
+                      SUB-MAN: 60
+                      SUB-LOC: 30
+                    org_entitled:
+                      SUB-MAN: 60
+                      SUB-LOC: 30
+                    trial_enabled: false
           description: Successful response
       summary: getSiteLicenseUsage
       tags:
@@ -20789,7 +21122,7 @@ paths:
           type: string
   '/api/v1/sites/{site_id}/location/coverage':
     get:
-      description: " #### Query Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n duration|string|1d, 30m, 5h, where the start time will be calculated (with end time is now), default is 1h\r\n type|string|sdkclient / client / asset, default is sdkclient\r\n map_id|string|map_id (filter by map_id)\r\n resolution|string|default / fine\r\n client_type|string|client_type (as filter. optional)\r\n \r\n  #### Response Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n beams_means|list|list of [x, y, mean]s, x/y are in meters (UI would need to use map.ppm to calulate the pixel location from top-left).\r\n gridsize|float|the size of grid, in meter\r\n results|list|list of results, see result_def.\r\n result_def|list|list of names annotating the fields in results"
+      description: Get Beam Coverage Overview
       operationId: getSiteBeamCoverageOverview
       parameters:
         - example: '{{map_id}}'
@@ -20797,26 +21130,118 @@ paths:
           name: map_id
           schema:
             type: string
+          description: map_id (filter by map_id)
         - in: query
           name: type
           schema:
             type: string
+            default: sdkclie
+            enum:
+              - sdkclient
+              - client
+              - asset
+          description: 'sdkclient / client / asset, default is sdkclient'
         - in: query
           name: duration
           schema:
             type: string
+          description: '1d, 30m, 5h, where the start time will be calculated (with end time is now), default is 1h'
         - in: query
           name: resolution
           schema:
             type: string
+          description: default / fine
         - in: query
           name: client_type
           schema:
             type: string
+          description: client_type (as filter. optional)
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  beams_means:
+                    type: array
+                    description: 'list of [x, y, mean]s, x/y are in meters (UI would need to use map.ppm to calulate the pixel location from top-left).'
+                    items:
+                      type: array
+                      items:
+                        type: number
+                  gridsize:
+                    type: number
+                    description: |
+                      the size of grid, in meter
+                  result_def:
+                    type: array
+                    description: |
+                      list of names annotating the fields in results
+                    items:
+                      type: string
+                  results:
+                    type: array
+                    description: |
+                      list of results, see result_def.
+                    items:
+                      type: array
+                      items:
+                        type: number
+                required:
+                  - start
+                  - end
+                  - beams_means
+                  - gridsize
+                  - result_def
+                  - results
+              examples:
+                example-1:
+                  value:
+                    start: 1428939600
+                    end: 1428954000
+                    beams_means:
+                      - - 1
+                        - 3
+                        - 3.2
+                      - - 6
+                        - 10
+                        - 6.5
+                    gridsize: 1
+                    result_def:
+                      - x
+                      - 'y'
+                      - beams_mean
+                      - beacons_mean
+                      - max_rssi
+                      - avg_rssi
+                    results:
+                      - - 1
+                        - 3
+                        - 3.2
+                        - 18.5
+                        - -68
+                        - -70
+                      - - 6
+                        - 10
+                        - 6.5
+                        - 30
+                        - 1
+                        - -72.5
+                        - -75
           description: Successful response
       summary: getSiteBeamCoverageOverview
       tags:
@@ -20830,7 +21255,9 @@ paths:
           type: string
   '/api/v1/sites/{site_id}/location/ml/current':
     get:
-      description: " #### Response Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n device_id|stirng|id of device if this ML is for Mist AP\r\n beacon_id|string|id of beacon if this ML is for 3rd party beacon\r\n current|object|ml stats, per client_type\r\n level|int|level of learning\r\n completed|int|learning completeness to the next level\r\n ple|float|internal\r\n int|float|internal\r\n quality|int|from 0 - 4, 4 being most accurate\r\n src|string|where the PLF comes from. machine (PLF from last learning) / device (last learnt PLF from this device) / model (model of the client device) / overwrite (from ML overwrite)\r\n timestamp|long|epoch, last updated"
+      description: |-
+        Get Machine Learning Current Stat
+        For each VBLE AP, it has ML model parameters (e.g. Path-loss-estimate, Intercept) as well as completion indicators (Level and PercentageComplete). For the completeness, ML takes N sample to finish its first level and use N*0.25 samples to complete each successive level. When a device is moved, the completeness will be reset as it has to re-learn.
       operationId: getSiteMachineLearningCurrentStat
       parameters:
         - example: '{{map_id}}'
@@ -20838,10 +21265,112 @@ paths:
           name: map_id
           schema:
             type: string
+          description: 'map_id (as filter, optional)'
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                description: ''
+                minItems: 1
+                uniqueItems: true
+                items:
+                  type: object
+                  properties:
+                    device_id:
+                      type: string
+                      minLength: 1
+                      description: |
+                        id of device if this ML is for Mist AP
+                    current:
+                      type: object
+                      required:
+                        - ''
+                      description: |
+                        ml stats, per client_type
+                      properties:
+                        '':
+                          type: object
+                          required:
+                            - ple
+                            - level
+                            - int
+                            - completed
+                            - src
+                            - quality
+                            - timestamp
+                          properties:
+                            ple:
+                              type: number
+                              description: internal
+                            level:
+                              type: integer
+                              description: |
+                                level of learning
+                            int:
+                              description: |
+                                internal
+                              type: integer
+                            completed:
+                              type: number
+                              description: |
+                                learning completeness to the next level
+                            src:
+                              type: string
+                              minLength: 1
+                              description: where the PLF comes from. machine (PLF from last learning) / device (last learnt PLF from this device) / model (model of the client device) / overwrite (from ML overwrite)
+                            quality:
+                              type: string
+                              minLength: 1
+                              description: |
+                                from 0 - 4, 4 being most accurate
+                            timestamp:
+                              type: number
+                              description: |
+                                epoch, last updated
+                    beacon_id:
+                      type: string
+                      description: |
+                        id of beacon if this ML is for 3rd party beacon
+                  required:
+                    - current
+              examples:
+                example-1:
+                  value:
+                    - device_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                      current:
+                        iOS:
+                          ple: -3
+                          level: 6
+                          int: -6
+                          completed: 16
+                          src: default
+                          quality: '2'
+                          timestamp: 1442854704
+                        Android:
+                          ple: -3
+                          level: 3
+                          int: -6
+                          completed: 36
+                          src: device
+                          quality: '4'
+                          timestamp: 1442854794
+                        iPod:
+                          ple: -5
+                          int: -10
+                          src: overwrite
+                          overwrite: true
+                    - beacon_id: 7913f032-aab4-c3ae-e83e-5a2756ef4d40
+                      current:
+                        iOS:
+                          ple: -3
+                          level: 6
+                          int: -6
+                          completed: 16
+                          src: device
+                          quality: last
+                          timestamp: 1442854704
           description: Successful response
       summary: getSiteMachineLearningCurrentStat
       tags:
@@ -20855,12 +21384,51 @@ paths:
           type: string
   '/api/v1/sites/{site_id}/location/ml/defaults':
     get:
-      description: " #### Response Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n ple|float|internal\r\n int|float|internal\r\n quality|int|from 0 - 4, 4 being most accurate"
+      description: Get Default PLF for Models
       operationId: getSiteDefaultPlfForModels
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  '':
+                    type: object
+                    required:
+                      - ple
+                      - int
+                      - completed
+                      - quality
+                    properties:
+                      ple:
+                        type: number
+                        description: internal
+                      int:
+                        type: number
+                        description: internal
+                      completed:
+                        type: number
+                      quality:
+                        type: string
+                        minLength: 1
+                        description: 'from 0 - 4, 4 being most accurate'
+                required:
+                  - ''
+              examples:
+                example-1:
+                  value:
+                    iOS:
+                      ple: -3
+                      int: -6
+                      completed: 16
+                      quality: '2'
+                    Android:
+                      ple: -3
+                      int: -6
+                      completed: 36
+                      quality: '4'
           description: Successful response
       summary: getSiteDefaultPlfForModels
       tags:
@@ -20884,6 +21452,8 @@ paths:
       tags:
         - Machine Learning
         - Site
+      description: |
+        Clear ML Overwrite for Device
     parameters:
       - in: path
         name: site_id
@@ -20896,7 +21466,7 @@ paths:
         schema:
           type: string
     put:
-      description: " #### Request Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n ple|float|internal\r\n int|float|internal\r\n quality|int|from 0 - 4, 4 being most accurate\r\n \r\n \r\n To clear ML overwrite for a certain model, call above api with plf value as null. { \"iOS\": null }\r\n\r\n"
+      description: ''
       operationId: overwriteSiteMlForDevice
       requestBody:
         content:
@@ -20931,6 +21501,7 @@ paths:
       tags:
         - Machine Learning
         - Site
+      description: Clear ML Overwrite for Map
     parameters:
       - in: path
         name: site_id
@@ -20990,9 +21561,10 @@ paths:
       tags:
         - Machine Learning
         - Site
+      description: Reset ML Stats by Map
   '/api/v1/sites/{site_id}/location/ml/updates':
     get:
-      description: " #### Query Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n start|long|start time, in epoch,\r\n end|long|start time, default is now()\r\n duration|string|instead of start, you can use 1d, 30m, 5h, where the start will be calculated\r\n map_id|string|map_id (as filter, optional)\r\n device_id|string|device_id (as filter, optional)\r\n client_type|string|client_type (as filter, optional)\r\n \r\n \r\n  #### Response Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n device_id|stirng|id of device\r\n client_type|string|type of client, for each client type, we store a set of parameters/stats\r\n level|int|level of learning\r\n completed|int|learning completeness to the next level\r\n ple|float|internal\r\n int|float|internal\r\n timestamp|long|epoch, time of update"
+      description: Get Machine Learning Events
       operationId: getSiteMachineLearningEvents
       parameters:
         - example: '{{device_id}}'
@@ -21000,10 +21572,105 @@ paths:
           name: device_id
           schema:
             type: string
+          description: 'device_id (as filter, optional)'
+        - schema:
+            type: string
+          in: query
+          name: map_ip
+          description: 'map_id (as filter, optional)'
+        - schema:
+            type: string
+          in: query
+          name: client_type
+          description: 'client_type (as filter, optional)'
+        - name: duration
+        - schema:
+            type: string
+          in: query
+          name: duration
+          description: 'instead of start, you can use 1d, 30m, 5h, where the start will be calculated'
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: interval
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  interval:
+                    type: number
+                  updates:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required:
+                        - ple
+                        - client_type
+                        - level
+                        - int
+                        - completed
+                        - timestamp
+                      properties:
+                        ple:
+                          type: number
+                        client_type:
+                          type: string
+                          minLength: 1
+                        level:
+                          type: number
+                        int:
+                          type: number
+                        completed:
+                          type: number
+                        timestamp:
+                          type: number
+                required:
+                  - start
+                  - end
+                  - interval
+                  - updates
+              examples:
+                example-1:
+                  value:
+                    start: 1428939600
+                    end: 1428954000
+                    interval: 600
+                    updates:
+                      - ple: -3
+                        client_type: iOS
+                        level: 0
+                        int: -6
+                        completed: 6
+                        timestamp: 1442854794
+                      - ple: -2
+                        client_type: iOS
+                        level: 0
+                        int: -4
+                        completed: 4
+                        timestamp: 1442854796
+                      - ple: -1
+                        client_type: iOS
+                        level: 0
+                        int: -2
+                        completed: 2
+                        timestamp: 1442854798
           description: Successful response
       summary: getSiteMachineLearningEvents
       tags:
@@ -21021,12 +21688,83 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.map.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    - name: string
+                      type: string
+                      ppm: 0
+                      width: 0
+                      height: 0
+                      origin_x: 0
+                      origin_y: 0
+                      orientation: 0
+                      locked: true
+                      wayfinding:
+                        snap_to_path: true
+                        micello:
+                          account_key: string
+                          map_id: string
+                          default_level_id: 0
+                      wayfinding_path:
+                        coordinate: string
+                        nodes:
+                          - name: string
+                            position:
+                              x: 0
+                              'y': 0
+                            edges:
+                              N2: string
+                        name: string
+                      wall_path:
+                        coordinate: string
+                        nodes:
+                          - name: string
+                            position:
+                              x: 0
+                              'y': 0
+                            edges:
+                              N2: string
+                        name: string
+                      sitesurvey_path:
+                        - coordinate: string
+                          nodes:
+                            - name: string
+                              position:
+                                x: 0
+                                'y': 0
+                              edges:
+                                N2: string
+                          name: string
+                          id: string
+                      flags: {}
+                      url: string
+                      thumbnail_url: string
+                      view: string
+                      latlng_tl:
+                        lat: string
+                        lnt: string
+                      latlng_bt:
+                        lat: string
+                        lnt: string
+                      width_m: 0
+                      height_m: 0
+                      occupancy_limit: 0
+                      site_id: string
+                      org_id: string
+                      created_time: 0
+                      modified_time: 0
           description: Successful response
       summary: getSiteMaps
       tags:
         - Maps
         - Site
+      description: Get Site Maps
     parameters:
       - in: path
         name: site_id
@@ -21034,85 +21772,145 @@ paths:
         schema:
           type: string
     post:
-      description: "Create a MAP\r\n #### Body Parameters \r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\nname|string|The name of the map\r\ntype|string|\"image / google, default is image\"\r\nppm|float|\"when type=image, pixels per meter\"\r\nwidth|int|\"when type=image, width of the image map\"\r\nheight|int|\"when type=image, height of the image map\"\r\nurl|string|\"when type=image, the url\"\r\nthumbnail_url|string|\"when type=image, the url for the thumbnail image / preview\"\r\nview|string|when type=google. roadmap / satellite / hybrid / terrain\r\norigin_x|int|\"the user-annotated x origin, pixels\"\r\norigin_y|int|\"the user-annotated y origin, pixels\"\r\norientation|int|\"orientation of the map, 0 means up is north, 90 means up is west. default is 0\"\r\nlatlng_tl|latlng|\"when type=google, latitude / longitude of the top-left corner\"\r\nlatlng_br|latlng|\"when type=google, latitude / longitude of the bottom-right corner\"\r\nwayfinding|object|properties related to wayfinding\r\nwayfinding_path|object|a JSON blob for wayfinding (using Dijkstra's algorithm)\r\nwall\\_path|object|a JSON blob for wall definition (same format as wayfinding_path)\r\nsitesurvey\\_path|list|a list of JSON blob for site survey path (same format as wayfinding_path)\r\nlocked|boolean|whether this map is considered locked down\r\nflags|list|name/val pair objects for location engine to use\r\n"
+      description: Create Site Map
       operationId: createSiteMap
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                flags:
-                  assetHoldTime: 5
-                  storeTime: 10
-                height: 1500
-                locked: false
-                name: Mist Office
-                orientation: 30
-                origin_x: 35
-                origin_y: 60
-                ppm: 40.94
-                sitesurvey_path:
-                  - coordinate: actual
-                    id: cbdb7f0b-3be0-4872-88f9-58790b509c23-j68kows8
-                    name: Default
+              $ref: ./models/map.v1.yaml
+            examples:
+              example-1:
+                value:
+                  name: string
+                  type: string
+                  ppm: 0
+                  width: 0
+                  height: 0
+                  origin_x: 0
+                  origin_y: 0
+                  orientation: 0
+                  locked: true
+                  wayfinding:
+                    snap_to_path: true
+                    micello:
+                      account_key: string
+                      map_id: string
+                      default_level_id: 0
+                  wayfinding_path:
+                    coordinate: string
                     nodes:
-                      - edges:
-                          W1: 1
-                        name: W0
+                      - name: string
                         position:
-                          x: 372
-                          'y': 192
-                      - edges:
-                          W2: 1
-                        name: W1
+                          x: 0
+                          'y': 0
+                        edges:
+                          N2: string
+                  wall_path:
+                    coordinate: string
+                    nodes:
+                      - name: string
                         position:
-                          x: 485
-                          'y': 205
-                      - edges:
-                          W0: 1
-                        name: W2
-                        position:
-                          x: 400
-                          'y': 295
-                thumbnail_url: 'https://url/to/image.png'
-                type: image
-                url: 'https://url/to/image.png'
-                wall_path:
-                  coordinate: actual
-                  nodes:
-                    - edges:
-                        N2: '1'
-                      name: N1
-                      position:
-                        x: 746
-                        'y': 104
-                    - edges:
-                        N1: '1'
-                      name: N2
-                      position:
-                        x: 740
-                        'y': 318
-                wayfinding_path:
-                  coordinate: actual
-                  nodes:
-                    - edges:
-                        N2: '1'
-                      name: N1
-                      position:
-                        x: 746
-                        'y': 104
-                    - edges:
-                        N1: '1'
-                      name: N2
-                      position:
-                        x: 740
-                        'y': 318
-                width: 1250
-              type: object
+                          x: 0
+                          'y': 0
+                        edges:
+                          N2: string
+                  sitesurvey_path:
+                    - coordinate: string
+                      nodes:
+                        - name: string
+                          position:
+                            x: 0
+                            'y': 0
+                          edges:
+                            N2: string
+                      name: string
+                      id: string
+                  flags: {}
+                  url: string
+                  thumbnail_url: string
+                  view: string
+                  latlng_tl:
+                    lat: string
+                    lnt: string
+                  latlng_bt:
+                    lat: string
+                    lnt: string
+                  width_m: 0
+                  height_m: 0
+                  occupancy_limit: 0
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.map.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    name: string
+                    type: string
+                    ppm: 0
+                    width: 0
+                    height: 0
+                    origin_x: 0
+                    origin_y: 0
+                    orientation: 0
+                    locked: true
+                    wayfinding:
+                      snap_to_path: true
+                      micello:
+                        account_key: string
+                        map_id: string
+                        default_level_id: 0
+                    wayfinding_path:
+                      coordinate: string
+                      nodes:
+                        - name: string
+                          position:
+                            x: 0
+                            'y': 0
+                          edges:
+                            N2: string
+                      name: string
+                    wall_path:
+                      coordinate: string
+                      nodes:
+                        - name: string
+                          position:
+                            x: 0
+                            'y': 0
+                          edges:
+                            N2: string
+                      name: string
+                    sitesurvey_path:
+                      - coordinate: string
+                        nodes:
+                          - name: string
+                            position:
+                              x: 0
+                              'y': 0
+                            edges:
+                              N2: string
+                        name: string
+                        id: string
+                    flags: {}
+                    url: string
+                    thumbnail_url: string
+                    view: string
+                    latlng_tl:
+                      lat: string
+                      lnt: string
+                    latlng_bt:
+                      lat: string
+                      lnt: string
+                    width_m: 0
+                    height_m: 0
+                    occupancy_limit: 0
+                    site_id: string
+                    org_id: string
+                    created_time: 0
+                    modified_time: 0
           description: Successful response
       summary: createSiteMap
       tags:
@@ -21124,12 +21922,81 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.map.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    name: string
+                    type: string
+                    ppm: 0
+                    width: 0
+                    height: 0
+                    origin_x: 0
+                    origin_y: 0
+                    orientation: 0
+                    locked: true
+                    wayfinding:
+                      snap_to_path: true
+                      micello:
+                        account_key: string
+                        map_id: string
+                        default_level_id: 0
+                    wayfinding_path:
+                      coordinate: string
+                      nodes:
+                        - name: string
+                          position:
+                            x: 0
+                            'y': 0
+                          edges:
+                            N2: string
+                      name: string
+                    wall_path:
+                      coordinate: string
+                      nodes:
+                        - name: string
+                          position:
+                            x: 0
+                            'y': 0
+                          edges:
+                            N2: string
+                      name: string
+                    sitesurvey_path:
+                      - coordinate: string
+                        nodes:
+                          - name: string
+                            position:
+                              x: 0
+                              'y': 0
+                            edges:
+                              N2: string
+                        name: string
+                        id: string
+                    flags: {}
+                    url: string
+                    thumbnail_url: string
+                    view: string
+                    latlng_tl:
+                      lat: string
+                      lnt: string
+                    latlng_bt:
+                      lat: string
+                      lnt: string
+                    width_m: 0
+                    height_m: 0
+                    occupancy_limit: 0
+                    site_id: string
+                    org_id: string
+                    created_time: 0
+                    modified_time: 0
           description: Successful response
       summary: deleteSiteMap
       tags:
         - Maps
         - Site
+      description: Delete Site Map
     get:
       operationId: getSiteMapDetails
       responses:
@@ -21158,18 +22025,145 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                name: Mist Office
-              type: object
+              $ref: ./models/map.v1.yaml
+            examples:
+              example-1:
+                value:
+                  name: string
+                  type: string
+                  ppm: 0
+                  width: 0
+                  height: 0
+                  origin_x: 0
+                  origin_y: 0
+                  orientation: 0
+                  locked: true
+                  wayfinding:
+                    snap_to_path: true
+                    micello:
+                      account_key: string
+                      map_id: string
+                      default_level_id: 0
+                  wayfinding_path:
+                    coordinate: string
+                    nodes:
+                      - name: string
+                        position:
+                          x: 0
+                          'y': 0
+                        edges:
+                          N2: string
+                  wall_path:
+                    coordinate: string
+                    nodes:
+                      - name: string
+                        position:
+                          x: 0
+                          'y': 0
+                        edges:
+                          N2: string
+                  sitesurvey_path:
+                    - coordinate: string
+                      nodes:
+                        - name: string
+                          position:
+                            x: 0
+                            'y': 0
+                          edges:
+                            N2: string
+                      name: string
+                      id: string
+                  flags: {}
+                  url: string
+                  thumbnail_url: string
+                  view: string
+                  latlng_tl:
+                    lat: string
+                    lnt: string
+                  latlng_bt:
+                    lat: string
+                    lnt: string
+                  width_m: 0
+                  height_m: 0
+                  occupancy_limit: 0
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.map.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    name: string
+                    type: string
+                    ppm: 0
+                    width: 0
+                    height: 0
+                    origin_x: 0
+                    origin_y: 0
+                    orientation: 0
+                    locked: true
+                    wayfinding:
+                      snap_to_path: true
+                      micello:
+                        account_key: string
+                        map_id: string
+                        default_level_id: 0
+                    wayfinding_path:
+                      coordinate: string
+                      nodes:
+                        - name: string
+                          position:
+                            x: 0
+                            'y': 0
+                          edges:
+                            N2: string
+                      name: string
+                    wall_path:
+                      coordinate: string
+                      nodes:
+                        - name: string
+                          position:
+                            x: 0
+                            'y': 0
+                          edges:
+                            N2: string
+                      name: string
+                    sitesurvey_path:
+                      - coordinate: string
+                        nodes:
+                          - name: string
+                            position:
+                              x: 0
+                              'y': 0
+                            edges:
+                              N2: string
+                        name: string
+                        id: string
+                    flags: {}
+                    url: string
+                    thumbnail_url: string
+                    view: string
+                    latlng_tl:
+                      lat: string
+                      lnt: string
+                    latlng_bt:
+                      lat: string
+                      lnt: string
+                    width_m: 0
+                    height_m: 0
+                    occupancy_limit: 0
+                    site_id: string
+                    org_id: string
+                    created_time: 0
+                    modified_time: 0
           description: Successful response
       summary: updateSiteMap
       tags:
         - Maps
         - Site
+      description: Update Site Map
   '/api/v1/sites/{site_id}/maps/{map_id}/image':
     delete:
       operationId: deleteSiteMapImage
@@ -21182,6 +22176,7 @@ paths:
       tags:
         - Maps
         - Site
+      description: Delete Site Map Image
     parameters:
       - in: path
         name: site_id
@@ -21194,19 +22189,21 @@ paths:
         schema:
           type: string
     post:
-      description: |-
-        Add image map is a multipart POST which has an file (Image) and an optional json parameter
-
-        #### Request
-
-        ```
-        "json": a JSON string describing your upload
-        "file": a binary file
-        ```
+      description: Add image map is a multipart POST which has an file (Image) and an optional json parameter
       operationId: addSiteMapImage
       requestBody:
         content:
-          text/plain: {}
+          text/plain:
+            schema:
+              type: object
+              properties:
+                json:
+                  type: string
+                  description: JSON string describing your upload
+                file:
+                  type: string
+                  format: binary
+                  description: binary file
       responses:
         '200':
           content:
@@ -21229,10 +22226,42 @@ paths:
         schema:
           type: string
     post:
-      description: "Replace Map Image\r\n\r\n\r\nThis works like an PUT where the image will be replaced. If transform is provided, all the locations of the objects on the map (AP, Zone, Vbeacon, Beacon) will be transformed as well (relative to the new Map)\r\n\r\n\r\n #### Body Parameters \r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n transform|object|The name of the map, optional\r\n x|float|where the (0, 0) of the new image is relative to the original map, default is 0\r\n y|float|where the (0, 0) of the new image is relative to the original map, default is 0\r\n scale|float|whether to scale the replacing image, default is 1\r\n rotation|int|whether to rotate the replacing image, default is 0, in degrees"
+      description: |-
+        Replace Map Image
+
+
+        This works like an PUT where the image will be replaced. If transform is provided, all the locations of the objects on the map (AP, Zone, Vbeacon, Beacon) will be transformed as well (relative to the new Map)
       operationId: replaceSiteMapImage
       requestBody:
-        content: {}
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                '{map_name}':
+                  type: object
+                  description: 'The name of the map, optional'
+                  properties:
+                    x:
+                      type: number
+                      description: 'where the (0, 0) of the new image is relative to the original map, default is 0'
+                    'y':
+                      type: number
+                      description: 'where the (0, 0) of the new image is relative to the original map, default is 0'
+                    scale:
+                      type: number
+                      description: 'whether to scale the replacing image, default is 1'
+                    rotate:
+                      type: integer
+                      description: 'whether to rotate the replacing image, default is 0, in degrees'
+            examples:
+              example-1:
+                value:
+                  '{map_name}':
+                    x: 0
+                    'y': 0
+                    scale: 0
+                    rotate: 0
       responses:
         '200':
           content:
@@ -21255,23 +22284,114 @@ paths:
         schema:
           type: string
     post:
-      description: "Import Jibestream Info\r\n #### Body Parameters \r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n vendor_name|string|the vendor ‘jibestream’\r\n venue_id|int|the venue or organization id\r\n map_id|string|the jibestream map id\r\n ppm|float|pixel per meter, same as the map JSON value.\r\n client_id|int|the client id\r\n client_secret|string|the client secret\r\n customer_id|string|the jibestream customer record id\r\n endpoint\\_url_url|string|the map contents endpoint host\r\n mmpp|float|millimeter per pixel"
+      description: |
+        This imports the vendor map meta data into the Map JSON. This is required by the SDK and App in order to access/render the vendor Map properly.
       operationId: importSiteJibestreamInfo
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                client_id: 199d6770-0f6f-407a-9bd5-fc33c7840194
-                client_secret: /9Nog3yDzcYj0bY91XJZQLCt+m9DXaIVhx+Ghk3ddd
-                customer_id: 123
-                endpoint_url: 'https://api.jibestream.com'
-                map_id: '123'
-                mmpp: 223.2548049411735
-                ppm: 4.479186910505666
-                vendor_name: jibestream
-                venue_id: 123
+              description: ''
+              oneOf:
+                - properties:
+                    vendor_name:
+                      type: string
+                      minLength: 1
+                      enum:
+                        - jibestream
+                      default: jibestream
+                      description: |
+                        the vendor ‘jibestream’
+                    venue_id:
+                      type: number
+                      description: |
+                        the venue or organization id
+                    map_id:
+                      type: string
+                      minLength: 1
+                      description: |
+                        the jibestream map id
+                    ppm:
+                      type: number
+                      description: |
+                        pixel per meter, same as the map JSON value.
+                    client_id:
+                      type: string
+                      minLength: 1
+                      description: |
+                        the client id
+                    client_secret:
+                      type: string
+                      minLength: 1
+                      description: |
+                        the client secret
+                    customer_id:
+                      type: integer
+                      description: |
+                        the jibestream customer record id
+                    endpoint_url:
+                      type: string
+                      minLength: 1
+                      description: |
+                        the map contents endpoint host
+                    mmpp:
+                      type: number
+                      description: |
+                        millimeter per pixel
+                  required:
+                    - vendor_name
+                    - venue_id
+                    - map_id
+                    - ppm
+                    - client_id
+                    - client_secret
+                    - customer_id
+                    - endpoint_url
+                    - mmpp
+                - properties:
+                    vendor_name:
+                      type: string
+                      description: |
+                        the vendor ‘micello’
+                      default: micello
+                      enum:
+                        - micello
+                    account_key:
+                      type: string
+                      description: |
+                        the account key that has access to the map
+                    map_id:
+                      type: string
+                      description: |
+                        micello map id
+                    default_level_id:
+                      type: integer
+                      description: |
+                        micello floor/level id
+                  required:
+                    - vendor_name
+                    - account_key
+                    - map_id
+                    - default_level_id
               type: object
+            examples:
+              Jimbstream:
+                value:
+                  vendor_name: jibestream
+                  venue_id: 123
+                  map_id: '123'
+                  ppm: 4.479186910505666
+                  client_id: 199d6770-0f6f-407a-9bd5-fc33c7840194
+                  client_secret: /9Nog3yDzcYj0bY91XJZQLCt+m9DXaIVhx+Ghk3ddd
+                  customer_id: 123
+                  endpoint_url: 'https://api.jibestream.com'
+                  mmpp: 223.2548049411735
+              Micello:
+                value:
+                  vendor_name: micello
+                  account_key: adasdf
+                  map_id: c660f81dd250c
+                  default_level_id: 5
       responses:
         '200':
           content:
@@ -21289,23 +22409,90 @@ paths:
           name: start
           schema:
             type: string
+          description: start time
         - in: query
           name: end
           schema:
             type: string
+          description: end time
         - in: query
           name: client_mac
           schema:
             type: string
+          description: optional client mac filter
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limit
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  next:
+                    type: string
+                    minLength: 1
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          minLength: 1
+                        timestamp:
+                          type: number
+                        ap_macs:
+                          type: array
+                          items:
+                            type: string
+                        url:
+                          type: string
+                          minLength: 1
+                      required:
+                        - type
+                        - timestamp
+                        - url
+                required:
+                  - start
+                  - end
+                  - limit
+                  - next
+                  - results
+              examples:
+                example-1:
+                  value:
+                    start: 1461099816
+                    end: 1461089816
+                    limit: 100
+                    next: /api/v1/sites/67970e46-4e12-11e6-9188-0242ac110007/insights/marvis?start=1461099816&token=AAAAFgAIAAAAAFj6ohEAAAhzZXZlcml0eQB%2F%2F%2F%2F1&limit=100&end=1461089816
+                    results:
+                      - type: new_assoc
+                        timestamp: 1461869041
+                        ap_macs:
+                          - 5c5b35000010
+                        url: 'https://...'
           description: Successful response
       summary: getSitePacketCaptures
       tags:
         - Packet Captures
         - Site
+      description: Get a list of captures
     parameters:
       - in: path
         name: site_id
@@ -21325,12 +22512,95 @@ paths:
         - Packet Captures
         - Site
     get:
-      description: " #### Response Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n aps|[]string|List of target APs to capture packets\r\n ok|[]string|List of target APs successfully configured to capture packets\r\n failed|[]string|List of APs where configuration attempt failed"
+      description: Get Capturing status
       operationId: getSiteCapturingStatus
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  type:
+                    type: string
+                    minLength: 1
+                  max_pkt_len:
+                    type:
+                      - number
+                      - 'null'
+                  includes_mcast:
+                    type: boolean
+                  ssid:
+                    type:
+                      - string
+                      - 'null'
+                  ap_mac:
+                    type:
+                      - string
+                      - 'null'
+                  client_mac:
+                    type:
+                      - string
+                      - 'null'
+                    minLength: 1
+                  num_packets:
+                    type:
+                      - number
+                      - 'null'
+                  duration:
+                    type:
+                      - number
+                      - 'null'
+                  started_time:
+                    type: number
+                  aps:
+                    type: array
+                    description: List of target APs to capture packets
+                    items:
+                      type: string
+                  ok:
+                    type: array
+                    description: List of target APs successfully configured to capture packets
+                    items:
+                      type: string
+                  failed:
+                    type: array
+                    description: List of APs where configuration attempt failed
+                    items:
+                      type: object
+                required:
+                  - type
+                  - max_pkt_len
+                  - includes_mcast
+                  - ssid
+                  - ap_mac
+                  - client_mac
+                  - num_packets
+                  - duration
+                  - started_time
+                  - aps
+                  - ok
+                  - failed
+              examples:
+                example-1:
+                  value:
+                    type: client
+                    max_pkt_len: 128
+                    includes_mcast: false
+                    ssid: null
+                    ap_mac: null
+                    client_mac: 60a10a773412
+                    num_packets: 1000
+                    duration: 300
+                    started_time: 1435080709
+                    aps:
+                      - 5c5b350e001c
+                      - 5c5b350e001b
+                    ok:
+                      - 5c5b350e001c
+                      - 5c5b350e001b
+                    failed: []
           description: Successful response
       summary: getSiteCapturingStatus
       tags:
@@ -21343,19 +22613,58 @@ paths:
         schema:
           type: string
     post:
-      description: "#### Request Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n num_packets|int|number of packets to capture, 0 for unlimited, default is 1024 for client-capture, 100 for new association\r\n duration|int|duration of the cpture, in seconds, default is 600, maximum is 86400\r\n max_pkt_len|int|max_len of each packet to capture, default is 128, maximum is 2048\r\n ap_mac|string|optional filter by ap_mac\r\n format|string|pcap format, pcap / stream / stream+pcap, default is pcap\r\n band|string|2.4 / 5, default is 2.4"
+      description: Initiate a Client Packet Capture
       operationId: startSiteRadiotapPacketCapture
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                ap_mac: null
-                duration: 600
-                max_pkt_len: 68
-                num_packets: 100
-                type: wlan
+              description: ''
               type: object
+              properties:
+                type:
+                  type: string
+                  minLength: 1
+                client_mac:
+                  type: string
+                  minLength: 1
+                  description: 'client mac, required if type==client; optional otherwise'
+                num_packets:
+                  description: 'number of packets to capture, 0 for unlimited, default is 1024 for client-capture, 100 for new association'
+                  default: 1024
+                  type: integer
+                duration:
+                  description: 'duration of the cpture, in seconds, default is 600, maximum is 86400'
+                  default: 600
+                  type: integer
+                max_pkt_len:
+                  type: integer
+                includes_mcast:
+                  type: boolean
+                  description: ''
+                ssid:
+                  description: optional filter by ssid
+                  type:
+                    - string
+                    - 'null'
+                ap_mac:
+                  type:
+                    - string
+                    - 'null'
+              required:
+                - type
+                - max_pkt_len
+            examples:
+              example-1:
+                value:
+                  type: client
+                  client_mac: 60a10a773412
+                  num_packets: 1000
+                  duration: 300
+                  max_pkt_len: 128
+                  includes_mcast: false
+                  ssid: null
+                  ap_mac: null
       responses:
         '200':
           content:
