@@ -15200,6 +15200,134 @@ paths:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
          #### Query Parameter
         **Parameter**|**Type**|**Description** 
          :-------------: |:-------------: |:-------------: 
@@ -16809,41 +16937,41 @@ paths:
                 description: ''
                 type: object
                 properties:
+                  end:
+                    type: number
+                  distinct:
+                    type: string
+                    minLength: 1
                   results:
                     type: array
                     uniqueItems: true
                     minItems: 1
                     items:
                       required:
-                        - mac
                         - count
+                        - type
                       properties:
-                        mac:
-                          type: string
-                          minLength: 1
                         count:
                           type: number
+                        type:
+                          type: string
+                          minLength: 1
                   start:
-                    type: number
-                  end:
                     type: number
                   limit:
                     type: number
-                  distinct:
-                    type: string
-                    minLength: 1
-                  total:
-                    type: number
                   percentage:
                     type: number
+                  total:
+                    type: number
                 required:
+                  - end
+                  - distinct
                   - results
                   - start
-                  - end
                   - limit
-                  - distinct
-                  - total
                   - percentage
+                  - total
               examples:
                 example-1:
                   value:
@@ -18844,41 +18972,90 @@ paths:
         schema:
           type: string
     post:
-      description: |-
-        Traceroute can be performed from the Device. The output will be available through websocket. As there can be multiple command issued against the same AP at the same time and the output all goes through the same websocket stream, session is introduced for demux.
-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        host|string|host name
-        protocol|string|udp (default) /icmp
-        port|int|when protocol=udp, the udp port to use (default is 33434)
-
-        #### subscribe to Device Command outputs
-        ```
-        {
-            "subscribe": "/sites/{site_id}/devices/{device_id}/cmd"
-        }
-        ```
+      description: 'ARP can be performed on the Device. The output will be available through websocket. As there can be multiple command issued against the same AP at the same time and the output all goes through the same websocket stream, session is introduced for demux.'
+      operationId: arpFromDevice
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  session:
+                    type: string
+                    minLength: 1
+                required:
+                  - session
+          description: Successful response
+      summary: arpFromDevice
+      tags:
+        - Utilities
+        - Site
+        - WS
+  '/api/v1/sites/{site_id}/devices/{device_id}/traceroute':
+    parameters:
+      - in: path
+        name: site_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: device_id
+        required: true
+        schema:
+          type: string
+    post:
+      description: 'Traceroute can be performed from the Device. The output will be available through websocket. As there can be multiple command issued against the same AP at the same time and the output all goes through the same websocket stream, session is introduced for demux.'
       operationId: tracerouteFromDevice
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                host: 1.1.1.1
-                port: 33434
-                protocol: udp
+              description: ''
               type: object
+              properties:
+                host:
+                  type: string
+                  minLength: 1
+                  description: host name
+                protocol:
+                  type: string
+                  minLength: 1
+                  description: udp (default) /icmp
+                  default: udp
+                  enum:
+                    - udp
+                    - icmp
+                port:
+                  type: number
+                  description: 'when protocol=udp, the udp port to use (default is 33434)'
+                  default: 33434
+            examples:
+              example-1:
+                value:
+                  host: string
+                  protocol: udp
+                  port: 33434
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  session:
+                    type: string
+                    minLength: 1
+                required:
+                  - session
           description: Successful response
       summary: tracerouteFromDevice
       tags:
         - Utilities
         - Site
+        - WS
   '/api/v1/sites/{site_id}/devices/{device_id}/bounce_port':
     parameters:
       - in: path
@@ -18894,21 +19071,27 @@ paths:
     post:
       description: |
         Port Bounce can be performed from the Switch.
-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        ports|list|list of ports to bounce
       operationId: portsBounceFromSwitch
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                ports:
-                  - ge-0/0/0
-                  - ge-0/0/1
+              description: ''
               type: object
+              properties:
+                ports:
+                  type: array
+                  description: list of ports to bounce
+                  items:
+                    type: string
+              required:
+                - ports
+            examples:
+              example-1:
+                value:
+                  ports:
+                    - ge-0/0/0
+                    - ge-0/0/1
       responses:
         '200':
           content:
@@ -18931,28 +19114,25 @@ paths:
         schema:
           type: string
     post:
-      description: |-
-        TDR can be performed from the Switch. The output will be available through websocket. As there can be multiple command issued against the same Switch at the same time and the output all goes through the same websocket stream, session is introduced for demux.
-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        port|string|the port to run the cable test
-
-        #### subscribe to Device Command outputs
-        ```
-        {
-            "subscribe": "/sites/{site_id}/devices/{device_id}/cmd"
-        }
-        ```
+      description: 'TDR can be performed from the Switch. The output will be available through websocket. As there can be multiple command issued against the same Switch at the same time and the output all goes through the same websocket stream, session is introduced for demux.'
       operationId: cableTestFromSwitch
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                port: ge-0/0/0
+              description: ''
               type: object
+              properties:
+                port:
+                  type: string
+                  minLength: 1
+                  description: the port to run the cable test
+              required:
+                - port
+            examples:
+              example-1:
+                value:
+                  port: ge-0/0/0
       responses:
         '200':
           content:
@@ -18962,6 +19142,7 @@ paths:
       tags:
         - Utilities
         - Site
+        - WS
   '/api/v1/sites/{site_id}/devices/{device_id}/iot':
     get:
       description: |
@@ -18970,7 +19151,15 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+              examples:
+                example-1:
+                  value:
+                    DO: 0
+                    A1: 1
           description: Successful response
       summary: getSiteDeviceIotPort
       tags:
@@ -19001,6 +19190,11 @@ paths:
                 A1: 1
                 DO: 0
               type: object
+            examples:
+              example-1:
+                value:
+                  A1: 1
+                  DO: 0
       responses:
         '200':
           content:
@@ -19036,6 +19230,7 @@ paths:
       tags:
         - Devices
         - Site
+      description: 'Locate a Device by blinking it’s LED, it’s a persisted state that has to be stopped by calling Stop Locating API'
   '/api/v1/sites/{site_id}/devices/{device_id}/ping':
     parameters:
       - in: path
@@ -19051,12 +19246,6 @@ paths:
     post:
       description: |-
         Ping can be performed from the Device. The output will be available through websocket. As there can be multiple command issued against the same AP at the same time and the output all goes through the same websocket stream, session is introduced for demux.
-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        host|string|host name
-        count|int|(Optional) Supported only for ping. default is 10
 
         #### subscribe to Device Command outputs
         ```
@@ -19080,19 +19269,45 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                count: 10
-                host: 1.1.1.1
+              description: ''
               type: object
+              properties:
+                host:
+                  type: string
+                  minLength: 1
+                count:
+                  type: number
+              required:
+                - host
+                - count
+            examples:
+              example-1:
+                value:
+                  host: 1.1.1.1
+                  count: 10
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  session:
+                    type: string
+                    minLength: 1
+                required:
+                  - session
+              examples:
+                example-1:
+                  value:
+                    session: string
           description: Successful response
       summary: pingFromDevice
       tags:
         - Utilities
         - Site
+        - WS
   '/api/v1/sites/{site_id}/devices/{device_id}/restart':
     parameters:
       - in: path
@@ -19107,18 +19322,14 @@ paths:
           type: string
     post:
       operationId: restartSiteDevice
-      requestBody:
-        content:
-          text/plain: {}
       responses:
         '200':
-          content:
-            application/json: {}
           description: Successful response
       summary: restartSiteDevice
       tags:
         - Devices
         - Site
+      description: Restart / Reboot a device
   '/api/v1/sites/{site_id}/devices/{device_id}/support':
     parameters:
       - in: path
@@ -19132,26 +19343,33 @@ paths:
         schema:
           type: string
     post:
-      description: |-
-        Support / Upload device support files
-
-        #### Body Parameters
-        **Parameter**|**Type**|**Description** 
-        :-------------: |:-------------: |:-------------: 
-        info|string|optional choice: process, outbound-ssh, and full (default)
+      description: Support / Upload device support files
       operationId: uploadSiteDeviceSupportFile
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                info: process
+              description: ''
               type: object
+              properties:
+                info:
+                  type: string
+                  minLength: 1
+                  description: 'optional choice: process, outbound-ssh, and full (default)'
+                  default: full
+                  enum:
+                    - process
+                    - outbound-ssh
+                    - full
+            examples:
+              example-1:
+                value:
+                  info: full
       responses:
         '200':
-          content:
-            application/json: {}
-          description: Successful response
+          description: OK - uploading started
+        '400':
+          description: Device not online
       summary: uploadSiteDeviceSupportFile
       tags:
         - Devices
@@ -19182,6 +19400,7 @@ paths:
       tags:
         - Devices
         - Site
+      description: Stop Locate a Device
   '/api/v1/sites/{site_id}/devices/{device_id}/upgrade':
     parameters:
       - in: path
@@ -19195,19 +19414,60 @@ paths:
         schema:
           type: string
     post:
-      description: " #### Body Parameters\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n version|string|default is stable\r\n \r\n  #### Body Response\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n timestamp|float|timestamp\r\n status|string|starting / inprogress / success / error / scheduled\r\n status_id|int|the internal status id"
+      description: Device Upgrade
       operationId: upgradeSiteDevice
       requestBody:
         content:
           application/json:
             schema:
-              example:
-                version: 3.1.5
+              description: ''
               type: object
+              properties:
+                version:
+                  type: string
+                  minLength: 1
+                  default: stable
+                  description: default is stable
+              required:
+                - version
+            examples:
+              example-1:
+                value:
+                  version: 3.1.5
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  timestamp:
+                    type: number
+                    description: timestamp
+                  status:
+                    type: string
+                    minLength: 1
+                    description: starting / inprogress / success / error / scheduled
+                    enum:
+                      - starting
+                      - inprogress
+                      - success
+                      - error
+                      - scheduled
+                  status_id:
+                    type: number
+                    description: the internal status id
+                required:
+                  - timestamp
+                  - status
+                  - status_id
+              examples:
+                example-1:
+                  value:
+                    timestamp: 1428949501
+                    status: inprogress
+                    status_id: 5
           description: Successful response
       summary: upgradeSiteDevice
       tags:
@@ -19257,19 +19517,21 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                members:
-                  - mac: aff827549235
-                    vc_ports:
-                      - xe-0/1/0
-                  - mac: 8396cd006c8c
-                    vc_ports:
-                      - xe-0/1/0
-                      - xe-0/1/1
-                  - mac: 8396cd00888c
-                    vc_ports:
-                      - xe-0/1/0
-              type: object
+              $ref: ./models/device_switch.vc.v1.yaml
+            examples:
+              example-1:
+                value:
+                  members:
+                    - mac: aff827549235
+                      vc_ports:
+                        - xe-0/1/0
+                    - mac: 8396cd006c8c
+                      vc_ports:
+                        - xe-0/1/0
+                        - xe-0/1/1
+                    - mac: 8396cd00888c
+                      vc_ports:
+                        - xe-0/1/0
       responses:
         '200':
           content:
@@ -19281,6 +19543,18 @@ paths:
         - Site
     put:
       description: |-
+        ## Add new members
+        For models (e.g. EX4300 and up) having dedicated VC ports, it is easier to add new member switches into a VC by just connecting cables with the dedicated VC ports. Cloud will detect the new members and update the inventory.
+
+        For EX2300 VC, adding new members requires to follow the procedures below:
+        1. Powering on the new member switches and ensuring cables are not connected to any VC ports.
+        2. Claim or adopt all new member switches under the VC’s organization Inventory
+        3. Assign all new member switches to the same Site as the VC
+        4. Invoke vc command to add switches to the VC.
+        5. Connect the cables to the VC ports for these switches
+        6. After a while, the Org’s Inventory shows this new switches has been added into the VC.
+
+        ## Removing member switch
         To remove a member switch from the VC, following the procedures below:
 
         1. Ensuring the VC is connected to the cloud first
@@ -19295,21 +19569,90 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                members:
-                  - member: 2
-                  - member: 3
-                op: remove
-              type: object
+              $ref: ./models/device_switch.vc.v1.yaml
+            examples:
+              Adding two new switches into the VC (MAC aff827549235):
+                value:
+                  op: add
+                  members:
+                    - mac: aff827549235
+                      member: 0
+                      vc_ports:
+                        - xe-0/1/1
+                    - mac: aff827549235
+                      member: 2
+                      vc_ports:
+                        - xe-0/1/1
+                    - mac: 8396cd00777c
+                      vc_ports:
+                        - xe-0/1/0
+                    - mac: 8396cd00888c
+                      vc_ports:
+                        - xe-0/1/0
+              Removing two new switches into the VC (MAC aff827549235):
+                value:
+                  op: remove
+                  members:
+                    - member: 2
+                    - member: 3
       responses:
         '200':
           content:
             application/json: {}
           description: Successful response
-      summary: removeSiteVirtualChassisMember
+      summary: updateSiteVirtualChassisMember
       tags:
         - Virtual Chassis
         - Site
+    get:
+      summary: getSiteVirtualChassis
+      operationId: getSiteVirtualChassis
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./models/responses/response.device_switch.vc.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    id: string
+                    site_id: string
+                    org_id: string
+                    mac: string
+                    vc_mac: string
+                    model: string
+                    type: string
+                    serial: string
+                    status: string
+                    members:
+                      - _idx: 0
+                        vc_role: string
+                        model: string
+                        serial: string
+                        vc_state: string
+                        fans:
+                          - name: string
+                            airflow: string
+                            status: string
+                        temperatures:
+                          - name: string
+                            status: string
+                            celsius: 0
+                        psus:
+                          - name: string
+                            status: string
+                        poe:
+                          max_power: 0
+                          power_draw: 0
+                        vc_links:
+                          - port_id: string
+                            neighbor_module_idx: 0
+                            neighbor_port_id: string
+      description: |-
+        Get VC Status
+        The API returns a combined view of the VC status which includes topology and stats.
   '/api/v1/sites/{site_id}/devices/{device_id}/{image_name}':
     delete:
       operationId: deleteSiteDeviceImage
@@ -19322,6 +19665,7 @@ paths:
       tags:
         - Devices
         - Site
+      description: Delete image from a device
     parameters:
       - in: path
         name: site_id
@@ -19346,25 +19690,136 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            multipart/form-data:
+              schema:
+                type: object
+                properties:
+                  file:
+                    type: string
+                    format: binary
           description: Successful response
       summary: addSiteDeviceImage
       tags:
         - Devices
         - Site
+      description: Attach up to 3 images to a device
   '/api/v1/sites/{site_id}/events/fast_roam':
     get:
-      description: " #### Query Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\ntype|string|success / fail / none\r\n\r\n#### Response Parameter\r\n**Parameter**|**Type**|**Description** \r\n:-------------: |:-------------: |:-------------: \r\ntimestamp|string|timestamp of the event in nsec\r\ntype|string|success / fail / none / poor/ pingpong / slow\r\nnext|string|the link to query next set of results. value is null if no next page exists.\r\n\r\nNote: \r\n* success: List of successful 11R events. \r\n* fail: List of failed 11R events. \r\n* none: List of roams where Clients that are capable of doing fast roam did a slow roam on a SSID where fast roam is enabled. \r\n* slow: List of roams on a SSID where there is no fast roaming enabled."
+      description: Roaming Events data
       operationId: getSiteRoamingEvents
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  start:
+                    type: number
+                  next:
+                    type: string
+                    minLength: 1
+                    description: the link to query next set of results. value is null if no next page exists.
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      type: object
+                      properties:
+                        latency:
+                          type: number
+                        ssid:
+                          type: string
+                          minLength: 1
+                        subtype:
+                          type: string
+                          minLength: 1
+                        timestamp:
+                          type: number
+                          description: timestamp of the event in nsec
+                        ap_mac:
+                          type: string
+                          minLength: 1
+                        fromap:
+                          type: string
+                          minLength: 1
+                        client_mac:
+                          type: string
+                          minLength: 1
+                        type:
+                          type: string
+                          description: success / fail / none / poor/ pingpong / slow
+                          enum:
+                            - success
+                            - fail
+                            - none
+                            - poor
+                            - pingpong
+                            - slow
+                      required:
+                        - latency
+                        - ssid
+                        - timestamp
+                        - ap_mac
+                        - fromap
+                        - client_mac
+                required:
+                  - start
+                  - end
+                  - limit
+                  - results
+              examples:
+                example-1:
+                  value:
+                    start: 1500940800
+                    next: /api/v1/sites/dca0a44b-324c-11e6-a776-0243ad110007/events/fast_roam?type=success&start=1428939600&end=1428949600&limit=200&token=AAAAEgAIAAVVJh4hF8AAAARzc2lkAH%2F%2F%2F%2F0%3D
+                    end: 1501023379
+                    limit: 2
+                    results:
+                      - latency: 0.1874195
+                        ssid: marvis_test
+                        subtype: CLIENT_AUTHENTICATED_11R
+                        timestamp: 1501000002283782
+                        ap_mac: 5c5b350e040b
+                        fromap: 5c5b350e0569
+                        client_mac: dc2b2a3fb13d
           description: Successful response
       summary: getSiteRoamingEvents
       tags:
         - RRM
         - Site
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - success
+              - fail
+              - none
+          in: query
+          name: type
+          description: event type
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limit
     parameters:
       - in: path
         name: site_id
@@ -19377,12 +19832,102 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  page:
+                    type: number
+                  total:
+                    type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      type: object
+                      properties:
+                        timestamp:
+                          type: number
+                        band:
+                          type: number
+                        source:
+                          type: string
+                          minLength: 1
+                        channels:
+                          type: array
+                          items:
+                            type: integer
+                        channel_util:
+                          type: number
+                        rssi:
+                          type: number
+                        ap_id:
+                          type: string
+                          minLength: 1
+                      required:
+                        - timestamp
+                        - band
+                        - source
+                        - channel_util
+                        - rssi
+                        - ap_id
+                required:
+                  - start
+                  - end
+                  - limit
+                  - page
+                  - total
+                  - results
+              examples:
+                example-1:
+                  value:
+                    start: 1428939600
+                    end: 1428954000
+                    limit: 100
+                    page: 1
+                    total: 135
+                    results:
+                      - timestamp: 1428939600
+                        band: 5
+                        source: Microwave Oven
+                        channels:
+                          - 1
+                          - 2
+                          - 5
+                        channel_util: 0.03
+                        rssi: -64
+                        ap_id: 00000000-0000-0000-1000-5c5b359e4fe0
           description: Successful response
       summary: getSiteInterferenceEvents
       tags:
         - RRM
         - Site
+      description: Get Interference Events
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limit
     parameters:
       - in: path
         name: site_id
@@ -19400,6 +19945,31 @@ paths:
       summary: countSiteSystemEvents
       tags:
         - Site
+      description: Count System Events
+      parameters:
+        - schema:
+            type: string
+            default: type
+            enum:
+              - type
+          in: query
+          name: distinct
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limit
     parameters:
       - in: path
         name: site_id
@@ -19412,11 +19982,77 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  total:
+                    type: number
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required:
+                        - ap
+                        - timestamp
+                      properties:
+                        ap:
+                          type: string
+                          minLength: 1
+                        timestamp:
+                          type: number
+                required:
+                  - total
+                  - start
+                  - end
+                  - limit
+                  - results
+              examples:
+                example-1:
+                  value:
+                    total: 2
+                    start: 1548288000
+                    end: 1548295200
+                    limit: 100
+                    results:
+                      - ap: 5c5b350eb3f2
+                        timestamp: 1548290858
+                      - ap: 5c5b350e192c
+                        timestamp: 1548294458
           description: Successful response
       summary: searchSiteSystemEvents
       tags:
         - Site
+      description: Search System Events
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: type
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limit
     parameters:
       - in: path
         name: site_id
@@ -19425,12 +20061,16 @@ paths:
           type: string
   '/api/v1/sites/{site_id}/guests':
     get:
-      description: " #### Response Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n mac|string|mac\r\n authorized|boolean|whether the guest is current authorized\r\n authorized_time|long|when the guest was authorized\r\n authorized_expiring_time|long|when the authorization would expire\r\n name|string|optional, the info provided by user\r\n email|string|optional, the info provided by user\r\n company|string|optional, the info provided by user\r\n field1|string|optional, the info provided by user"
+      description: Get Guest Authorizations
       operationId: getSiteAllGuestAuthorizations
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./models/responses/response.guest.v1.yaml
           description: Successful response
       summary: getSiteAllGuestAuthorizations
       tags:
@@ -19451,15 +20091,77 @@ paths:
           name: distinct
           schema:
             type: string
+            default: auth_method
+            enum:
+              - auth_method
+              - ssid
+              - company
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limit
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  end:
+                    type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required:
+                        - auth_method
+                        - count
+                      properties:
+                        auth_method:
+                          type: string
+                          minLength: 1
+                        count:
+                          type: number
+                  start:
+                    type: number
+                  total:
+                    type: number
+                required:
+                  - end
+                  - results
+                  - start
+                  - total
+              examples:
+                example-1:
+                  value:
+                    end: 1531862583
+                    results:
+                      - auth_method: passphrase
+                        count: 2
+                      - auth_method: facebook
+                        count: 4
+                    start: 1531776183
+                    total: 2
           description: Successful response
       summary: countSiteGuestAuthorizations
       tags:
         - Guests
         - Site
+      description: Count Authorized Guest
     parameters:
       - in: path
         name: site_id
@@ -19475,15 +20177,129 @@ paths:
           name: wlan_id
           schema:
             type: string
+        - schema:
+            type: string
+          in: query
+          name: auth_method
+        - schema:
+            type: string
+          in: query
+          name: ssid
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limit
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  end:
+                    type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required:
+                        - ssid
+                        - timestamp
+                        - company
+                        - auth_method
+                        - ap
+                        - authorized_expiring_time
+                        - authorized_time
+                        - email
+                        - name
+                      properties:
+                        ssid:
+                          type: string
+                          minLength: 1
+                        timestamp:
+                          type: number
+                        company:
+                          type: string
+                          minLength: 1
+                        auth_method:
+                          type: string
+                          minLength: 1
+                        ap:
+                          type: string
+                          minLength: 1
+                        authorized_expiring_time:
+                          type: number
+                        authorized_time:
+                          type: number
+                        email:
+                          type: string
+                          minLength: 1
+                        name:
+                          type: string
+                          minLength: 1
+                  next:
+                    type: string
+                    minLength: 1
+                  start:
+                    type: number
+                  limit:
+                    type: number
+                  total:
+                    type: number
+                required:
+                  - end
+                  - results
+                  - next
+                  - start
+                  - limit
+                  - total
+              examples:
+                example-1:
+                  value:
+                    end: 1531862583
+                    results:
+                      - ssid: openNet
+                        timestamp: 1531782218
+                        company: mistsystems
+                        auth_method: passphrase
+                        ap: 5c5b350e0001
+                        authorized_expiring_time: 1531810258.186273
+                        authorized_time: 1531782218
+                        email: user@mistsys.com
+                        name: john
+                      - ssid: openNet
+                        timestamp: 1531782632
+                        company: xyz inc.
+                        auth_method: facebook
+                        ap: 5c5b350e0001
+                        authorized_expiring_time: 1531810821.145
+                        authorized_time: 1531782632
+                        email: cool_user@yahoo.com
+                        name: John White
+                    next: /api/v1/sites/8aaba0aa-09cc-44bd-9709-33b98040550c/guests/search?wlan_id=88ffe630-95b8-11e8-b294-346895ed1b7d&end=1531855849.000&limit=2&start=1531776183.0
+                    start: 1531776183
+                    limit: 2
+                    total: 14
           description: Successful response
       summary: searchSiteGuestAuthorization
       tags:
         - Guests
         - Site
+      description: Search Authorized Guest
     parameters:
       - in: path
         name: site_id
@@ -19502,13 +20318,27 @@ paths:
       tags:
         - Guests
         - Site
+      description: Delete Guest Authorization
     get:
-      description: " #### Response Parameter\r\n**Parameter**|**Type**|**Description** \r\n :-------------: |:-------------: |:-------------: \r\n mac|string|mac\r\n authorized|boolean|whether the guest is current authorized\r\n authorized_time|long|when the guest was authorized\r\n authorized_expiring_time|long|when the authorization would expire\r\n name|string|optional, the info provided by user\r\n email|string|optional, the info provided by user\r\n company|string|optional, the info provided by user\r\n field1|string|optional, the info provided by user"
+      description: Get Guest Authorization
       operationId: getSiteGuestAuthorization
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.guest.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    mac: string
+                    authorized: true
+                    authorized_time: 0
+                    authorized_expiring_time: 0
+                    name: string
+                    email: string
+                    company: string
+                    field1: string
           description: Successful response
       summary: getSiteGuestAuthorization
       tags:
@@ -19531,22 +20361,19 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                company: companyXYZ
-                email: guest1@email.com
-                field1: value1
-                minutes: 60
-                name: guest1
-              type: object
+              $ref: ./models/guest.v1.yaml
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.guest.v1.yaml
           description: Successful response
       summary: updateSiteGuestAuthorization
       tags:
         - Guests
         - Site
+      description: 'Update Guest Authorization  '
   '/api/v1/sites/{site_id}/insights/ap/{device_id}/{metric}':
     get:
       operationId: getSiteInsightMetricsForDevice
@@ -23755,6 +24582,7 @@ tags:
   - name: Organization
   - name: Count
   - name: Search
+  - name: WS
 components:
   securitySchemes:
     Authorization:
