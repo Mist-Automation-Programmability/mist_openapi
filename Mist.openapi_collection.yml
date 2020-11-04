@@ -16477,6 +16477,39 @@ paths:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
          #### Query Parameter
         **Parameter**|**Type**|**Description** 
          :-------------: |:-------------: |:-------------: 
@@ -22189,63 +22222,6 @@ paths:
                 uniqueItems: true
                 items:
                   type: object
-                  properties:
-                    device_id:
-                      type: string
-                      minLength: 1
-                      description: |
-                        id of device if this ML is for Mist AP
-                    current:
-                      type: object
-                      required:
-                        - '{device_type}'
-                      description: |
-                        ml stats, per client_type
-                      additionalProperties:
-                        type: object
-                        required:
-                          - ple
-                          - level
-                          - int
-                          - completed
-                          - src
-                          - quality
-                          - timestamp
-                        properties:
-                          ple:
-                            type: number
-                            description: internal
-                          level:
-                            type: integer
-                            description: |
-                              level of learning
-                          int:
-                            description: |
-                              internal
-                            type: integer
-                          completed:
-                            type: number
-                            description: |
-                              learning completeness to the next level
-                          src:
-                            type: string
-                            minLength: 1
-                            description: where the PLF comes from. machine (PLF from last learning) / device (last learnt PLF from this device) / model (model of the client device) / overwrite (from ML overwrite)
-                          quality:
-                            type: string
-                            minLength: 1
-                            description: |
-                              from 0 - 4, 4 being most accurate
-                          timestamp:
-                            type: number
-                            description: |
-                              epoch, last updated
-                    beacon_id:
-                      type: string
-                      description: |
-                        id of beacon if this ML is for 3rd party beacon
-                  required:
-                    - current
               examples:
                 example-1:
                   value:
@@ -22376,7 +22352,7 @@ paths:
         schema:
           type: string
     put:
-      description: ''
+      description: Overwrite ML For Device
       operationId: overwriteSiteMlForDevice
       requestBody:
         content:
@@ -22390,6 +22366,15 @@ paths:
                   int: -10
                   ple: -5
               type: object
+            examples:
+              example-1:
+                value:
+                  iOS:
+                    int: 6
+                    ple: -3
+                  iPod:
+                    int: -10
+                    ple: -5
       responses:
         '200':
           content:
@@ -22429,14 +22414,17 @@ paths:
         content:
           application/json:
             schema:
-              example:
-                iOS:
-                  int: 6
-                  ple: -3
-                iPod:
-                  int: -10
-                  ple: -5
+              description: ''
               type: object
+            examples:
+              example-1:
+                value:
+                  iOS:
+                    ple: -3
+                    int: 6
+                  iPod:
+                    ple: -5
+                    int: -10
       responses:
         '200':
           content:
@@ -22446,6 +22434,7 @@ paths:
       tags:
         - Machine Learning
         - Site
+      description: Overwrite ML For Map
   '/api/v1/sites/{site_id}/location/ml/reset/map/{map_id}':
     parameters:
       - in: path
@@ -22911,12 +22900,15 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                $ref: ./models/responses/response.map.v1.yaml
           description: Successful response
       summary: getSiteMapDetails
       tags:
         - Maps
         - Site
+      description: Get Site Map Details
     parameters:
       - in: path
         name: site_id
@@ -24072,6 +24064,9 @@ paths:
       description: |
         Update Recording
     delete:
+      tags:
+        - Site
+        - RF Diagnistic
       summary: ''
       operationId: deleteSiteRfdiagRecording
       responses:
@@ -24092,6 +24087,9 @@ paths:
         schema:
           type: string
     get:
+      tags:
+        - Site
+        - RF Diagnistic
       summary: downloadSiteRfdiagRecording
       operationId: downloadSiteRfdiagRecording
       responses:
@@ -24626,7 +24624,7 @@ paths:
         description: radio band
   '/api/v1/sites/{site_id}/rrm/events':
     get:
-      description: ''
+      description: Get Site RRM Events
       operationId: getSiteRrmEvents
       parameters:
         - in: query
@@ -24655,7 +24653,122 @@ paths:
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      type: object
+                      properties:
+                        timestamp:
+                          type: number
+                          description: timestamp of the event
+                        event:
+                          type: string
+                          minLength: 1
+                          description: schedule-site-rrm / triggered-site-rrm / interference-ap-co-channel / rrm-radar
+                          enum:
+                            - triggered-site-rrm
+                            - interference-ap-co-channel
+                            - rrm-radar
+                            - scheduled-site-rrm
+                            - interference-ap-non-wifi
+                            - radar-detected
+                            - neighbor-ap-down
+                            - neighbor-ap-recovered
+                        ap_id:
+                          type: string
+                          minLength: 1
+                        band:
+                          type: string
+                          minLength: 1
+                          description: for 2.4G or 5G
+                          enum:
+                            - '24'
+                            - '5'
+                        usage:
+                          type: string
+                          minLength: 1
+                        channel:
+                          type: number
+                          description: channel for the band from rrm
+                        bandwidth:
+                          type: number
+                          description: channel width for the band 20/40/80
+                          enum:
+                            - 20
+                            - 40
+                            - 80
+                        power:
+                          type: number
+                          description: tx power of the radio
+                        pre_usage:
+                          type: string
+                          minLength: 1
+                        pre_channel:
+                          type: number
+                          description: '(previously) channel for the band, 0 means no previously available'
+                        pre_power:
+                          type: number
+                          description: '(previously) tx power of the radio, 0 means no previously available'
+                        pre_bandwidth:
+                          type: number
+                          description: '(previously) channel width for the band 20/40/80, 0 means no previously available'
+                      required:
+                        - timestamp
+                        - event
+                        - ap_id
+                        - band
+                        - usage
+                        - channel
+                        - bandwidth
+                        - power
+                        - pre_usage
+                        - pre_channel
+                        - pre_power
+                        - pre_bandwidth
+                  next:
+                    type:
+                      - string
+                      - 'null'
+                    minLength: 1
+                    description: the link to query next set of results. value is null if no next page exists.
+                required:
+                  - start
+                  - end
+                  - limit
+                  - results
+              examples:
+                example-1:
+                  value:
+                    start: 1428939600
+                    end: 1428954000
+                    limit: 100
+                    results:
+                      - timestamp: 1428939600
+                        event: scheduled-site-rrm
+                        ap_id: 00000000-0000-0000-1000-5c5b359e4fe0
+                        band: '24'
+                        usage: '24'
+                        channel: 6
+                        bandwidth: 20
+                        power: 5
+                        pre_usage: '24'
+                        pre_channel: 1
+                        pre_power: 11
+                        pre_bandwidth: 20
+                    next: /api/v1/sites/dca0a44b-324c-11e6-a776-0243ad110007/events/rrm?start=1428939600&end=1428949600&limit=200&token=001a0010000000120010000005005880ec18000004776c616e007fffffeb067ab8e29c1d659b6a7c8cf698bf81490003
           description: Successful response
       summary: getSiteRrmEvents
       tags:
@@ -33321,6 +33434,7 @@ paths:
             - rssizones
 tags:
   - name: Sites
+  - name: RF Diagnistic
   - name: Alarms
   - name: Asset
   - name: Asset Filters
