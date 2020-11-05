@@ -28133,6 +28133,60 @@ paths:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
          #### Query Parameter
         **Parameter**|**Type**|**Description**
          :-------------: |:-------------: |:-------------:
@@ -41874,10 +41928,12 @@ paths:
                     dns:
                       type: array
                       items:
+                        required: []
                         properties: {}
                     dns_suffix:
                       type: array
                       items:
+                        required: []
                         properties: {}
                     network:
                       type: string
@@ -45299,6 +45355,7 @@ paths:
                         chassis_id:
                           items:
                             properties: {}
+                            required: []
                           type: array
                         model:
                           minLength: 1
@@ -48941,6 +48998,7 @@ paths:
                         device_mac:
                           type: array
                           items:
+                            required: []
                             properties: {}
                         org_id:
                           type: string
@@ -48948,6 +49006,7 @@ paths:
                         vlan:
                           type: array
                           items:
+                            required: []
                             properties: {}
                         site_id:
                           type: string
@@ -48960,6 +49019,7 @@ paths:
                         port_id:
                           type: array
                           items:
+                            required: []
                             properties: {}
                       required:
                         - device_mac
@@ -53661,6 +53721,7 @@ paths:
                     fields:
                       type: array
                       items:
+                        required: []
                         properties: {}
               examples:
                 example-1:
@@ -53704,10 +53765,12 @@ paths:
                       '20':
                         type: array
                         items:
+                          required: []
                           properties: {}
                       '40':
                         type: array
                         items:
+                          required: []
                           properties: {}
                     required:
                       - '20'
@@ -53722,18 +53785,22 @@ paths:
                       '20':
                         type: array
                         items:
+                          required: []
                           properties: {}
                       '40':
                         type: array
                         items:
+                          required: []
                           properties: {}
                       '80':
                         type: array
                         items:
+                          required: []
                           properties: {}
                       dfs:
                         type: array
                         items:
+                          required: []
                           properties: {}
                     required:
                       - '20'
@@ -54848,6 +54915,290 @@ paths:
 
         With correct verification, the user will be authenticated. UI can then
         prompt for new password
+  /api/v1/register:
+    post:
+      summary: registerNewAdmin
+      operationId: registerNewAdmin
+      tags:
+        - Create Accounts
+      responses:
+        '200':
+          description: OK
+      description: >-
+        Register a new admin and his/her org
+
+        An email will also be sent to the user with a link to
+        https://manage.mist.com/verify/register?token=:token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                email:
+                  type: string
+                  minLength: 1
+                password:
+                  type: string
+                  minLength: 1
+                first_name:
+                  type: string
+                  minLength: 1
+                last_name:
+                  type: string
+                  minLength: 1
+                org_name:
+                  type: string
+                  minLength: 1
+                recaptcha:
+                  type: string
+                  minLength: 1
+                referer_invite_token:
+                  type: string
+                  minLength: 1
+                  description: the invite token to apply after account creation
+                return_to:
+                  type: string
+                  minLength: 1
+                  description: the url the user should be redirected back to
+                account_only:
+                  type: boolean
+                  description: 'skip creating initial setup if true, default is false'
+                invite_code:
+                  type: string
+                  minLength: 1
+                  description: required initially
+                allow_mist:
+                  type: boolean
+                  description: 'whether to allow Mist to look at this org, default is False'
+              required:
+                - email
+                - password
+                - first_name
+                - last_name
+                - org_name
+                - recaptcha
+  '/api/v1/register/verify/{token}':
+    parameters:
+      - schema:
+          type: string
+        name: token
+        in: path
+        required: true
+    post:
+      summary: verifyRegistration
+      tags:
+        - Create Accounts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  return_to:
+                    type: string
+                    minLength: 1
+                  invite_not_applied:
+                    type: boolean
+                  detail:
+                    type: string
+                  min_length:
+                    type: integer
+              examples:
+                Response if successful:
+                  value:
+                    return_to: 'http://mist.zendesk.com/hc/quickstart.pdf'
+                Response if successful but failed to apply the invitation automatically:
+                  value:
+                    invite_not_applied: true
+                    detail: password policy not met
+                    min_length: 8
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: >-
+                  csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue,
+                  15-Mar-2016 19:47:20 GMT; Max-Age=31449600; Path=/
+        '400':
+          description: Response if verification expired or already registered
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    minLength: 1
+                required:
+                  - detail
+              examples:
+                verification expired:
+                  value:
+                    detail: expired
+                already registered:
+                  value:
+                    detail: already registered
+        '404':
+          description: Response if secret is invalid
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    minLength: 1
+                required:
+                  - detail
+              examples:
+                example-1:
+                  value:
+                    detail: Not found.
+      operationId: verifyRegistration
+      description: Verify registration
+  /api/v1/self/logs:
+    get:
+      summary: getSelfAuditLogs
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  page:
+                    type: number
+                  total:
+                    type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required:
+                        - timestamp
+                        - site_id
+                        - org_id
+                        - admin_id
+                        - admin_name
+                        - message
+                        - id
+                      properties:
+                        timestamp:
+                          type: number
+                        site_id:
+                          type: string
+                          minLength: 1
+                        org_id:
+                          type: string
+                          minLength: 1
+                        admin_id:
+                          type: string
+                          minLength: 1
+                        admin_name:
+                          type: string
+                          minLength: 1
+                        message:
+                          type: string
+                          minLength: 1
+                        id:
+                          type: string
+                          minLength: 1
+                        before:
+                          type: object
+                          properties:
+                            auth:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  minLength: 1
+                              required:
+                                - type
+                          required:
+                            - auth
+                        after:
+                          type: object
+                          properties:
+                            auth:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  minLength: 1
+                              required:
+                                - type
+                          required:
+                            - auth
+                required:
+                  - start
+                  - end
+                  - limit
+                  - page
+                  - total
+                  - results
+              examples:
+                example-1:
+                  value:
+                    start: 1428939600
+                    end: 1428954000
+                    limit: 100
+                    page: 1
+                    total: 135
+                    results:
+                      - timestamp: 1431382121
+                        site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+                        org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                        admin_id: 72bfa2bd-e58a-4670-9d20-a1468f7a6f58
+                        admin_name: test@mistsys.com
+                        message: Update WLAN "Corporate"
+                        id: c6f9347b-b0a4-4a23-b927-fa9249f2ffb2
+                        before:
+                          auth:
+                            type: psk
+                        after:
+                          auth:
+                            type: open
+      operationId: getSelfAuditLogs
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: start
+        - schema:
+            type: string
+          in: query
+          name: end
+        - schema:
+            type: string
+          in: query
+          name: page
+        - schema:
+            type: string
+          in: query
+          name: limit
+      description: >-
+        Audit logs records all administrative activities done by current admin
+        across all orgs
+
+
+        Get a list of change logs across all Orgs for current admin
 security:
   - apiToken: []
   - basicAuth: []
@@ -54874,6 +55225,7 @@ tags:
 
       Link Mist Account against OAuth2 Provider by using the authorization code
   - name: API Token
+  - name: Create Accounts
   - name: Installer
   - name: Invite
   - name: Mobile
@@ -54963,6 +55315,7 @@ tags:
   - name: Sites Zones
   - name: Constants
   - name: Self
+  - name: Account
 x-tagGroups:
   - name: Account
     tags:
@@ -54970,6 +55323,7 @@ x-tagGroups:
       - Login With OAuth2
       - API Token
       - Self
+      - Create Accounts
   - name: Sites
     tags:
       - Sites
