@@ -7,7 +7,7 @@ components:
       description: |-
         API Token
         Like many other API providers, it’s also possible to generate API Tokens to be used (in HTTP Header) for authentication. An API token ties to a Admin with equal or less privileges. Notes: an API token generated for a specific admin has the same privilege as the user an API token will be automatically removed if not used for > 90 days
-    credentials:
+    basicAuth:
       type: http
       schema: basic
       scheme: basic
@@ -2120,7 +2120,7 @@ paths:
               - orgs
             type: string
         - description: search string
-          example: 'search_string'
+          example: search_string
           in: query
           name: q
           required: true
@@ -9316,7 +9316,7 @@ paths:
       description: Get Org Psks
       operationId: filterOrgPsks
       parameters:
-        - example: 'psk_name'
+        - example: psk_name
           in: query
           name: name
           schema:
@@ -16425,6 +16425,233 @@ paths:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
          #### Query Parameter
         **Parameter**|**Type**|**Description**
          :-------------: |:-------------: |:-------------:
@@ -17555,7 +17782,7 @@ paths:
       operationId: getSiteDeviceRadioChannels
       parameters:
         - description: 'country code for the site (for AP config generation), in two-character'
-          example: 'US'
+          example: US
           in: query
           name: country_code
           schema:
@@ -21365,7 +21592,7 @@ paths:
       description: Search Authorized Guest
       operationId: searchSiteGuestAuthorization
       parameters:
-        - example: '00000000-0000-0000-0000-000000000000'
+        - example: 00000000-0000-0000-0000-000000000000
           in: query
           name: wlan_id
           schema:
@@ -22115,7 +22342,7 @@ paths:
       operationId: getSiteBeamCoverageOverview
       parameters:
         - description: map_id (filter by map_id)
-          example: '00000000-0000-0000-0000-000000000000'
+          example: 00000000-0000-0000-0000-000000000000
           in: query
           name: map_id
           schema:
@@ -22249,7 +22476,7 @@ paths:
       operationId: getSiteMachineLearningCurrentStat
       parameters:
         - description: 'map_id (as filter, optional)'
-          example: '00000000-0000-0000-0000-000000000000'
+          example: 00000000-0000-0000-0000-000000000000
           in: query
           name: map_id
           schema:
@@ -22503,7 +22730,7 @@ paths:
       operationId: getSiteMachineLearningEvents
       parameters:
         - description: 'device_id (as filter, optional)'
-          example: '00000000-0000-0000-0000-000000000000'
+          example: 00000000-0000-0000-0000-000000000000
           in: query
           name: device_id
           schema:
@@ -23553,7 +23780,7 @@ paths:
       description: Get Site PSKs
       operationId: getSitePsks
       parameters:
-        - example: 'myPsk'
+        - example: myPsk
           in: query
           name: name
           schema:
@@ -28827,7 +29054,7 @@ paths:
       description: Get Zone Stats
       operationId: getSiteZoneStats
       parameters:
-        - example: '00000000-0000-0000-0000-000000000000'
+        - example: 00000000-0000-0000-0000-000000000000
           in: query
           name: map_id
           schema:
@@ -34015,9 +34242,820 @@ paths:
                           speed: 1000
       operationId: getMxEdgeModels
       description: Get Mist Edge Models
+  /api/v1/login:
+    get:
+      summary: login
+      tags:
+        - Login
+      responses:
+        '200':
+          description: Login Success
+          content:
+            application/json:
+              schema:
+                description: ''
+                oneOf:
+                  - type: object
+                    properties:
+                      email:
+                        type: string
+                        minLength: 1
+                      privileges: {}
+                      two_factor_required:
+                        type: boolean
+                      two_factor_passed:
+                        type: boolean
+                    required:
+                      - email
+                      - two_factor_required
+                      - two_factor_passed
+                  - type: 'null'
+                    properties: {}
+              examples:
+                2FA Required:
+                  value:
+                    email: test@mistsys.com
+                    privileges: null
+                    two_factor_required: true
+                    two_factor_passed: false
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: 'csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue, 15-Mar-2016 19:47:20 GMT; Max-Age=31449600; Path=/'
+              description: Session Cookie if login/password authentication is successful
+        '400':
+          description: Login Failed
+          content:
+            application/json:
+              schema:
+                description: ''
+                oneOf:
+                  - type: object
+                    properties:
+                      detail:
+                        type: string
+                        minLength: 1
+                      forward_url:
+                        type: string
+                        minLength: 1
+                    required:
+                      - detail
+                  - type: 'null'
+                    properties: {}
+              examples:
+                example-1:
+                  value:
+                    detail: sso admin login needs to be initiated by IdP
+                    forward_url: 'https://my.sso/idp_sso_url'
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                email:
+                  type: string
+                  minLength: 1
+                password:
+                  type: string
+                  minLength: 1
+                two_factor:
+                  type: string
+                  minLength: 1
+              required:
+                - email
+                - password
+            examples:
+              without 2FA:
+                value:
+                  email: string
+                  password: string
+              with 2FA:
+                value:
+                  email: string
+                  password: string
+                  two_factor: string
+      description: Log in with email/password
+  /api/v1/logout:
+    get:
+      summary: logout
+      tags:
+        - Login
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  forward_url:
+                    type: string
+                    minLength: 1
+                    description: if configured in SSO as custom_logout_url
+              examples:
+                example-1:
+                  value:
+                    forward_url: 'https://my.sso/custom_logout_url'
+      operationId: logout
+      description: Logout
+  /api/v1/login/two_factor:
+    get:
+      summary: twoFactor
+      tags: []
+      responses:
+        '200':
+          description: two_factor code is correct
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: 'csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue, 15-Mar-2016 19:47:20 GMT; Max-Age=31449600; Path=/'
+        '401':
+          description: two_factor code is incorrect or the user hasn’t login yet
+        '404':
+          description: the user doesn’t have 2FA enabled
+      operationId: twoFactor
+      description: Send 2FA Code
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                two_factor:
+                  type: string
+                  minLength: 1
+              required:
+                - two_factor
+            examples:
+              example-1:
+                value:
+                  two_factor: '123456'
+  /api/v1/login/lookup:
+    get:
+      summary: lookup
+      tags:
+        - Login
+      responses:
+        '200':
+          description: account exists
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  sso_url:
+                    type: string
+                    minLength: 1
+              examples:
+                local user exists:
+                  value: {}
+                SSO user exists:
+                  value:
+                    sso_url: 'https://my.sso/idp_sso_url'
+        '404':
+          description: user does not exist
+      operationId: lookup
+      description: |
+        Login Lookup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                email:
+                  type: string
+                  minLength: 1
+              required:
+                - email
+            examples:
+              example-1:
+                value:
+                  email: test@mistsys.com
+  '/api/v1/self/oauth/{provider}':
+    parameters:
+      - schema:
+          type: string
+        name: provider
+        in: path
+        required: true
+    get:
+      summary: getOAuth2UrlForLinking
+      tags:
+        - Login With OAuth2
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  linked:
+                    type: boolean
+                  authorization_url:
+                    type: string
+                    minLength: 1
+                required:
+                  - linked
+                  - authorization_url
+              examples:
+                example-1:
+                  value:
+                    linked: false
+                    authorization_url: 'https://accounts.google.com/o/oauth2/v2/auth?.....'
+      operationId: getOAuth2UrlForLinking
+      description: Obtain Authorization URL for Linking
+      parameters:
+        - schema:
+            type: string
+            example: 'http://manage.mist.com/oauth/callback.html'
+          in: query
+          name: forward
+    post:
+      summary: linkOAuth2MistAccount
+      operationId: linkOAuth2MistAccount
+      tags:
+        - Login With OAuth2
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  action:
+                    type: string
+                    minLength: 1
+                  id:
+                    type: string
+                    minLength: 1
+                required:
+                  - action
+                  - id
+              examples:
+                example-1:
+                  value:
+                    action: oauth account linked
+                    id: google-user-id
+        '400':
+          description: Authorization Error
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  error:
+                    type: string
+                    minLength: 1
+                  error_description:
+                    type: string
+                    minLength: 1
+                required:
+                  - error
+                  - error_description
+              examples:
+                example-1:
+                  value:
+                    error: access_denied
+                    error_description: The resource owner or authorization server denied the request.
+      description: Link Mist account with an OAuth2 Provider
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                code:
+                  type: string
+                  minLength: 1
+              required:
+                - code
+            examples:
+              example-1:
+                value:
+                  code: 4/S9tegDeLkrYg0L9pWNXV4cgMVbbr3SR9t693A2kSHzw
+  '/api/v1/login/oauth/{provider}':
+    parameters:
+      - schema:
+          type: string
+        name: provider
+        in: path
+        required: true
+    get:
+      summary: getOAuth2AuthorizationUrlForLogin
+      tags:
+        - Login With OAuth2
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  client_id:
+                    type: string
+                    minLength: 1
+                  authorization_url:
+                    type: string
+                    minLength: 1
+                required:
+                  - client_id
+                  - authorization_url
+              examples:
+                example-1:
+                  value:
+                    client_id: 173131512-mpbnju32.apps.googleusercontent.com
+                    authorization_url: 'https://accounts.google.com/o/oauth2/v2/auth?.....'
+      operationId: getOAuth2AuthorizationUrlForLogin
+      description: |
+        Obtain Authorization URL for Login
+      parameters:
+        - schema:
+            type: string
+            example: 'http://manage.mist.com/oauth/callback.html'
+          in: query
+          name: forward
+    post:
+      tags:
+        - Login With OAuth2
+      summary: loginOAuth2
+      operationId: loginOAuth2
+      responses:
+        '200':
+          description: OK
+      description: Login via OAuth2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                code:
+                  type: string
+                  minLength: 1
+              required:
+                - code
+            examples:
+              example-1:
+                value:
+                  code: 4/S9tegDeLkrYg0L9pWNXV4cgMVbbr3SR9t693A2kSHzw
+    delete:
+      tags:
+        - Login With OAuth2
+      summary: unlinkOAuth2Provider
+      operationId: unlinkOAuth2Provider
+      responses:
+        '200':
+          description: OK
+      description: Unlink OAuth2 Provider
+  /api/v1/self/apitokens:
+    get:
+      summary: getApiTokens
+      tags:
+        - API Token
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                description: ''
+                minItems: 1
+                uniqueItems: true
+                items:
+                  type: object
+                  required:
+                    - id
+                    - last_used
+                    - key
+                    - created_time
+                  properties:
+                    id:
+                      type: string
+                      minLength: 1
+                    last_used:
+                      type: number
+                    key:
+                      type: string
+                      minLength: 1
+                    created_time:
+                      type: number
+              examples:
+                example-1:
+                  value:
+                    - id: 7dd2cc08-842a-45dd-b28a-da0ff8c1e154
+                      last_used: 1594909517
+                      key: ptf5...Ffb2
+                      created_time: 1579553923
+                    - id: b3374790-1a4d-46dd-80b7-d28059d4e0ef
+                      last_used: 1597167517
+                      key: W5tg...6mzZ
+                      created_time: 1590652910
+                    - id: 3cd1116f-fb8f-431d-b71a-3377478a3ceb
+                      last_used: 1589382889
+                      key: 2SLJ...7Okz
+                      created_time: 1589382878
+                    - id: 2d086735-888c-4cc4-ae76-6f6fd656ac53
+                      last_used: 1604016002
+                      key: zT61...DXRo
+                      created_time: 1587564602
+      operationId: getApiTokens
+      description: List Current API Tokens
+    post:
+      summary: createApiToken
+      operationId: createApiToken
+      tags:
+        - API Token
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  id:
+                    type: string
+                    minLength: 1
+                  last_used: {}
+                  key:
+                    type: string
+                    minLength: 1
+                  created_time:
+                    type: number
+                required:
+                  - id
+                  - key
+                  - created_time
+              examples:
+                example-1:
+                  value:
+                    id: 0d3c7628-f50e-42f3-927b-b4778fff9842
+                    last_used: null
+                    key: fGMKccT9mzUs3xofTrFudOz8wkwM2h3aMuD9kG2DGDehtFEwQ9NfsYUnswW4dh4AqWBb0asB2aa2BS7hw4X44pPZCnyeVZLm
+                    created_time: 1604607174
+      description: |-
+        Create API Token
+        Note that the key is only available during creation time.
+  '/api/v1/self/apitokens/{apitoken_id}':
+    parameters:
+      - schema:
+          type: string
+        name: apitoken_id
+        in: path
+        required: true
+    delete:
+      summary: deleteApiToken
+      operationId: deleteApiToken
+      tags:
+        - API Token
+      responses:
+        '200':
+          description: OK
+      description: Delete an API Token
+  /api/v1/self:
+    get:
+      summary: getSelf
+      tags: 
+        - Self
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./models/responses/response.admin.v1.yaml
+              examples:
+                example-1:
+                  value:
+                    first_name: string
+                    last_name: string
+                    privileges:
+                      - scope: string
+                        org_id: string
+                        name: string
+                        role: string
+                        msp_id: string
+                        orggroup_ids:
+                          - string
+                        msp_name: string
+                        org_name: string
+                        site_id: string
+                        sitegroup_ids:
+                          - string
+                    email: user@example.com
+                    admin_id: string
+      operationId: getSelf
+      description: Get Account information
+    put:
+      summary: updateSelf
+      operationId: updateSelf
+      tags:
+        - Self
+      responses:
+        '200':
+          description: OK
+      description: update Account Information
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                password:
+                  type: string
+                  minLength: 1
+                  description: new password
+                first_name:
+                  type: string
+                  minLength: 1
+                  description: first name of logged-in user
+                last_name:
+                  type: string
+                  minLength: 1
+                  description: last name of logged-in user
+                phone:
+                  type: string
+                  minLength: 1
+                  description: 'phone number (numbers only, including country code)'
+                phone2:
+                  type: string
+                  minLength: 1
+                  description: secondary phone number
+                persona:
+                  type: string
+                  minLength: 1
+                  description: 'optional, different persona presents differnt UI for optimized user experience'
+                enable_two_factor:
+                  type: boolean
+                  description: to enable or disable two-factory authentication
+                two_factor_verified:
+                  type: boolean
+                  description: 'if enable_two_factor=true, whether it’s verified.'
+            examples:
+              example-1:
+                value:
+                  password: foryoureyesonly
+                  first_name: John
+                  last_name: Smith
+                  phone: '14081112222'
+                  phone2: '14083334444'
+                  persona: security
+                  enable_two_factor: true
+    delete:
+      summary: deleteSelf
+      operationId: deleteSelf
+      tags: 
+        - Self
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    minLength: 1
+                  org_id:
+                    type: string
+                    minLength: 1
+                required:
+                  - detail
+                  - org_id
+              examples:
+                if any of the org to be deleted still has inventory:
+                  value:
+                    detail: inventory not empty
+                    org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+      description: |-
+        To delete ones account and every associated with it. The effects:
+
+        the account would be deleted
+        any orphaned Org (that only has this account as admin) will be deleted
+        along with all data with Org (sites, wlans, devices) will be gone.
+  /api/v1/self/update:
+    post:
+      summary: updateSelfEmail
+      operationId: updateSelfEmail
+      tags:
+        - Self
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: invalid email address or new email address already exists
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    minLength: 1
+              examples:
+                new email address already exists:
+                  value:
+                    detail: email already existed
+                invalid email address:
+                  value: {}
+      description: |-
+        Change Email
+        We require the user to verify that they actually own the email address they intend to change it to.
+
+        After the API call, the user will receive an email to the new email address with a link like https://manage.mist.com/verify/update?expire=:exp_time&email=:admin_email&token=:token
+
+        Upon clicking the link, the user is provided with a login page to authenticate using existing credentials. After successful login, the email address of the user gets updated
+
+        Note: The request parameter email can be used by UI to validate that the current session (if any) belongs to the admin or provide a login page (by pre-populating the email on login screen). UI can also use the request parameter expire to validate token expiry.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                email:
+                  type: string
+                  minLength: 1
+                  description: new email address
+              required:
+                - email
+            examples:
+              example-1:
+                value:
+                  email: new@mistsys.com
+        description: ''
+  '/api/v1/self/update/verify/{token}':
+    parameters:
+      - schema:
+          type: string
+        name: token
+        in: path
+        required: true
+    get:
+      summary: verifySelfEmail
+      tags:
+        - Self
+      responses:
+        '200':
+          description: 'With correct verification, the email address of the user will be updated'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    minLength: 1
+                required:
+                  - detail
+              examples:
+                invalid or expired token:
+                  value:
+                    detail: invalid token
+                request comes from authenticated users other than admin:
+                  value:
+                    detail: invalid token
+                new email address already exists:
+                  value:
+                    detail: email already existed
+      operationId: verifySelfEmail
+      description: Verify Email change
+  /api/v1/self/two_factor/token:
+    get:
+      summary: generateQrCodeForVerification
+      tags:
+        - Self
+      responses:
+        '200':
+          description: OK
+      operationId: generateQrCodeForVerification
+      parameters:
+        - schema:
+            type: string
+            default: qrcode
+            enum:
+              - qrcode
+          in: query
+          name: by
+      description: Generate QR code for verification
+  /api/v1/self/two_factor/verify:
+    get:
+      summary: verifyTwoFactor
+      tags: 
+        - Self
+      responses:
+        '200':
+          description: Response when 2FA verification is successful
+      operationId: verifyTwoFactor
+      description: |-
+        Verify Two-factor (OTP)
+        To verify two-factor authentication by using a code generated by app (e.g. Google Authenticator, Authy) or by SMS. Upon successful verification, the otp_verified will be set to true if it hasn’t already been.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                two_factor:
+                  type: string
+                  minLength: 1
+              required:
+                - two_factor
+            examples:
+              example-1:
+                value:
+                  two_factor: '123456'
+  /api/v1/recover:
+    get:
+      summary: recoverPassword
+      tags: 
+        - Self
+      responses:
+        '200':
+          description: OK
+      operationId: recoverPassword
+      description: |-
+        Recover Password
+        An email will also be sent to the user with a link to https://manage.mist.com/verify/recover?token=:token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                email:
+                  type: string
+                  minLength: 1
+                recaptcha:
+                  type: string
+                  minLength: 1
+              required:
+                - email
+                - recaptcha
+            examples:
+              example-1:
+                value:
+                  email: test@mistsys.com
+                  recaptcha: 'see https://www.google.com/recaptcha/'
+  '/api/v1/recover/verify/{token}':
+    parameters:
+      - schema:
+          type: string
+        name: token
+        in: path
+        required: true
+    get:
+      summary: verifyRecoverPasssword
+      tags: 
+        - Self
+      responses:
+        '200':
+          description: OK
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: 'csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue, 15-Mar-2016 19:47:20 GMT; Max-Age=31449600; Path=/'
+      operationId: verifyRecoverPasssword
+      description: |-
+        Verify Recover Password
+        With correct verification, the user will be authenticated. UI can then prompt for new password
 security:
   - apiToken: []
-  - credentials: []
+  - basicAuth: []
 servers:
   - description: Mist AWS US
     url: 'https://api.mist.com'
@@ -34026,6 +35064,17 @@ servers:
   - description: Mist GCP US
     url: 'https://api.gc1.mist.com'
 tags:
+  - name: Login
+  - name: Login With OAuth2
+    description: |-
+      A Mist account can be linked to OAuth2 providers:
+      1. First, login with your Mist account
+      2. Obtain the Authorization URL for Linking
+        1. in JSON response, more usable for developers. Simply don’t specify the forward parameter when obtaining the authorization URL 
+        2. or as GET parameter, for UI where the user flow can be continued. Specify the landing page/url of your choice
+      3. Obtain the authorizaiton code by clicking / going through Authorization URL
+      Link Mist Account against OAuth2 Provider by using the authorization code
+  - name: API Token
   - name: Installer
   - name: Invite
   - name: Mobile
@@ -34116,6 +35165,12 @@ tags:
   - name: Constants
   - name: Self
 x-tagGroups:
+  - name: Account
+    tags:
+      - Login
+      - Login With OAuth2
+      - API Token
+      - Self
   - name: Sites
     tags:
       - Sites
