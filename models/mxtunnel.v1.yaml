@@ -2,81 +2,106 @@ description: ''
 type: object
 x-examples:
   example-1:
-    name: HQ
-    protocol: udp
+    enabled: false
     vlan_ids:
       - 3
-      - 4
       - 5
-    mxcluster_ids:
-      - 572586b7-f97b-a22b-526c-8b97a3f609c4
+      - 6
+    ap_subnets: 0.0.0.0/0
+    protocol: udp
+    mtu: 1100
+    clusters:
+      - name: primary
+        tunterm_hosts:
+          - mxedge1
+          - mxedge2.local
     hello_interval: 60
     hello_retries: 3
-    ipsec:
+    radsec:
       enabled: true
-      split_tunnel: true
-      dns_servers:
-        - 172.16.0.8
-      extra_routes:
-        - dest: 172.16.0.0/12
-          next_hop: 172.16.0.1
+      auth_servers:
+        - host: 1.2.3.4
+          port: 1812
+          secret: testing123
+        - host: radius.internal
+          port: 1812
+          secret: testing123
+      acct_servers:
+        - host: 1.2.3.4
+          port: 1812
+          secret: testing123
+      use_mxedge: true
 properties:
-  name:
-    type: string
-    minLength: 1
-    description: the name of the tunnel
+  enabled:
+    type: boolean
+  vlan_ids:
+    type: array
+    description: |
+      list of vlan_ids that will be used
+    items:
+      type: integer
+  ap_subnets:
+    type: array
+    description: |
+      list of subnets where we allow AP to establish Mist Tunnels from
+    items:
+      type: string
   protocol:
     type: string
     minLength: 1
-    description: 'udp / ip, default is udp'
-    default: udp
+    description: |
+      udp / ip, default is udp
     enum:
       - udp
       - ip
-  vlan_ids:
+  mtu:
+    type: integer
+  clusters:
     type: array
-    description: list of vlan_ids that will be used
+    uniqueItems: true
+    minItems: 1
     items:
-      type: string
-  mxcluster_ids:
-    type: array
-    description: list of mxclusters to deploy this tunnel to
-    items:
-      type: string
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        tunterm_hosts:
+          type: array
+          items:
+            type: object
+      required:
+        - name
   hello_interval:
     type: number
-    description: 'in seconds, used as heartbeat to detect if a tunnel is alive. AP will try another peer after missing N hellos specified by hello_retries. between 1 and 300, default is 60 seconds'
-    default: 60
-    minimum: 1
-    maximum: 300
+    description: |
+      in seconds, used as heartbeat to detect if a tunnel is alive. AP will try another peer after missing N hellos specified by hello_retries. between 1 and 300, default is 60 seconds
   hello_retries:
     type: integer
-    description: 'between 2 and 30, default is 7'
-    default: 7
-  ipsec:
+    description: |
+      between 2 and 30, default is 7
+  radsec:
     type: object
     properties:
       enabled:
         type: boolean
-      split_tunnel:
-        type: boolean
-      dns_servers:
-        type: array
-        items:
-          type: string
-      extra_routes:
+      auth_servers:
         type: array
         uniqueItems: true
         minItems: 1
         items:
-          type: object
-          properties:
-            dest:
-              type: string
-              minLength: 1
-            next_hop:
-              type: string
-              minLength: 1
-required:
-  - name
-  - vlan_ids
+          $ref: ./server_objects/auth_server.v1.yaml
+      acct_servers:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          $ref: ./server_objects/acct_server.v1.yaml
+      use_mxedge:
+        type: boolean
+  hosts:
+    type: array
+    description: |
+      hostnames or IPs where a Mist Tunnel will use as the Peer (i.e. they are reachable from AP)
+    items:
+      type: string
