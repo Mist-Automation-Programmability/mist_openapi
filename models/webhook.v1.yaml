@@ -1,10 +1,59 @@
 description: |
-  NOTE: * If headers format is invalid, “X-Mist-Error”: “headers format invalid” will be sent.
-
-  If total bytes of headers exceed 1000, “X-Mist-Error”: “headers too big” will be sent.
-
-  If any header value is not string, “X-Mist-Error”: “header[%s] not a string” will be sent.
+  NOTE: 
+   * when `secret` is provided, two HTTP headers will be added:
+     * `X-Mist-Signature-v2`: HMAC_SHA256(secret, body)
+     * `X-Mist-Signature`: HMAC_SHA1(secret, body)
+   * If `headers` format is invalid, “X-Mist-Error”: “headers format invalid” will be sent.
+   * If total bytes of `headers` exceed 1000, “X-Mist-Error”: “headers too big” will be sent.
+   * If any header value is not `string`, “X-Mist-Error”: “header[%s] not a string” will be sent.
 type: object
+x-examples:
+  example-http_post:
+    name: analytic
+    type: http-post
+    url: 'https://username:password@hooks.abc.com/uri/...'
+    secret: secret
+    headers:
+      x-custom-1: your_custom_header_value1
+      x-custom-2: your_custom_header_value2
+    enabled: true
+    topics:
+      - location
+      - zone
+      - vbeacon
+      - rssizone
+      - asset-raw
+      - device-events
+      - alarms
+      - audits
+      - client-join
+      - client-sessions
+      - device-updowns
+      - occupancy-alerts
+      - mxedge-events
+      - calea-clients
+  example-splunk:
+    name: analytic
+    type: splunk
+    url: 'https://my.splunk.host:8088/services/collector'
+    splunk_token: token
+    verify_cert: false
+    enabled: true
+    topics:
+      - location
+      - zone
+      - vbeacon
+      - rssizone
+      - asset-raw
+      - device-events
+      - alarms
+      - audits
+      - client-join
+      - client-sessions
+      - device-updowns
+      - occupancy-alerts
+      - mxedge-events
+      - calea-clients
 properties:
   name:
     type: string
@@ -14,8 +63,7 @@ properties:
   secret:
     type: string
     minLength: 1
-    description: |
-      optional, when type=http-post, if provided, X-Mist-Signature in HTTP header will be the signature of HMAC_SHA1(secret, body)
+    description: 'optional, when type=http-post, if provided, additional signature HTTP headers will be added (see note below)'
   headers:
     type: object
     description: |
@@ -66,50 +114,3 @@ required:
   - name
   - url
   - topics
-x-examples:
-  example-http_post:
-    name: analytic
-    type: http-post
-    url: 'https://username:password@hooks.abc.com/uri/...'
-    secret: secret
-    headers:
-      x-custom-1: your_custom_header_value1
-      x-custom-2: your_custom_header_value2
-    enabled: true
-    topics:
-      - location
-      - zone
-      - vbeacon
-      - rssizone
-      - asset-raw
-      - device-events
-      - alarms
-      - audits
-      - client-join
-      - client-sessions
-      - device-updowns
-      - occupancy-alerts
-      - mxedge-events
-      - calea-clients
-  example-splunk:
-    name: analytic
-    type: splunk
-    url: 'https://my.splunk.host:8088/services/collector'
-    splunk_token: token
-    verify_cert: false
-    enabled: true
-    topics:
-      - location
-      - zone
-      - vbeacon
-      - rssizone
-      - asset-raw
-      - device-events
-      - alarms
-      - audits
-      - client-join
-      - client-sessions
-      - device-updowns
-      - occupancy-alerts
-      - mxedge-events
-      - calea-clients
