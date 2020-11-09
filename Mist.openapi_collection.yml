@@ -1,18 +1,3 @@
-components:
-  securitySchemes:
-    apiToken:
-      in: header
-      name: Authorization
-      type: apiKey
-      description: |-
-        API Token
-        Like many other API providers, it’s also possible to generate API Tokens to be used (in HTTP Header) for authentication. An API token ties to a Admin with equal or less privileges. Notes: an API token generated for a specific admin has the same privilege as the user an API token will be automatically removed if not used for > 90 days
-    basicAuth:
-      type: http
-      scheme: basic
-      description: |-
-        Basic Auth
-        While our current UI uses Session / Cookie-based authentication, it’s also possible to do Basic Auth.
 info:
   title: Mist API
   version: 0.2.5
@@ -1283,7 +1268,11 @@ paths:
       description: 'NOTE: another call to ```GET /api/v1/self``` is required to see the new set of privileges'
       operationId: verifyAdminInvite
       requestBody:
-        content: {}
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
       responses:
         '200':
           content:
@@ -4723,7 +4712,11 @@ paths:
       description: Clear Org Certificates
       operationId: clearOrgCertificates
       requestBody:
-        content: {}
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
       responses:
         '200':
           content:
@@ -5174,51 +5167,47 @@ paths:
             application/json:
               schema:
                 description: ''
+                type: object
                 properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: number
+                  total:
+                    type: number
                   results:
-                    items:
-                      properties:
-                        ap:
-                          items:
-                            type: string
-                          type: array
-                        device:
-                          items:
-                            type: string
-                          type: array
-                        hostname:
-                          items:
-                            type: string
-                          type: array
-                        ip:
-                          items: {}
-                          type: array
-                        mac:
-                          minLength: 1
-                          type: string
-                        model:
-                          items:
-                            type: string
-                          type: array
-                        os:
-                          items:
-                            type: string
-                          type: array
-                        ssid:
-                          items:
-                            type: string
-                          type: array
-                        vlan:
-                          items:
-                            type: string
-                          type: array
-                      type: object
-                    minItems: 1
                     type: array
                     uniqueItems: true
+                    minItems: 1
+                    items:
+                      $ref: ./models/responses/events/event.client.v1.yaml
                 required:
+                  - start
+                  - end
+                  - limit
+                  - total
                   - results
-                type: object
+              examples:
+                example-1:
+                  value:
+                    start: 0
+                    end: 0
+                    limit: 0
+                    total: 0
+                    results:
+                      - ap: string
+                        ssid: string
+                        bssid: string
+                        proto: a
+                        timestamp: 0
+                        band: '24'
+                        type_code: 0
+                        type: string
+                        text: string
+                        channel: 0
+                        wlan_id: string
           description: Successful response
       summary: searchOrgWirelessClients
       tags:
@@ -7013,48 +7002,16 @@ paths:
                         type: CLIENT_DNS_OK
               schema:
                 description: ''
+                type: object
                 properties:
                   results:
-                    items:
-                      properties:
-                        ap:
-                          minLength: 1
-                          type: string
-                        apfw:
-                          minLength: 1
-                          type: string
-                        model:
-                          minLength: 1
-                          type: string
-                        org_id:
-                          minLength: 1
-                          type: string
-                        site_id:
-                          minLength: 1
-                          type: string
-                        text:
-                          minLength: 1
-                          type: string
-                        timestamp:
-                          type: number
-                        type:
-                          minLength: 1
-                          type: string
-                      required:
-                        - org_id
-                        - site_id
-                        - ap
-                        - apfw
-                        - model
-                        - text
-                        - timestamp
-                        - type
                     minItems: 1
                     type: array
                     uniqueItems: true
+                    items:
+                      $ref: ./models/responses/events/event.device_ap.v1.yaml
                 required:
                   - results
-                type: object
           description: Successful response
       summary: searchOrgDevicesEvents
       tags:
@@ -8850,7 +8807,14 @@ paths:
         In the case where a Mist Edge is replaced, you would need to unregister it. Which disconnects the currently the connected Mist Edge and allow another to register.
       operationId: restartOrgMxEdge
       requestBody:
-        content: {}
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+            examples:
+              example-1:
+                value: {}
       responses:
         '200':
           content:
@@ -8876,11 +8840,23 @@ paths:
         In the case where a Mist Edge is replaced, you would need to unregister it. Which disconnects the currently the connected Mist Edge and allow another to register.
       operationId: unregisterOrgMxEdge
       requestBody:
-        content: {}
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+            examples:
+              example-1:
+                value: {}
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              examples:
+                example-1:
+                  value: {}
+              schema:
+                type: object
           description: Successful response
       summary: unregisterOrgMxEdge
       tags:
@@ -8974,7 +8950,7 @@ paths:
                       name: string
                       protocol: udp
                       vlan_ids:
-                        - string
+                        - 0
               schema:
                 items:
                   $ref: ./models/mxtunnel.v1.yaml
@@ -9013,7 +8989,7 @@ paths:
                   name: string
                   protocol: udp
                   vlan_ids:
-                    - string
+                    - 0
             schema:
               $ref: ./models/mxtunnel.v1.yaml
       responses:
@@ -9029,7 +9005,7 @@ paths:
                     id: string
                     ipsec:
                       dns_servers:
-                        - {}
+                        - string
                       enabled: true
                       extra_routes:
                         - dest: string
@@ -9042,7 +9018,7 @@ paths:
                     org_id: string
                     protocol: udp
                     vlan_ids:
-                      - string
+                      - 0
               schema:
                 $ref: ./models/responses/response.mxtunnel.v1.yaml
           description: Successful response
@@ -9092,7 +9068,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./models/common/mxtunnel.v1.yaml
+              $ref: ./models/mxtunnel.v1.yaml
       responses:
         '200':
           content:
@@ -12116,11 +12092,23 @@ paths:
         Subscriptions define how Org Alarms/Reports are delivered to whom
       operationId: subscribeOrgAlarmsReports
       requestBody:
-        content: {}
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+            examples:
+              example-1:
+                value: {}
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-1:
+                  value: {}
           description: Successful response
       summary: subscribeOrgAlarmsReports
       tags:
@@ -14498,28 +14486,47 @@ paths:
             application/json:
               schema:
                 description: ''
+                type: object
                 properties:
+                  start:
+                    type: number
                   end:
                     type: number
                   limit:
                     type: number
-                  results:
-                    items:
-                      $ref: ./models/responses/events/client_event.v1.yaml
-                    minItems: 1
-                    type: array
-                    uniqueItems: true
-                  start:
-                    type: number
                   total:
                     type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      $ref: ./models/responses/events/event.client.v1.yaml
                 required:
                   - start
                   - end
                   - limit
                   - total
                   - results
-                type: object
+              examples:
+                example-1:
+                  value:
+                    start: 0
+                    end: 0
+                    limit: 0
+                    total: 0
+                    results:
+                      - ap: string
+                        ssid: string
+                        bssid: string
+                        proto: a
+                        timestamp: 0
+                        band: '24'
+                        type_code: 0
+                        type: string
+                        text: string
+                        channel: 0
+                        wlan_id: string
           description: Successful response
       summary: searchSiteClientEvents
       tags:
@@ -15026,11 +15033,23 @@ paths:
       description: This disconnect a client (and it’s likely to connect back)
       operationId: disconnectSiteClient
       requestBody:
-        content: {}
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+            examples:
+              example-1:
+                value: {}
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-1:
+                  value: {}
           description: Successful response
       summary: disconnectSiteClient
       tags:
@@ -15038,6 +15057,48 @@ paths:
   '/api/v1/sites/{site_id}/clients/{client_mac}/events':
     get:
       description: |2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -16778,51 +16839,46 @@ paths:
               examples:
                 example-1:
                   value:
-                    end: 0
-                    limit: 0
-                    next: string
+                    start: 1512572151
+                    end: 1513176951
+                    limit: 10
+                    total: 1
                     results:
-                      - ap: string
-                        band: string
-                        bssid: string
-                        channel: 0
-                        proto: string
-                        ssid: string
-                        text: string
-                        timestamp: 0
-                        type: string
-                        type_code: 0
-                        wlan_id: string
-                    start: 0
-                    total: 0
+                      - ap: 5c5b350eb31b
+                        ssid: Guest
+                        bssid: 5c5b350918f1
+                        proto: ac
+                        timestamp: 1513358874.667
+                        band: '5'
+                        type_code: 15
+                        type: CLIENT_DNS_OK
+                        text: 'Status code 0 "Successful" '
+                        channel: 149
+                        wlan_id: be22bba7-8e22-e1cf-5185-b880816fe2cf
               schema:
                 description: ''
+                type: object
                 properties:
+                  start:
+                    type: number
                   end:
                     type: number
                   limit:
                     type: number
-                  next:
-                    minLength: 1
-                    type: string
-                  results:
-                    items:
-                      $ref: ./models/responses/events/client_event.v1.yaml
-                    minItems: 1
-                    type: array
-                    uniqueItems: true
-                  start:
-                    type: number
                   total:
                     type: number
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      $ref: ./models/responses/events/event.client.v1.yaml
                 required:
-                  - results
                   - start
                   - end
                   - limit
                   - total
-                  - next
-                type: object
+                  - results
           description: Successful response
       summary: getSiteEventsForClient
       tags:
@@ -16854,11 +16910,23 @@ paths:
       description: 'This unauthorize a client (if it’s a guest) and disconnect it. From the guest’s perspective, s/he will see the splash page again and go through the flow (e.g. Terms of Use) again.'
       operationId: unauthorizeSiteClient
       requestBody:
-        content: {}
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+            examples:
+              example-1:
+                value: {}
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-1:
+                  value: {}
           description: Successful response
       summary: unauthorizeSiteClient
       tags:
@@ -18636,6 +18704,7 @@ paths:
                     total: 14
               schema:
                 description: ''
+                type: object
                 properties:
                   end:
                     type: number
@@ -18645,23 +18714,22 @@ paths:
                     minLength: 1
                     type: string
                   results:
-                    items:
-                      type: object
                     minItems: 1
                     type: array
                     uniqueItems: true
+                    items:
+                      $ref: ./models/responses/events/event.device_ap.v1.yaml
                   start:
                     type: number
                   total:
                     type: number
                 required:
                   - end
-                  - results
-                  - next
-                  - start
                   - limit
+                  - next
+                  - results
+                  - start
                   - total
-                type: object
           description: Successful response
       summary: searchSiteDeviceEvents
       tags:
@@ -18953,7 +19021,14 @@ paths:
       description: 'To force all APs to reprovision itself again. '
       operationId: reprovisionSiteAllAps
       requestBody:
-        content: {}
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+            examples:
+              example-1:
+                value: {}
       responses:
         '200':
           content:
@@ -20755,6 +20830,12 @@ paths:
       summary: restartSiteDevice
       tags:
         - Sites Devices
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
   '/api/v1/sites/{site_id}/devices/{device_id}/support':
     parameters:
       - in: path
@@ -21933,33 +22014,29 @@ paths:
                     start: 1604260800
               schema:
                 description: ''
+                type: object
                 properties:
                   end:
                     type: number
                   interval:
                     type: number
                   results:
+                    type: array
                     items:
                       oneOf:
-                        - properties: {}
-                          type: 'null'
-                        - properties: {}
-                          type: string
-                        - properties: {}
-                          type: number
-                    type: array
+                        - type: string
+                        - type: number
                   rt:
+                    type: array
                     items:
                       type: string
-                    type: array
                   start:
                     type: number
                 required:
-                  - start
                   - end
                   - interval
                   - results
-                type: object
+                  - start
           description: Successful response
       summary: getSiteInsightMetricsForDevice
       tags:
@@ -22772,7 +22849,14 @@ paths:
       description: Reset ML Stats by Map
       operationId: resetSiteMlStatsByMap
       requestBody:
-        content: {}
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+            examples:
+              example-1:
+                value: {}
       responses:
         '200':
           content:
@@ -23732,7 +23816,7 @@ paths:
               examples:
                 example-1:
                   value:
-                    ap_mac: null
+                    ap_mac: 60a10a773412
                     aps:
                       - 5c5b350e001c
                       - 5c5b350e001b
@@ -23745,7 +23829,6 @@ paths:
                     ok:
                       - 5c5b350e001c
                       - 5c5b350e001b
-                    ssid: null
                     started_time: 1435080709
                     type: client
               schema:
@@ -24350,50 +24433,28 @@ paths:
                     total: 2
               schema:
                 description: ''
+                type: object
                 properties:
                   end:
                     type: number
                   limit:
                     type: number
                   results:
-                    items:
-                      properties:
-                        ap:
-                          minLength: 1
-                          type: string
-                        bssid:
-                          minLength: 1
-                          type: string
-                        channel:
-                          type: number
-                        rssi:
-                          type: number
-                        ssid:
-                          minLength: 1
-                          type: string
-                        timestamp:
-                          type: number
-                      required:
-                        - ssid
-                        - bssid
-                        - timestamp
-                        - ap
-                        - rssi
-                        - channel
                     minItems: 1
                     type: array
                     uniqueItems: true
+                    items:
+                      $ref: ./models/responses/events/event.rogue.v1.yaml
                   start:
                     type: number
                   total:
                     type: number
                 required:
-                  - results
-                  - start
                   - end
                   - limit
+                  - results
+                  - start
                   - total
-                type: object
           description: Successful response
       summary: searchSiteRogueEvents
       tags:
@@ -24460,7 +24521,14 @@ paths:
       description: Send Deauth frame to clients connected to a Rogue AP
       operationId: deauthSiteClientsConnectedToARogue
       requestBody:
-        content: {}
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+            examples:
+              example-1:
+                value: {}
       responses:
         '200':
           description: OK
@@ -24516,7 +24584,6 @@ paths:
                           - 6
                           - 11
                         disabled: false
-                        power: null
                         power_max: 11
                         power_min: 3
                         preamble: short
@@ -24539,7 +24606,6 @@ paths:
                           - 112
                           - 116
                         disabled: false
-                        power: null
                         power_max: 16
                         power_min: 9
                         preamble: short
@@ -24726,8 +24792,6 @@ paths:
                     oneOf:
                       - properties: {}
                         type: string
-                      - properties: {}
-                        type: 'null'
                   results:
                     items:
                       properties:
@@ -25026,7 +25090,7 @@ paths:
                     analytic:
                       enabled: true
                     auto_upgrade:
-                      custom_versions: null
+                      custom_versions: {}
                       day_of_week: any
                       enabled: true
                       time_of_day: string
@@ -25067,10 +25131,10 @@ paths:
                         passerby: string
                         stationed: string
                       dwell_tags:
-                        bounce: null
-                        engaged: null
-                        passerby: null
-                        stationed: null
+                        bounce: string
+                        engaged: string
+                        passerby: string
+                        stationed: string
                       hours:
                         fri: string
                         mon: string
@@ -25088,9 +25152,9 @@ paths:
                     id: string
                     ip_config:
                       dns:
-                        - {}
+                        - string
                       dns_suffix:
-                        - {}
+                        - string
                       gateway: string
                       ip: string
                       netmask: string
@@ -25106,10 +25170,10 @@ paths:
                       clusters:
                         - name: string
                           tunterm_hosts:
-                            - {}
+                            - string
                       enabled: true
-                      hello_interval: 0
-                      hello_retries: 0
+                      hello_interval: 1
+                      hello_retries: 2
                       hosts:
                         - string
                       mtu: 0
@@ -25145,9 +25209,9 @@ paths:
                       unconnected_clients_enabled: true
                     oob_ip_config:
                       dns:
-                        - {}
+                        - string
                       dns_suffix:
-                        - {}
+                        - string
                       gateway: string
                       ip: string
                       netmask: string
@@ -25196,7 +25260,7 @@ paths:
                         bandwidth: 0
                         channel: 0
                         disabled: true
-                        power: null
+                        power: 6
                         power_max: 0
                         power_min: 0
                         preamble: string
@@ -25208,7 +25272,7 @@ paths:
                         bandwidth: 0
                         channel: 0
                         disabled: true
-                        power: null
+                        power: 6
                         power_max: 0
                         power_min: 0
                         preamble: string
@@ -25219,7 +25283,7 @@ paths:
                         bandwidth: 0
                         channel: 0
                         disabled: true
-                        power: null
+                        power: 6
                         power_max: 0
                         power_min: 0
                         preamble: string
@@ -25345,7 +25409,7 @@ paths:
                   analytic:
                     enabled: true
                   auto_upgrade:
-                    custom_versions: null
+                    custom_versions: {}
                     day_of_week: any
                     enabled: true
                     time_of_day: string
@@ -25385,10 +25449,10 @@ paths:
                       passerby: string
                       stationed: string
                     dwell_tags:
-                      bounce: null
-                      engaged: null
-                      passerby: null
-                      stationed: null
+                      bounce: string
+                      engaged: string
+                      passerby: string
+                      stationed: string
                     hours:
                       fri: string
                       mon: string
@@ -25404,9 +25468,9 @@ paths:
                     app_usage: true
                   ip_config:
                     dns:
-                      - {}
+                      - string
                     dns_suffix:
-                      - {}
+                      - string
                     gateway: string
                     ip: string
                     netmask: string
@@ -25421,10 +25485,10 @@ paths:
                     clusters:
                       - name: string
                         tunterm_hosts:
-                          - {}
+                          - string
                     enabled: true
-                    hello_interval: 0
-                    hello_retries: 0
+                    hello_interval: 1
+                    hello_retries: 2
                     hosts:
                       - string
                     mtu: 0
@@ -25460,9 +25524,9 @@ paths:
                     unconnected_clients_enabled: true
                   oob_ip_config:
                     dns:
-                      - {}
+                      - string
                     dns_suffix:
-                      - {}
+                      - string
                     gateway: string
                     ip: string
                     netmask: string
@@ -25510,7 +25574,7 @@ paths:
                       bandwidth: 0
                       channel: 0
                       disabled: true
-                      power: null
+                      power: 6
                       power_max: 0
                       power_min: 0
                       preamble: string
@@ -25522,7 +25586,7 @@ paths:
                       bandwidth: 0
                       channel: 0
                       disabled: true
-                      power: null
+                      power: 6
                       power_max: 0
                       power_min: 0
                       preamble: string
@@ -25533,7 +25597,7 @@ paths:
                       bandwidth: 0
                       channel: 0
                       disabled: true
-                      power: null
+                      power: 6
                       power_max: 0
                       power_min: 0
                       preamble: string
@@ -25646,7 +25710,7 @@ paths:
                     analytic:
                       enabled: true
                     auto_upgrade:
-                      custom_versions: null
+                      custom_versions: {}
                       day_of_week: any
                       enabled: true
                       time_of_day: string
@@ -25687,10 +25751,10 @@ paths:
                         passerby: string
                         stationed: string
                       dwell_tags:
-                        bounce: null
-                        engaged: null
-                        passerby: null
-                        stationed: null
+                        bounce: string
+                        engaged: string
+                        passerby: string
+                        stationed: string
                       hours:
                         fri: string
                         mon: string
@@ -25708,9 +25772,9 @@ paths:
                     id: string
                     ip_config:
                       dns:
-                        - {}
+                        - string
                       dns_suffix:
-                        - {}
+                        - string
                       gateway: string
                       ip: string
                       netmask: string
@@ -25726,10 +25790,10 @@ paths:
                       clusters:
                         - name: string
                           tunterm_hosts:
-                            - {}
+                            - string
                       enabled: true
-                      hello_interval: 0
-                      hello_retries: 0
+                      hello_interval: 1
+                      hello_retries: 2
                       hosts:
                         - string
                       mtu: 0
@@ -25765,9 +25829,9 @@ paths:
                       unconnected_clients_enabled: true
                     oob_ip_config:
                       dns:
-                        - {}
+                        - string
                       dns_suffix:
-                        - {}
+                        - string
                       gateway: string
                       ip: string
                       netmask: string
@@ -25816,7 +25880,7 @@ paths:
                         bandwidth: 0
                         channel: 0
                         disabled: true
-                        power: null
+                        power: 6
                         power_max: 0
                         power_min: 0
                         preamble: string
@@ -25828,7 +25892,7 @@ paths:
                         bandwidth: 0
                         channel: 0
                         disabled: true
-                        power: null
+                        power: 6
                         power_max: 0
                         power_min: 0
                         preamble: string
@@ -25839,7 +25903,7 @@ paths:
                         bandwidth: 0
                         channel: 0
                         disabled: true
-                        power: null
+                        power: 6
                         power_max: 0
                         power_min: 0
                         preamble: string
@@ -26247,59 +26311,28 @@ paths:
                     total: 1
               schema:
                 description: ''
+                type: object
                 properties:
                   end:
                     type: number
                   limit:
                     type: number
                   results:
-                    items:
-                      properties:
-                        device_mac:
-                          minLength: 1
-                          type: string
-                        ip:
-                          minLength: 1
-                          type: string
-                        mac:
-                          minLength: 1
-                          type: string
-                        org_id:
-                          minLength: 1
-                          type: string
-                        site_id:
-                          minLength: 1
-                          type: string
-                        threat_level:
-                          type: number
-                        timestamp:
-                          type: number
-                        type:
-                          minLength: 1
-                          type: string
-                      required:
-                        - mac
-                        - threat_level
-                        - device_mac
-                        - timestamp
-                        - org_id
-                        - site_id
-                        - type
-                        - ip
                     minItems: 1
                     type: array
                     uniqueItems: true
+                    items:
+                      $ref: ./models/responses/events/event.skyatp.v1.yaml
                   start:
                     type: number
                   total:
                     type: number
                 required:
-                  - start
                   - end
                   - limit
-                  - total
                   - results
-                type: object
+                  - start
+                  - total
           description: Successful response
       summary: searchSiteSkyatpEvents
       tags:
@@ -26507,7 +26540,7 @@ paths:
                         type: string
                         uptime: 0
                         username: string
-                        vlan_id: null
+                        vlan_id: 0
                         wlan_id: string
                         x: 0
                         'y': 0
@@ -26589,7 +26622,7 @@ paths:
                       type: string
                       uptime: 0
                       username: string
-                      vlan_id: null
+                      vlan_id: 0
                       wlan_id: string
                       x: 0
                       'y': 0
@@ -27143,7 +27176,7 @@ paths:
                         type: string
                         uptime: 0
                         username: string
-                        vlan_id: null
+                        vlan_id: 0
                         wlan_id: string
                         x: 0
                         'y': 0
@@ -27777,7 +27810,7 @@ paths:
                         type: string
                         uptime: 0
                         username: string
-                        vlan_id: null
+                        vlan_id: 0
                         wlan_id: string
                         x: 0
                         'y': 0
@@ -27943,7 +27976,6 @@ paths:
                       model: ME-100
                       modified_time: 1574117211
                       mxagent_registered: false
-                      mxcluster_id: null
                       name: staging_edge
                       org_id: 5a5ed2f4-632f-41f3-b8ed-d3afa4b27f96
                       services:
@@ -27993,7 +28025,6 @@ paths:
                     model: ME-100
                     modified_time: 1574117211
                     mxagent_registered: false
-                    mxcluster_id: null
                     name: staging_edge
                     org_id: 5a5ed2f4-632f-41f3-b8ed-d3afa4b27f96
                     services:
@@ -29222,11 +29253,23 @@ paths:
       description: Subscribe to Site Alarms
       operationId: SubscribeSite
       requestBody:
-        content: {}
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+            examples:
+              example-1:
+                value: {}
       responses:
         '200':
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-1:
+                  value: {}
           description: Successful response
       summary: SubscribeSite
       tags:
@@ -30028,7 +30071,14 @@ paths:
       description: send a Ping event to the webhook
       operationId: pingSiteWebhook
       requestBody:
-        content: {}
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+            examples:
+              example-1:
+                value: {}
       responses:
         '200':
           content:
@@ -34311,8 +34361,6 @@ paths:
                       - email
                       - two_factor_required
                       - two_factor_passed
-                  - type: 'null'
-                    properties: {}
               examples:
                 2FA Required:
                   value:
@@ -34343,8 +34391,6 @@ paths:
                         minLength: 1
                     required:
                       - detail
-                  - type: 'null'
-                    properties: {}
               examples:
                 example-1:
                   value:
@@ -35595,3 +35641,18 @@ x-tagGroups:
       - Invite
       - Mobile
       - Self
+components:
+  securitySchemes:
+    apiToken:
+      in: header
+      name: Authorization
+      type: apiKey
+      description: |-
+        API Token
+        Like many other API providers, it’s also possible to generate API Tokens to be used (in HTTP Header) for authentication. An API token ties to a Admin with equal or less privileges. Notes: an API token generated for a specific admin has the same privilege as the user an API token will be automatically removed if not used for > 90 days
+    basicAuth:
+      type: http
+      scheme: basic
+      description: |-
+        Basic Auth
+        While our current UI uses Session / Cookie-based authentication, it’s also possible to do Basic Auth.
