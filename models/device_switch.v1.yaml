@@ -1,13 +1,13 @@
 description: Switch Object
 type: object
 x-examples:
-  example-1:
+  device-switch-settings:
     name: corp-a135
     role: access
     notes: slightly off center
     ip_config:
       type: static
-      ip: 10.2.1.1
+      ip: 10.2.1.10
       netmask: 255.255.255.0
       gateway: 10.2.1.254
       dns:
@@ -38,6 +38,19 @@ x-examples:
         usage: ap
       '*':
         usage: default
+    extra_routes:
+      - dest: 172.16.3.0/24
+        via: 10.2.1.1
+      - dest: it_mgmt
+        via: 10.2.1.1
+    router_id: 10.2.1.10
+    ospf:
+      '0':
+        networks:
+          - corp
+          - iot
+        stub: false
+        nssa: false
     radius_config:
       auth_servers_timeout: 5
       auth_servers_retries: 3
@@ -53,8 +66,6 @@ x-examples:
           port: 1812
           secret: testing123
       acct_interim_interval: 0
-    port_usages: {}
-    networks: {}
     managed: false
     disable_auto_config: false
     additional_config_cmds:
@@ -83,6 +94,7 @@ properties:
   other_ip_configs:
     anyOf:
       - $ref: ./junos_objects/junos.other_ip_configs.v1.yaml
+    description: 'optional, if it''s required to have switch''s L3 presense on a network/vlan'
   ntp_servers:
     type: array
     description: |
@@ -126,3 +138,14 @@ properties:
   image1_url:
     type: string
     minLength: 1
+  extra_routes:
+    type: array
+    items:
+      type: object
+      properties:
+        dest:
+          type: string
+          description: CIDR or name from "networks"
+        via:
+          type: string
+          description: ''

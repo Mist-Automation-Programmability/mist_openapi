@@ -1,139 +1,104 @@
-description: Gateway Object
+description: device gateway response
 type: object
 x-examples:
-  example-1:
-    name: string
-    ip_config:
-      type: string
-      ip: string
-      netmask: string
-      gateway: string
-      dns:
-        - string
-      dns_suffix:
-        - string
-      network: string
-      dhcp:
-        enabled: true
-        type: local
-        ip_start: string
-        ip_end: string
-        dns:
-          - string
-        dns_suffix:
-          - string
-        servers:
-          - string
-        gateway: string
-    other_ip_configs:
-      type: static
-      ip: string
-      netmask: string
-    wan2_ip_config:
-      type: string
-      ip: string
-      netmask: string
-      gateway: string
-      dns:
-        - string
-      dns_suffix:
-        - string
-      network: string
-      dhcp:
-        enabled: true
-        type: local
-        ip_start: string
-        ip_end: string
-        dns:
-          - string
-        dns_suffix:
-          - string
-        servers:
-          - string
-        gateway: string
-    oob_ip_config:
-      type: string
-      ip: string
-      netmask: string
-      gateway: string
-      dns:
-        - string
-      dns_suffix:
-        - string
-      network: string
-      dhcp:
-        enabled: true
-        type: local
-        ip_start: string
-        ip_end: string
-        dns:
-          - string
-        dns_suffix:
-          - string
-        servers:
-          - string
-        gateway: string
-    ntp_servers:
-      - string
-    port_config:
-      usage: string
-      aggregated: true
-      description: string
-      dynamic_usage: true
-    radius_config:
-      auth_servers_timeout: 0
-      auth_servers_retries: 0
-      auth_servers:
-        - host: string
-          port: 0
-          secret: string
-      acct_servers:
-        - host: string
-          secret: string
-          port: 0
-      acct_interim_interval: 0
-    port_usages:
-      mode: access
-      all_networks: true
-      stp_edge: true
-      port_network: string
-      mtu: 0
-      networks:
-        - string
-      disabled: true
-      description: string
-      voip_network: string
-      port_auth: string
-      enable_mac_auth: true
-      "bypass_auth_when_server_down\t": true
-      guest_network: string
-      speed: string
-      duplex: half
-      disable_autoneg: true
-      mac_limit: 0
-      poe_disabled: true
-      storm_control:
-        percentage: 0
-        no_broadcast: true
-        "no_unknown_unicast\t": true
-        no_multicast: true
-        no_registered_multicast: true
+  device-gateway-response:
+    name: corp-a135
     networks:
-      vlan_id: 0
-      subnet: string
-      gateway: string
-      dns:
-        - string
-      dns_suffix:
-        - string
-    managed: true
-    additional_config_cmds:
-      - string
-    vars: {}
-    deviceprofile_id: string
-    image1_url: string
+      default:
+        vlan_id: 1
+        zone: trust
+      wan:
+        zone: untrust
+      corp:
+        vlan_id: 60
+        zone: trust
+        subnet: 192.168.70.0/24
+      it_mgmt:
+        subnet: 192.168.70.0/24
+        zone: trust
+    port_usages:
+      lan:
+        mode: access
+        port_network: default
+      wan:
+        mode: inet
+        port_network: wan
+      internal:
+        mode: inet
+    port_config:
+      ge-0/0/0:
+        usage: wan
+        ip_config: {}
+      ge-0/0/1-6:
+        usage: lan
+      ge-0/0/7:
+        usage: wan
+        ip_config: {}
+      'ge-0/0/0,ge-7/0/0':
+        usage: wan
+        zone: untrust
+        redundancy: true
+        ip_config: {}
+    ip_config:
+      type: static
+      ip: 192.168.1.1
+      netmask: 255.255.255.0
+      dhcp:
+        enabled: true
+        type: local
+        ip_start: 192.167.1.100
+        ip_end: 192.167.1.200
+        gateway: 192.168.1.1
+        dns:
+          - 8.8.8.8
+          - 4.4.4.4
+        dns_suffix:
+          - .mist.local
+          - .mist.com
+    other_ip_configs:
+      corp:
+        type: static
+        ip: 10.3.3.1
+        netmask: 255.255.255.0
+    extra_routes:
+      - dest: 0.0.0.0/0
+        via: 10.2.1.1
     port_forward:
-      '': null
+      remote-ssh:
+        from_zone: untrust
+        to_zone: trust
+        protocol: tcp
+        ip_port: 10.2.5.3
+        ip_range: 10.2.5.1/32-10.2.5.20/32
+    oob_ip_config:
+      type: static
+      ip: 192.168.50.3
+      netmask: 255.255.255.0
+    ntp_servers:
+      - pool.ntp.org
+      - time.google.com
+    zones:
+      trust:
+        to_host:
+          protocols:
+            - all
+          system_services:
+            - all
+        to_self:
+          allow_all: true
+        to:
+          untrust:
+            nat: true
+            web_filtering: true
+    radius_config: {}
+    managed: false
+    additional_config_cmds:
+      - set snmp community public
+    vars:
+      RADIUS_SECRET: 11s64632d
+      RADIUS_IP1: 172.31.2.5
+    deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+    image1_url: 'https://url/to/image.png'
 properties:
   name:
     type: string
@@ -151,8 +116,7 @@ properties:
     items:
       type: string
   port_config:
-    anyOf:
-      - $ref: ./junos_objects/junos.port_config.v1.yaml
+    $ref: ./junos_objects/junos.gateway_port_config.v1.yaml
   radius_config:
     $ref: ./junos_objects/junos.radius_config.v1.yaml
   port_usages:
@@ -174,7 +138,18 @@ properties:
     type: string
     minLength: 1
   port_forward:
-    type: object
-    properties:
-      '':
-        $ref: ./junos_objects/junos.port_forward.v1.yaml
+    anyOf:
+      - $ref: ./junos_objects/junos.port_forward.v1.yaml
+  extra_routes:
+    type: array
+    items:
+      type: object
+      properties:
+        dest:
+          type: string
+          description: ''
+        via:
+          type: string
+  zones:
+    anyOf:
+      - $ref: ./junos_objects/junos.gateway_zone.v1.yaml

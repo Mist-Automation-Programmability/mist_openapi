@@ -1670,10 +1670,10 @@ components:
             type: integer
           format:
             default: pcap
+            description: pcap format, pcap / stream, default is pcap
             enum:
             - pcap
             - string
-            - stream+pcap
             type: string
           max_pkt_len:
             default: 128
@@ -1716,10 +1716,10 @@ components:
             type: integer
           format:
             default: pcap
+            description: pcap format, pcap / stream, default is pcap
             enum:
             - pcap
             - string
-            - stream+pcap
             type: string
           max_pkt_len:
             default: 128
@@ -1762,10 +1762,10 @@ components:
             type: integer
           format:
             default: pcap
+            description: pcap format, pcap / stream, default is pcap
             enum:
             - pcap
             - string
-            - stream+pcap
             type: string
           max_pkt_len:
             default: 128
@@ -2380,7 +2380,7 @@ components:
           x: 0
           y: 0
     device_gateway:
-      description: Gateway Object
+      description: device gateway response
       properties:
         additional_config_cmds:
           items:
@@ -2389,6 +2389,16 @@ components:
         deviceprofile_id:
           minLength: 1
           type: string
+        extra_routes:
+          items:
+            properties:
+              dest:
+                description: ''
+                type: string
+              via:
+                type: string
+            type: object
+          type: array
         image1_url:
           minLength: 1
           type: string
@@ -2410,13 +2420,10 @@ components:
         other_ip_configs:
           $ref: '#/components/schemas/junos.other_ip_configs'
         port_config:
-          anyOf:
-          - $ref: '#/components/schemas/junos.port_config'
+          $ref: '#/components/schemas/junos.gateway_port_config'
         port_forward:
-          properties:
-            ? ''
-            : $ref: '#/components/schemas/junos.port_forward'
-          type: object
+          anyOf:
+          - $ref: '#/components/schemas/junos.port_forward'
         port_usages:
           $ref: '#/components/schemas/junos.port_usages'
         radius_config:
@@ -2425,142 +2432,109 @@ components:
           type: object
         wan2_ip_config:
           $ref: '#/components/schemas/junos.ip_config'
+        zones:
+          anyOf:
+          - $ref: '#/components/schemas/junos.gateway_zone'
       type: object
       x-examples:
-        example-1:
+        device-gateway-response:
           additional_config_cmds:
-          - string
-          deviceprofile_id: string
-          image1_url: string
+          - set snmp community public
+          deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+          extra_routes:
+          - dest: 0.0.0.0/0
+            via: 10.2.1.1
+          image1_url: https://url/to/image.png
           ip_config:
             dhcp:
               dns:
-              - string
+              - 8.8.8.8
+              - 4.4.4.4
               dns_suffix:
-              - string
+              - .mist.local
+              - .mist.com
               enabled: true
-              gateway: string
-              ip_end: string
-              ip_start: string
-              servers:
-              - string
+              gateway: 192.168.1.1
+              ip_end: 192.167.1.200
+              ip_start: 192.167.1.100
               type: local
-            dns:
-            - string
-            dns_suffix:
-            - string
-            gateway: string
-            ip: string
-            netmask: string
-            network: string
-            type: string
-          managed: true
-          name: string
-          networks:
-            dns:
-            - string
-            dns_suffix:
-            - string
-            gateway: string
-            subnet: string
-            vlan_id: 0
-          ntp_servers:
-          - string
-          oob_ip_config:
-            dhcp:
-              dns:
-              - string
-              dns_suffix:
-              - string
-              enabled: true
-              gateway: string
-              ip_end: string
-              ip_start: string
-              servers:
-              - string
-              type: local
-            dns:
-            - string
-            dns_suffix:
-            - string
-            gateway: string
-            ip: string
-            netmask: string
-            network: string
-            type: string
-          other_ip_configs:
-            ip: string
-            netmask: string
+            ip: 192.168.1.1
+            netmask: 255.255.255.0
             type: static
+          managed: false
+          name: corp-a135
+          networks:
+            corp:
+              subnet: 192.168.70.0/24
+              vlan_id: 60
+              zone: trust
+            default:
+              vlan_id: 1
+              zone: trust
+            it_mgmt:
+              subnet: 192.168.70.0/24
+              zone: trust
+            wan:
+              zone: untrust
+          ntp_servers:
+          - pool.ntp.org
+          - time.google.com
+          oob_ip_config:
+            ip: 192.168.50.3
+            netmask: 255.255.255.0
+            type: static
+          other_ip_configs:
+            corp:
+              ip: 10.3.3.1
+              netmask: 255.255.255.0
+              type: static
           port_config:
-            aggregated: true
-            description: string
-            dynamic_usage: true
-            usage: string
+            ge-0/0/0:
+              ip_config: {}
+              usage: wan
+            ge-0/0/0,ge-7/0/0:
+              ip_config: {}
+              redundancy: true
+              usage: wan
+              zone: untrust
+            ge-0/0/1-6:
+              usage: lan
+            ge-0/0/7:
+              ip_config: {}
+              usage: wan
           port_forward:
-            ? ''
-            : null
+            remote-ssh:
+              from_zone: untrust
+              ip_port: 10.2.5.3
+              ip_range: 10.2.5.1/32-10.2.5.20/32
+              protocol: tcp
+              to_zone: trust
           port_usages:
-            all_networks: true
-            "bypass_auth_when_server_down\t": true
-            description: string
-            disable_autoneg: true
-            disabled: true
-            duplex: half
-            enable_mac_auth: true
-            guest_network: string
-            mac_limit: 0
-            mode: access
-            mtu: 0
-            networks:
-            - string
-            poe_disabled: true
-            port_auth: string
-            port_network: string
-            speed: string
-            storm_control:
-              no_broadcast: true
-              no_multicast: true
-              no_registered_multicast: true
-              "no_unknown_unicast\t": true
-              percentage: 0
-            stp_edge: true
-            voip_network: string
-          radius_config:
-            acct_interim_interval: 0
-            acct_servers:
-            - host: string
-              port: 0
-              secret: string
-            auth_servers:
-            - host: string
-              port: 0
-              secret: string
-            auth_servers_retries: 0
-            auth_servers_timeout: 0
-          vars: {}
-          wan2_ip_config:
-            dhcp:
-              dns:
-              - string
-              dns_suffix:
-              - string
-              enabled: true
-              gateway: string
-              ip_end: string
-              ip_start: string
-              servers:
-              - string
-              type: local
-            dns:
-            - string
-            dns_suffix:
-            - string
-            gateway: string
-            ip: string
-            netmask: string
-            network: string
-            type: string
+            internal:
+              mode: inet
+            lan:
+              mode: access
+              port_network: default
+            wan:
+              mode: inet
+              port_network: wan
+          radius_config: {}
+          vars:
+            RADIUS_IP1: 172.31.2.5
+            RADIUS_SECRET: 11s64632d
+          zones:
+            trust:
+              to:
+                untrust:
+                  nat: true
+                  web_filtering: true
+              to_host:
+                protocols:
+                - all
+                system_services:
+                - all
+              to_self:
+                allow_all: true
     device_switch:
       description: Switch Object
       properties:
@@ -2578,6 +2552,17 @@ components:
 
             '
           type: boolean
+        extra_routes:
+          items:
+            properties:
+              dest:
+                description: CIDR or name from "networks"
+                type: string
+              via:
+                description: ''
+                type: string
+            type: object
+          type: array
         image1_url:
           minLength: 1
           type: string
@@ -2608,6 +2593,8 @@ components:
         other_ip_configs:
           anyOf:
           - $ref: '#/components/schemas/junos.other_ip_configs'
+          description: optional, if it's required to have switch's L3 presense on
+            a network/vlan
         port_config:
           anyOf:
           - $ref: '#/components/schemas/junos.port_config'
@@ -2634,11 +2621,16 @@ components:
           type: object
       type: object
       x-examples:
-        example-1:
+        device-switch-settings:
           additional_config_cmds:
           - set snmp community public
           deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
           disable_auto_config: false
+          extra_routes:
+          - dest: 172.16.3.0/24
+            via: 10.2.1.1
+          - dest: it_mgmt
+            via: 10.2.1.1
           image1_url: https://url/to/image.png
           ip_config:
             dns:
@@ -2648,18 +2640,24 @@ components:
             - .mist.local
             - .mist.com
             gateway: 10.2.1.254
-            ip: 10.2.1.1
+            ip: 10.2.1.10
             netmask: 255.255.255.0
             network: default
             type: static
           managed: false
           name: corp-a135
-          networks: {}
           notes: slightly off center
           ntp_servers:
           - pool.ntp.org
           - time.google.com
           oob_ip_config: {}
+          ospf:
+            '0':
+              networks:
+              - corp
+              - iot
+              nssa: false
+              stub: false
           other_ip_configs:
             guest:
               ip: 10.3.3.1
@@ -2677,7 +2675,6 @@ components:
               usage: default
             ge-0/0/8-16,ge-1/0/0-47:
               usage: ap
-          port_usages: {}
           radius_config:
             acct_interim_interval: 0
             acct_servers:
@@ -2694,6 +2691,7 @@ components:
             auth_servers_retries: 3
             auth_servers_timeout: 5
           role: access
+          router_id: 10.2.1.10
           vars:
             RADIUS_IP1: 172.31.2.5
             RADIUS_SECRET: 11s64632d
@@ -3157,6 +3155,86 @@ components:
           type: string
       title: junos.dhcp
       type: object
+    junos.gateway_port_config:
+      properties:
+        aggregated:
+          description: default is false
+          type: boolean
+        description:
+          type: string
+        ip_config:
+          $ref: '#/components/schemas/junos.ip_config'
+        redundancy:
+          type: boolean
+        usage:
+          description: port usage name
+          type: string
+        zone:
+          type: string
+      required:
+      - usage
+      title: junos.gateway_port_config
+      type: object
+      x-examples:
+        example-1:
+          ip_config: {}
+          redundancy: true
+          usage: wan
+          zone: untrust
+        example-2:
+          ip_config: {}
+          usage: wan
+    junos.gateway_zone:
+      properties:
+        to:
+          anyOf:
+          - properties:
+              nat:
+                type: boolean
+              web_filtering:
+                type: boolean
+          type: object
+        to_host:
+          properties:
+            allow_all:
+              type: boolean
+            protocols:
+              items:
+                type: string
+              type: array
+            system_services:
+              items:
+                type: string
+              type: array
+          type: object
+        to_self:
+          properties:
+            allow_all:
+              type: boolean
+            protocols:
+              items:
+                type: string
+              type: array
+            system_services:
+              items:
+                type: string
+              type: array
+          type: object
+      title: junos.gateway_zone
+      type: object
+      x-examples:
+        example-1:
+          to:
+            untrust:
+              nat: true
+              web_filtering: true
+          to_host:
+            protocols:
+            - all
+            system_services:
+            - all
+          to_self:
+            allow_all: true
     junos.ip_config:
       description: ''
       properties:
@@ -4016,6 +4094,29 @@ components:
           - dns
           - dns_suffix
           type: object
+        tunterm_monitoring:
+          items:
+            properties:
+              host:
+                description: can be ip, ipv6, hostname
+                type: string
+              port:
+                description: when protocol == tcp
+                type: string
+              protocol:
+                default: ping
+                enum:
+                - arp
+                - ping
+                - tcp
+                type: string
+              timeout:
+                default: 300
+                maximum: 3600
+                minimum: 60
+                type: integer
+            type: object
+          type: array
         tunterm_port_config:
           description: ethernet port configurations
           properties:
@@ -4065,6 +4166,11 @@ components:
             gateway: 10.2.1.254
             ip: 10.2.1.1
             netmask: 255.255.255.0
+          tunterm_monitoring:
+          - host: 10.2.8.15
+            port: '80'
+            protocol: tcp
+            timeout: 300
           tunterm_port_config:
             downstream_ports:
             - '3'
@@ -6407,7 +6513,7 @@ components:
           x: 0
           y: 0
     response.device_gateway:
-      description: ''
+      description: device gateway response
       properties:
         additional_config_cmds:
           items:
@@ -6418,6 +6524,16 @@ components:
         deviceprofile_id:
           minLength: 1
           type: string
+        extra_routes:
+          items:
+            properties:
+              dest:
+                description: ''
+                type: string
+              via:
+                type: string
+            type: object
+          type: array
         id:
           minLength: 1
           type: string
@@ -6450,13 +6566,10 @@ components:
         other_ip_configs:
           $ref: '#/components/schemas/junos.other_ip_configs'
         port_config:
-          anyOf:
-          - $ref: '#/components/schemas/junos.port_config'
+          $ref: '#/components/schemas/junos.gateway_port_config'
         port_forward:
-          properties:
-            ? ''
-            : $ref: '#/components/schemas/junos.port_forward'
-          type: object
+          anyOf:
+          - $ref: '#/components/schemas/junos.port_forward'
         port_usages:
           $ref: '#/components/schemas/junos.port_usages'
         radius_config:
@@ -6468,76 +6581,114 @@ components:
           type: object
         wan2_ip_config:
           $ref: '#/components/schemas/junos.ip_config'
+        zones:
+          anyOf:
+          - $ref: '#/components/schemas/junos.gateway_zone'
       type: object
       x-examples:
-        example-1:
+        device-gateway-response:
           additional_config_cmds:
           - set snmp community public
           created_time: 0
           deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
-          disable_auto_config: false
+          extra_routes:
+          - dest: 0.0.0.0/0
+            via: 10.2.1.1
           id: string
           image1_url: https://url/to/image.png
           ip_config:
-            dns:
-            - 8.8.8.8
-            - 4.4.4.4
-            dns_suffix:
-            - .mist.local
-            - .mist.com
-            gateway: 10.2.1.254
-            ip: 10.2.1.1
+            dhcp:
+              dns:
+              - 8.8.8.8
+              - 4.4.4.4
+              dns_suffix:
+              - .mist.local
+              - .mist.com
+              enabled: true
+              gateway: 192.168.1.1
+              ip_end: 192.167.1.200
+              ip_start: 192.167.1.100
+              type: local
+            ip: 192.168.1.1
             netmask: 255.255.255.0
-            network: default
             type: static
           managed: false
           modified_time: 0
           name: corp-a135
-          networks: {}
-          notes: slightly off center
+          networks:
+            corp:
+              subnet: 192.168.70.0/24
+              vlan_id: 60
+              zone: trust
+            default:
+              vlan_id: 1
+              zone: trust
+            it_mgmt:
+              subnet: 192.168.70.0/24
+              zone: trust
+            wan:
+              zone: untrust
           ntp_servers:
           - pool.ntp.org
           - time.google.com
-          oob_ip_config: {}
+          oob_ip_config:
+            ip: 192.168.50.3
+            netmask: 255.255.255.0
+            type: static
           org_id: string
           other_ip_configs:
-            guest:
+            corp:
               ip: 10.3.3.1
               netmask: 255.255.255.0
               type: static
           port_config:
-            '*':
-              usage: default
             ge-0/0/0:
-              aggregated: true
-              description: to dist-sw-01
-              usage: uplink
-            ge-0/0/1:
-              dynamic_usage: dynamic
-              usage: default
-            ge-0/0/8-16,ge-1/0/0-47:
-              usage: ap
-          port_usages: {}
-          radius_config:
-            acct_interim_interval: 0
-            acct_servers:
-            - host: 1.2.3.4
-              port: 1812
-              secret: testing123
-            auth_servers:
-            - host: 1.2.3.4
-              port: 1812
-              secret: testing123
-            - host: radius.internal
-              port: 1812
-              secret: testing123
-            auth_servers_retries: 3
-            auth_servers_timeout: 5
-          role: access
+              ip_config: {}
+              usage: wan
+            ge-0/0/0,ge-7/0/0:
+              ip_config: {}
+              redundancy: true
+              usage: wan
+              zone: untrust
+            ge-0/0/1-6:
+              usage: lan
+            ge-0/0/7:
+              ip_config: {}
+              usage: wan
+          port_forward:
+            remote-ssh:
+              from_zone: untrust
+              ip_port: 10.2.5.3
+              ip_range: 10.2.5.1/32-10.2.5.20/32
+              protocol: tcp
+              to_zone: trust
+          port_usages:
+            internal:
+              mode: inet
+            lan:
+              mode: access
+              port_network: default
+            wan:
+              mode: inet
+              port_network: wan
+          radius_config: {}
           site_id: string
           vars:
             RADIUS_IP1: 172.31.2.5
             RADIUS_SECRET: 11s64632d
+          zones:
+            trust:
+              to:
+                untrust:
+                  nat: true
+                  web_filtering: true
+              to_host:
+                protocols:
+                - all
+                system_services:
+                - all
+              to_self:
+                allow_all: true
     response.device_switch:
       description: ''
       properties:
@@ -6557,6 +6708,17 @@ components:
 
             '
           type: boolean
+        extra_routes:
+          items:
+            properties:
+              dest:
+                description: CIDR or name from "networks"
+                type: string
+              via:
+                description: ''
+                type: string
+            type: object
+          type: array
         id:
           minLength: 1
           type: string
@@ -6595,16 +6757,18 @@ components:
         other_ip_configs:
           anyOf:
           - $ref: '#/components/schemas/junos.other_ip_configs'
+          description: optional, if it's required to have switch's L3 presense on
+            a network/vlan
         port_config:
+          anyOf:
+          - $ref: '#/components/schemas/junos.port_config'
+        port_usages:
           properties:
             ? ''
             : $ref: '#/components/schemas/junos.port_usages'
-            dynamic:
+            dybamic:
               $ref: '#/components/schemas/junos.port_usages.dynamic'
           type: object
-        port_usages:
-          anyOf:
-          - $ref: '#/components/schemas/junos.port_usages'
         radius_config:
           $ref: '#/components/schemas/junos.radius_config'
         role:
@@ -6624,12 +6788,17 @@ components:
           type: object
       type: object
       x-examples:
-        example-1:
+        device-switch-response:
           additional_config_cmds:
           - set snmp community public
           created_time: 0
           deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
           disable_auto_config: false
+          extra_routes:
+          - dest: 172.16.3.0/24
+            via: 10.2.1.1
+          - dest: it_mgmt
+            via: 10.2.1.1
           id: string
           image1_url: https://url/to/image.png
           ip_config:
@@ -6640,20 +6809,27 @@ components:
             - .mist.local
             - .mist.com
             gateway: 10.2.1.254
-            ip: 10.2.1.1
+            ip: 10.2.1.10
             netmask: 255.255.255.0
             network: default
             type: static
           managed: false
           modified_time: 0
+          msp_id: string
           name: corp-a135
-          networks: {}
           notes: slightly off center
           ntp_servers:
           - pool.ntp.org
           - time.google.com
           oob_ip_config: {}
           org_id: string
+          ospf:
+            '0':
+              networks:
+              - corp
+              - iot
+              nssa: false
+              stub: false
           other_ip_configs:
             guest:
               ip: 10.3.3.1
@@ -6671,7 +6847,6 @@ components:
               usage: default
             ge-0/0/8-16,ge-1/0/0-47:
               usage: ap
-          port_usages: {}
           radius_config:
             acct_interim_interval: 0
             acct_servers:
@@ -6688,7 +6863,9 @@ components:
             auth_servers_retries: 3
             auth_servers_timeout: 5
           role: access
+          router_id: 10.2.1.10
           site_id: string
+          type: match
           vars:
             RADIUS_IP1: 172.31.2.5
             RADIUS_SECRET: 11s64632d
@@ -7550,6 +7727,29 @@ components:
           - dns
           - dns_suffix
           type: object
+        tunterm_monitoring:
+          items:
+            properties:
+              host:
+                description: can be ip, ipv6, hostname
+                type: string
+              port:
+                description: when protocol == tcp
+                type: string
+              protocol:
+                default: ping
+                enum:
+                - arp
+                - ping
+                - tcp
+                type: string
+              timeout:
+                default: 300
+                maximum: 3600
+                minimum: 60
+                type: integer
+            type: object
+          type: array
         tunterm_port_config:
           description: ethernet port configurations
           properties:
@@ -7579,7 +7779,6 @@ components:
         tunterm_registered:
           type: boolean
       required:
-      - id
       - name
       - model
       - magic
@@ -7588,6 +7787,7 @@ components:
       - tunterm_ip_config
       - tunterm_port_config
       - ntp_servers
+      - id
       type: object
       x-examples:
         example-1:
@@ -7606,6 +7806,11 @@ components:
             gateway: 10.2.1.254
             ip: 10.2.1.1
             netmask: 255.255.255.0
+          tunterm_monitoring:
+          - host: 10.2.8.15
+            port: '80'
+            protocol: tcp
+            timeout: 300
           tunterm_port_config:
             downstream_ports:
             - '3'
@@ -15385,20 +15590,18 @@ components:
           description: CPU/core stats list
           properties:
             cpus:
-              properties:
-                ? ''
-                : properties:
-                    idle:
-                      type: number
-                    interrupt:
-                      type: number
-                    system:
-                      type: number
-                    usage:
-                      type: number
-                    user:
-                      type: number
-                  type: object
+              anyOf:
+              - properties:
+                  idle:
+                    type: number
+                  interrupt:
+                    type: number
+                  system:
+                    type: number
+                  usage:
+                    type: number
+                  user:
+                    type: number
               type: object
             idle:
               description: percentage of Idle, Idle/(Idle + Busy) since last sampling
@@ -15430,14 +15633,10 @@ components:
               minLength: 1
               type: string
             ips:
+              anyOf:
+              - {}
               description: IPs for each net interface
-              properties:
-                ? ''
-                : minLength: 1
-                  type: string
-              required:
-              - ''
-              type: object
+              type: string
           required:
           - ip
           - ips
@@ -15513,8 +15712,8 @@ components:
           type: boolean
         mxcluster_id:
           oneOf:
-          - properties: {}
-            type: string
+          - {}
+          type: string
         name:
           minLength: 1
           type: string
@@ -15585,6 +15784,11 @@ components:
           type: string
         tunterm_registered:
           type: boolean
+        tunterm_stat:
+          properties:
+            monitoring_failed:
+              type: boolean
+          type: object
         uptime:
           type: number
         version:
@@ -15626,6 +15830,8 @@ components:
             ip: 172.16.5.3
             ips:
               ens192: 172.16.5.3/24,fe81::20c:29ff:fef8:d18e/64
+            tunterm_stat:
+              monitoring_failed: false
           lag_stat:
             lag0:
               active_ports:
@@ -16344,366 +16550,6 @@ components:
           rssi: -75
           x: 60
           y: 80
-    stats.wireless_client_details:
-      description: ''
-      minItems: 1
-      properties:
-        _ttl:
-          description: TTL of the validity of the stat
-          type: number
-        accuracy:
-          description: estimated clinet location accuracy, in meter
-          type: integer
-        airespace_ifname:
-          type: string
-        airwatch:
-          description: information if airwatch enabled
-          properties:
-            authorized:
-              type: boolean
-          required:
-          - authorized
-          type: object
-        ap_id:
-          description: AP ID the client is connected to
-          minLength: 1
-          type: string
-        ap_mac:
-          description: AP the client is connected to
-          minLength: 1
-          type: string
-        band:
-          description: "\u201C24\u201D or \u201C5\u201D"
-          minLength: 1
-          type: string
-        channel:
-          description: current channel
-          type: number
-        dual_band:
-          description: "whether the client is dual-band capable (determined by whether\
-            \ we\u2019ve seen probe requests from both bands)"
-          type: boolean
-        family:
-          description: "device family, through fingerprinting. iPod / Nexus Galaxy\
-            \ / Windows Mobile or CE \u2026"
-          minLength: 1
-          type: string
-        guest:
-          description: information about this portal
-          properties:
-            authorized:
-              description: whether this guest is authorized, default is false
-              type: boolean
-            authorized_expiring_time:
-              description: when the guest authorization will expire
-              type: number
-            authorized_time:
-              description: when the guest is authorized
-              type: number
-            company:
-              minLength: 1
-              type: string
-            email:
-              minLength: 1
-              type: string
-            field1:
-              minLength: 1
-              type: string
-            name:
-              minLength: 1
-              type: string
-          required:
-          - authorized
-          - authorized_time
-          - authorized_expiring_time
-          - name
-          - email
-          - company
-          - field1
-          type: object
-        hostname:
-          description: hostname that we learned from sniffing DHCP
-          minLength: 1
-          type: string
-        id:
-          description: client id (if client object created)
-          minLength: 1
-          type: string
-        idle_time:
-          description: how long, in seconds, has the client been idle (since the last
-            RX packet)
-          type: number
-        ip:
-          minLength: 1
-          type: string
-        is_guest:
-          description: whether this is a guest, default is false
-          type: boolean
-        key_mgmt:
-          description: e.g. WPA2-PSK/CCMP
-          minLength: 1
-          type: string
-        last_seen:
-          description: last seen timestamp
-          type: number
-        mac:
-          description: client mac
-          minLength: 1
-          type: string
-        manufacture:
-          description: device manufacture, through fingerprinting or OUI
-          minLength: 1
-          type: string
-        map_id:
-          description: estimated client location - map_id
-          minLength: 1
-          type: string
-        model:
-          description: device model, may be available if we can identify them
-          minLength: 1
-          type: string
-        name:
-          description: "client\u2019s annotated name (if client object is created)"
-          minLength: 1
-          type: string
-        num_locating_aps:
-          description: number of APs used to locate this client
-          type: number
-        os:
-          description: device os, through fingerprinting
-          minLength: 1
-          type: string
-        power_saving:
-          description: "if it\u2019s currently in power-save mode"
-          type: boolean
-        predictive:
-          description: derived information from backend
-          properties:
-            client_dl:
-              description: estimated wireless client download throughput, in Mbps
-              type: number
-            wan_dl:
-              description: estimated WAN download throughput, in Mbps
-              type: number
-          type: object
-        proto:
-          description: b / g / n / a / ac
-          minLength: 1
-          type: string
-        psk_id:
-          description: PSK id (if multi-psk is used)
-          minLength: 1
-          type: string
-        rssi:
-          description: signal strength
-          type: number
-        rssizones:
-          description: "list of rssizone_id\u2019s where client is in and since when\
-            \ (if known)"
-          items:
-            properties:
-              id:
-                type: string
-              since:
-                type: number
-            type: object
-          type: array
-        rx_bps:
-          description: rate of receiving traffic from the clients, bits/seconds, last
-            known
-          type: number
-        rx_bytes:
-          description: amount of traffic received from client since client connects
-          type: number
-        rx_packets:
-          description: amount of traffic received from client since client connects
-          type: number
-        rx_rate:
-          description: RX Rate, Mbps
-          type: number
-        rx_retries:
-          description: amount of rx retries
-          type: number
-        snr:
-          description: signal over noise
-          type: number
-        ssid:
-          description: SSID the client is connected to
-          minLength: 1
-          type: string
-        tx_bps:
-          description: rate of transmitting traffic to the clients, bits/seconds,
-            last known
-          type: number
-        tx_bytes:
-          description: amount of traffic sent to client since client connects
-          type: number
-        tx_packets:
-          description: amount of traffic sent to client since client connects
-          type: number
-        tx_rate:
-          description: TX Rate, Mbps
-          type: number
-        tx_retries:
-          description: amount of tx retries
-          type: number
-        type:
-          description: "client\u2019s type, regular / vip / resource / blocked (if\
-            \ client object is created)"
-          type: string
-        uptime:
-          description: how long, in seconds, has the client been connected
-          type: number
-        username:
-          description: username that we learned from 802.1X exchange or Per-user PSK
-            or User Portal
-          minLength: 1
-          type: string
-        vbeacons:
-          items:
-            description: "list of beacon_id\u2019s where the client is in and since\
-              \ when (if known)"
-            properties:
-              id:
-                type: string
-              since:
-                type: number
-            type: object
-          type: array
-        vlan_id:
-          description: vlan id, could be empty (from older AP)
-          type: integer
-        wlan_id:
-          description: WLAN ID the client is connected to
-          minLength: 1
-          type: string
-        wxrule_id:
-          description: current WxlanRule using for a Client or an authorized Guest
-            (portal user). null if default rule is matched.
-          type: string
-        x:
-          description: estimated clinet location in pixels
-          type: number
-        y:
-          description: estimated clinet location in pixels
-          type: number
-        zones:
-          items:
-            description: "list of zone_id\u2019s where client is in and since when\
-              \ (if known)"
-            properties:
-              id:
-                type: string
-              since:
-                type: number
-            type: object
-          type: array
-      required:
-      - id
-      - name
-      - mac
-      - last_seen
-      - username
-      - hostname
-      - os
-      - manufacture
-      - family
-      - model
-      - ip
-      - ap_mac
-      - ap_id
-      - ssid
-      - wlan_id
-      - uptime
-      - idle_time
-      - power_saving
-      - band
-      - proto
-      - key_mgmt
-      - dual_band
-      - channel
-      - rssi
-      - snr
-      - tx_rate
-      - rx_rate
-      - tx_bytes
-      - tx_bps
-      - tx_packets
-      - tx_retries
-      - rx_bytes
-      - rx_bps
-      - rx_packets
-      - rx_retries
-      - is_guest
-      - _ttl
-      type: object
-      uniqueItems: true
-      x-examples:
-        example-1:
-          _ttl: 250
-          airespace_ifname: ''
-          airwatch:
-            authorized: true
-          ap_id: 0000000-0000-0000-1000-5c5b35000010
-          ap_mac: 5c5b35000010
-          band: '24'
-          channel: 7
-          dual_band: false
-          family: iPhone
-          guest:
-            authorized: true
-            authorized_expiring_time: 1429109300
-            authorized_time: 1428939300
-            company: ABC
-            email: john@abc.com
-            field1: whatever
-            name: John
-          hostname: David-Macbook
-          id: a7d39965-9b33-3e93-1046-e4959e635e32
-          idle_time: 3
-          ip: 192.168.1.8
-          is_guest: true
-          key_mgmt: WPA2-PSK/CCMP
-          last_seen: 1470417522
-          mac: 5684dae9ac8b
-          manufacture: Apple
-          map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
-          model: 6S
-          name: David's Laptop
-          num_locating_aps: 3
-          os: OS X 10.10.2
-          power_saving: true
-          proto: a
-          psk_id: 732daf4e-f51e-8bba-06f9-b25cd0e779ea
-          rssi: -65
-          rssizones:
-          - id: b49390de-f124-4854-9404-0e59d63e6b99
-            since: 1428939400
-          rx_bps: 12
-          rx_bytes: 217416
-          rx_packets: 2337
-          rx_rate: 65
-          rx_retries: 5
-          snr: 31
-          ssid: corporate
-          tx_bps: 6
-          tx_bytes: 175132
-          tx_packets: 1566
-          tx_rate: 65
-          tx_retries: 500
-          uptime: 3568
-          username: david@mist.com
-          vbeacons:
-          - id: d379d29d-24b4-96c5-5dd4-6f2a2dc5aaeb
-            since: 1428939300
-          vlan_id: ''
-          wlan_id: be22bba7-8e22-e1cf-5185-b880816fe2cf
-          wxrule_id: ac3f89d3-15ad-685a-7c1e-cc5c5f1df07a
-          x: 53.5
-          y: 173.1
-          zones:
-          - id: 8ac84899-32db-6327-334c-9b6d58544cfe
-            since: 1428939600
     stats.wxrule:
       description: ''
       properties:
@@ -21367,7 +21213,7 @@ info:
 
     >
 
-    > Date: Novemeber 9th, 2020
+    > Date: Novemeber 20th, 2020
 
     >
 
@@ -30160,12 +30006,18 @@ paths:
             examples:
               example-1:
                 value:
+                  discard: []
                   inventory_mac: 5c5b35000301
                   mac: 5c5b35000101
                   site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
             schema:
               description: ''
               properties:
+                discard:
+                  description: "attributes that you don\u2019t want to copy"
+                  items:
+                    type: string
+                  type: array
                 inventory_mac:
                   description: mac of the inventory that will be replacing the old
                     one. It has to be claimed and unassigned.
@@ -30180,9 +30032,9 @@ paths:
                   minLength: 1
                   type: string
               required:
-              - site_id
-              - mac
               - inventory_mac
+              - mac
+              - site_id
               type: object
       responses:
         '200':
@@ -38534,7 +38386,7 @@ paths:
       - Sites Clients
   /api/v1/sites/{site_id}/clients/{client_mac}/events:
     get:
-      description: " #### Query Parameter\n **Parameter**|**Type**|**Description**\n\
+      description: "\n\n\n\n\n\n\n\n #### Query Parameter\n **Parameter**|**Type**|**Description**\n\
         \ :-------------: |:-------------: |:-------------:\ndistinct|string|type\
         \ / proto / band / channel / wlan_id / ssid\n\nNOTE: the filters from /clients/{mac}/events\
         \ can also be used. E.g. /clients/events/count?distinct=device&ssid=Guest\n"
@@ -38971,165 +38823,6 @@ paths:
                   iot_config:
                     A1:
                       enabled: true
-                      name: string
-                      output: true
-                      pullup: internal
-                      value: true
-                    A2:
-                      enabled: true
-                      name: string
-                      output: true
-                      pullup: internal
-                      value: true
-                    A3:
-                      enabled: true
-                      name: string
-                      output: true
-                      pullup: internal
-                      value: true
-                    A4:
-                      enabled: true
-                      name: string
-                      output: true
-                      pullup: internal
-                      value: true
-                    DI1:
-                      enabled: true
-                      name: string
-                      pullup: internal
-                      value: true
-                    DI2:
-                      enabled: true
-                      name: string
-                      pullup: internal
-                      value: true
-                    DO:
-                      enabled: true
-                      name: string
-                      output: true
-                      pullup: internal
-                      value: true
-                  ip_config:
-                    dns:
-                    - string
-                    dns_suffix:
-                    - string
-                    gateway: string
-                    gateway6: string
-                    ip: string
-                    ip6: string
-                    mtu: 0
-                    netmask: string
-                    netmask6: string
-                    type: static
-                    type6: string
-                    vlan_id: 0
-                  led:
-                    brightness: 0
-                    enabled: true
-                  map_id: string
-                  mesh:
-                    enabled: true
-                    group: 0
-                    role: base
-                  name: string
-                  notes: string
-                  ntp_servers:
-                  - string
-                  orientation: 0
-                  orientation_overwrite: true
-                  poe_passthrough: true
-                  pwr_config:
-                    base: 0
-                  radio_config:
-                    ant_gain_24: 0
-                    ant_gain_5: 0
-                    band_24:
-                      allow_rrm_disable: true
-                      antenna_mode: string
-                      bandwidth: 0
-                      channel: 0
-                      disabled: true
-                      power: 0
-                      power_max: 0
-                      power_min: 0
-                      preamble: string
-                      usage: string
-                    band_24_usage: string
-                    band_5:
-                      allow_rrm_disable: true
-                      antenna_mode: string
-                      bandwidth: 0
-                      channel: 0
-                      disabled: true
-                      power: 0
-                      power_max: 0
-                      power_min: 0
-                      preamble: string
-                      usage: string
-                    band_5_on_24_radio:
-                      allow_rrm_disable: true
-                      antenna_mode: string
-                      bandwidth: 0
-                      channel: 0
-                      disabled: true
-                      power: 0
-                      power_max: 0
-                      power_min: 0
-                      preamble: string
-                      usage: string
-                    scanning_enabled: true
-                  switch_config:
-                    enabled: true
-                    eth0:
-                      port_vlan_id: 0
-                      vlan_ids:
-                      - 0
-                    eth1:
-                      port_vlan_id: 0
-                      vlan_ids:
-                      - 0
-                    eth2:
-                      port_vlan_id: 0
-                      vlan_ids:
-                      - 0
-                    eth3:
-                      port_vlan_id: 0
-                      vlan_ids:
-                      - 0
-                    module:
-                      port_vlan_id: 0
-                      vlan_ids:
-                      - 0
-                    wds:
-                      port_vlan_id: 0
-                      vlan_ids:
-                      - 0
-                  usb_config:
-                    cacert: string
-                    channel: 0
-                    enabled: true
-                    host: string
-                    port: 0
-                    type: string
-                    verify_cert: true
-                  vars: {}
-                  x: 0
-                  y: 0
-              gateway:
-                value:
-                  additional_config_cmds:
-                  - set snmp community public
-                  deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
-                  image1_url: https://url/to/image.png
-                  ip_config:
-                    dhcp:
-                      enabled: true
-                      ip_end: 192.167.70.200
-                      ip_start: 192.167.70.100
-                      servers:
-                      - 11.2.3.4
-                      type: relay
                     dns:
                     - 8.8.8.8
                     - 4.4.4.4
@@ -39185,6 +38878,141 @@ paths:
                     RADIUS_IP1: 172.31.2.5
                     RADIUS_SECRET: 11s64632d
                   wan2_ip_config: {}
+              gateway:
+                value:
+                  additional_config_cmds:
+                  - string
+                  deviceprofile_id: string
+                  image1_url: string
+                  ip_config:
+                    dhcp:
+                      dns:
+                      - string
+                      dns_suffix:
+                      - string
+                      enabled: true
+                      gateway: string
+                      ip_end: string
+                      ip_start: string
+                      servers:
+                      - string
+                      type: local
+                    dns:
+                    - string
+                    dns_suffix:
+                    - string
+                    gateway: string
+                    ip: string
+                    netmask: string
+                    network: string
+                    type: static
+                  managed: true
+                  name: string
+                  networks:
+                    dns:
+                    - string
+                    dns_suffix:
+                    - string
+                    gateway: string
+                    subnet: string
+                    vlan_id: 0
+                  ntp_servers:
+                  - string
+                  oob_ip_config:
+                    dhcp:
+                      dns:
+                      - string
+                      dns_suffix:
+                      - string
+                      enabled: true
+                      gateway: string
+                      ip_end: string
+                      ip_start: string
+                      servers:
+                      - string
+                      type: local
+                    dns:
+                    - string
+                    dns_suffix:
+                    - string
+                    gateway: string
+                    ip: string
+                    netmask: string
+                    network: string
+                    type: string
+                  other_ip_configs:
+                    ip: string
+                    netmask: string
+                    type: static
+                  port_config:
+                    aggregated: true
+                    description: string
+                    dynamic_usage: true
+                    usage: string
+                  port_forward:
+                    ? ''
+                    : null
+                  port_usages:
+                    all_networks: true
+                    "bypass_auth_when_server_down\t": true
+                    description: string
+                    disable_autoneg: true
+                    disabled: true
+                    duplex: half
+                    enable_mac_auth: true
+                    guest_network: string
+                    mac_limit: 0
+                    mode: access
+                    mtu: 0
+                    networks:
+                    - string
+                    poe_disabled: true
+                    port_auth: string
+                    port_network: string
+                    speed: string
+                    storm_control:
+                      no_broadcast: true
+                      no_multicast: true
+                      no_registered_multicast: true
+                      "no_unknown_unicast\t": true
+                      percentage: 0
+                    stp_edge: true
+                    voip_network: string
+                  radius_config:
+                    acct_interim_interval: 0
+                    acct_servers:
+                    - host: string
+                      port: 0
+                      secret: string
+                    auth_servers:
+                    - host: string
+                      port: 0
+                      secret: string
+                    auth_servers_retries: 0
+                    auth_servers_timeout: 0
+                  vars: {}
+                  wan2_ip_config:
+                    dhcp:
+                      dns:
+                      - string
+                      dns_suffix:
+                      - string
+                      enabled: true
+                      gateway: string
+                      ip_end: string
+                      ip_start: string
+                      servers:
+                      - string
+                      type: local
+                    dns:
+                    - string
+                    dns_suffix:
+                    - string
+                    gateway: string
+                    ip: string
+                    netmask: string
+                    network: string
+                    type: string
               switch:
                 value:
                   additional_config_cmds:

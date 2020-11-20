@@ -1,67 +1,102 @@
-description: ''
+description: device gateway response
 type: object
 x-examples:
-  example-1:
+  device-gateway-response:
     id: string
     org_id: string
     site_id: string
     created_time: 0
     modified_time: 0
     name: corp-a135
-    role: access
-    notes: slightly off center
+    networks:
+      default:
+        vlan_id: 1
+        zone: trust
+      wan:
+        zone: untrust
+      corp:
+        vlan_id: 60
+        zone: trust
+        subnet: 192.168.70.0/24
+      it_mgmt:
+        subnet: 192.168.70.0/24
+        zone: trust
+    port_usages:
+      lan:
+        mode: access
+        port_network: default
+      wan:
+        mode: inet
+        port_network: wan
+      internal:
+        mode: inet
+    port_config:
+      ge-0/0/0:
+        usage: wan
+        ip_config: {}
+      ge-0/0/1-6:
+        usage: lan
+      ge-0/0/7:
+        usage: wan
+        ip_config: {}
+      'ge-0/0/0,ge-7/0/0':
+        usage: wan
+        zone: untrust
+        redundancy: true
+        ip_config: {}
     ip_config:
       type: static
-      ip: 10.2.1.1
+      ip: 192.168.1.1
       netmask: 255.255.255.0
-      gateway: 10.2.1.254
-      dns:
-        - 8.8.8.8
-        - 4.4.4.4
-      dns_suffix:
-        - .mist.local
-        - .mist.com
-      network: default
-    oob_ip_config: {}
+      dhcp:
+        enabled: true
+        type: local
+        ip_start: 192.167.1.100
+        ip_end: 192.167.1.200
+        gateway: 192.168.1.1
+        dns:
+          - 8.8.8.8
+          - 4.4.4.4
+        dns_suffix:
+          - .mist.local
+          - .mist.com
     other_ip_configs:
-      guest:
+      corp:
         type: static
         ip: 10.3.3.1
         netmask: 255.255.255.0
+    extra_routes:
+      - dest: 0.0.0.0/0
+        via: 10.2.1.1
+    port_forward:
+      remote-ssh:
+        from_zone: untrust
+        to_zone: trust
+        protocol: tcp
+        ip_port: 10.2.5.3
+        ip_range: 10.2.5.1/32-10.2.5.20/32
+    oob_ip_config:
+      type: static
+      ip: 192.168.50.3
+      netmask: 255.255.255.0
     ntp_servers:
       - pool.ntp.org
       - time.google.com
-    port_config:
-      ge-0/0/0:
-        usage: uplink
-        aggregated: true
-        description: to dist-sw-01
-      ge-0/0/1:
-        usage: default
-        dynamic_usage: dynamic
-      'ge-0/0/8-16,ge-1/0/0-47':
-        usage: ap
-      '*':
-        usage: default
-    radius_config:
-      auth_servers_timeout: 5
-      auth_servers_retries: 3
-      auth_servers:
-        - host: 1.2.3.4
-          port: 1812
-          secret: testing123
-        - host: radius.internal
-          port: 1812
-          secret: testing123
-      acct_servers:
-        - host: 1.2.3.4
-          port: 1812
-          secret: testing123
-      acct_interim_interval: 0
-    port_usages: {}
-    networks: {}
+    zones:
+      trust:
+        to_host:
+          protocols:
+            - all
+          system_services:
+            - all
+        to_self:
+          allow_all: true
+        to:
+          untrust:
+            nat: true
+            web_filtering: true
+    radius_config: {}
     managed: false
-    disable_auto_config: false
     additional_config_cmds:
       - set snmp community public
     vars:
@@ -102,8 +137,7 @@ properties:
     items:
       type: string
   port_config:
-    anyOf:
-      - $ref: ../junos_objects/junos.port_config.v1.yaml
+    $ref: ../junos_objects/junos.gateway_port_config.v1.yaml
   radius_config:
     $ref: ../junos_objects/junos.radius_config.v1.yaml
   port_usages:
@@ -125,7 +159,18 @@ properties:
     type: string
     minLength: 1
   port_forward:
-    type: object
-    properties:
-      '':
-        $ref: ../junos_objects/junos.port_forward.v1.yaml
+    anyOf:
+      - $ref: ../junos_objects/junos.port_forward.v1.yaml
+  extra_routes:
+    type: array
+    items:
+      type: object
+      properties:
+        dest:
+          type: string
+          description: ''
+        via:
+          type: string
+  zones:
+    anyOf:
+      - $ref: ../junos_objects/junos.gateway_zone.v1.yaml
