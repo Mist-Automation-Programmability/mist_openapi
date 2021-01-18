@@ -926,7 +926,7 @@ components:
       description: ''
       properties:
         dns:
-          description: 'required if type==static
+          description: 'if type==static
 
             '
           items:
@@ -1123,7 +1123,7 @@ components:
           disabled: true
           power: 0
     ap.switch:
-      description: ''
+      description: for people who want to fully control the vlans (advanced)
       properties:
         enabled:
           description: 'default is false
@@ -1238,6 +1238,7 @@ components:
                 type: number
               type: array
           type: object
+      title: AP Switch Config
       type: object
     ap.usb:
       description: ''
@@ -1765,7 +1766,7 @@ components:
             description: pcap format, pcap / stream, default is pcap
             enum:
             - pcap
-            - string
+            - stream
             type: string
           max_pkt_len:
             default: 128
@@ -2158,6 +2159,14 @@ components:
 
             '
           type: boolean
+        port_config:
+          properties:
+            '{port_names}':
+              properties:
+                usage:
+                  type: string
+              type: object
+          type: object
         pwr_config:
           description: 'power related configs
 
@@ -2390,15 +2399,14 @@ components:
           minLength: 1
           type: string
         extra_routes:
-          items:
-            properties:
-              dest:
-                description: ''
-                type: string
-              via:
-                type: string
-            type: object
-          type: array
+          properties:
+            '{dest}':
+              properties:
+                via:
+                  description: next-hop
+                  type: string
+              type: object
+          type: object
         image1_url:
           minLength: 1
           type: string
@@ -2536,7 +2544,11 @@ components:
               to_self:
                 allow_all: true
     device_switch:
-      description: Switch Object
+      description: You can configure `port_usages` and `networks` settings at the
+        device level, but most of the time it's better use the Site Setting to achieve
+        better consistency and be able to re-use the same settings across switches
+        entries defined here will "replace" those defined in Site Setting/Network
+        Template
       properties:
         additional_config_cmds:
           items:
@@ -2553,16 +2565,15 @@ components:
             '
           type: boolean
         extra_routes:
-          items:
-            properties:
-              dest:
-                description: CIDR or name from "networks"
-                type: string
-              via:
-                description: ''
-                type: string
-            type: object
-          type: array
+          properties:
+            '{dest}':
+              description: CIDR or name from "networks"
+              properties:
+                via:
+                  description: next-hop IP Address
+                  type: string
+              type: object
+          type: object
         image1_url:
           minLength: 1
           type: string
@@ -2590,20 +2601,26 @@ components:
           type: array
         oob_ip_config:
           $ref: '#/components/schemas/junos.ip_config'
+        ospf_config:
+          $ref: '#/components/schemas/junos.ospf_config'
         other_ip_configs:
-          anyOf:
-          - $ref: '#/components/schemas/junos.other_ip_configs'
           description: optional, if it's required to have switch's L3 presense on
             a network/vlan
+          properties:
+            '{network_name}':
+              $ref: '#/components/schemas/junos.other_ip_configs'
+          type: object
         port_config:
-          anyOf:
-          - $ref: '#/components/schemas/junos.port_config'
+          properties:
+            '{port_name_or_range}':
+              $ref: '#/components/schemas/junos.port_config'
+          type: object
         port_usages:
           properties:
-            ? ''
-            : $ref: '#/components/schemas/junos.port_usages'
-            dybamic:
+            dynamic:
               $ref: '#/components/schemas/junos.port_usages.dynamic'
+            '{profile_name}':
+              $ref: '#/components/schemas/junos.port_usages'
           type: object
         radius_config:
           $ref: '#/components/schemas/junos.radius_config'
@@ -2613,12 +2630,18 @@ components:
             '
           minLength: 1
           type: string
+        router_id:
+          description: router-id used for OSPF/ BGP, required if ospf_config.enabled=true
+          type: string
         vars:
           description: 'a dictionary of name->value, the vars can then be used in
             Wlans. This can overwrite those from Site Vars
 
             '
           type: object
+        vrrp_config:
+          $ref: '#/components/schemas/junos.vrrp_config'
+      title: Switch Configuration
       type: object
       x-examples:
         device-switch-settings:
@@ -2711,6 +2734,12 @@ components:
                   items:
                     type: string
                   type: array
+                vc_role:
+                  enum:
+                  - master
+                  - backup
+                  - linecard
+                  type: string
               required:
               - mac
               - vc_ports
@@ -2736,22 +2765,27 @@ components:
             member: 0
             vc_ports:
             - xe-0/1/1
+            vc_role: linecard
           - mac: 8396cd00777c
             vc_ports:
             - xe-0/1/0
+            vc_role: linecard
           op: add
         create:
           members:
           - mac: aff827549235
             vc_ports:
             - xe-0/1/0
+            vc_role: master
           - mac: 8396cd006c8c
             vc_ports:
             - xe-0/1/0
             - xe-0/1/1
+            vc_role: backup
           - mac: 8396cd00888c
             vc_ports:
             - xe-0/1/0
+            vc_role: linecard
         remove_member:
           members:
           - member: 2
@@ -3155,6 +3189,18 @@ components:
           type: string
       title: junos.dhcp
       type: object
+    junos.evpn_tenant:
+      properties:
+        networks:
+          items:
+            type: string
+          type: array
+      title: site.evpn_tenants
+      type: object
+      x-examples:
+        example-1:
+          networks:
+          - guest
     junos.gateway_port_config:
       properties:
         aggregated:
@@ -3186,6 +3232,11 @@ components:
           usage: wan
     junos.gateway_zone:
       properties:
+        screen:
+          properties:
+            enabled:
+              type: boolean
+          type: object
         to:
           anyOf:
           - properties:
@@ -3255,12 +3306,17 @@ components:
           minLength: 1
           type: string
         netmask:
+          description: used only if `subnet` is not specified in `networks`
           minLength: 1
           type: string
         network:
           minLength: 1
           type: string
         type:
+          default: dynamic
+          enum:
+          - static
+          - dynamic
           minLength: 1
           type: string
       required:
@@ -3291,6 +3347,8 @@ components:
         gateway:
           minLength: 1
           type: string
+        ospf_interface_type:
+          type: string
         subnet:
           minLength: 1
           type: string
@@ -3302,9 +3360,119 @@ components:
       required:
       - vlan_id
       type: object
+      x-examples:
+        example-1:
+          corp:
+            subnet: 192.168.70.0/24
+            vlan_id: 60
+            zone: trust
+          dedicated:
+            ospf_interface_type: p2p
+            subnet: 10.18.14.72/30
+          default:
+            vlan_id: 1
+            zone: trust
+          it_mgmt:
+            subnet: 192.168.70.0/24
+            zone: trust
+          wan:
+            zone: untrust
+    junos.ospf_areas:
+      description: ''
+      properties:
+        networks:
+          description: networks to participate in an OSPF area, key is the network
+            name
+          properties:
+            '{network_name}':
+              properties:
+                auth_keys:
+                  description: if auth_type==md5
+                  properties:
+                    '{key}':
+                      minLength: 1
+                      type: string
+                  type: object
+                auth_password:
+                  description: if auth_type==password
+                  minLength: 1
+                  type: string
+                auth_type:
+                  default: none
+                  description: auth type, none (default) / md5 / password
+                  enum:
+                  - none
+                  - md5
+                  - password
+                  minLength: 1
+                  type: string
+                interface_type:
+                  default: nbma
+                  description: interface type, nbma (non-broadcast multi-access) /
+                    p2p / p2mp, default is nbma
+                  enum:
+                  - nbma
+                  - p2p
+                  - p2mp
+                  minLength: 1
+                  type: string
+                passive:
+                  description: whether to send OSPF-Hello, default is false
+                  type: boolean
+              type: object
+          type: object
+        type:
+          default: default
+          description: OSPF type, default (default) / stub / nssa
+          enum:
+          - default
+          - stub
+          - nssa
+          minLength: 1
+          type: string
+      type: object
+      x-examples:
+        example-1:
+          networks:
+            '{network_name}':
+              auth_keys:
+                '{key}': string
+              auth_password: string
+              auth_type: none
+              interface_type: nbma
+              passive: true
+          type: default
+    junos.ospf_config:
+      description: ''
+      properties:
+        areas:
+          description: OSPF areas to run on this device and the corresponding per-area-specific
+            configs
+          properties:
+            '{area_id}':
+              properties:
+                no_summary:
+                  description: for a stub/nssa area, where to avoid forwarding type-3
+                    LSA to this area
+                  type: boolean
+              type: object
+          type: object
+        enabled:
+          description: whether to rung OSPF on this device
+          type: boolean
+      title: OSPF config
+      type: object
+      x-examples:
+        example-1:
+          areas:
+            '0':
+              no_summary: false
+          enabled: true
     junos.other_ip_configs:
       description: optional, if it's required to have switch's L3 presense on a network/vlan
       properties:
+        dhcp:
+          $ref: '#/components/schemas/junos.dhcp'
         ip:
           description: 'required if type==static
 
@@ -3331,6 +3499,12 @@ components:
           type: static
     junos.port_config:
       properties:
+        ae_disable_lacp:
+          description: To disable LACP support for the AE interface
+          type: boolean
+        ae_idx:
+          description: Users could force to use the designated AE name
+          type: number
         aggregated:
           description: default is false
           type: boolean
@@ -3338,6 +3512,8 @@ components:
           type: string
         dynamic_usage:
           description: Enable dynamic usage for this port, default is false
+          type: boolean
+        esilag:
           type: boolean
         usage:
           description: port usage name
@@ -3348,6 +3524,8 @@ components:
       type: object
       x-examples:
         example-1:
+          ae_disable_lacp: false
+          ae_idx: 0
           aggregated: true
           description: to dist-sw-01
           usage: uplink
@@ -3431,10 +3609,34 @@ components:
           - full
           - auto
           type: string
+        dynamic_vlan:
+          properties:
+            default_network:
+              description: default (unmatched) comes from `port_network` above
+              type:
+              - number
+              - 'null'
+            enabled:
+              type: boolean
+            networks:
+              properties:
+                '{network_name}':
+                  type:
+                  - number
+                  - 'null'
+              type: object
+            type:
+              default: standard
+              enum:
+              - standard
+              type: string
+          type: object
         enable_mac_auth:
           description: 'if port_auth=dot1x, whether to enable MAC Auth
 
             '
+          type: boolean
+        enable_qos:
           type: boolean
         guest_network:
           description: 'if port_auth=dot1x, which network to put the device into if
@@ -3455,6 +3657,7 @@ components:
           enum:
           - access
           - trunk
+          - inet
           minLength: 1
           type: string
         mtu:
@@ -3681,6 +3884,63 @@ components:
           type: number
       title: switch_storm_control
       type: object
+    junos.vrrp_config:
+      description: ''
+      properties:
+        enabled:
+          type: boolean
+        groups:
+          properties:
+            '{vrrp_group}':
+              properties:
+                priority:
+                  type: number
+              type: object
+          type: object
+      type: object
+      x-examples:
+        example-1:
+          enabled: true
+          groups:
+            '0':
+              priority: 200
+    junos.vrrp_group:
+      description: ''
+      properties:
+        auth_key:
+          description: if auth_type==md5
+          minLength: 1
+          type: string
+        auth_password:
+          description: if auth_type==password
+          minLength: 1
+          type: string
+        auth_type:
+          default: none
+          enum:
+          - none
+          - md5
+          - password
+          minLength: 1
+          type: string
+        networks:
+          properties:
+            '{network_name}':
+              properties:
+                ip:
+                  minLength: 1
+                  type: string
+              type: object
+          type: object
+      type: object
+      x-examples:
+        example-1:
+          auth_key: string
+          auth_password: string
+          auth_type: none
+          networks:
+            '{network_name}':
+              ip: string
     map:
       description: ''
       properties:
@@ -4590,6 +4850,15 @@ components:
               minLength: 1
               type: string
           type: object
+        device_updown_threshold:
+          default: 0
+          description: enable threshold-based device down delivery via 1) device-updowns
+            webhooks topic, 2) Mist Alert Framework; e.g. send AP/SW/GW down event
+            only if AP/SW/GW Up is not seen within the threshold in minutes; 0 - 30,
+            default is 0 (trigger immediate)
+          maximum: 30
+          minimum: 0
+          type: integer
         disable_pcap:
           description: 'whether to disallow Mist to analyze pcap files (this is required
             for marvis pcap), default is false
@@ -6872,6 +7141,16 @@ components:
     response.device_switch.vc:
       description: ''
       properties:
+        extra_routes:
+          properties:
+            '{dest}':
+              description: CIDR or name from "networks"
+              properties:
+                via:
+                  description: next-hop IP Address
+                  type: string
+              type: object
+          type: object
         id:
           minLength: 1
           type: string
@@ -6899,6 +7178,7 @@ components:
                   - name
                   - airflow
                   - status
+                  type: object
                 minItems: 1
                 type: array
                 uniqueItems: true
@@ -6927,6 +7207,7 @@ components:
                   required:
                   - name
                   - status
+                  type: object
                 minItems: 1
                 type: array
                 uniqueItems: true
@@ -6948,6 +7229,7 @@ components:
                   - name
                   - status
                   - celsius
+                  type: object
                 minItems: 1
                 type: array
                 uniqueItems: true
@@ -6966,6 +7248,7 @@ components:
                   - port_id
                   - neighbor_module_idx
                   - neighbor_port_id
+                  type: object
                 minItems: 1
                 type: array
                 uniqueItems: true
@@ -6981,6 +7264,7 @@ components:
             - model
             - serial
             - vc_state
+            type: object
           minItems: 1
           type: array
           uniqueItems: true
@@ -6989,6 +7273,11 @@ components:
           type: string
         org_id:
           minLength: 1
+          type: string
+        ospf_config:
+          $ref: '#/components/schemas/junos.ospf_config'
+        router_id:
+          description: router-id used for OSPF/ BGP, required if ospf_config.enabled=true
           type: string
         serial:
           minLength: 1
@@ -7005,6 +7294,8 @@ components:
         vc_mac:
           minLength: 1
           type: string
+        vrrp_config:
+          $ref: '#/components/schemas/junos.vrrp_config'
       required:
       - id
       - site_id
@@ -8150,6 +8441,15 @@ components:
               minLength: 1
               type: string
           type: object
+        device_updown_threshold:
+          default: 0
+          description: enable threshold-based device down delivery via 1) device-updowns
+            webhooks topic, 2) Mist Alert Framework; e.g. send AP/SW/GW down event
+            only if AP/SW/GW Up is not seen within the threshold in minutes; 0 - 30,
+            default is 0 (trigger immediate)
+          maximum: 30
+          minimum: 0
+          type: integer
         disable_pcap:
           description: 'whether to disallow Mist to analyze pcap files (this is required
             for marvis pcap), default is false
@@ -10185,6 +10485,11 @@ components:
           type: boolean
         engagement:
           $ref: '#/components/schemas/engagement'
+        evpn_tenants:
+          properties:
+            '{evpn_tenant}':
+              $ref: '#/components/schemas/junos.evpn_tenant'
+          type: object
         flags:
           description: 'name/val pair objects for location engine to use
 
@@ -10221,6 +10526,11 @@ components:
         org_id:
           minLength: 1
           type: string
+        ospf_areas:
+          properties:
+            '{ospf_area}':
+              $ref: '#/components/schemas/junos.ospf_areas'
+          type: object
         other_ip_configs:
           $ref: '#/components/schemas/junos.other_ip_configs'
         persist_config_on_device:
@@ -10284,6 +10594,8 @@ components:
               description: asset tracking related
               type: boolean
           type: object
+        screen:
+          type: object
         site_id:
           minLength: 1
           type: string
@@ -10343,12 +10655,24 @@ components:
                 SUB-VNA license)
               type: boolean
           type: object
+        vrrp_groups:
+          properties:
+            '{vrrp_group}':
+              $ref: '#/components/schemas/junos.vrrp_group'
+          type: object
+        web_filtering:
+          type: object
         wids:
           $ref: '#/components/schemas/wids'
         wifi:
           $ref: '#/components/schemas/site_wifi'
         zone_occupancy_alert:
           $ref: '#/components/schemas/zone_occupancy_alert'
+        zones:
+          properties:
+            '{zone}':
+              $ref: '#/components/schemas/junos.gateway_zone'
+          type: object
       required:
       - id
       - for_site
@@ -13187,9 +13511,15 @@ components:
       description: ''
       properties:
         app_usage:
+          description: consumes uplink bandwidth, requires WA license
           type: boolean
-      required:
-      - app_usage
+        config_revert_timer:
+          default: 10
+          description: he rollback timer for commit confirmed. Default is 10, valid
+            range should be 1-30
+          maximum: 30
+          minimum: 1
+          type: number
       type: object
       x-examples:
         example-1:
@@ -13282,6 +13612,11 @@ components:
           type: boolean
         engagement:
           $ref: '#/components/schemas/engagement'
+        evpn_tenants:
+          properties:
+            '{evpn_tenant}':
+              $ref: '#/components/schemas/junos.evpn_tenant'
+          type: object
         flags:
           description: 'name/val pair objects for location engine to use
 
@@ -13308,6 +13643,11 @@ components:
           $ref: '#/components/schemas/occupancy_analytics'
         oob_ip_config:
           $ref: '#/components/schemas/junos.ip_config'
+        ospf_areas:
+          properties:
+            '{ospf_area}':
+              $ref: '#/components/schemas/junos.ospf_areas'
+          type: object
         other_ip_configs:
           $ref: '#/components/schemas/junos.other_ip_configs'
         persist_config_on_device:
@@ -13317,9 +13657,9 @@ components:
           type: boolean
         port_usages:
           properties:
-            ? ''
-            : $ref: '#/components/schemas/junos.port_usages'
             dynamic:
+              $ref: '#/components/schemas/junos.port_usages'
+            '{profile_name}':
               $ref: '#/components/schemas/junos.port_usages'
           type: object
         proxy:
@@ -13376,6 +13716,8 @@ components:
               description: asset tracking related
               type: boolean
           type: object
+        screen:
+          type: object
         skyatp:
           properties:
             enabled:
@@ -13404,16 +13746,7 @@ components:
         switch_matching:
           $ref: '#/components/schemas/template_switch.matching'
         switch_mgmt:
-          properties:
-            config_revert_timer:
-              description: the rollback timer for commit confirmed. Default is 10,
-                valid range should be 1-30.
-              type: integer
-            root_password:
-              description: switches root password
-              minLength: 1
-              type: string
-          type: object
+          $ref: '#/components/schemas/site_switch'
         track_anonymous_devices:
           description: "default is false; whether to track anonymous BLE assets (requires\
             \ \u2018track_asset\u2019 enabled)\n"
@@ -13433,12 +13766,24 @@ components:
                 SUB-VNA license)
               type: boolean
           type: object
+        vrrp_groups:
+          properties:
+            '{vrrp_group}':
+              $ref: '#/components/schemas/junos.vrrp_group'
+          type: object
+        web_filtering:
+          type: object
         wids:
           $ref: '#/components/schemas/wids'
         wifi:
           $ref: '#/components/schemas/site_wifi'
         zone_occupancy_alert:
           $ref: '#/components/schemas/zone_occupancy_alert'
+        zones:
+          properties:
+            '{zone}':
+              $ref: '#/components/schemas/junos.gateway_zone'
+          type: object
       type: object
       x-examples:
         example-1:
@@ -13792,13 +14137,15 @@ components:
       description: ''
       properties:
         config_revert_timer:
+          default: 10
+          description: the rollback timer for commit confirmed. Default is 10, valid
+            range should be 1-30.
+          maximum: 30
+          minimum: 1
           type: number
         root_password:
           minLength: 1
           type: string
-      required:
-      - root_password
-      - config_revert_timer
       type: object
     site_wifi:
       description: ''
@@ -14412,293 +14759,274 @@ components:
           x: 53.5
           y: 173.1
     stats.device_ap:
-      description: ''
-      items:
-        properties:
-          ble_config:
-            properties:
-              beacon_rate:
-                type: number
-              beacon_rate_model:
-                minLength: 1
+      description: device mac
+      properties:
+        ble_config:
+          properties:
+            beacon_rate:
+              type: number
+            beacon_rate_model:
+              minLength: 1
+              type: string
+            beam_disabled:
+              items:
+                type: integer
+              type: array
+            power:
+              type: number
+            power_mode:
+              minLength: 1
+              type: string
+          type: object
+        ble_stat:
+          properties:
+            beacon_rate:
+              type: number
+            eddystone_uid_enabled:
+              type: boolean
+            eddystone_uid_freq_msec:
+              type: number
+            eddystone_uid_instance:
+              minLength: 1
+              type: string
+            eddystone_uid_namespace:
+              minLength: 1
+              type: string
+            eddystone_url_enabled:
+              type: boolean
+            eddystone_url_freq_msec:
+              type: number
+            eddystone_url_url:
+              minLength: 1
+              type: string
+            ibeacon_enabled:
+              type: boolean
+            ibeacon_major:
+              type: number
+            ibeacon_minor:
+              type: number
+            ibeacon_uuid:
+              minLength: 1
+              type: string
+            major:
+              type: number
+            minors:
+              items:
                 type: string
-              beam_disabled:
-                items:
-                  type: integer
-                type: array
-              power:
-                type: number
-              power_mode:
-                minLength: 1
+              type: array
+            power:
+              type: number
+            rx_bytes:
+              type: number
+            rx_pkts:
+              type: number
+            tx_bytes:
+              type: number
+            tx_pkts:
+              type: number
+            tx_resets:
+              type: number
+            uuid:
+              minLength: 1
+              type: string
+          type: object
+        cert_expiry:
+          type: number
+        ext_ip:
+          minLength: 1
+          type: string
+        fwupdate:
+          properties:
+            progress:
+              type: number
+            status:
+              minLength: 1
+              type: string
+            status_id:
+              type: number
+            timestamp:
+              type: number
+          type: object
+        iot_stat:
+          properties:
+            DI2:
+              properties:
+                value:
+                  type: number
+              type: object
+          type: object
+        ip:
+          minLength: 1
+          type: string
+        ip_config:
+          properties:
+            dns:
+              items:
                 type: string
-            type: object
-          ble_stat:
-            properties:
-              beacon_rate:
-                type: number
-              eddystone_uid_enabled:
-                type: boolean
-              eddystone_uid_freq_msec:
-                type: number
-              eddystone_uid_instance:
-                minLength: 1
+              type: array
+            dns_suffix:
+              items:
                 type: string
-              eddystone_uid_namespace:
-                minLength: 1
+              type: array
+            gateway:
+              minLength: 1
+              type: string
+            ip:
+              minLength: 1
+              type: string
+            netmask:
+              minLength: 1
+              type: string
+            type:
+              minLength: 1
+              type: string
+          type: object
+        ip_stat:
+          properties:
+            dns:
+              items:
                 type: string
-              eddystone_url_enabled:
-                type: boolean
-              eddystone_url_freq_msec:
-                type: number
-              eddystone_url_url:
-                minLength: 1
+              type: array
+            dns_suffix:
+              items:
                 type: string
-              ibeacon_enabled:
-                type: boolean
-              ibeacon_major:
-                type: number
-              ibeacon_minor:
-                type: number
-              ibeacon_uuid:
-                minLength: 1
-                type: string
-              major:
-                type: number
-              minors:
-                items:
+              type: array
+            gateway:
+              type: string
+            gateway6:
+              type: string
+            ip:
+              type: string
+            ip6:
+              type: string
+            ips:
+              properties:
+                '{vlan}':
                   type: string
-                type: array
-              power:
-                type: number
-              rx_bytes:
-                type: number
-              rx_pkts:
-                type: number
-              tx_bytes:
-                type: number
-              tx_pkts:
-                type: number
-              tx_resets:
-                type: number
-              uuid:
-                minLength: 1
-                type: string
-            type: object
-          cert_expiry:
-            type: number
-          ext_ip:
-            minLength: 1
-            type: string
-          fwupdate:
-            properties:
-              progress:
-                type: number
-              status:
-                minLength: 1
-                type: string
-              status_id:
-                type: number
-              timestamp:
-                type: number
-            type: object
-          iot_stat:
-            properties:
-              DI2:
-                properties:
-                  value:
-                    type: number
-                type: object
-            type: object
-          ip:
-            minLength: 1
-            type: string
-          ip_config:
-            properties:
-              dns:
-                items:
-                  type: string
-                type: array
-              dns_suffix:
-                items:
-                  type: string
-                type: array
-              gateway:
-                minLength: 1
-                type: string
-              ip:
-                minLength: 1
-                type: string
-              netmask:
-                minLength: 1
-                type: string
-              type:
-                minLength: 1
-                type: string
-            type: object
-          ip_stat:
-            properties:
-              dns:
-                items:
-                  type: string
-                type: array
-              dns_suffix:
-                items:
-                  type: string
-                type: array
-              gateway:
-                minLength: 1
-                type: string
-              gateway6:
-                minLength: 1
-                type: string
-              ip:
-                minLength: 1
-                type: string
-              ip6:
-                minLength: 1
-                type: string
-              ips:
-                properties:
-                  ? ''
-                  : minLength: 1
-                    type: string
-                type: object
-              netmask:
-                minLength: 1
-                type: string
-              netmask6:
-                minLength: 1
-                type: string
-            type: object
-          l2tp_stat:
-            properties:
-              ? ''
-              : properties:
-                  sessions:
-                    items:
-                      properties:
-                        local_sid:
-                          type: number
-                        remote_id:
-                          minLength: 1
-                          type: string
-                        remote_sid:
-                          type: number
-                        state:
-                          minLength: 1
-                          type: string
-                      type: object
-                    minItems: 1
-                    type: array
-                    uniqueItems: true
-                  state:
-                    minLength: 1
-                    type: string
-                  uptime:
-                    type: number
-                  wxtunnel_id:
-                    minLength: 1
-                    type: string
-                type: object
-            type: object
-          last_seen:
-            type: number
-          last_trouble:
-            properties:
-              code:
-                minLength: 1
-                type: string
-              timestamp:
-                type: number
-            required:
-            - code
-            - timestamp
-            type: object
-          led:
-            properties:
-              brightness:
-                type: number
-              enabled:
-                type: boolean
-            type: object
-          lldp_stat:
-            properties:
-              chassis_id:
-                minLength: 1
-                type: string
-              lldp_med_supported:
-                type: boolean
-              mgmt_addr:
-                minLength: 1
-                type: string
-              port_desc:
-                minLength: 1
-                type: string
-              power_allocated:
-                type: number
-              power_draw:
-                type: number
-              power_request_count:
-                type: number
-              power_requested:
-                type: number
-              system_desc:
-                minLength: 1
-                type: string
-              system_name:
-                minLength: 1
-                type: string
-            type: object
-          locating:
-            type: boolean
-          mac:
-            minLength: 1
-            type: string
-          map_id:
-            minLength: 1
-            type: string
-          mesh_downlinks:
-            anyOf:
-            - properties:
-                band:
+              type: object
+            netmask:
+              type: string
+            netmask6:
+              type: string
+          type: object
+        l2tp_stat:
+          description: l2tp tunnel status (key is the wxtunnel_id)
+          properties:
+            '{l2tp_tunnel}':
+              properties:
+                sessions:
+                  description: list of sessions
+                  items:
+                    properties:
+                      local_sid:
+                        description: remote sessions id (dynamically unless Tunnel
+                          is said to be static)
+                        type: number
+                      remote_id:
+                        description: WxlanTunnel Remote ID (user-configured)
+                        minLength: 1
+                        type: string
+                      remote_sid:
+                        description: remote sessions id (dynamically unless Tunnel
+                          is said to be static)
+                        type: number
+                      state:
+                        minLength: 1
+                        type: string
+                    type: object
+                  minItems: 1
+                  type: array
+                  uniqueItems: true
+                state:
+                  description: idle / wait-ctrl-reply / wait-ctrl-conn / established
+                    / established_with_sessions
                   minLength: 1
                   type: string
-                channel:
+                uptime:
+                  description: uptime
                   type: number
-                idle_time:
-                  type: number
-                last_seen:
-                  type: number
-                proto:
+                wxtunnel_id:
+                  description: WxlanTunnel ID
                   minLength: 1
                   type: string
-                rssi:
-                  type: number
-                rx_bps:
-                  type: number
-                rx_bytes:
-                  type: number
-                rx_packets:
-                  type: number
-                rx_rate:
-                  type: number
-                rx_retries:
-                  type: number
-                snr:
-                  type: number
-                tx_bps:
-                  type: number
-                tx_bytes:
-                  type: number
-                tx_packets:
-                  type: number
-                tx_rate:
-                  type: number
-                tx_retries:
-                  type: number
-            type: object
-          mesh_uplink:
-            properties:
+              type: object
+          type: object
+        last_seen:
+          description: last seen timestamp
+          type: number
+        last_trouble:
+          properties:
+            code:
+              minLength: 1
+              type: string
+            timestamp:
+              type: number
+          required:
+          - code
+          - timestamp
+          type: object
+        led:
+          properties:
+            brightness:
+              type: number
+            enabled:
+              type: boolean
+          type: object
+        lldp_stat:
+          description: LLDP Stat (neighbor information, power negotiations)
+          properties:
+            chassis_id:
+              description: ''
+              minLength: 1
+              type: string
+            lldp_med_supported:
+              description: whether it support LLDP-MED
+              type: boolean
+            mgmt_addr:
+              description: "switch\u2019s management address (if advertised), can\
+                \ be IPv4, IPv6, or MAC"
+              minLength: 1
+              type: string
+            port_desc:
+              description: "port description, e.g. \u201C2/20\u201D, \u201CPort 2\
+                \ on Switch0\u201D"
+              minLength: 1
+              type: string
+            power_allocated:
+              description: in mW, provided/allocated by PSE
+              type: number
+            power_draw:
+              description: in mW, total power needed by PD
+              type: number
+            power_request_count:
+              description: "number of negotiations, if it keeps increasing, we don\u2019\
+                t have a stable power"
+              type: number
+            power_requested:
+              description: in mW, the current power requested by PD
+              type: number
+            system_desc:
+              description: "description provided by switch, e.g. \u201CHP J9729A 2920-48G-POE+\
+                \ Switch\u201D"
+              minLength: 1
+              type: string
+            system_name:
+              description: "name of the switch, e.g. \u201CTC2-OWL-Stack-01\u201D"
+              minLength: 1
+              type: string
+          type: object
+        locating:
+          type: boolean
+        mac:
+          description: ''
+          minLength: 1
+          type: string
+        map_id:
+          minLength: 1
+          type: string
+        mesh_downlinks:
+          anyOf:
+          - properties:
               band:
                 minLength: 1
                 type: string
@@ -14735,202 +15063,241 @@ components:
                 type: number
               tx_retries:
                 type: number
-              uplink_ap_id:
-                minLength: 1
-                type: string
-            type: object
-          model:
-            minLength: 1
-            type: string
-          name:
-            minLength: 1
-            type: string
-          num_clients:
-            type: number
-          port_stat:
-            properties:
-              eth0:
-                properties:
-                  full_duplex:
-                    type: boolean
-                  rx_bytes:
-                    type: number
-                  rx_errors:
-                    type: number
-                  rx_pkts:
-                    type: number
-                  speed:
-                    type: number
-                  tx_bytes:
-                    type: number
-                  tx_pkts:
-                    type: number
-                  up:
-                    type: boolean
-                type: object
-              eth1:
-                properties:
-                  up:
-                    type: boolean
-                required:
-                - up
-                type: object
-              module:
-                properties:
-                  up:
-                    type: boolean
-                required:
-                - up
-                type: object
-            type: object
-          power_budget:
-            type: number
-          power_src:
-            minLength: 1
-            type: string
-          radio_config:
-            properties:
-              band_24:
-                properties:
-                  bandwidth:
-                    type: number
-                  channel:
-                    type: number
-                  dynamic_chaining_enabled:
-                    type: boolean
-                  power:
-                    type: number
-                  rx_chain:
-                    type: number
-                  tx_chain:
-                    type: number
-                type: object
-              band_5:
-                properties:
-                  bandwidth:
-                    type: number
-                  channel:
-                    type: number
-                  dynamic_chaining_enabled:
-                    type: boolean
-                  power:
-                    type: number
-                  rx_chain:
-                    type: number
-                  tx_chain:
-                    type: number
-                required:
-                - channel
-                - bandwidth
-                - power
-                - dynamic_chaining_enabled
-                - tx_chain
-                - rx_chain
-                type: object
-              scanning_enabled:
-                type: boolean
-            type: object
-          radio_stat:
-            properties:
-              band_24:
-                properties:
-                  bandwidth:
-                    type: number
-                  channel:
-                    type: number
-                  mac:
-                    minLength: 1
-                    type: string
-                  num_clients:
-                    type: number
-                  power:
-                    type: number
-                  rx_bytes:
-                    type: number
-                  rx_pkts:
-                    type: number
-                  tx_bytes:
-                    type: number
-                  tx_pkts:
-                    type: number
-                type: object
-              band_5:
-                properties:
-                  bandwidth:
-                    type: number
-                  channel:
-                    type: number
-                  mac:
-                    minLength: 1
-                    type: string
-                  num_clients:
-                    type: number
-                  power:
-                    type: number
-                  rx_bytes:
-                    type: number
-                  rx_pkts:
-                    type: number
-                  tx_bytes:
-                    type: number
-                  tx_pkts:
-                    type: number
-                type: object
-            type: object
-          rx_bps:
-            type: number
-          rx_bytes:
-            type: number
-          rx_pkts:
-            type: number
-          serial:
-            minLength: 1
-            type: string
-          status:
-            minLength: 1
-            type: string
-          tx_bps:
-            type: number
-          tx_bytes:
-            type: number
-          tx_pkts:
-            type: number
-          type:
-            minLength: 1
-            type: string
-          uptime:
-            type: number
-          usb_stat:
-            properties:
-              channel:
-                type: number
-              connected:
-                type: boolean
-              last_activity:
-                type: number
-              type:
-                minLength: 1
-                type: string
-              up:
-                type: boolean
-            type: object
-          version:
-            minLength: 1
-            type: string
-          x:
-            type: number
-          y:
-            type: number
-        required:
-        - mac
-        - model
-        type: object
-      minItems: 1
-      type: array
-      uniqueItems: true
+          type: object
+        mesh_uplink:
+          properties:
+            band:
+              minLength: 1
+              type: string
+            channel:
+              type: number
+            idle_time:
+              type: number
+            last_seen:
+              type: number
+            proto:
+              minLength: 1
+              type: string
+            rssi:
+              type: number
+            rx_bps:
+              type: number
+            rx_bytes:
+              type: number
+            rx_packets:
+              type: number
+            rx_rate:
+              type: number
+            rx_retries:
+              type: number
+            snr:
+              type: number
+            tx_bps:
+              type: number
+            tx_bytes:
+              type: number
+            tx_packets:
+              type: number
+            tx_rate:
+              type: number
+            tx_retries:
+              type: number
+            uplink_ap_id:
+              minLength: 1
+              type: string
+          type: object
+        model:
+          description: device model
+          minLength: 1
+          type: string
+        name:
+          minLength: 1
+          type: string
+        num_clients:
+          type: number
+        port_stat:
+          properties:
+            '{port_name}':
+              properties:
+                full_duplex:
+                  type: boolean
+                rx_bytes:
+                  type: number
+                rx_errors:
+                  type: number
+                rx_pkts:
+                  type: number
+                speed:
+                  type: number
+                tx_bytes:
+                  type: number
+                tx_pkts:
+                  type: number
+                up:
+                  type: boolean
+              type: object
+          type: object
+        power_budget:
+          description: in mW, surplus if positie or deficit if negative
+          type: number
+        power_src:
+          description: DC Input / PoE 802.3at / PoE 802.3af / LLDP / ? (unknown)
+          minLength: 1
+          type: string
+        radio_config:
+          properties:
+            band_24:
+              properties:
+                bandwidth:
+                  type: number
+                channel:
+                  type: number
+                dynamic_chaining_enabled:
+                  type: boolean
+                power:
+                  type: number
+                rx_chain:
+                  type: number
+                tx_chain:
+                  type: number
+              type: object
+            band_5:
+              properties:
+                bandwidth:
+                  type: number
+                channel:
+                  type: number
+                dynamic_chaining_enabled:
+                  type: boolean
+                power:
+                  type: number
+                rx_chain:
+                  type: number
+                tx_chain:
+                  type: number
+              required:
+              - channel
+              - bandwidth
+              - power
+              - dynamic_chaining_enabled
+              - tx_chain
+              - rx_chain
+              type: object
+            scanning_enabled:
+              type: boolean
+          type: object
+        radio_stat:
+          description: a map of radio stats, key can be band_24 / band_5
+          properties:
+            band_24:
+              description: radio stat of 2.4G radio
+              properties:
+                bandwidth:
+                  description: current channel bandwidth, 20 / 40 / 80
+                  type: number
+                channel:
+                  description: current channel the radio is running on
+                  type: number
+                mac:
+                  description: radio (base) mac, it can have 16 bssids (e.g. 5c5b350001a0-5c5b350001af)
+                  minLength: 1
+                  type: string
+                num_clients:
+                  description: ''
+                  type: number
+                power:
+                  description: transmit power (in dBm)
+                  type: number
+                rx_bytes:
+                  type: number
+                rx_pkts:
+                  type: number
+                tx_bytes:
+                  type: number
+                tx_pkts:
+                  type: number
+              type: object
+            band_5:
+              description: radio stat of 5G radio
+              properties:
+                bandwidth:
+                  description: current channel bandwidth, 20 / 40 / 80
+                  type: number
+                channel:
+                  description: current channel the radio is running on
+                  type: number
+                mac:
+                  description: radio (base) mac, it can have 16 bssids (e.g. 5c5b350001a0-5c5b350001af)
+                  minLength: 1
+                  type: string
+                num_clients:
+                  type: number
+                power:
+                  description: transmit power (in dBm)
+                  type: number
+                rx_bytes:
+                  type: number
+                rx_pkts:
+                  type: number
+                tx_bytes:
+                  type: number
+                tx_pkts:
+                  type: number
+              type: object
+          type: object
+        rx_bps:
+          type: number
+        rx_bytes:
+          type: number
+        rx_pkts:
+          type: number
+        serial:
+          description: serial
+          minLength: 1
+          type: string
+        status:
+          minLength: 1
+          type: string
+        tx_bps:
+          type: number
+        tx_bytes:
+          type: number
+        tx_pkts:
+          type: number
+        type:
+          description: device type, ap / ble
+          minLength: 1
+          type: string
+        uptime:
+          type: number
+        usb_stat:
+          properties:
+            channel:
+              type: number
+            connected:
+              type: boolean
+            last_activity:
+              type: number
+            type:
+              minLength: 1
+              type: string
+            up:
+              type: boolean
+          type: object
+        version:
+          minLength: 1
+          type: string
+        x:
+          type: number
+        y:
+          type: number
+      required:
+      - mac
+      - model
+      type: object
       x-examples:
         example-1:
-        - ble_config:
+          ble_config:
             beacon_rate: 3
             beacon_rate_model: custom
             beam_disabled:
@@ -15152,7 +15519,303 @@ components:
           version: 1.0.0
           x: 53.5
           y: 173.1
-    stats.device_junos:
+    stats.device_gateway:
+      description: ''
+      properties:
+        cluster_stat:
+          properties:
+            '{node}':
+              properties:
+                status:
+                  type: string
+              type: object
+          type: object
+        cpu2_stat:
+          type: string
+        cpu_stat:
+          properties:
+            idle:
+              type: number
+            interrupt:
+              type: number
+            load_avg:
+              items:
+                type: object
+              type: array
+            system:
+              type: number
+            user:
+              type: number
+          type: object
+        hostname:
+          minLength: 1
+          type: string
+        ip:
+          description: IP address
+          minLength: 1
+          type: string
+        ip_stat:
+          properties:
+            dns:
+              items:
+                type: object
+              type: array
+            dns_suffix:
+              items:
+                type: object
+              type: array
+            gateway:
+              minLength: 1
+              type: string
+            gateway6:
+              minLength: 1
+              type: string
+            ip:
+              minLength: 1
+              type: string
+            ip6:
+              minLength: 1
+              type: string
+            ips:
+              properties:
+                '{vlan}':
+                  minLength: 1
+                  type: string
+              type: object
+            netmask:
+              minLength: 1
+              type: string
+            netmask6:
+              minLength: 1
+              type: string
+          type: object
+        last_seen:
+          description: last seen timestamp
+          type: number
+        mac:
+          description: device mac
+          minLength: 1
+          type: string
+        memory_stat:
+          properties:
+            usage:
+              type: number
+          required:
+          - usage
+          type: object
+        model:
+          description: device model
+          minLength: 1
+          type: string
+        module2_stat:
+          type: string
+        module_stat:
+          items:
+            properties:
+              fans:
+                items:
+                  properties:
+                    airflow:
+                      minLength: 1
+                      type: string
+                    name:
+                      minLength: 1
+                      type: string
+                    status:
+                      minLength: 1
+                      type: string
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+              model:
+                minLength: 1
+                type: string
+              poe:
+                properties:
+                  max_power:
+                    type: number
+                  power_draw:
+                    type: number
+                type: object
+              psus:
+                items:
+                  properties:
+                    name:
+                      minLength: 1
+                      type: string
+                    status:
+                      minLength: 1
+                      type: string
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+              serial:
+                minLength: 1
+                type: string
+              temperatures:
+                items:
+                  properties:
+                    celsius:
+                      type: number
+                    name:
+                      minLength: 1
+                      type: string
+                    status:
+                      minLength: 1
+                      type: string
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+              vc_links:
+                items:
+                  properties:
+                    neighbor_module_idx:
+                      type: number
+                    neighbor_port_id:
+                      minLength: 1
+                      type: string
+                    port_id:
+                      minLength: 1
+                      type: string
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+              vc_role:
+                minLength: 1
+                type: string
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+        name:
+          minLength: 1
+          type: string
+        serial:
+          description: serial
+          minLength: 1
+          type: string
+        spu2_stat:
+          type: string
+        spu_stat:
+          properties:
+            cpu:
+              type: number
+            memory:
+              type: number
+            sessions:
+              properties:
+                current:
+                  type: number
+                max:
+                  type: number
+                pending:
+                  type: number
+                valid:
+                  type: number
+              type: object
+          type: object
+        status:
+          minLength: 1
+          type: string
+        type:
+          minLength: 1
+          type: string
+        uptime:
+          type: number
+        version:
+          minLength: 1
+          type: string
+      required:
+      - mac
+      type: object
+      x-examples:
+        example-1:
+          cluster_stat:
+            node0:
+              status: ''
+            node1:
+              stats: ''
+          cpu2_stat: ''
+          cpu_stat:
+            idle: 28
+            interrupt: 8
+            load_avg:
+            - 0.9700000286102295
+            - 1.0499999523162842
+            - 1.0199999809265137
+            system: 41
+            user: 23
+          hostname: sj1
+          ip: 10.2.11.137
+          ip_stat:
+            dns:
+            - 8.8.8.8
+            - 4.4.4.4
+            dns_suffix:
+            - .mist.local
+            - .mist.com
+            gateway: 10.2.1.1
+            gateway6: 2607:f8b0:4005:808::1
+            ip: 10.2.11.137
+            ip6: 2607:f8b0:4005:808::2004
+            ips:
+              vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
+              vlan193: 10.73.1.31/16
+              vlan3157: 10.72.11.14/24
+            netmask: 255.255.192.0
+            netmask6: /32
+          last_seen: 1553203563
+          mac: dc38e1dbf3cd
+          memory_stat:
+            usage: 35
+          model: SRX320
+          module2_stat: ''
+          module_stat:
+          - fans:
+            - name: Fan 0
+              status: absent
+            - airflow: out
+              name: Fan 1
+              status: ok
+            model: EX4300-48P
+            poe:
+              max_power: 250
+              power_draw: 120.3
+            psus:
+            - name: Power Supply 0
+              status: ok
+            - name: Power Supply 1
+              status: failed
+            serial: PX8716230021
+            temperatures:
+            - celsius: 45
+              name: CPU
+              status: ok
+            vc_links:
+            - neighbor_module_idx: 1
+              neighbor_port_id: vcp-255/1/0
+              port_id: vcp-255/1/0
+            vc_role: master
+          name: sj1
+          serial: TC3714190003
+          spu2_stat: ''
+          spu_stat:
+            cpu: 15
+            memory: 32
+            sessions:
+              current: 41
+              max: 65535
+              pending: 12
+              valid: 15
+          status: connected
+          type: gateway
+          uptime: 13500
+          version: 18.4R1.8
+    stats.device_switch:
       description: ''
       properties:
         cpu_stat:
@@ -15163,37 +15826,28 @@ components:
               type: number
             load_avg:
               items:
-                type: number
+                type: object
               type: array
             system:
               type: number
             user:
               type: number
-          required:
-          - interrupt
-          - idle
-          - user
-          - system
-          - load_avg
           type: object
         hostname:
           minLength: 1
           type: string
         ip:
-          description: 'IP address
-
-            '
           minLength: 1
           type: string
         ip_stat:
           properties:
             dns:
               items:
-                type: string
+                type: object
               type: array
             dns_suffix:
               items:
-                type: string
+                type: object
               type: array
             gateway:
               minLength: 1
@@ -15218,10 +15872,6 @@ components:
                 vlan3157:
                   minLength: 1
                   type: string
-              required:
-              - vlan1
-              - vlan193
-              - vlan3157
               type: object
             netmask:
               minLength: 1
@@ -15229,39 +15879,18 @@ components:
             netmask6:
               minLength: 1
               type: string
-          required:
-          - ip
-          - netmask
-          - gateway
-          - ip6
-          - netmask6
-          - gateway6
-          - dns
-          - dns_suffix
-          - ips
           type: object
         last_seen:
-          description: 'last seen timestamp
-
-            '
           type: number
         mac:
-          description: 'device mac
-
-            '
           minLength: 1
           type: string
         memory_stat:
           properties:
             usage:
               type: number
-          required:
-          - usage
           type: object
         model:
-          description: 'device model
-
-            '
           minLength: 1
           type: string
         module_stat:
@@ -15279,10 +15908,6 @@ components:
                     status:
                       minLength: 1
                       type: string
-                  required:
-                  - name
-                  - airflow
-                  - status
                   type: object
                 minItems: 1
                 type: array
@@ -15296,9 +15921,6 @@ components:
                     type: number
                   power_draw:
                     type: number
-                required:
-                - max_power
-                - power_draw
                 type: object
               psus:
                 items:
@@ -15309,9 +15931,6 @@ components:
                     status:
                       minLength: 1
                       type: string
-                  required:
-                  - name
-                  - status
                   type: object
                 minItems: 1
                 type: array
@@ -15330,10 +15949,6 @@ components:
                     status:
                       minLength: 1
                       type: string
-                  required:
-                  - name
-                  - status
-                  - celsius
                   type: object
                 minItems: 1
                 type: array
@@ -15349,10 +15964,6 @@ components:
                     port_id:
                       minLength: 1
                       type: string
-                  required:
-                  - port_id
-                  - neighbor_module_idx
-                  - neighbor_port_id
                   type: object
                 minItems: 1
                 type: array
@@ -15360,10 +15971,6 @@ components:
               vc_role:
                 minLength: 1
                 type: string
-            required:
-            - vc_role
-            - model
-            - serial
             type: object
           minItems: 1
           type: array
@@ -15372,78 +15979,19 @@ components:
           minLength: 1
           type: string
         serial:
-          description: 'serial
-
-            '
           minLength: 1
           type: string
-        spu_stat:
-          properties:
-            cpu:
-              type: number
-            memory:
-              type: number
-            sessions:
-              properties:
-                current:
-                  type: number
-                max:
-                  type: number
-                pending:
-                  type: number
-                valid:
-                  type: number
-              required:
-              - current
-              - valid
-              - pending
-              - max
-              type: object
-          required:
-          - cpu
-          - memory
-          - sessions
-          type: object
         status:
-          description: 'connected / disconnected / restarting / upgrading
-
-            '
           minLength: 1
           type: string
         type:
-          description: 'device type, switch / gateway
-
-            '
           minLength: 1
           type: string
         uptime:
-          description: 'how long, in seconds, has the device been up (or rebooted)
-
-            '
           type: number
         version:
-          description: 'firmware version
-
-            '
           minLength: 1
           type: string
-      required:
-      - mac
-      - model
-      - type
-      - serial
-      - last_seen
-      - name
-      - hostname
-      - status
-      - version
-      - ip
-      - uptime
-      - ip_stat
-      - cpu_stat
-      - memory_stat
-      - spu_stat
-      - module_stat
       type: object
       x-examples:
         example-1:
@@ -15508,14 +16056,6 @@ components:
             vc_role: master
           name: xg50b
           serial: TC3714190003
-          spu_stat:
-            cpu: 15
-            memory: 32
-            sessions:
-              current: 41
-              max: 65535
-              pending: 12
-              valid: 15
           status: connected
           type: switch
           uptime: 13500
@@ -17551,74 +18091,6 @@ components:
             src_ip: 73.92.124.103
             timestamp: 1549047906.201053
           topic: audits
-    webhook.calea_clients:
-      description: ''
-      properties:
-        events:
-          items:
-            properties:
-              ap_ip:
-                description: "the AP\u2019s IP"
-                minLength: 1
-                type: string
-              ap_ip6:
-                description: "the AP\u2019s IPv6 Address (if applicable)"
-                type: string
-              ap_mac:
-                description: mac address of the AP the client connected to
-                minLength: 1
-                type: string
-              ip:
-                description: "the client\u2019s IP"
-                minLength: 1
-                type: string
-              ip6:
-                description: "the client\u2019s IPv6 Address (if applicable)"
-                type: string
-              mac:
-                description: "the client\u2019s mac"
-                minLength: 1
-                type: string
-              org_id:
-                minLength: 1
-                type: string
-              site_id:
-                minLength: 1
-                type: string
-              timestamp:
-                type: integer
-            required:
-            - mac
-            - ip
-            - org_id
-            - site_id
-            - ap_mac
-            - ap_ip
-            - timestamp
-            type: object
-          minItems: 1
-          type: array
-          uniqueItems: true
-        topic:
-          minLength: 1
-          type: string
-      required:
-      - topic
-      - events
-      type: object
-      x-examples:
-        example-1:
-          events:
-          - ap_ip: 10.3.1.1
-            ap_ip6: null
-            ap_mac: 5c5b35d01338
-            ip: 192.168.1.135
-            ip6: null
-            mac: 70ef0071535f
-            org_id: 6748cfa6-4e12-11e6-9188-0242ac110007
-            site_id: d761985e-49b1-4506-88e9-e0368a05c301
-            timestamp: 1592333828
-          topic: calea-clients
     webhook.client_join:
       description: ''
       properties:
@@ -18516,7 +18988,9 @@ components:
             duration: 60
             threshold: 4
     wlan:
-      description: ''
+      description: '*Note:* portal_template will be forked out of wlan objects soon.
+        To fetch portal_template, please query portal_template_url. To update portal_template,
+        use Wlan Portal Template.'
       properties:
         acct_interim_interval:
           description: 'how frequently should interim accounting be reported, 60-65535.
@@ -19013,6 +19487,7 @@ components:
           type: string
       required:
       - ssid
+      title: WLAN Definition
       type: object
       x-examples:
         example-1:
@@ -19491,7 +19966,7 @@ components:
               scope: same_map
     wlan.cisco_cwa:
       description: 'Cisco CWA (central web authentication) required RADIUS with COA
-        in order to work. See CWA for more details.
+        in order to work. See CWA: https://www.cisco.com/c/en/us/support/docs/security/identity-services-engine/115732-central-web-auth-00.html
 
         '
       properties:
@@ -19515,6 +19990,7 @@ components:
       - enabled
       - allowed_subnets
       - allowed_hostnames
+      title: Cisco CWA
       type: object
     wlan.datarates:
       description: ''
@@ -19789,10 +20265,12 @@ components:
             '
           type: boolean
         sms_provider:
-          description: 'how the sms is routed. default is manual (user has to select
-            carrier).
-
-            '
+          default: manual
+          description: how the sms is routed. choices are `manual` and `twilio`. default
+            is `manual`, where user has to select carrier.
+          enum:
+          - manual
+          - twilio
           minLength: 1
           type: string
         sponsor_email_domains:
@@ -19863,6 +20341,7 @@ components:
             '
           minLength: 1
           type: string
+      title: ''
       type: object
       x-examples:
         example-1:
@@ -20366,8 +20845,18 @@ components:
           minLength: 1
           type: string
         sponsorEmailTemplate:
-          description: "\u201Chtml template to replace/override default sponsor email\
-            \ template\u201D\n"
+          description: "html template to replace/override default sponsor email template\n\
+            \nSponsor Email Template supports following template variables: \n * `approve_url`:\
+            \ Renders URL to approve the request; optionally &minutes=N query param\
+            \ can be appended to change the Authorization period of the guest, where\
+            \ N is a valid integer denoting number of minutes a guest remains authorized\n\
+            \ * `deny_url`: Renders URL to reject the request\n * `guest_email`: Renders\
+            \ Email ID of the guest\n * `guest_name`: Renders Name of the guest\n\
+            \ * `field1`: Renders value of the Custom Field 1\n * `field2`: Renders\
+            \ value of the Custom Field 2\n * `sponsor_link_validity_duration`: Renders\
+            \ validity time of the request (i.e. Approve/Deny URL)\n * `auth_expire_minutes`:\
+            \ Renders Wlan-level configured Guest Authorization Expiration time period\
+            \ (in minutes), If not configured then default (1 day in minutes)\n"
           minLength: 1
           type: string
         sponsorInfoApproved:
@@ -21194,9 +21683,11 @@ components:
     apiToken:
       description: "API Token\nLike many other API providers, it\u2019s also possible\
         \ to generate API Tokens to be used (in HTTP Header) for authentication. An\
-        \ API token ties to a Admin with equal or less privileges. Notes: an API token\
-        \ generated for a specific admin has the same privilege as the user an API\
-        \ token will be automatically removed if not used for > 90 days"
+        \ API token ties to a Admin with equal or less privileges.\n\n*Notes:*\n *\
+        \ an API token generated for a specific admin has the same privilege as the\
+        \ user\n * an API token will be automatically removed if not used for > 90\
+        \ days\n\n SSO admins cannot generate these API tokens. Refer Org level API\
+        \ tokens which can have privileges of a specific Org/Site for more information."
       in: header
       name: Authorization
       type: apiKey
@@ -21209,11 +21700,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> *Version 0.2.6*
+  description: '> *Version 0.2.7*
 
     >
 
-    > Date: Novemeber 20th, 2020
+    > Date: January 18th, 2021
 
     >
 
@@ -21251,7 +21742,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.2.6
+  version: 0.2.7
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -31049,6 +31540,69 @@ paths:
       summary: unassignOrgMxEdgeFromSite
       tags:
       - Orgs MxEdges
+  /api/v1/orgs/{org_id}/mxedges/upgrade:
+    parameters:
+    - in: path
+      name: org_id
+      required: true
+      schema:
+        type: string
+    post:
+      description: Upgrade Mist Edges
+      operationId: upgradeOrgMxEdges
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  channel: stable
+                  mxedge_ids:
+                  - 387804a7-3474-85ce-15a2-f9a9684c9c90
+                  versions:
+                    mxagent: current
+                    tunterm: default
+            schema:
+              description: ''
+              properties:
+                channel:
+                  default: stable
+                  description: upgrade channel to follow, stable (default) / beta
+                    / alpha
+                  enum:
+                  - stable
+                  - beta
+                  - alpha
+                  minLength: 1
+                  type: string
+                mxedge_ids:
+                  description: list of mxedge IDs to upgrade
+                  items:
+                    type: string
+                  type: array
+                versions:
+                  description: version to upgrade for each service, optional, current
+                    (assumed) / latest / default / specific version (e.g. 2.5.100)
+                  properties:
+                    mxagent:
+                      minLength: 1
+                      type: string
+                    tunterm:
+                      minLength: 1
+                      type: string
+                  required:
+                  - mxagent
+                  - tunterm
+                  type: object
+              required:
+              - mxedge_ids
+              type: object
+      responses:
+        '200':
+          description: OK
+      summary: upgradeOrgMxEdges
+      tags:
+      - Orgs MxEdges
   /api/v1/orgs/{org_id}/mxedges/version:
     get:
       description: Get Mist Edge Upgrade Information
@@ -31258,6 +31812,49 @@ paths:
             application/json: {}
           description: Successful response
       summary: restartOrgMxEdge
+      tags:
+      - Orgs MxEdges
+  /api/v1/orgs/{org_id}/mxedges/{mxedge_id}/services/{name}/{action}:
+    parameters:
+    - in: path
+      name: org_id
+      required: true
+      schema:
+        type: string
+    - in: path
+      name: mxedge_id
+      required: true
+      schema:
+        type: string
+    - description: tunterm or radsecproxy or mxagent
+      in: path
+      name: name
+      required: true
+      schema:
+        enum:
+        - tunterm
+        - radsecproxy
+        - mxagent
+        type: string
+    - description: restart or start or stop
+      in: path
+      name: action
+      required: true
+      schema:
+        enum:
+        - restart
+        - start
+        - stop
+        type: string
+    post:
+      description: 'Control Services on a Mist Edge
+
+        '
+      operationId: controlOrgMxEdgeServices
+      responses:
+        '200':
+          description: OK
+      summary: controlOrgMxEdgeServices
       tags:
       - Orgs MxEdges
   /api/v1/orgs/{org_id}/mxedges/{mxedge_id}/unregister:
@@ -32519,7 +33116,7 @@ paths:
                       portal_sso_url: string
                       privacy: true
                       sms_enabled: true
-                      sms_provider: string
+                      sms_provider: manual
                       sponsor_email_domains:
                       - string
                       sponsor_enabled: true
@@ -32768,7 +33365,7 @@ paths:
                         portal_sso_url: string
                         privacy: true
                         sms_enabled: true
-                        sms_provider: string
+                        sms_provider: manual
                         sponsor_email_domains:
                         - string
                         sponsor_enabled: true
@@ -34087,224 +34684,568 @@ paths:
         name: limit
         schema:
           type: integer
+      - description: ap, switch, gateways, all. Default is ap
+        in: query
+        name: type
+        schema:
+          default: ap
+          enum:
+          - ap
+          - switch
+          - gateways
+          - all
+          type: string
+      - description: all, connected, disconnected. Default is all
+        in: query
+        name: status
+        schema:
+          default: all
+          enum:
+          - all
+          - connected
+          - disconnected
+          type: string
       responses:
         '200':
           content:
             application/json:
               examples:
-                example-1:
+                AP:
                   value:
-                  - - ble_config:
-                        beacon_rate: 0
-                        beacon_rate_model: string
-                        beam_disabled:
-                        - 0
-                        power: 0
-                        power_mode: string
-                      ble_stat:
-                        beacon_rate: 0
-                        eddystone_uid_enabled: true
-                        eddystone_uid_freq_msec: 0
-                        eddystone_uid_instance: string
-                        eddystone_uid_namespace: string
-                        eddystone_url_enabled: true
-                        eddystone_url_freq_msec: 0
-                        eddystone_url_url: string
-                        ibeacon_enabled: true
-                        ibeacon_major: 0
-                        ibeacon_minor: 0
-                        ibeacon_uuid: string
-                        major: 0
-                        minors:
-                        - string
-                        power: 0
-                        rx_bytes: 0
-                        rx_pkts: 0
-                        tx_bytes: 0
-                        tx_pkts: 0
-                        tx_resets: 0
-                        uuid: string
-                      cert_expiry: 0
-                      ext_ip: string
-                      fwupdate:
-                        progress: 0
-                        status: string
-                        status_id: 0
-                        timestamp: 0
-                      iot_stat:
-                        DI2:
-                          value: 0
-                      ip: string
-                      ip_config:
-                        dns:
-                        - string
-                        dns_suffix:
-                        - string
-                        gateway: string
-                        ip: string
-                        netmask: string
-                        type: string
-                      ip_stat:
-                        dns:
-                        - string
-                        dns_suffix:
-                        - string
-                        gateway: string
-                        gateway6: string
-                        ip: string
-                        ip6: string
-                        ips:
-                          vlan1: string
-                          vlan193: string
-                          vlan3157: string
-                        netmask: string
-                        netmask6: string
-                      l2tp_stat:
-                        7dae216d-7c98-a51b-e068-dd7d477b7216:
-                          sessions:
-                          - local_sid: 0
-                            remote_id: string
-                            remote_sid: 0
-                            state: string
-                          state: string
-                          uptime: 0
-                          wxtunnel_id: string
-                      last_seen: 0
-                      last_trouble:
-                        code: string
-                        timestamp: 0
-                      led:
-                        brightness: 0
-                        enabled: true
-                      lldp_stat:
-                        chassis_id: string
-                        lldp_med_supported: true
-                        mgmt_addr: string
-                        port_desc: string
-                        power_allocated: 0
-                        power_draw: 0
-                        power_request_count: 0
-                        power_requested: 0
-                        system_desc: string
-                        system_name: string
-                      locating: true
-                      mac: string
-                      map_id: string
-                      mesh_downlinks:
-                        band: string
-                        channel: 0
-                        idle_time: 0
-                        last_seen: 0
-                        proto: string
-                        rssi: 0
-                        rx_bps: 0
-                        rx_bytes: 0
-                        rx_packets: 0
-                        rx_rate: 0
-                        rx_retries: 0
-                        snr: 0
-                        tx_bps: 0
-                        tx_bytes: 0
-                        tx_packets: 0
-                        tx_rate: 0
-                        tx_retries: 0
-                      mesh_uplink:
-                        band: string
-                        channel: 0
-                        idle_time: 0
-                        last_seen: 0
-                        proto: string
-                        rssi: 0
-                        rx_bps: 0
-                        rx_bytes: 0
-                        rx_packets: 0
-                        rx_rate: 0
-                        rx_retries: 0
-                        snr: 0
-                        tx_bps: 0
-                        tx_bytes: 0
-                        tx_packets: 0
-                        tx_rate: 0
-                        tx_retries: 0
-                        uplink_ap_id: string
-                      model: string
-                      name: string
-                      num_clients: 0
-                      port_stat:
-                        eth0:
-                          full_duplex: true
-                          rx_bytes: 0
-                          rx_errors: 0
-                          rx_pkts: 0
-                          speed: 0
-                          tx_bytes: 0
-                          tx_pkts: 0
-                          up: true
-                        eth1:
-                          up: true
-                        module:
-                          up: true
-                      power_budget: 0
-                      power_src: string
-                      radio_config:
-                        band_24:
-                          bandwidth: 0
-                          channel: 0
-                          dynamic_chaining_enabled: true
-                          power: 0
-                          rx_chain: 0
-                          tx_chain: 0
-                        band_5:
-                          bandwidth: 0
-                          channel: 0
-                          dynamic_chaining_enabled: true
-                          power: 0
-                          rx_chain: 0
-                          tx_chain: 0
-                        scanning_enabled: true
-                      radio_stat:
-                        band_24:
-                          bandwidth: 0
-                          channel: 0
-                          mac: string
-                          num_clients: 0
-                          power: 0
-                          rx_bytes: 0
-                          rx_pkts: 0
-                          tx_bytes: 0
-                          tx_pkts: 0
-                        band_5:
-                          bandwidth: 0
-                          channel: 0
-                          mac: string
-                          num_clients: 0
-                          power: 0
-                          rx_bytes: 0
-                          rx_pkts: 0
-                          tx_bytes: 0
-                          tx_pkts: 0
-                      rx_bps: 0
-                      rx_bytes: 0
-                      rx_pkts: 0
-                      serial: string
-                      status: string
-                      tx_bps: 0
-                      tx_bytes: 0
-                      tx_pkts: 0
-                      type: string
-                      uptime: 0
-                      usb_stat:
-                        channel: 0
-                        connected: true
-                        last_activity: 0
-                        type: string
+                  - ble_config:
+                      beacon_rate: 3
+                      beacon_rate_model: custom
+                      beam_disabled:
+                      - 1
+                      - 3
+                      - 6
+                      power: 10
+                      power_mode: custom
+                    ble_stat:
+                      beacon_rate: 3
+                      eddystone_uid_enabled: false
+                      eddystone_uid_freq_msec: 200
+                      eddystone_uid_instance: 5c5b35000001
+                      eddystone_uid_namespace: 2818e3868dec25629ede
+                      eddystone_url_enabled: true
+                      eddystone_url_freq_msec: 100
+                      eddystone_url_url: https://www.abc.com
+                      ibeacon_enabled: true
+                      ibeacon_major: 13
+                      ibeacon_minor: 138
+                      ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
+                      major: 12345
+                      minors:
+                      - 201
+                      - 202
+                      - 203
+                      - 204
+                      - 205
+                      - 206
+                      - 207
+                      - 208
+                      power: 10
+                      rx_bytes: 135
+                      rx_pkts: 135
+                      tx_bytes: 5231513353
+                      tx_pkts: 135135135
+                      tx_resets: 0
+                      uuid: ada72f8f-1643-e5c6-94db-f2a5636f1a64
+                    cert_expiry: 1534534392
+                    ext_ip: 73.92.124.103
+                    fwupdate:
+                      progress: 10
+                      status: inprogress
+                      status_id: 5
+                      timestamp: 1428949501
+                    iot_stat:
+                      DI2:
+                        value: 0
+                    ip: 10.2.9.159
+                    ip_config:
+                      dns:
+                      - 8.8.8.8
+                      - 4.4.4.4
+                      dns_suffix:
+                      - .mist.local
+                      - .mist.com
+                      gateway: 10.2.1.254
+                      ip: 10.2.1.1
+                      netmask: 255.255.255.0
+                      type: static
+                    ip_stat:
+                      dns:
+                      - 8.8.8.8
+                      - 4.4.4.4
+                      dns_suffix:
+                      - .mist.local
+                      - .mist.com
+                      gateway: 10.2.1.254
+                      gateway6: 2607:f8b0:4005:808::1
+                      ip: 10.2.1.1
+                      ip6: 2607:f8b0:4005:808::2004
+                      ips:
+                        vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
+                        vlan193: 10.73.1.31/16
+                        vlan3157: 10.72.11.14/24
+                      netmask: 255.255.255.0
+                      netmask6: /32
+                    l2tp_stat:
+                      7dae216d-7c98-a51b-e068-dd7d477b7216:
+                        sessions:
+                        - local_sid: 31
+                          remote_id: vpn1
+                          remote_sid: 13
+                          state: established
+                        state: established_with_sessions
+                        uptime: 135
+                        wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
+                    last_seen: 1470417522
+                    last_trouble:
+                      code: '03'
+                      timestamp: 1428949501
+                    led:
+                      brightness: 255
+                      enabled: true
+                    lldp_stat:
+                      chassis_id: 63:68:61:73:73:69
+                      lldp_med_supported: false
+                      mgmt_addr: 10.1.5.2
+                      port_desc: 2/26
+                      power_allocated: 15500
+                      power_draw: 15000
+                      power_request_count: 3
+                      power_requested: 25500
+                      system_desc: HP J9729A 2920-48G-POE+ Switch
+                      system_name: TC2-OWL-Stack-01
+                    locating: false
+                    mac: 5c5b35000010
+                    map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
+                    mesh_downlinks:
+                      00000000-0000-0000-1000-5c5b356be59f:
+                        band: '24'
+                        channel: 7
+                        idle_time: 3
+                        last_seen: 1470417522
+                        proto: a
+                        rssi: -65
+                        rx_bps: 12
+                        rx_bytes: 217416
+                        rx_packets: 2337
+                        rx_rate: 65
+                        rx_retries: 5
+                        snr: 31
+                        tx_bps: 6
+                        tx_bytes: 175132
+                        tx_packets: 1566
+                        tx_rate: 65
+                        tx_retries: 500
+                    mesh_uplink:
+                      band: '24'
+                      channel: 7
+                      idle_time: 3
+                      last_seen: 1470417522
+                      proto: a
+                      rssi: -65
+                      rx_bps: 12
+                      rx_bytes: 217416
+                      rx_packets: 2337
+                      rx_rate: 65
+                      rx_retries: 5
+                      snr: 31
+                      tx_bps: 6
+                      tx_bytes: 175132
+                      tx_packets: 1566
+                      tx_rate: 65
+                      tx_retries: 500
+                      uplink_ap_id: 00000000-0000-0000-1000-5c5b35000010
+                    model: AP200
+                    name: conference room
+                    num_clients: 10
+                    port_stat:
+                      eth0:
+                        full_duplex: true
+                        rx_bytes: 2056
+                        rx_errors: 0
+                        rx_pkts: 670
+                        speed: 1000
+                        tx_bytes: 2056
+                        tx_pkts: 670
                         up: true
-                      version: string
-                      x: 0
-                      y: 0
+                      eth1:
+                        up: false
+                      module:
+                        up: false
+                    power_budget: -12000
+                    power_src: PoE 802.3af
+                    radio_config:
+                      band_24:
+                        bandwidth: 20
+                        channel: 0
+                        dynamic_chaining_enabled: false
+                        power: 0
+                        rx_chain: 4
+                        tx_chain: 4
+                      band_5:
+                        bandwidth: 40
+                        channel: 0
+                        dynamic_chaining_enabled: false
+                        power: 0
+                        rx_chain: 4
+                        tx_chain: 1
+                      scanning_enabled: true
+                    radio_stat:
+                      band_24:
+                        bandwidth: 20
+                        channel: 6
+                        mac: 5c5b350004a0
+                        num_clients: 6
+                        power: 19
+                        rx_bytes: 8504737800
+                        rx_pkts: 57731964
+                        tx_bytes: 211166512114
+                        tx_pkts: 812058566
+                      band_5:
+                        bandwidth: 80
+                        channel: 44
+                        mac: 5c5b350004b0
+                        num_clients: 4
+                        power: 15
+                        rx_bytes: 10366616
+                        rx_pkts: 38603
+                        tx_bytes: 50877568
+                        tx_pkts: 145496
+                    rx_bps: 60003
+                    rx_bytes: 8515104416
+                    rx_pkts: 57770567
+                    serial: FXLH2015170017
+                    status: connected
+                    tx_bps: 634301
+                    tx_bytes: 211217389682
+                    tx_pkts: 812204062
+                    type: ap
+                    uptime: 13500
+                    usb_stat:
+                      channel: 3
+                      connected: true
+                      last_activity: 1586873254
+                      type: imagotag
+                      up: true
+                    version: 1.0.0
+                    x: 53.5
+                    y: 173.1
+                Gateway:
+                  value:
+                  - cluster_stat:
+                      node0:
+                        status: ''
+                      node1: {}
+                    cpu2_stat: ''
+                    cpu_stat:
+                      idle: 28
+                      interrupt: 8
+                      load_avg:
+                      - 0.9700000286102295
+                      - 1.0499999523162842
+                      - 1.0199999809265137
+                      system: 41
+                      user: 23
+                    hostname: sj1
+                    ip: 10.2.11.137
+                    ip_stat:
+                      dns:
+                      - 8.8.8.8
+                      - 4.4.4.4
+                      dns_suffix:
+                      - .mist.local
+                      - .mist.com
+                      gateway: 10.2.1.1
+                      gateway6: 2607:f8b0:4005:808::1
+                      ip: 10.2.11.137
+                      ip6: 2607:f8b0:4005:808::2004
+                      ips:
+                        vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
+                        vlan193: 10.73.1.31/16
+                        vlan3157: 10.72.11.14/24
+                      netmask: 255.255.192.0
+                      netmask6: /32
+                    last_seen: 1553203563
+                    mac: dc38e1dbf3cd
+                    memory_stat:
+                      usage: 35
+                    model: SRX320
+                    module2_stat: ''
+                    module_stat:
+                    - fans:
+                      - name: Fan 0
+                        status: absent
+                      - airflow: out
+                        name: Fan 1
+                        status: ok
+                      model: EX4300-48P
+                      poe:
+                        max_power: 250
+                        power_draw: 120.3
+                      psus:
+                      - name: Power Supply 0
+                        status: ok
+                      - name: Power Supply 1
+                        status: failed
+                      serial: PX8716230021
+                      temperatures:
+                      - celsius: 45
+                        name: CPU
+                        status: ok
+                      vc_links:
+                      - neighbor_module_idx: 1
+                        neighbor_port_id: vcp-255/1/0
+                        port_id: vcp-255/1/0
+                      vc_role: master
+                    name: sj1
+                    serial: TC3714190003
+                    spu2_stat: ''
+                    spu_stat:
+                      cpu: 15
+                      memory: 32
+                      sessions:
+                        current: 41
+                        max: 65535
+                        pending: 12
+                        valid: 15
+                    status: connected
+                    type: gateway
+                    uptime: 13500
+                    version: 18.4R1.8
+                Switch:
+                  value:
+                  - ble_config:
+                      beacon_rate: 3
+                      beacon_rate_model: custom
+                      beam_disabled:
+                      - 1
+                      - 3
+                      - 6
+                      power: 10
+                      power_mode: custom
+                    ble_stat:
+                      beacon_rate: 3
+                      eddystone_uid_enabled: false
+                      eddystone_uid_freq_msec: 200
+                      eddystone_uid_instance: 5c5b35000001
+                      eddystone_uid_namespace: 2818e3868dec25629ede
+                      eddystone_url_enabled: true
+                      eddystone_url_freq_msec: 100
+                      eddystone_url_url: https://www.abc.com
+                      ibeacon_enabled: true
+                      ibeacon_major: 13
+                      ibeacon_minor: 138
+                      ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
+                      major: 12345
+                      minors:
+                      - 201
+                      - 202
+                      - 203
+                      - 204
+                      - 205
+                      - 206
+                      - 207
+                      - 208
+                      power: 10
+                      rx_bytes: 135
+                      rx_pkts: 135
+                      tx_bytes: 5231513353
+                      tx_pkts: 135135135
+                      tx_resets: 0
+                      uuid: ada72f8f-1643-e5c6-94db-f2a5636f1a64
+                    cert_expiry: 1534534392
+                    ext_ip: 73.92.124.103
+                    fwupdate:
+                      progress: 10
+                      status: inprogress
+                      status_id: 5
+                      timestamp: 1428949501
+                    iot_stat:
+                      DI2:
+                        value: 0
+                    ip: 10.2.9.159
+                    ip_config:
+                      dns:
+                      - 8.8.8.8
+                      - 4.4.4.4
+                      dns_suffix:
+                      - .mist.local
+                      - .mist.com
+                      gateway: 10.2.1.254
+                      ip: 10.2.1.1
+                      netmask: 255.255.255.0
+                      type: static
+                    ip_stat:
+                      dns:
+                      - 8.8.8.8
+                      - 4.4.4.4
+                      dns_suffix:
+                      - .mist.local
+                      - .mist.com
+                      gateway: 10.2.1.254
+                      gateway6: 2607:f8b0:4005:808::1
+                      ip: 10.2.1.1
+                      ip6: 2607:f8b0:4005:808::2004
+                      ips:
+                        vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
+                        vlan193: 10.73.1.31/16
+                        vlan3157: 10.72.11.14/24
+                      netmask: 255.255.255.0
+                      netmask6: /32
+                    l2tp_stat:
+                      7dae216d-7c98-a51b-e068-dd7d477b7216:
+                        sessions:
+                        - local_sid: 31
+                          remote_id: vpn1
+                          remote_sid: 13
+                          state: established
+                        state: established_with_sessions
+                        uptime: 135
+                        wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
+                    last_seen: 1470417522
+                    last_trouble:
+                      code: '03'
+                      timestamp: 1428949501
+                    led:
+                      brightness: 255
+                      enabled: true
+                    lldp_stat:
+                      chassis_id: 63:68:61:73:73:69
+                      lldp_med_supported: false
+                      mgmt_addr: 10.1.5.2
+                      port_desc: 2/26
+                      power_allocated: 15500
+                      power_draw: 15000
+                      power_request_count: 3
+                      power_requested: 25500
+                      system_desc: HP J9729A 2920-48G-POE+ Switch
+                      system_name: TC2-OWL-Stack-01
+                    locating: false
+                    mac: 5c5b35000010
+                    map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
+                    mesh_downlinks:
+                      00000000-0000-0000-1000-5c5b356be59f:
+                        band: '24'
+                        channel: 7
+                        idle_time: 3
+                        last_seen: 1470417522
+                        proto: a
+                        rssi: -65
+                        rx_bps: 12
+                        rx_bytes: 217416
+                        rx_packets: 2337
+                        rx_rate: 65
+                        rx_retries: 5
+                        snr: 31
+                        tx_bps: 6
+                        tx_bytes: 175132
+                        tx_packets: 1566
+                        tx_rate: 65
+                        tx_retries: 500
+                    mesh_uplink:
+                      band: '24'
+                      channel: 7
+                      idle_time: 3
+                      last_seen: 1470417522
+                      proto: a
+                      rssi: -65
+                      rx_bps: 12
+                      rx_bytes: 217416
+                      rx_packets: 2337
+                      rx_rate: 65
+                      rx_retries: 5
+                      snr: 31
+                      tx_bps: 6
+                      tx_bytes: 175132
+                      tx_packets: 1566
+                      tx_rate: 65
+                      tx_retries: 500
+                      uplink_ap_id: 00000000-0000-0000-1000-5c5b35000010
+                    model: AP200
+                    name: conference room
+                    num_clients: 10
+                    port_stat:
+                      eth0:
+                        full_duplex: true
+                        rx_bytes: 2056
+                        rx_errors: 0
+                        rx_pkts: 670
+                        speed: 1000
+                        tx_bytes: 2056
+                        tx_pkts: 670
+                        up: true
+                      eth1:
+                        up: false
+                      module:
+                        up: false
+                    power_budget: -12000
+                    power_src: PoE 802.3af
+                    radio_config:
+                      band_24:
+                        bandwidth: 20
+                        channel: 0
+                        dynamic_chaining_enabled: false
+                        power: 0
+                        rx_chain: 4
+                        tx_chain: 4
+                      band_5:
+                        bandwidth: 40
+                        channel: 0
+                        dynamic_chaining_enabled: false
+                        power: 0
+                        rx_chain: 4
+                        tx_chain: 1
+                      scanning_enabled: true
+                    radio_stat:
+                      band_24:
+                        bandwidth: 20
+                        channel: 6
+                        mac: 5c5b350004a0
+                        num_clients: 6
+                        power: 19
+                        rx_bytes: 8504737800
+                        rx_pkts: 57731964
+                        tx_bytes: 211166512114
+                        tx_pkts: 812058566
+                      band_5:
+                        bandwidth: 80
+                        channel: 44
+                        mac: 5c5b350004b0
+                        num_clients: 4
+                        power: 15
+                        rx_bytes: 10366616
+                        rx_pkts: 38603
+                        tx_bytes: 50877568
+                        tx_pkts: 145496
+                    rx_bps: 60003
+                    rx_bytes: 8515104416
+                    rx_pkts: 57770567
+                    serial: FXLH2015170017
+                    status: connected
+                    tx_bps: 634301
+                    tx_bytes: 211217389682
+                    tx_pkts: 812204062
+                    type: ap
+                    uptime: 13500
+                    usb_stat:
+                      channel: 3
+                      connected: true
+                      last_activity: 1586873254
+                      type: imagotag
+                      up: true
+                    version: 1.0.0
+                    x: 53.5
+                    y: 173.1
               schema:
                 items:
-                  $ref: '#/components/schemas/stats.device_ap'
+                  anyOf:
+                  - $ref: '#/components/schemas/stats.device_ap'
+                  - $ref: '#/components/schemas/stats.device_switch'
+                  - $ref: '#/components/schemas/stats.device_gateway'
                 type: array
           description: Successful response
       summary: getOrgDevicesStats
@@ -38386,9 +39327,11 @@ paths:
       - Sites Clients
   /api/v1/sites/{site_id}/clients/{client_mac}/events:
     get:
-      description: "\n\n\n\n\n\n\n\n #### Query Parameter\n **Parameter**|**Type**|**Description**\n\
-        \ :-------------: |:-------------: |:-------------:\ndistinct|string|type\
-        \ / proto / band / channel / wlan_id / ssid\n\nNOTE: the filters from /clients/{mac}/events\
+      description: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n ####\
+        \ Query Parameter\n **Parameter**|**Type**|**Description**\n :-------------:\
+        \ |:-------------: |:-------------:\ndistinct|string|type / proto / band /\
+        \ channel / wlan_id / ssid\n\nNOTE: the filters from /clients/{mac}/events\
         \ can also be used. E.g. /clients/events/count?distinct=device&ssid=Guest\n"
       operationId: getSiteEventsForClient
       parameters:
@@ -42300,8 +43243,8 @@ paths:
       schema:
         type: string
     put:
-      description: "Note: For each IoT pin referenced\u2026\n1. The pin must be enabled\
-        \ using the Device \u2018iot_config\u2019 API\n2. The pin must support the\
+      description: "Note: For each IoT pin referenced\u2026\n * The pin must be enabled\
+        \ using the Device \u2018iot_config\u2019 API\n * The pin must support the\
         \ output direction\n"
       operationId: setSiteDeviceIotPort
       requestBody:
@@ -46831,7 +47774,7 @@ paths:
                       ip: string
                       netmask: string
                       network: string
-                      type: string
+                      type: dynamic
                     led:
                       brightness: 0
                       enabled: true
@@ -46888,7 +47831,7 @@ paths:
                       ip: string
                       netmask: string
                       network: string
-                      type: string
+                      type: dynamic
                     org_id: string
                     other_ip_configs:
                       ip: string
@@ -47147,7 +48090,7 @@ paths:
                     ip: string
                     netmask: string
                     network: string
-                    type: string
+                    type: dynamic
                   led:
                     brightness: 0
                     enabled: true
@@ -47203,7 +48146,7 @@ paths:
                     ip: string
                     netmask: string
                     network: string
-                    type: string
+                    type: dynamic
                   other_ip_configs:
                     ip: string
                     netmask: string
@@ -47341,7 +48284,7 @@ paths:
                         dynamic_usage: true
                         usage: string
                   switch_mgmt:
-                    config_revert_timer: 0
+                    config_revert_timer: 10
                     root_password: string
                   track_anonymous_devices: true
                   track_asset: true
@@ -47451,7 +48394,7 @@ paths:
                       ip: string
                       netmask: string
                       network: string
-                      type: string
+                      type: dynamic
                     led:
                       brightness: 0
                       enabled: true
@@ -47508,7 +48451,7 @@ paths:
                       ip: string
                       netmask: string
                       network: string
-                      type: string
+                      type: dynamic
                     org_id: string
                     other_ip_configs:
                       ip: string
@@ -48334,220 +49277,542 @@ paths:
           content:
             application/json:
               examples:
-                example-1:
+                AP:
                   value:
-                  - - ble_config:
-                        beacon_rate: 0
-                        beacon_rate_model: string
-                        beam_disabled:
-                        - 0
-                        power: 0
-                        power_mode: string
-                      ble_stat:
-                        beacon_rate: 0
-                        eddystone_uid_enabled: true
-                        eddystone_uid_freq_msec: 0
-                        eddystone_uid_instance: string
-                        eddystone_uid_namespace: string
-                        eddystone_url_enabled: true
-                        eddystone_url_freq_msec: 0
-                        eddystone_url_url: string
-                        ibeacon_enabled: true
-                        ibeacon_major: 0
-                        ibeacon_minor: 0
-                        ibeacon_uuid: string
-                        major: 0
-                        minors:
-                        - string
-                        power: 0
-                        rx_bytes: 0
-                        rx_pkts: 0
-                        tx_bytes: 0
-                        tx_pkts: 0
-                        tx_resets: 0
-                        uuid: string
-                      cert_expiry: 0
-                      ext_ip: string
-                      fwupdate:
-                        progress: 0
-                        status: string
-                        status_id: 0
-                        timestamp: 0
-                      iot_stat:
-                        DI2:
-                          value: 0
-                      ip: string
-                      ip_config:
-                        dns:
-                        - string
-                        dns_suffix:
-                        - string
-                        gateway: string
-                        ip: string
-                        netmask: string
-                        type: string
-                      ip_stat:
-                        dns:
-                        - string
-                        dns_suffix:
-                        - string
-                        gateway: string
-                        gateway6: string
-                        ip: string
-                        ip6: string
-                        ips:
-                          ? ''
-                          : string
-                        netmask: string
-                        netmask6: string
-                      l2tp_stat:
-                        ? ''
-                        : sessions:
-                          - local_sid: 0
-                            remote_id: string
-                            remote_sid: 0
-                            state: string
-                          state: string
-                          uptime: 0
-                          wxtunnel_id: string
-                      last_seen: 0
-                      last_trouble:
-                        code: string
-                        timestamp: 0
-                      led:
-                        brightness: 0
-                        enabled: true
-                      lldp_stat:
-                        chassis_id: string
-                        lldp_med_supported: true
-                        mgmt_addr: string
-                        port_desc: string
-                        power_allocated: 0
-                        power_draw: 0
-                        power_request_count: 0
-                        power_requested: 0
-                        system_desc: string
-                        system_name: string
-                      locating: true
-                      mac: string
-                      map_id: string
-                      mesh_downlinks:
-                        band: string
-                        channel: 0
-                        idle_time: 0
-                        last_seen: 0
-                        proto: string
-                        rssi: 0
-                        rx_bps: 0
-                        rx_bytes: 0
-                        rx_packets: 0
-                        rx_rate: 0
-                        rx_retries: 0
-                        snr: 0
-                        tx_bps: 0
-                        tx_bytes: 0
-                        tx_packets: 0
-                        tx_rate: 0
-                        tx_retries: 0
-                      mesh_uplink:
-                        band: string
-                        channel: 0
-                        idle_time: 0
-                        last_seen: 0
-                        proto: string
-                        rssi: 0
-                        rx_bps: 0
-                        rx_bytes: 0
-                        rx_packets: 0
-                        rx_rate: 0
-                        rx_retries: 0
-                        snr: 0
-                        tx_bps: 0
-                        tx_bytes: 0
-                        tx_packets: 0
-                        tx_rate: 0
-                        tx_retries: 0
-                        uplink_ap_id: string
-                      model: string
-                      name: string
-                      num_clients: 0
-                      port_stat:
-                        eth0:
-                          full_duplex: true
-                          rx_bytes: 0
-                          rx_errors: 0
-                          rx_pkts: 0
-                          speed: 0
-                          tx_bytes: 0
-                          tx_pkts: 0
-                          up: true
-                        eth1:
-                          up: true
-                        module:
-                          up: true
-                      power_budget: 0
-                      power_src: string
-                      radio_config:
-                        band_24:
-                          bandwidth: 0
-                          channel: 0
-                          dynamic_chaining_enabled: true
-                          power: 0
-                          rx_chain: 0
-                          tx_chain: 0
-                        band_5:
-                          bandwidth: 0
-                          channel: 0
-                          dynamic_chaining_enabled: true
-                          power: 0
-                          rx_chain: 0
-                          tx_chain: 0
-                        scanning_enabled: true
-                      radio_stat:
-                        band_24:
-                          bandwidth: 0
-                          channel: 0
-                          mac: string
-                          num_clients: 0
-                          power: 0
-                          rx_bytes: 0
-                          rx_pkts: 0
-                          tx_bytes: 0
-                          tx_pkts: 0
-                        band_5:
-                          bandwidth: 0
-                          channel: 0
-                          mac: string
-                          num_clients: 0
-                          power: 0
-                          rx_bytes: 0
-                          rx_pkts: 0
-                          tx_bytes: 0
-                          tx_pkts: 0
-                      rx_bps: 0
-                      rx_bytes: 0
-                      rx_pkts: 0
-                      serial: string
-                      status: string
-                      tx_bps: 0
-                      tx_bytes: 0
-                      tx_pkts: 0
-                      type: string
-                      uptime: 0
-                      usb_stat:
-                        channel: 0
-                        connected: true
-                        last_activity: 0
-                        type: string
+                  - ble_config:
+                      beacon_rate: 3
+                      beacon_rate_model: custom
+                      beam_disabled:
+                      - 1
+                      - 3
+                      - 6
+                      power: 10
+                      power_mode: custom
+                    ble_stat:
+                      beacon_rate: 3
+                      eddystone_uid_enabled: false
+                      eddystone_uid_freq_msec: 200
+                      eddystone_uid_instance: 5c5b35000001
+                      eddystone_uid_namespace: 2818e3868dec25629ede
+                      eddystone_url_enabled: true
+                      eddystone_url_freq_msec: 100
+                      eddystone_url_url: https://www.abc.com
+                      ibeacon_enabled: true
+                      ibeacon_major: 13
+                      ibeacon_minor: 138
+                      ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
+                      major: 12345
+                      minors:
+                      - 201
+                      - 202
+                      - 203
+                      - 204
+                      - 205
+                      - 206
+                      - 207
+                      - 208
+                      power: 10
+                      rx_bytes: 135
+                      rx_pkts: 135
+                      tx_bytes: 5231513353
+                      tx_pkts: 135135135
+                      tx_resets: 0
+                      uuid: ada72f8f-1643-e5c6-94db-f2a5636f1a64
+                    cert_expiry: 1534534392
+                    ext_ip: 73.92.124.103
+                    fwupdate:
+                      progress: 10
+                      status: inprogress
+                      status_id: 5
+                      timestamp: 1428949501
+                    iot_stat:
+                      DI2:
+                        value: 0
+                    ip: 10.2.9.159
+                    ip_config:
+                      dns:
+                      - 8.8.8.8
+                      - 4.4.4.4
+                      dns_suffix:
+                      - .mist.local
+                      - .mist.com
+                      gateway: 10.2.1.254
+                      ip: 10.2.1.1
+                      netmask: 255.255.255.0
+                      type: static
+                    ip_stat:
+                      dns:
+                      - 8.8.8.8
+                      - 4.4.4.4
+                      dns_suffix:
+                      - .mist.local
+                      - .mist.com
+                      gateway: 10.2.1.254
+                      gateway6: 2607:f8b0:4005:808::1
+                      ip: 10.2.1.1
+                      ip6: 2607:f8b0:4005:808::2004
+                      ips:
+                        vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
+                        vlan193: 10.73.1.31/16
+                        vlan3157: 10.72.11.14/24
+                      netmask: 255.255.255.0
+                      netmask6: /32
+                    l2tp_stat:
+                      7dae216d-7c98-a51b-e068-dd7d477b7216:
+                        sessions:
+                        - local_sid: 31
+                          remote_id: vpn1
+                          remote_sid: 13
+                          state: established
+                        state: established_with_sessions
+                        uptime: 135
+                        wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
+                    last_seen: 1470417522
+                    last_trouble:
+                      code: '03'
+                      timestamp: 1428949501
+                    led:
+                      brightness: 255
+                      enabled: true
+                    lldp_stat:
+                      chassis_id: 63:68:61:73:73:69
+                      lldp_med_supported: false
+                      mgmt_addr: 10.1.5.2
+                      port_desc: 2/26
+                      power_allocated: 15500
+                      power_draw: 15000
+                      power_request_count: 3
+                      power_requested: 25500
+                      system_desc: HP J9729A 2920-48G-POE+ Switch
+                      system_name: TC2-OWL-Stack-01
+                    locating: false
+                    mac: 5c5b35000010
+                    map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
+                    mesh_downlinks:
+                      00000000-0000-0000-1000-5c5b356be59f:
+                        band: '24'
+                        channel: 7
+                        idle_time: 3
+                        last_seen: 1470417522
+                        proto: a
+                        rssi: -65
+                        rx_bps: 12
+                        rx_bytes: 217416
+                        rx_packets: 2337
+                        rx_rate: 65
+                        rx_retries: 5
+                        snr: 31
+                        tx_bps: 6
+                        tx_bytes: 175132
+                        tx_packets: 1566
+                        tx_rate: 65
+                        tx_retries: 500
+                    mesh_uplink:
+                      band: '24'
+                      channel: 7
+                      idle_time: 3
+                      last_seen: 1470417522
+                      proto: a
+                      rssi: -65
+                      rx_bps: 12
+                      rx_bytes: 217416
+                      rx_packets: 2337
+                      rx_rate: 65
+                      rx_retries: 5
+                      snr: 31
+                      tx_bps: 6
+                      tx_bytes: 175132
+                      tx_packets: 1566
+                      tx_rate: 65
+                      tx_retries: 500
+                      uplink_ap_id: 00000000-0000-0000-1000-5c5b35000010
+                    model: AP200
+                    name: conference room
+                    num_clients: 10
+                    port_stat:
+                      eth0:
+                        full_duplex: true
+                        rx_bytes: 2056
+                        rx_errors: 0
+                        rx_pkts: 670
+                        speed: 1000
+                        tx_bytes: 2056
+                        tx_pkts: 670
                         up: true
-                      version: string
-                      x: 0
-                      y: 0
+                      eth1:
+                        up: false
+                      module:
+                        up: false
+                    power_budget: -12000
+                    power_src: PoE 802.3af
+                    radio_config:
+                      band_24:
+                        bandwidth: 20
+                        channel: 0
+                        dynamic_chaining_enabled: false
+                        power: 0
+                        rx_chain: 4
+                        tx_chain: 4
+                      band_5:
+                        bandwidth: 40
+                        channel: 0
+                        dynamic_chaining_enabled: false
+                        power: 0
+                        rx_chain: 4
+                        tx_chain: 1
+                      scanning_enabled: true
+                    radio_stat:
+                      band_24:
+                        bandwidth: 20
+                        channel: 6
+                        mac: 5c5b350004a0
+                        num_clients: 6
+                        power: 19
+                        rx_bytes: 8504737800
+                        rx_pkts: 57731964
+                        tx_bytes: 211166512114
+                        tx_pkts: 812058566
+                      band_5:
+                        bandwidth: 80
+                        channel: 44
+                        mac: 5c5b350004b0
+                        num_clients: 4
+                        power: 15
+                        rx_bytes: 10366616
+                        rx_pkts: 38603
+                        tx_bytes: 50877568
+                        tx_pkts: 145496
+                    rx_bps: 60003
+                    rx_bytes: 8515104416
+                    rx_pkts: 57770567
+                    serial: FXLH2015170017
+                    status: connected
+                    tx_bps: 634301
+                    tx_bytes: 211217389682
+                    tx_pkts: 812204062
+                    type: ap
+                    uptime: 13500
+                    usb_stat:
+                      channel: 3
+                      connected: true
+                      last_activity: 1586873254
+                      type: imagotag
+                      up: true
+                    version: 1.0.0
+                    x: 53.5
+                    y: 173.1
+                Gateway:
+                  value:
+                  - cluster_stat:
+                      node0:
+                        status: ''
+                      node1: {}
+                    cpu2_stat: ''
+                    cpu_stat:
+                      idle: 28
+                      interrupt: 8
+                      load_avg:
+                      - 0.9700000286102295
+                      - 1.0499999523162842
+                      - 1.0199999809265137
+                      system: 41
+                      user: 23
+                    hostname: sj1
+                    ip: 10.2.11.137
+                    ip_stat:
+                      dns:
+                      - 8.8.8.8
+                      - 4.4.4.4
+                      dns_suffix:
+                      - .mist.local
+                      - .mist.com
+                      gateway: 10.2.1.1
+                      gateway6: 2607:f8b0:4005:808::1
+                      ip: 10.2.11.137
+                      ip6: 2607:f8b0:4005:808::2004
+                      ips:
+                        vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
+                        vlan193: 10.73.1.31/16
+                        vlan3157: 10.72.11.14/24
+                      netmask: 255.255.192.0
+                      netmask6: /32
+                    last_seen: 1553203563
+                    mac: dc38e1dbf3cd
+                    memory_stat:
+                      usage: 35
+                    model: SRX320
+                    module2_stat: ''
+                    module_stat:
+                    - fans:
+                      - name: Fan 0
+                        status: absent
+                      - airflow: out
+                        name: Fan 1
+                        status: ok
+                      model: EX4300-48P
+                      poe:
+                        max_power: 250
+                        power_draw: 120.3
+                      psus:
+                      - name: Power Supply 0
+                        status: ok
+                      - name: Power Supply 1
+                        status: failed
+                      serial: PX8716230021
+                      temperatures:
+                      - celsius: 45
+                        name: CPU
+                        status: ok
+                      vc_links:
+                      - neighbor_module_idx: 1
+                        neighbor_port_id: vcp-255/1/0
+                        port_id: vcp-255/1/0
+                      vc_role: master
+                    name: sj1
+                    serial: TC3714190003
+                    spu2_stat: ''
+                    spu_stat:
+                      cpu: 15
+                      memory: 32
+                      sessions:
+                        current: 41
+                        max: 65535
+                        pending: 12
+                        valid: 15
+                    status: connected
+                    type: gateway
+                    uptime: 13500
+                    version: 18.4R1.8
+                Switch:
+                  value:
+                  - ble_config:
+                      beacon_rate: 3
+                      beacon_rate_model: custom
+                      beam_disabled:
+                      - 1
+                      - 3
+                      - 6
+                      power: 10
+                      power_mode: custom
+                    ble_stat:
+                      beacon_rate: 3
+                      eddystone_uid_enabled: false
+                      eddystone_uid_freq_msec: 200
+                      eddystone_uid_instance: 5c5b35000001
+                      eddystone_uid_namespace: 2818e3868dec25629ede
+                      eddystone_url_enabled: true
+                      eddystone_url_freq_msec: 100
+                      eddystone_url_url: https://www.abc.com
+                      ibeacon_enabled: true
+                      ibeacon_major: 13
+                      ibeacon_minor: 138
+                      ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
+                      major: 12345
+                      minors:
+                      - 201
+                      - 202
+                      - 203
+                      - 204
+                      - 205
+                      - 206
+                      - 207
+                      - 208
+                      power: 10
+                      rx_bytes: 135
+                      rx_pkts: 135
+                      tx_bytes: 5231513353
+                      tx_pkts: 135135135
+                      tx_resets: 0
+                      uuid: ada72f8f-1643-e5c6-94db-f2a5636f1a64
+                    cert_expiry: 1534534392
+                    ext_ip: 73.92.124.103
+                    fwupdate:
+                      progress: 10
+                      status: inprogress
+                      status_id: 5
+                      timestamp: 1428949501
+                    iot_stat:
+                      DI2:
+                        value: 0
+                    ip: 10.2.9.159
+                    ip_config:
+                      dns:
+                      - 8.8.8.8
+                      - 4.4.4.4
+                      dns_suffix:
+                      - .mist.local
+                      - .mist.com
+                      gateway: 10.2.1.254
+                      ip: 10.2.1.1
+                      netmask: 255.255.255.0
+                      type: static
+                    ip_stat:
+                      dns:
+                      - 8.8.8.8
+                      - 4.4.4.4
+                      dns_suffix:
+                      - .mist.local
+                      - .mist.com
+                      gateway: 10.2.1.254
+                      gateway6: 2607:f8b0:4005:808::1
+                      ip: 10.2.1.1
+                      ip6: 2607:f8b0:4005:808::2004
+                      ips:
+                        vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
+                        vlan193: 10.73.1.31/16
+                        vlan3157: 10.72.11.14/24
+                      netmask: 255.255.255.0
+                      netmask6: /32
+                    l2tp_stat:
+                      7dae216d-7c98-a51b-e068-dd7d477b7216:
+                        sessions:
+                        - local_sid: 31
+                          remote_id: vpn1
+                          remote_sid: 13
+                          state: established
+                        state: established_with_sessions
+                        uptime: 135
+                        wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
+                    last_seen: 1470417522
+                    last_trouble:
+                      code: '03'
+                      timestamp: 1428949501
+                    led:
+                      brightness: 255
+                      enabled: true
+                    lldp_stat:
+                      chassis_id: 63:68:61:73:73:69
+                      lldp_med_supported: false
+                      mgmt_addr: 10.1.5.2
+                      port_desc: 2/26
+                      power_allocated: 15500
+                      power_draw: 15000
+                      power_request_count: 3
+                      power_requested: 25500
+                      system_desc: HP J9729A 2920-48G-POE+ Switch
+                      system_name: TC2-OWL-Stack-01
+                    locating: false
+                    mac: 5c5b35000010
+                    map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
+                    mesh_downlinks:
+                      00000000-0000-0000-1000-5c5b356be59f:
+                        band: '24'
+                        channel: 7
+                        idle_time: 3
+                        last_seen: 1470417522
+                        proto: a
+                        rssi: -65
+                        rx_bps: 12
+                        rx_bytes: 217416
+                        rx_packets: 2337
+                        rx_rate: 65
+                        rx_retries: 5
+                        snr: 31
+                        tx_bps: 6
+                        tx_bytes: 175132
+                        tx_packets: 1566
+                        tx_rate: 65
+                        tx_retries: 500
+                    mesh_uplink:
+                      band: '24'
+                      channel: 7
+                      idle_time: 3
+                      last_seen: 1470417522
+                      proto: a
+                      rssi: -65
+                      rx_bps: 12
+                      rx_bytes: 217416
+                      rx_packets: 2337
+                      rx_rate: 65
+                      rx_retries: 5
+                      snr: 31
+                      tx_bps: 6
+                      tx_bytes: 175132
+                      tx_packets: 1566
+                      tx_rate: 65
+                      tx_retries: 500
+                      uplink_ap_id: 00000000-0000-0000-1000-5c5b35000010
+                    model: AP200
+                    name: conference room
+                    num_clients: 10
+                    port_stat:
+                      eth0:
+                        full_duplex: true
+                        rx_bytes: 2056
+                        rx_errors: 0
+                        rx_pkts: 670
+                        speed: 1000
+                        tx_bytes: 2056
+                        tx_pkts: 670
+                        up: true
+                      eth1:
+                        up: false
+                      module:
+                        up: false
+                    power_budget: -12000
+                    power_src: PoE 802.3af
+                    radio_config:
+                      band_24:
+                        bandwidth: 20
+                        channel: 0
+                        dynamic_chaining_enabled: false
+                        power: 0
+                        rx_chain: 4
+                        tx_chain: 4
+                      band_5:
+                        bandwidth: 40
+                        channel: 0
+                        dynamic_chaining_enabled: false
+                        power: 0
+                        rx_chain: 4
+                        tx_chain: 1
+                      scanning_enabled: true
+                    radio_stat:
+                      band_24:
+                        bandwidth: 20
+                        channel: 6
+                        mac: 5c5b350004a0
+                        num_clients: 6
+                        power: 19
+                        rx_bytes: 8504737800
+                        rx_pkts: 57731964
+                        tx_bytes: 211166512114
+                        tx_pkts: 812058566
+                      band_5:
+                        bandwidth: 80
+                        channel: 44
+                        mac: 5c5b350004b0
+                        num_clients: 4
+                        power: 15
+                        rx_bytes: 10366616
+                        rx_pkts: 38603
+                        tx_bytes: 50877568
+                        tx_pkts: 145496
+                    rx_bps: 60003
+                    rx_bytes: 8515104416
+                    rx_pkts: 57770567
+                    serial: FXLH2015170017
+                    status: connected
+                    tx_bps: 634301
+                    tx_bytes: 211217389682
+                    tx_pkts: 812204062
+                    type: ap
+                    uptime: 13500
+                    usb_stat:
+                      channel: 3
+                      connected: true
+                      last_activity: 1586873254
+                      type: imagotag
+                      up: true
+                    version: 1.0.0
+                    x: 53.5
+                    y: 173.1
               schema:
                 items:
                   anyOf:
                   - $ref: '#/components/schemas/stats.device_ap'
-                  - $ref: '#/components/schemas/stats.device_junos'
+                  - $ref: '#/components/schemas/stats.device_switch'
+                  - $ref: '#/components/schemas/stats.device_gateway'
                 type: array
           description: Successful response
       summary: getSiteDevicesStats
@@ -48780,7 +50045,8 @@ paths:
               schema:
                 oneOf:
                 - $ref: '#/components/schemas/stats.device_ap'
-                - $ref: '#/components/schemas/stats.device_junos'
+                - $ref: '#/components/schemas/stats.device_switch'
+                - $ref: '#/components/schemas/stats.device_gateway'
           description: Successful response
       summary: getSiteDeviceStatsDetails
       tags:
@@ -52190,7 +53456,7 @@ paths:
                       portal_sso_url: string
                       privacy: true
                       sms_enabled: true
-                      sms_provider: string
+                      sms_provider: manual
                       sponsor_email_domains:
                       - string
                       sponsor_enabled: true
@@ -52448,7 +53714,7 @@ paths:
                     portal_sso_url: string
                     privacy: true
                     sms_enabled: true
-                    sms_provider: string
+                    sms_provider: manual
                     sponsor_email_domains:
                     - string
                     sponsor_enabled: true
@@ -52697,7 +53963,7 @@ paths:
                       portal_sso_url: string
                       privacy: true
                       sms_enabled: true
-                      sms_provider: string
+                      sms_provider: manual
                       sponsor_email_domains:
                       - string
                       sponsor_enabled: true
@@ -52962,7 +54228,7 @@ paths:
                       portal_sso_url: string
                       privacy: true
                       sms_enabled: true
-                      sms_provider: string
+                      sms_provider: manual
                       sponsor_email_domains:
                       - string
                       sponsor_enabled: true
@@ -53256,7 +54522,7 @@ paths:
                     portal_sso_url: string
                     privacy: true
                     sms_enabled: true
-                    sms_provider: string
+                    sms_provider: manual
                     sponsor_email_domains:
                     - string
                     sponsor_enabled: true
@@ -53505,7 +54771,7 @@ paths:
                       portal_sso_url: string
                       privacy: true
                       sms_enabled: true
-                      sms_provider: string
+                      sms_provider: manual
                       sponsor_email_domains:
                       - string
                       sponsor_enabled: true
@@ -55153,9 +56419,7 @@ paths:
       description: 'Allows validation of twilio setup
 
         In case of success, a text message confirming successful setup should be received.
-        In case of error, twilio error code and message are returned.
-
-        '
+        In case of error, twilio error code and message are returned.'
       operationId: testSiteWlanTwilioSetup
       requestBody:
         content:
@@ -55274,7 +56538,10 @@ tags:
 - name: Orgs WxRules
 - name: Orgs WxTags
 - name: Orgs WxTunnels
-- name: Sites
+- description: A site represents a project, a deployment. For MSP, it can be as small
+    as a coffee shop or a five-star 600-room hotel. A site contains a set of Maps,
+    Wlans, Policies, Zones.
+  name: Sites
 - name: Sites Alarms
 - name: Sites Anomaly
 - name: Sites Asset Filters
@@ -55408,7 +56675,24 @@ x-tagGroups:
   - Msps SSO Roles
   - Msps SSOs
   - Msps Stats
-- name: Installer
+- description: "In a typical enterprise, a separate group of people, Installers, are\
+    \      responsible for install new devices. May it be a new installation (e.g.\
+    \ new stores), a replacement installation (e.g. replacing Cisco APs with Mist\
+    \ APs), or addition (e.g. adding new APs for better coverage). Instead of granting\
+    \ them Admin/Write privilege, it\u2019s more desirable to grant them minimum privileges\
+    \ to do the initial provisioning so they cannot read sensible information (e.g.\
+    \ PSK of a WLAN), or change configs of running APs.\nAt a high level, Installer\
+    \ APs try to achieve the following:\n1. identifying a device by MAC (that\u2019\
+    s what they see)\n2. they can only touch configurations of the devices they\u2019\
+    re installing\n3. allow the following configurations: * name * site assignment\
+    \ * device  profile assignment * map and location (x/y) assignment * claim (if\
+    \ not already in the inventory)\n\n* Grace Period *\nGrace period provides a dynamic\
+    \ way to limit what devices / sites   installer can work on. Generally installers\
+    \ work on recent deployments -  bringing up new sites, add newly claimed devices\
+    \ to new / existing sites. They  make mistakes, too, and may need to further tweak\
+    \ some of the parameters.   Default grace period is 7 days and can be set from\
+    \ 1 day to 365 days."
+  name: Installer
   tags:
   - Installer
 - name: Constants
