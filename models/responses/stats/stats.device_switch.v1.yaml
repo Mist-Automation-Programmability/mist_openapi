@@ -2,21 +2,49 @@ description: ''
 type: object
 x-examples:
   example-1:
-    id: 00000000-0000-0000-1000-dc38e1dbf3cd
-    site_id: 9bf047be-1911-225c-a541-d6637a373633
-    org_id: eb6a1083-1e3a-48cc-8888-78ff7772c588
     mac: dc38e1dbf3cd
-    vc_mac: dc38e1dbf3cd
     model: EX4600
     type: switch
     serial: TC3714190003
+    last_seen: 1553203563
+    name: xg50b
+    hostname: sj-sw1
     status: connected
-    members:
-      - _idx: 0
-        vc_role: master
-        model: EX4600
-        serial: TC3714190003
-        vc_state: present
+    version: 18.4R1.8
+    ip: 10.2.11.137
+    uptime: 13500
+    ip_stat:
+      ip: 10.2.11.137
+      netmask: 255.255.192.0
+      gateway: 10.2.1.1
+      ip6: '2607:f8b0:4005:808::2004'
+      netmask6: /32
+      gateway6: '2607:f8b0:4005:808::1'
+      dns:
+        - 8.8.8.8
+        - 4.4.4.4
+      dns_suffix:
+        - .mist.local
+        - .mist.com
+      ips:
+        vlan1: '10.2.1.1/24,2607:f8b0:4005:808::1/32'
+        vlan193: 10.73.1.31/16
+        vlan3157: 10.72.11.14/24
+    cpu_stat:
+      interrupt: 8
+      idle: 28
+      user: 23
+      system: 41
+      load_avg:
+        - 0.9700000286102295
+        - 1.0499999523162842
+        - 1.0199999809265137
+    memory_stat:
+      usage: 35
+    module_stat:
+      - vc_role: master
+        model: EX4300-48P
+        serial: PX8716230021
         fans:
           - name: Fan 0
             status: absent
@@ -40,19 +68,7 @@ x-examples:
             neighbor_module_idx: 1
             neighbor_port_id: vcp-255/1/0
 properties:
-  id:
-    type: string
-    minLength: 1
-  site_id:
-    type: string
-    minLength: 1
-  org_id:
-    type: string
-    minLength: 1
   mac:
-    type: string
-    minLength: 1
-  vc_mac:
     type: string
     minLength: 1
   model:
@@ -64,18 +80,93 @@ properties:
   serial:
     type: string
     minLength: 1
+  last_seen:
+    type: number
+  name:
+    type: string
+    minLength: 1
+  hostname:
+    type: string
+    minLength: 1
   status:
     type: string
     minLength: 1
-  members:
+  version:
+    type: string
+    minLength: 1
+  ip:
+    type: string
+    minLength: 1
+  uptime:
+    type: number
+  ip_stat:
+    type: object
+    properties:
+      ip:
+        type: string
+        minLength: 1
+      netmask:
+        type: string
+        minLength: 1
+      gateway:
+        type: string
+        minLength: 1
+      ip6:
+        type: string
+        minLength: 1
+      netmask6:
+        type: string
+        minLength: 1
+      gateway6:
+        type: string
+        minLength: 1
+      dns:
+        type: array
+        items:
+          type: object
+      dns_suffix:
+        type: array
+        items:
+          type: object
+      ips:
+        type: object
+        properties:
+          vlan1:
+            type: string
+            minLength: 1
+          vlan193:
+            type: string
+            minLength: 1
+          vlan3157:
+            type: string
+            minLength: 1
+  cpu_stat:
+    type: object
+    properties:
+      interrupt:
+        type: number
+      idle:
+        type: number
+      user:
+        type: number
+      system:
+        type: number
+      load_avg:
+        type: array
+        items:
+          type: object
+  memory_stat:
+    type: object
+    properties:
+      usage:
+        type: number
+  module_stat:
     type: array
     uniqueItems: true
     minItems: 1
     items:
       type: object
       properties:
-        _idx:
-          type: number
         vc_role:
           type: string
           minLength: 1
@@ -83,9 +174,6 @@ properties:
           type: string
           minLength: 1
         serial:
-          type: string
-          minLength: 1
-        vc_state:
           type: string
           minLength: 1
         fans:
@@ -104,10 +192,6 @@ properties:
               status:
                 type: string
                 minLength: 1
-            required:
-              - name
-              - airflow
-              - status
         temperatures:
           type: array
           uniqueItems: true
@@ -123,10 +207,6 @@ properties:
                 minLength: 1
               celsius:
                 type: number
-            required:
-              - name
-              - status
-              - celsius
         psus:
           type: array
           uniqueItems: true
@@ -140,9 +220,6 @@ properties:
               status:
                 type: string
                 minLength: 1
-            required:
-              - name
-              - status
         poe:
           type: object
           properties:
@@ -150,9 +227,6 @@ properties:
               type: number
             power_draw:
               type: number
-          required:
-            - max_power
-            - power_draw
         vc_links:
           type: array
           uniqueItems: true
@@ -168,41 +242,3 @@ properties:
               neighbor_port_id:
                 type: string
                 minLength: 1
-            required:
-              - port_id
-              - neighbor_module_idx
-              - neighbor_port_id
-      required:
-        - _idx
-        - vc_role
-        - model
-        - serial
-        - vc_state
-  extra_routes:
-    type: object
-    properties:
-      '{dest}':
-        type: object
-        description: CIDR or name from "networks"
-        properties:
-          via:
-            type: string
-            description: next-hop IP Address
-  router_id:
-    type: string
-    description: 'router-id used for OSPF/ BGP, required if ospf_config.enabled=true'
-  ospf_config:
-    $ref: ../junos_objects/junos.ospf_config.v1.yaml
-  vrrp_config:
-    $ref: ../junos_objects/junos.vrrp_config.v1.yaml
-required:
-  - id
-  - site_id
-  - org_id
-  - mac
-  - vc_mac
-  - model
-  - type
-  - serial
-  - status
-  - members

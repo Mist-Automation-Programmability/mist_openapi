@@ -1,4 +1,4 @@
-description: Switch Object
+description: 'You can configure `port_usages` and `networks` settings at the device level, but most of the time it''s better use the Site Setting to achieve better consistency and be able to re-use the same settings across switches entries defined here will "replace" those defined in Site Setting/Network Template'
 type: object
 x-examples:
   device-switch-settings:
@@ -75,6 +75,7 @@ x-examples:
       RADIUS_IP1: 172.31.2.5
     deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
     image1_url: 'https://url/to/image.png'
+title: Switch Configuration
 properties:
   name:
     type: string
@@ -92,9 +93,11 @@ properties:
   oob_ip_config:
     $ref: ./junos_objects/junos.ip_config.v1.yaml
   other_ip_configs:
-    anyOf:
-      - $ref: ./junos_objects/junos.other_ip_configs.v1.yaml
     description: 'optional, if it''s required to have switch''s L3 presense on a network/vlan'
+    type: object
+    properties:
+      '{network_name}':
+        $ref: ./junos_objects/junos.other_ip_configs.v1.yaml
   ntp_servers:
     type: array
     description: |
@@ -102,16 +105,18 @@ properties:
     items:
       type: string
   port_config:
-    anyOf:
-      - $ref: ./junos_objects/junos.port_config.v1.yaml
+    type: object
+    properties:
+      '{port_name_or_range}':
+        $ref: ./junos_objects/junos.port_config.v1.yaml
   radius_config:
     $ref: ./junos_objects/junos.radius_config.v1.yaml
   port_usages:
     type: object
     properties:
-      '':
+      '{profile_name}':
         $ref: ./junos_objects/junos.port_usages.v1.yaml
-      dybamic:
+      dynamic:
         $ref: ./junos_objects/junos.port_usages.dynamic.v1.yaml
   networks:
     $ref: ./junos_objects/junos.networks.v1.yaml
@@ -139,13 +144,19 @@ properties:
     type: string
     minLength: 1
   extra_routes:
-    type: array
-    items:
-      type: object
-      properties:
-        dest:
-          type: string
-          description: CIDR or name from "networks"
-        via:
-          type: string
-          description: ''
+    type: object
+    properties:
+      '{dest}':
+        type: object
+        description: CIDR or name from "networks"
+        properties:
+          via:
+            type: string
+            description: next-hop IP Address
+  router_id:
+    type: string
+    description: 'router-id used for OSPF/ BGP, required if ospf_config.enabled=true'
+  ospf_config:
+    $ref: ./junos_objects/junos.ospf_config.v1.yaml
+  vrrp_config:
+    $ref: ./junos_objects/junos.vrrp_config.v1.yaml
