@@ -1,4 +1,5 @@
 components:
+  responses: {}
   schemas:
     acct_server:
       description: ''
@@ -1310,6 +1311,67 @@ components:
           - role: write
             scope: sitegroup
             sitegroup_id: 581328b6-e382-f54e-c9dc-999983183a34
+    application:
+      properties:
+        app_key:
+          minLength: 1
+          type: string
+        monitored:
+          type: boolean
+        name:
+          minLength: 1
+          type: string
+        specs:
+          properties:
+            hostname:
+              description: ' matched hostnames'
+              items:
+                type: string
+              type: array
+            port_range:
+              description: matched dst port, "0" means any, default is "0"
+              minimum: 0
+              type: integer
+            protocol:
+              default: any
+              description: tcp / udp / icmp / gre / any / ":protocol_number", `protocol_number`
+                is between 1-254, default is `any`
+              enum:
+              - tcp
+              - udp
+              - icmp
+              - gre
+              - any
+              - :protocol_number
+              type: string
+            subnets:
+              description: matched dst subnet, default is "0.0.0.0/0"
+              items:
+                type: string
+              type: array
+          type: object
+      required:
+      - name
+      - app_key
+      - monitored
+      title: application
+      type: object
+      x-examples:
+        custom:
+          app_key: custom
+          monitored: true
+          name: zoom
+          specs:
+          - hostnames:
+            - www.abc.com
+            port_range: '80'
+            protocol: tcp
+            subnets:
+            - 10.1.2.0/24
+        predefined:
+          app_key: zoom
+          monitored: true
+          name: zoom
     asset:
       description: ''
       properties:
@@ -2407,6 +2469,8 @@ components:
                   type: string
               type: object
           type: object
+        gateway_port_usages:
+          $ref: '#/components/schemas/junos.port_usages'
         image1_url:
           minLength: 1
           type: string
@@ -2432,8 +2496,6 @@ components:
         port_forward:
           anyOf:
           - $ref: '#/components/schemas/junos.port_forward'
-        port_usages:
-          $ref: '#/components/schemas/junos.port_usages'
         radius_config:
           $ref: '#/components/schemas/junos.radius_config'
         vars:
@@ -3189,6 +3251,50 @@ components:
           type: string
       title: junos.dhcp
       type: object
+    junos.evpn_config:
+      properties:
+        downlink_ips:
+          items:
+            type: string
+          type: array
+        downlinks:
+          items:
+            type: string
+          type: array
+        enabled:
+          type: boolean
+        evpn_id:
+          description: unique / generated
+          type: integer
+        pod:
+          default: 1
+          type: integer
+        role:
+          type: string
+        uplinks:
+          items:
+            type: string
+          type: array
+      title: site_evpn_config
+      type: object
+    junos.evpn_options:
+      properties:
+        overlay:
+          description: ''
+          properties:
+            as:
+              description: optional, these are defaults
+              type: integer
+          type: object
+        underlay:
+          properties:
+            as_base:
+              type: integer
+            subnet:
+              type: string
+          type: object
+      title: junos.evpn_options
+      type: object
     junos.evpn_tenant:
       properties:
         networks:
@@ -3350,6 +3456,8 @@ components:
         ospf_interface_type:
           type: string
         subnet:
+          description: optional for pure switching, required when L3 / routing features
+            are used
           minLength: 1
           type: string
         vlan_id:
@@ -3394,7 +3502,8 @@ components:
                       type: string
                   type: object
                 auth_password:
-                  description: if auth_type==password
+                  description: "if auth_type==\u2019password\u2019, the password,\
+                    \ max length is 8"
                   minLength: 1
                   type: string
                 auth_type:
@@ -3912,15 +4021,14 @@ components:
           minLength: 1
           type: string
         auth_password:
-          description: if auth_type==password
+          description: if auth_type==simple
           minLength: 1
           type: string
         auth_type:
-          default: none
+          default: md5
           enum:
-          - none
           - md5
-          - password
+          - simple
           minLength: 1
           type: string
         networks:
@@ -6803,6 +6911,8 @@ components:
                 type: string
             type: object
           type: array
+        gateway_port_usages:
+          $ref: '#/components/schemas/junos.port_usages'
         id:
           minLength: 1
           type: string
@@ -6839,8 +6949,6 @@ components:
         port_forward:
           anyOf:
           - $ref: '#/components/schemas/junos.port_forward'
-        port_usages:
-          $ref: '#/components/schemas/junos.port_usages'
         radius_config:
           $ref: '#/components/schemas/junos.radius_config'
         site_id:
@@ -10467,8 +10575,23 @@ components:
           type: object
         auto_upgrade:
           $ref: '#/components/schemas/auto_upgrade'
+        bgp_groups:
+          properties:
+            '{group_id}':
+              properties:
+                type:
+                  default: external
+                  enum:
+                  - external
+                  - internal
+                  type: string
+              type: object
+          type: object
         ble_config:
           $ref: '#/components/schemas/ap.ble'
+        config_auto_revert:
+          description: whether to enable ap auto config revert
+          type: boolean
         created_time:
           type: integer
         device_updown_threshold:
@@ -10485,6 +10608,10 @@ components:
           type: boolean
         engagement:
           $ref: '#/components/schemas/engagement'
+        evpn_config:
+          $ref: '#/components/schemas/junos.evpn_config'
+        evpn_options:
+          $ref: '#/components/schemas/junos.evpn_options'
         evpn_tenants:
           properties:
             '{evpn_tenant}':
@@ -11857,18 +11984,29 @@ components:
             '
           type: number
         dynamic_psk:
-          description: ''
+          description: "for dynamic PSK where we get per-user PSK from Radius\ndynamic_psk\
+            \ allows PSK to be selected at runtime depending on context (wlan/site/user/...)\
+            \ thus following configurations are assumed (currently)\n- PSK will come\
+            \ from RADIUS server\n  - AP sends client MAC as username ans password\
+            \ (i.e. `enable_mac_auth` is assumed)\n  - AP sends BSSID:SSID as Caller-Station-ID\n\
+            - `auth_servers` is required\n- `multi_psk_only` and `psk` is ignored\n\
+            - `pairwise` can only be wpa2-ccmp (for now, wpa3 support on the roadmap)"
           properties:
+            default_vlan_id:
+              type: string
             enabled:
-              description: "for dynamic PSK where we get per-user PSK from Radius\n\
-                dynamic_psk allows PSK to be selected at runtime depending on context\
-                \ (wlan/site/user/...) thus following configurations are assumed (currently)\n\
-                - PSK will come from RADIUS server\n  - AP sends client MAC as username\
-                \ ans password (i.e. `enable_mac_auth` is assumed)\n  - AP sends BSSID:SSID\
-                \ as Caller-Station-ID\n- `auth_servers` is required\n- `multi_psk_only`\
-                \ and `psk` is ignored\n- `pairwise` can only be wpa2-ccmp (for now,\
-                \ wpa3 support on the roadmap)"
+              description: ''
               type: boolean
+            source:
+              default: radius
+              enum:
+              - radius
+              - cloud_psks
+              items:
+                type: integer
+              type: array
+            vlan_ids:
+              type: integer
           type: object
         dynamic_vlan:
           description: 'for 802.1x
@@ -13596,8 +13734,23 @@ components:
           type: object
         auto_upgrade:
           $ref: '#/components/schemas/auto_upgrade'
+        bgp_groups:
+          properties:
+            '{group_id}':
+              properties:
+                type:
+                  default: external
+                  enum:
+                  - external
+                  - internal
+                  type: string
+              type: object
+          type: object
         ble_config:
           $ref: '#/components/schemas/ap.ble'
+        config_auto_revert:
+          description: whether to enable ap auto config revert, default is false
+          type: boolean
         device_updown_threshold:
           description: 'sending AP_DISCONNECTED event in device-updowns only if AP_CONNECTED
             is not seen within the threshold, in minutes, 0 - 30, default is 0
@@ -13612,6 +13765,10 @@ components:
           type: boolean
         engagement:
           $ref: '#/components/schemas/engagement'
+        evpn_config:
+          $ref: '#/components/schemas/junos.evpn_config'
+        evpn_options:
+          $ref: '#/components/schemas/junos.evpn_options'
         evpn_tenants:
           properties:
             '{evpn_tenant}':
@@ -14832,6 +14989,21 @@ components:
           type: object
         cert_expiry:
           type: number
+        env_stat:
+          description: device environment, including CPU temperature, Ambient temperature,
+            Humidity, Attitude, and Pressure
+          properties:
+            ambient_temp:
+              type: integer
+            attitude:
+              type: integer
+            cpu_temp:
+              type: integer
+            humidity:
+              type: integer
+            pressure:
+              type: integer
+          type: object
         ext_ip:
           minLength: 1
           type: string
@@ -19188,18 +19360,29 @@ components:
             '
           type: number
         dynamic_psk:
-          description: ''
+          description: "for dynamic PSK where we get per-user PSK from Radius\ndynamic_psk\
+            \ allows PSK to be selected at runtime depending on context (wlan/site/user/...)\
+            \ thus following configurations are assumed (currently)\n- PSK will come\
+            \ from RADIUS server\n  - AP sends client MAC as username ans password\
+            \ (i.e. `enable_mac_auth` is assumed)\n  - AP sends BSSID:SSID as Caller-Station-ID\n\
+            - `auth_servers` is required\n- `multi_psk_only` and `psk` is ignored\n\
+            - `pairwise` can only be wpa2-ccmp (for now, wpa3 support on the roadmap)"
           properties:
+            default_vlan_id:
+              type: integer
             enabled:
-              description: "for dynamic PSK where we get per-user PSK from Radius\n\
-                dynamic_psk allows PSK to be selected at runtime depending on context\
-                \ (wlan/site/user/...) thus following configurations are assumed (currently)\n\
-                - PSK will come from RADIUS server\n  - AP sends client MAC as username\
-                \ ans password (i.e. `enable_mac_auth` is assumed)\n  - AP sends BSSID:SSID\
-                \ as Caller-Station-ID\n- `auth_servers` is required\n- `multi_psk_only`\
-                \ and `psk` is ignored\n- `pairwise` can only be wpa2-ccmp (for now,\
-                \ wpa3 support on the roadmap)"
+              description: ''
               type: boolean
+            source:
+              default: radius
+              enum:
+              - radius
+              - cloud_psks
+              type: string
+            vlan_ids:
+              items:
+                type: integer
+              type: array
           type: object
         dynamic_vlan:
           description: 'for 802.1x
@@ -20035,9 +20218,7 @@ components:
           type: boolean
         operators:
           description: 'list of operators to support, options: att, google, tmobile,
-            charter, boingo, default is att
-
-            '
+            charter, boingo, hughes_systique, single_digits, global_reach'
           items:
             type: string
           type: array
@@ -21700,11 +21881,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> *Version 0.2.7*
+  description: '> *Version 0.2.8*
 
     >
 
-    > Date: January 18th, 2021
+    > Date: February 2nd, 2021
 
     >
 
@@ -21742,7 +21923,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.2.7
+  version: 0.2.8
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -37971,6 +38152,42 @@ paths:
       required: true
       schema:
         type: string
+  /api/v1/sites/{site_id}/apps:
+    get:
+      operationId: getSiteApplications
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                  - app_key: string
+                    monitored: true
+                    name: string
+                    specs:
+                      hostname:
+                      - string
+                      port_range: 0
+                      protocol: any
+                      subnets:
+                      - string
+              schema:
+                description: ''
+                items:
+                  $ref: '#/components/schemas/application'
+                minItems: 1
+                type: array
+                uniqueItems: true
+          description: OK
+      summary: Get Site Applications
+      tags: []
+    parameters:
+    - in: path
+      name: site_id
+      required: true
+      schema:
+        type: string
   /api/v1/sites/{site_id}/assetfilters:
     get:
       description: Get Site Asset Filters
@@ -43353,6 +43570,29 @@ paths:
                 type: object
           description: Successful response
       summary: pingFromDevice
+      tags:
+      - Sites Devices
+  /api/v1/sites/{site_id}/devices/{device_id}/poll_stats:
+    parameters:
+    - in: path
+      name: site_id
+      required: true
+      schema:
+        type: string
+    - in: path
+      name: device_id
+      required: true
+      schema:
+        type: string
+    post:
+      description: This API can be used to poll statistics from the Switch proactively
+        once. After it is called, the statistics will be pushed back to the cloud
+        within the statistics interval.
+      operationId: pollSiteSwitchStats
+      responses:
+        '200':
+          description: OK
+      summary: pollSiteSwitchStats
       tags:
       - Sites Devices
   /api/v1/sites/{site_id}/devices/{device_id}/restart:
@@ -56538,6 +56778,9 @@ tags:
     Wlans, Policies, Zones.
   name: Sites
 - name: Sites Alarms
+- description: Applications contains a list of applications users are interested in
+    monitoring / routing / policying
+  name: Sites Applications
 - name: Sites Anomaly
 - name: Sites Asset Filters
 - name: Sites Assets
@@ -56584,6 +56827,7 @@ x-tagGroups:
   tags:
   - Sites
   - Sites Alarms
+  - Sites Applications
   - Sites Anomaly
   - Sites Asset Filters
   - Sites Assets
