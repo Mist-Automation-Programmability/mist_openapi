@@ -1,0 +1,100 @@
+import os
+import yaml
+import json
+f_in = "./Mist.openapi_collection.yml"
+f_ou = "./Mist.openapi_bundled.yml"
+f_ou2 = "./Mist.openapi_bundled2.yml"
+fj_out = "./Mist.openapi_bundled.json"
+data = []
+
+
+def replace_ref(line):
+    parts = line.split(":")
+    #print("-{0}-".format(parts[1].split("/")[-2:]))
+    parts[1] = "_".join(parts[1].split("/")[-1:]
+                        ).replace("\n", "").replace(".v1.yaml", "")
+    out_line = "{0}: \'#/components/schemas/{1}\'\n".format(parts[0], parts[1])
+    return out_line
+
+
+def parse_collection():
+    with open(f_in, 'r') as d_in:
+        for line in d_in:
+            out_line = "#ERROR"
+            if "$ref" in line:
+                out_line = replace_ref(line)
+            else:
+                out_line = line
+            data.append(out_line)
+
+    data.append("  schemas:\n")
+
+
+def parse_model(path, file_name):
+    model_path = os.path.join(path, file_name)
+    model_name = file_name.replace(".v1.yaml", "")
+    data.append("    {0}:\n".format(model_name))
+    with open(model_path, "r") as d_in:
+        for line in d_in:
+            out_line = "#ERROR"
+            if "$ref" in line:
+                out_line = replace_ref(line)
+            else:
+                out_line = line
+            data.append("      {0}".format(out_line))
+    data.append("\n")
+
+
+def parse_models():
+    for root, dirs, files in os.walk("./models"):
+        for model in files:
+            if model.index(".") > 0:
+                print(model)
+                parse_model(root, model)
+
+
+def remove_examples(data):
+    for path in data["paths"]:
+        for verb in ["get", "post", "put", "delete"]:
+            if verb in data["paths"][path]:
+                if "responses" in data["paths"][path][verb]:
+                    for response in data["paths"][path][verb]["responses"]:
+                        if "content" in data["paths"][path][verb]["responses"][response] and "application/json" in data["paths"][path][verb]["responses"][response]["content"] and "examples" in data["paths"][path][verb]["responses"][response]["content"]["application/json"]:
+                            del data["paths"][path][verb]["responses"][response]["content"]["application/json"]["examples"]
+                if "requestBody" in data["paths"][path][verb] and "content" in data["paths"][path][verb]["requestBody"] and "application/json" in data["paths"][path][verb]["requestBody"]["content"] and "examples" in data["paths"][path][verb]["requestBody"]["content"]["application/json"]:
+                    del data["paths"][path][verb]["requestBody"]["content"]["application/json"]["examples"]
+    for schema in data["components"]["schemas"]:
+        if "x-examples" in data["components"]["schemas"][schema]:
+            del data["components"]["schemas"][schema]["x-examples"]
+        if "properties" in data["components"]["schemas"][schema]:
+            if "x-examples" in data["components"]["schemas"][schema]["properties"]:
+                del data["components"]["schemas"][schema]["properties"]["x-examples"]
+    return data
+
+print("---> Opening collection")
+parse_collection()
+print("---> Opening models")
+parse_models()
+print("---> loading done")
+
+print("---> #1")
+with open(f_ou, 'w') as out:
+    for line in data:
+        out.write("{0}".format(line))
+
+print("---> #2")
+with open(f_ou, 'r') as out:
+    y_data = yaml.load(out, Loader=yaml.FullLoader)
+print("---> #3")
+with open(f_ou, 'w') as out:
+    yaml.dump( y_data, out)
+
+print("---> #4")
+with open(fj_out, 'w') as out:
+    json.dump( y_data, out)
+
+# with open(f_ou, "r") as out:
+#     data = yaml.load(out, Loader=yaml.FullLoader)
+#     data = remove_examples(data)
+# with open(f_ou2, 'w') as out:
+#     yaml.dump(data, out)
