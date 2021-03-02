@@ -164,35 +164,36 @@ x-examples:
     ssh_keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAA...Wxa6p6UW0ZbcP john@host
     mxtunnel:
-      enabled: false
-      vlan_ids:
-        - 3
-        - 5
-        - 6
-      ap_subnets: 0.0.0.0/0
-      protocol: udp
-      mtu: 1100
-      clusters:
-        - name: primary
-          tunterm_hosts:
-            - mxedge1
-            - mxedge2.local
-      hello_interval: 60
-      hello_retries: 3
-      radsec:
-        enabled: true
-        auth_servers:
-          - host: 1.2.3.4
-            port: 1812
-            secret: testing123
-          - host: radius.internal
-            port: 1812
-            secret: testing123
-        acct_servers:
-          - host: 1.2.3.4
-            port: 1812
-            secret: testing123
-        use_mxedge: true
+      default:
+        enabled: false
+        vlan_ids:
+          - 3
+          - 5
+          - 6
+        ap_subnets: 0.0.0.0/0
+        protocol: udp
+        mtu: 1100
+        clusters:
+          - name: primary
+            tunterm_hosts:
+              - mxedge1
+              - mxedge2.local
+        hello_interval: 60
+        hello_retries: 3
+        radsec:
+          enabled: true
+          auth_servers:
+            - host: 1.2.3.4
+              port: 1812
+              secret: testing123
+            - host: radius.internal
+              port: 1812
+              secret: testing123
+          acct_servers:
+            - host: 1.2.3.4
+              port: 1812
+              secret: testing123
+          use_mxedge: true
     gateway_mgmt:
       app_usage: false
     skyatp:
@@ -203,11 +204,12 @@ x-examples:
       config_revert_timer: 10
     ntp_servers:
       - pool.ntp.org
-    ip_config:
-      dns:
-        - 8.8.8.8
-      dns_suffix:
-        - .mist.local
+    dns_servers:
+      - 8.8.8.8
+      - 4.4.4.4
+    dns_suffix:
+      - .mist.local
+      - .mist.com
     networks:
       default:
         vlan_id: 1
@@ -400,6 +402,8 @@ properties:
     $ref: ./ap_objects/ap_led.v1.yaml
   vars:
     type: object
+    additionalProperties:
+      type: string
   auto_upgrade:
     $ref: ./site_objects/site_auto_upgrade.v1.yaml
   status_portal:
@@ -425,6 +429,8 @@ properties:
   flags:
     type: object
     description: name/val pair objects for location engine to use
+    additionalProperties:
+      type: any
   ble_config:
     $ref: ./ap_objects/ap_ble.v1.yaml
   wids:
@@ -442,6 +448,9 @@ properties:
     items:
       type: string
       description: ''
+  config_auto_revert:
+    type: boolean
+    description: 'whether to enable ap auto config revert, default is false'
   mxtunnel:
     type: object
     additionalProperties:
@@ -462,26 +471,20 @@ properties:
     description: list of NTP servers
     items:
       type: string
-  ip_config:
-    $ref: ./junos_objects/junos_ip_config.v1.yaml
+  dns_servers:
+    type: array
+    description: list of NTP servers
+    items:
+      type: string
+  dns_suffix:
+    type: array
+    description: list of NTP servers
+    items:
+      type: string
   networks:
     type: object
     additionalProperties:
       $ref: ./junos_objects/junos_networks.v1.yaml
-  oob_ip_config:
-    $ref: ./junos_objects/junos_ip_config.v1.yaml
-  other_ip_configs:
-    $ref: ./junos_objects/junos_other_ip_configs.v1.yaml
-  routings:
-    anyOf:
-      - properties:
-          networks:
-            type: array
-            items:
-              type: string
-          ospf:
-            type: object
-    type: object
   port_usages:
     type: object
     additionalProperties:
@@ -493,54 +496,18 @@ properties:
     $ref: ./junos_objects/junos_radius_config.v1.yaml
   switch_matching:
     $ref: ./template_switch/template_switch.matching.v1.yaml
-  additional_config_cmds:
     type: array
     description: 'additional CLI commands to append to the generated switches config '
     items:
       type: string
-  report_gatt:
-    type: boolean
-    description: 'default is false; whether AP should periodically connect to BLE devices and report GATT device info (device name, manufacturer name, serial number, battery %, temperature, humidity)'
-  track_anonymous_devices:
-    description: default is false; whether to track anonymous BLE assets (requires ‘track_asset’ enabled)
-    type: boolean
-  track_asset:
-    type: boolean
-    description: 'enable Asset Tracking, default is false (using SUB-AST license)'
-  vna:
-    type: object
-    description: this applied to AP / Switch / Gateway
-    properties:
-      enabled:
-        type: boolean
-        description: 'enable Virtual Network Assistant, default is false (using SUB-VNA license)'
+  additional_config_cmds:
+    type: array
+    items:
+      type: string
   ospf_areas:
     type: object
     additionalProperties:
       $ref: ./junos_objects/junos_ospf_areas.v1.yaml
-  vrrp_groups:
-    type: object
-    additionalProperties:
-      $ref: ./junos_objects/junos_vrrp_group.v1.yaml
-  evpn_tenants:
-    type: object
-    additionalProperties:
-      $ref: ./junos_objects/junos_evpn_tenant.v1.yaml
-  zones:
-    type: object
-    additionalProperties:
-      $ref: ./junos_objects/junos_gateway_zone.v1.yaml
-  web_filtering:
-    type: object
-  screen:
-    type: object
-  evpn_options:
-    $ref: ./junos_objects/junos_evpn_options.v1.yaml
-  evpn_config:
-    $ref: ./junos_objects/junos_evpn_config.v1.yaml
-  config_auto_revert:
-    type: boolean
-    description: 'whether to enable ap auto config revert, default is false'
   bgp_groups:
     type: object
     additionalProperties:
@@ -552,3 +519,26 @@ properties:
           enum:
             - external
             - internal
+  vrrp_groups:
+    type: object
+    additionalProperties:
+      $ref: ./junos_objects/junos_vrrp_group.v1.yaml
+  vrf_instances:
+    type: object
+    additionalProperties:
+  evpn_options:
+    $ref: ./junos_objects/junos_evpn_options.v1.yaml
+  gateway_port_usages:
+    type: object
+    description: |-
+      gateway specific
+      for SRX, where multiple ports can be switching and IRB is created
+      for the L3 purpose
+    additionalProperties:
+      $ref: ./junos_objects/junos_gateway_port_config.v1.yaml
+  report_gatt:
+    type: boolean
+    description: 'default is false; whether AP should periodically connect to BLE devices and report GATT device info (device name, manufacturer name, serial number, battery %, temperature, humidity)'
+  track_anonymous_devices:
+    description: default is false; whether to track anonymous BLE assets (requires ‘track_asset’ enabled)
+    type: boolean

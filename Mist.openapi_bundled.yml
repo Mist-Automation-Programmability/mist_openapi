@@ -9,9 +9,9 @@ info:
     email: tmunzer@juniper.net
     name: Thomas Munzer
   description: |
-    > *Version 0.2.8*
+    > *Version 0.2.9*
     >
-    > Date: February 2nd, 2021
+    > Date: February 26th, 2021
     >
 
     *This is still a Work In Progress.*
@@ -1274,35 +1274,6 @@ paths:
           content:
             application/json: {}
           description: Successful response
-        '400':
-          content:
-            application/json:
-              examples:
-                password policy not met:
-                  value:
-                    detail: password policy not met
-                    min_length: 8
-                    requires_special_char: false
-                two factor not enabled:
-                  value:
-                    detail: two factor not enabled
-                    requires_two_factor_auth: true
-              schema:
-                description: ''
-                properties:
-                  detail:
-                    minLength: 1
-                    type: string
-                  min_length:
-                    type: integer
-                  requires_special_char:
-                    type: boolean
-                  requires_two_factor_auth:
-                    type: boolean
-                required:
-                  - detail
-                type: object
-          description: Bad Request
         '404':
           content:
             application/json:
@@ -9032,7 +9003,7 @@ paths:
                         subnet: string
                         vlan_id: 0
                       port_usages:
-                        '':
+                        default:
                           all_networks: true
                           bypass_auth_when_server_down: true
                           description: string
@@ -9080,10 +9051,11 @@ paths:
                             match_role: string
                             name: string
                             port_config:
-                              aggregated: true
-                              description: string
-                              dynamic_usage: true
-                              usage: string
+                              ge-0/0/0:
+                                aggregated: true
+                                description: string
+                                dynamic_usage: true
+                                usage: string
                       switch_mgmt:
                         config_revert_timer: 0
               schema:
@@ -17005,7 +16977,7 @@ paths:
                     ip: string
                     netmask: string
                   wan2_ip_config:
-                    type: string
+                    type: static
                     ip: string
                     netmask: string
                     gateway: string
@@ -17027,7 +16999,7 @@ paths:
                         - string
                       gateway: string
                   oob_ip_config:
-                    type: string
+                    type: dynamic
                     ip: string
                     netmask: string
                     gateway: string
@@ -20377,7 +20349,7 @@ paths:
           description: Successful response
       summary: arpFromDevice
       tags:
-        - Sites Devices
+        - Sites Devices Utilities
   '/api/v1/sites/{site_id}/devices/{device_id}/bounce_port':
     parameters:
       - in: path
@@ -20421,7 +20393,7 @@ paths:
           description: Successful response
       summary: portsBounceFromSwitch
       tags:
-        - Sites Devices
+        - Sites Devices Utilities
   '/api/v1/sites/{site_id}/devices/{device_id}/cable_test':
     parameters:
       - in: path
@@ -20461,7 +20433,7 @@ paths:
           description: Successful response
       summary: cableTestFromSwitch
       tags:
-        - Sites Devices
+        - Sites Devices Utilities
   '/api/v1/sites/{site_id}/devices/{device_id}/iot':
     get:
       description: Returns the current state of each enabled IoT pin configured as an output.
@@ -20622,7 +20594,7 @@ paths:
           description: Successful response
       summary: pingFromDevice
       tags:
-        - Sites Devices
+        - Sites Devices Utilities
   '/api/v1/sites/{site_id}/devices/{device_id}/restart':
     parameters:
       - in: path
@@ -20657,7 +20629,17 @@ paths:
         schema:
           type: string
     post:
-      description: Support / Upload device support files
+      description: |-
+        Support / Upload device support files
+
+        #### Info Param
+        **Parameter**|**Type**|**Description** 
+         :-------------: |:-------------: |:-------------: 
+        process|string|Upload 1 file with output of show system processes extensive
+        outbound-ssh|string|Upload 1 file that concatenates all /var/log/outbound-ssh.log* files
+        messages|string|Upload 1 to 10 /var/log/messages* files
+        core-dumps|string|Upload all core dump files, if any
+        full|string|Upload 1 file with output of request support information, 1 file that concatenates all /var/log/outbound-ssh.log files, all core dump files, and the 3 most recent /var/log/messages files
       operationId: uploadSiteDeviceSupportFile
       requestBody:
         content:
@@ -20668,6 +20650,7 @@ paths:
                   info: full
             schema:
               description: ''
+              type: object
               properties:
                 info:
                   default: full
@@ -20678,7 +20661,12 @@ paths:
                     - full
                   minLength: 1
                   type: string
-              type: object
+                num_messages_files:
+                  type: integer
+                  description: 'optional: number of most recent messages files to upload, default is 1, max is 10'
+                  minimum: 1
+                  maximum: 10
+                  default: 1
         description: Request Body
       responses:
         '200':
@@ -20749,7 +20737,7 @@ paths:
           description: Successful response
       summary: tracerouteFromDevice
       tags:
-        - Sites Devices
+        - Sites Devices Utilities
   '/api/v1/sites/{site_id}/devices/{device_id}/unlocate':
     parameters:
       - in: path
@@ -24974,40 +24962,42 @@ paths:
                       enabled: true
                     modified_time: 0
                     mxtunnel:
-                      ap_subnets:
-                        - string
-                      clusters:
-                        - name: string
-                          tunterm_hosts:
-                            - string
-                      enabled: true
-                      hello_interval: 1
-                      hello_retries: 2
-                      hosts:
-                        - string
-                      mtu: 0
-                      protocol: udp
-                      radsec:
-                        acct_servers:
-                          - host: string
-                            port: 0
-                            secret: string
-                        auth_servers:
-                          - host: string
-                            port: 0
-                            secret: string
+                      default:
+                        ap_subnets:
+                          - string
+                        clusters:
+                          - name: string
+                            tunterm_hosts:
+                              - string
                         enabled: true
-                        use_mxedge: true
-                      vlan_ids:
-                        - 0
+                        hello_interval: 1
+                        hello_retries: 2
+                        hosts:
+                          - string
+                        mtu: 0
+                        protocol: udp
+                        radsec:
+                          acct_servers:
+                            - host: string
+                              port: 0
+                              secret: string
+                          auth_servers:
+                            - host: string
+                              port: 0
+                              secret: string
+                          enabled: true
+                          use_mxedge: true
+                        vlan_ids:
+                          - 0
+                    dns_servers:
+                      - string
+                    dns_suffix:
+                      - string
                     networks:
-                      dns:
-                        - string
-                      dns_suffix:
-                        - string
-                      gateway: string
-                      subnet: string
-                      vlan_id: 0
+                      default:
+                        gateway: string
+                        subnet: string
+                        vlan_id: 0
                     ntp_servers:
                       - string
                     occupancy:
@@ -25154,17 +25144,18 @@ paths:
                     switch_matching:
                       enable: true
                       rules:
-                        - additional_config_cmds:
-                            - string
-                          match_model: string
-                          'match_name[0:3]': string
-                          match_role: string
-                          name: string
-                          port_config:
-                            aggregated: true
-                            description: string
-                            dynamic_usage: true
-                            usage: string
+                        - ge-0/0/0:
+                            additional_config_cmds:
+                              - string
+                            match_model: string
+                            'match_name[0:3]': string
+                            match_role: string
+                            name: string
+                            port_config:
+                              aggregated: true
+                              description: string
+                              dynamic_usage: true
+                              usage: string
                     switch_mgmt:
                       config_revert_timer: 1
                       root_password: string
@@ -35676,6 +35667,1174 @@ paths:
                           - string
                         port_range: 0
       operationId: getSiteApplications
+  '/api/v1/orgs/[org_id}/networks':
+    get:
+      summary: getOrgNetworks
+      tags:
+        - Orgs Networks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/network'
+              examples:
+                example-1:
+                  value:
+                    - name: guest
+                      vlan_id: 70
+                      subnet: 192.168.70.0/24
+      operationId: getOrgNetworks
+      description: Get Organization Networks
+    post:
+      summary: createOrgNetwork
+      operationId: createOrgNetwork
+      tags:
+        - Orgs Networks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/network'
+              examples:
+                example-1:
+                  value:
+                    id: string
+                    org_id: string
+                    created_time: 0
+                    modified_time: 0
+                    name: string
+                    vlan_id: 0
+                    subnet: string
+      description: Create Organization Network
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/network'
+            examples:
+              example-1:
+                value:
+                  name: guest
+                  vlan_id: 70
+                  subnet: 192.168.70.0/24
+  '/api/v1/orgs/[org_id}/networks/{network_id}':
+    parameters:
+      - schema:
+          type: string
+        name: network_id
+        in: path
+        required: true
+    put:
+      summary: updateOrgNetwork
+      operationId: updateOrgNetwork
+      tags:
+        - Orgs Networks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/network'
+              examples:
+                example-1:
+                  value:
+                    id: string
+                    org_id: string
+                    created_time: 0
+                    modified_time: 0
+                    name: string
+                    vlan_id: 0
+                    subnet: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/network'
+            examples:
+              example-1:
+                value:
+                  name: string
+                  vlan_id: 0
+                  subnet: string
+      description: Update Organization Network
+    delete:
+      summary: deleteOrgNetwork
+      operationId: deleteOrgNetwork
+      tags:
+        - Orgs Networks
+      responses:
+        '200':
+          description: OK
+      description: Delete Organization Network
+  '/api/v1/orgs/{org_id}/gatewaytemplates':
+    parameters:
+      - schema:
+          type: string
+        name: org_id
+        in: path
+        required: true
+    get:
+      summary: getOrgGatewayTemplates
+      tags:
+        - Orgs Gateway Templates
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/gatewaytemplate'
+              examples:
+                example-1:
+                  value:
+                    - name: string
+                      networks:
+                        property1:
+                          id: string
+                          org_id: string
+                          created_time: 0
+                          modified_time: 0
+                          name: string
+                          vlan_id: 0
+                          subnet: string
+                        property2:
+                          id: string
+                          org_id: string
+                          created_time: 0
+                          modified_time: 0
+                          name: string
+                          vlan_id: 0
+                          subnet: string
+                      port_usage:
+                        property1:
+                          mode: access
+                          all_networks: true
+                          stp_edge: true
+                          port_network: string
+                          mtu: 0
+                          networks:
+                            - string
+                          disabled: true
+                          description: string
+                          voip_network: string
+                          port_auth: string
+                          enable_mac_auth: true
+                          bypass_auth_when_server_down: true
+                          guest_network: string
+                          speed: string
+                          duplex: half
+                          disable_autoneg: true
+                          mac_limit: 0
+                          poe_disabled: true
+                          storm_control:
+                            percentage: 0
+                            no_broadcast: true
+                            "no_unknown_unicast\t": true
+                            no_multicast: true
+                            no_registered_multicast: true
+                          enable_qos: true
+                          dynamic_vlan:
+                            enabled: true
+                            type: standard
+                            networks:
+                              property1: 0
+                              property2: 0
+                            default_network: 0
+                        property2:
+                          mode: access
+                          all_networks: true
+                          stp_edge: true
+                          port_network: string
+                          mtu: 0
+                          networks:
+                            - string
+                          disabled: true
+                          description: string
+                          voip_network: string
+                          port_auth: string
+                          enable_mac_auth: true
+                          bypass_auth_when_server_down: true
+                          guest_network: string
+                          speed: string
+                          duplex: half
+                          disable_autoneg: true
+                          mac_limit: 0
+                          poe_disabled: true
+                          storm_control:
+                            percentage: 0
+                            no_broadcast: true
+                            "no_unknown_unicast\t": true
+                            no_multicast: true
+                            no_registered_multicast: true
+                          enable_qos: true
+                          dynamic_vlan:
+                            enabled: true
+                            type: standard
+                            networks:
+                              property1: 0
+                              property2: 0
+                            default_network: 0
+                      port_config:
+                        property1:
+                          usage: string
+                          aggregated: true
+                          description: string
+                          dynamic_usage: true
+                          ae_idx: 0
+                          ae_disable_lacp: true
+                          esilag: true
+                        property2:
+                          usage: string
+                          aggregated: true
+                          description: string
+                          dynamic_usage: true
+                          ae_idx: 0
+                          ae_disable_lacp: true
+                          esilag: true
+                      ip_configs:
+                        property1: {}
+                        property2: {}
+                      dhcpd_config:
+                        enabled: true
+                        property1:
+                          type: local
+                          ip_start: 192.168.0.1
+                          ip_end: 192.168.0.1
+                          gateway: 192.168.0.1
+                          dns_servers:
+                            - 192.168.0.1
+                          dns_suffix:
+                            - string
+                          fixed_bindings: {}
+                          servers:
+                            - 192.168.0.1
+                        property2:
+                          type: local
+                          ip_start: 192.168.0.1
+                          ip_end: 192.168.0.1
+                          gateway: 192.168.0.1
+                          dns_servers:
+                            - 192.168.0.1
+                          dns_suffix:
+                            - string
+                          fixed_bindings: {}
+                          servers:
+                            - 192.168.0.1
+                      gateway_matching:
+                        enable: true
+                        rules:
+                          - name: string
+                            'match_name[0:3]': string
+                            match_model: string
+                            port_config:
+                              property1:
+                                usage: string
+                                aggregated: true
+                                description: string
+                                dynamic_usage: true
+                                ae_idx: 0
+                                ae_disable_lacp: true
+                                esilag: true
+                              property2:
+                                usage: string
+                                aggregated: true
+                                description: string
+                                dynamic_usage: true
+                                ae_idx: 0
+                                ae_disable_lacp: true
+                                esilag: true
+                            additional_config_cmds:
+                              - string
+                            match_role: string
+      operationId: getOrgGatewayTemplates
+      description: Get Organization Gateway Templates
+    post:
+      summary: createOrgGatewayTemplate
+      operationId: createOrgGatewayTemplate
+      tags:
+        - Orgs Gateway Templates
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/gatewaytemplate'
+              examples:
+                example-1:
+                  value:
+                    id: string
+                    org_id: string
+                    created_time: 0
+                    modified_time: 0
+                    name: string
+                    networks:
+                      property1:
+                        id: string
+                        org_id: string
+                        created_time: 0
+                        modified_time: 0
+                        name: string
+                        vlan_id: 0
+                        subnet: string
+                      property2:
+                        id: string
+                        org_id: string
+                        created_time: 0
+                        modified_time: 0
+                        name: string
+                        vlan_id: 0
+                        subnet: string
+                    port_usage:
+                      property1:
+                        mode: access
+                        all_networks: true
+                        stp_edge: true
+                        port_network: string
+                        mtu: 0
+                        networks:
+                          - string
+                        disabled: true
+                        description: string
+                        voip_network: string
+                        port_auth: string
+                        enable_mac_auth: true
+                        bypass_auth_when_server_down: true
+                        guest_network: string
+                        speed: string
+                        duplex: half
+                        disable_autoneg: true
+                        mac_limit: 0
+                        poe_disabled: true
+                        storm_control:
+                          percentage: 0
+                          no_broadcast: true
+                          "no_unknown_unicast\t": true
+                          no_multicast: true
+                          no_registered_multicast: true
+                        enable_qos: true
+                        dynamic_vlan:
+                          enabled: true
+                          type: standard
+                          networks:
+                            property1: 0
+                            property2: 0
+                          default_network: 0
+                      property2:
+                        mode: access
+                        all_networks: true
+                        stp_edge: true
+                        port_network: string
+                        mtu: 0
+                        networks:
+                          - string
+                        disabled: true
+                        description: string
+                        voip_network: string
+                        port_auth: string
+                        enable_mac_auth: true
+                        bypass_auth_when_server_down: true
+                        guest_network: string
+                        speed: string
+                        duplex: half
+                        disable_autoneg: true
+                        mac_limit: 0
+                        poe_disabled: true
+                        storm_control:
+                          percentage: 0
+                          no_broadcast: true
+                          "no_unknown_unicast\t": true
+                          no_multicast: true
+                          no_registered_multicast: true
+                        enable_qos: true
+                        dynamic_vlan:
+                          enabled: true
+                          type: standard
+                          networks:
+                            property1: 0
+                            property2: 0
+                          default_network: 0
+                    port_config:
+                      property1:
+                        usage: string
+                        aggregated: true
+                        description: string
+                        dynamic_usage: true
+                        ae_idx: 0
+                        ae_disable_lacp: true
+                        esilag: true
+                      property2:
+                        usage: string
+                        aggregated: true
+                        description: string
+                        dynamic_usage: true
+                        ae_idx: 0
+                        ae_disable_lacp: true
+                        esilag: true
+                    ip_configs:
+                      property1: {}
+                      property2: {}
+                    dhcpd_config:
+                      enabled: true
+                      property1:
+                        type: local
+                        ip_start: 192.168.0.1
+                        ip_end: 192.168.0.1
+                        gateway: 192.168.0.1
+                        dns_servers:
+                          - 192.168.0.1
+                        dns_suffix:
+                          - string
+                        fixed_bindings: {}
+                        servers:
+                          - 192.168.0.1
+                      property2:
+                        type: local
+                        ip_start: 192.168.0.1
+                        ip_end: 192.168.0.1
+                        gateway: 192.168.0.1
+                        dns_servers:
+                          - 192.168.0.1
+                        dns_suffix:
+                          - string
+                        fixed_bindings: {}
+                        servers:
+                          - 192.168.0.1
+                    gateway_matching:
+                      enable: true
+                      rules:
+                        - name: string
+                          'match_name[0:3]': string
+                          match_model: string
+                          port_config:
+                            property1:
+                              usage: string
+                              aggregated: true
+                              description: string
+                              dynamic_usage: true
+                              ae_idx: 0
+                              ae_disable_lacp: true
+                              esilag: true
+                            property2:
+                              usage: string
+                              aggregated: true
+                              description: string
+                              dynamic_usage: true
+                              ae_idx: 0
+                              ae_disable_lacp: true
+                              esilag: true
+                          additional_config_cmds:
+                            - string
+                          match_role: string
+      description: Create Org Gateway Template
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/gatewaytemplate'
+            examples:
+              example-1:
+                value:
+                  name: string
+                  networks:
+                    property1:
+                      id: string
+                      org_id: string
+                      created_time: 0
+                      modified_time: 0
+                      name: string
+                      vlan_id: 0
+                      subnet: string
+                    property2:
+                      id: string
+                      org_id: string
+                      created_time: 0
+                      modified_time: 0
+                      name: string
+                      vlan_id: 0
+                      subnet: string
+                  port_usage:
+                    property1:
+                      mode: access
+                      all_networks: true
+                      stp_edge: true
+                      port_network: string
+                      mtu: 0
+                      networks:
+                        - string
+                      disabled: true
+                      description: string
+                      voip_network: string
+                      port_auth: string
+                      enable_mac_auth: true
+                      bypass_auth_when_server_down: true
+                      guest_network: string
+                      speed: string
+                      duplex: half
+                      disable_autoneg: true
+                      mac_limit: 0
+                      poe_disabled: true
+                      storm_control:
+                        percentage: 0
+                        no_broadcast: true
+                        "no_unknown_unicast\t": true
+                        no_multicast: true
+                        no_registered_multicast: true
+                      enable_qos: true
+                      dynamic_vlan:
+                        enabled: true
+                        type: standard
+                        networks:
+                          property1: 0
+                          property2: 0
+                        default_network: 0
+                    property2:
+                      mode: access
+                      all_networks: true
+                      stp_edge: true
+                      port_network: string
+                      mtu: 0
+                      networks:
+                        - string
+                      disabled: true
+                      description: string
+                      voip_network: string
+                      port_auth: string
+                      enable_mac_auth: true
+                      bypass_auth_when_server_down: true
+                      guest_network: string
+                      speed: string
+                      duplex: half
+                      disable_autoneg: true
+                      mac_limit: 0
+                      poe_disabled: true
+                      storm_control:
+                        percentage: 0
+                        no_broadcast: true
+                        "no_unknown_unicast\t": true
+                        no_multicast: true
+                        no_registered_multicast: true
+                      enable_qos: true
+                      dynamic_vlan:
+                        enabled: true
+                        type: standard
+                        networks:
+                          property1: 0
+                          property2: 0
+                        default_network: 0
+                  port_config:
+                    property1:
+                      usage: string
+                      aggregated: true
+                      description: string
+                      dynamic_usage: true
+                      ae_idx: 0
+                      ae_disable_lacp: true
+                      esilag: true
+                    property2:
+                      usage: string
+                      aggregated: true
+                      description: string
+                      dynamic_usage: true
+                      ae_idx: 0
+                      ae_disable_lacp: true
+                      esilag: true
+                  ip_configs:
+                    property1: {}
+                    property2: {}
+                  dhcpd_config:
+                    enabled: true
+                    property1:
+                      type: local
+                      ip_start: 192.168.0.1
+                      ip_end: 192.168.0.1
+                      gateway: 192.168.0.1
+                      dns_servers:
+                        - 192.168.0.1
+                      dns_suffix:
+                        - string
+                      fixed_bindings: {}
+                      servers:
+                        - 192.168.0.1
+                    property2:
+                      type: local
+                      ip_start: 192.168.0.1
+                      ip_end: 192.168.0.1
+                      gateway: 192.168.0.1
+                      dns_servers:
+                        - 192.168.0.1
+                      dns_suffix:
+                        - string
+                      fixed_bindings: {}
+                      servers:
+                        - 192.168.0.1
+                  gateway_matching:
+                    enable: true
+                    rules:
+                      - name: string
+                        'match_name[0:3]': string
+                        match_model: string
+                        port_config:
+                          property1:
+                            usage: string
+                            aggregated: true
+                            description: string
+                            dynamic_usage: true
+                            ae_idx: 0
+                            ae_disable_lacp: true
+                            esilag: true
+                          property2:
+                            usage: string
+                            aggregated: true
+                            description: string
+                            dynamic_usage: true
+                            ae_idx: 0
+                            ae_disable_lacp: true
+                            esilag: true
+                        additional_config_cmds:
+                          - string
+                        match_role: string
+        description: Gateway Template
+  '/api/v1/orgs/{org_id}/gatewaytemplates/{gatewaytemplate_id}':
+    parameters:
+      - schema:
+          type: string
+        name: org_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: gatewaytemplate_id
+        in: path
+        required: true
+    put:
+      summary: updateOrgGatewayTemplate
+      operationId: updateOrgGatewayTemplate
+      tags:
+        - Orgs Gateway Templates
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/gatewaytemplate'
+      description: Update Organization Gateway Template
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/gatewaytemplate'
+            examples:
+              example-1:
+                value:
+                  name: string
+                  networks:
+                    property1:
+                      id: string
+                      org_id: string
+                      created_time: 0
+                      modified_time: 0
+                      name: string
+                      vlan_id: 0
+                      subnet: string
+                    property2:
+                      id: string
+                      org_id: string
+                      created_time: 0
+                      modified_time: 0
+                      name: string
+                      vlan_id: 0
+                      subnet: string
+                  port_usage:
+                    property1:
+                      mode: access
+                      all_networks: true
+                      stp_edge: true
+                      port_network: string
+                      mtu: 0
+                      networks:
+                        - string
+                      disabled: true
+                      description: string
+                      voip_network: string
+                      port_auth: string
+                      enable_mac_auth: true
+                      bypass_auth_when_server_down: true
+                      guest_network: string
+                      speed: string
+                      duplex: half
+                      disable_autoneg: true
+                      mac_limit: 0
+                      poe_disabled: true
+                      storm_control:
+                        percentage: 0
+                        no_broadcast: true
+                        "no_unknown_unicast\t": true
+                        no_multicast: true
+                        no_registered_multicast: true
+                      enable_qos: true
+                      dynamic_vlan:
+                        enabled: true
+                        type: standard
+                        networks:
+                          property1: 0
+                          property2: 0
+                        default_network: 0
+                    property2:
+                      mode: access
+                      all_networks: true
+                      stp_edge: true
+                      port_network: string
+                      mtu: 0
+                      networks:
+                        - string
+                      disabled: true
+                      description: string
+                      voip_network: string
+                      port_auth: string
+                      enable_mac_auth: true
+                      bypass_auth_when_server_down: true
+                      guest_network: string
+                      speed: string
+                      duplex: half
+                      disable_autoneg: true
+                      mac_limit: 0
+                      poe_disabled: true
+                      storm_control:
+                        percentage: 0
+                        no_broadcast: true
+                        "no_unknown_unicast\t": true
+                        no_multicast: true
+                        no_registered_multicast: true
+                      enable_qos: true
+                      dynamic_vlan:
+                        enabled: true
+                        type: standard
+                        networks:
+                          property1: 0
+                          property2: 0
+                        default_network: 0
+                  port_config:
+                    property1:
+                      usage: string
+                      aggregated: true
+                      description: string
+                      dynamic_usage: true
+                      ae_idx: 0
+                      ae_disable_lacp: true
+                      esilag: true
+                    property2:
+                      usage: string
+                      aggregated: true
+                      description: string
+                      dynamic_usage: true
+                      ae_idx: 0
+                      ae_disable_lacp: true
+                      esilag: true
+                  ip_configs:
+                    property1: {}
+                    property2: {}
+                  dhcpd_config:
+                    enabled: true
+                    property1:
+                      type: local
+                      ip_start: 192.168.0.1
+                      ip_end: 192.168.0.1
+                      gateway: 192.168.0.1
+                      dns_servers:
+                        - 192.168.0.1
+                      dns_suffix:
+                        - string
+                      fixed_bindings: {}
+                      servers:
+                        - 192.168.0.1
+                    property2:
+                      type: local
+                      ip_start: 192.168.0.1
+                      ip_end: 192.168.0.1
+                      gateway: 192.168.0.1
+                      dns_servers:
+                        - 192.168.0.1
+                      dns_suffix:
+                        - string
+                      fixed_bindings: {}
+                      servers:
+                        - 192.168.0.1
+                  gateway_matching:
+                    enable: true
+                    rules:
+                      - name: string
+                        'match_name[0:3]': string
+                        match_model: string
+                        port_config:
+                          property1:
+                            usage: string
+                            aggregated: true
+                            description: string
+                            dynamic_usage: true
+                            ae_idx: 0
+                            ae_disable_lacp: true
+                            esilag: true
+                          property2:
+                            usage: string
+                            aggregated: true
+                            description: string
+                            dynamic_usage: true
+                            ae_idx: 0
+                            ae_disable_lacp: true
+                            esilag: true
+                        additional_config_cmds:
+                          - string
+                        match_role: string
+        description: Gateway Template
+    delete:
+      summary: deleteOrgGatewayTemplate
+      operationId: deleteOrgGatewayTemplate
+      responses:
+        '200':
+          description: OK
+      description: Delete Organization Gateway Template
+      tags:
+        - Orgs Gateway Templates
+  '/api/v1/orgs/{org_id}/sites/search':
+    parameters:
+      - schema:
+          type: string
+        name: org_id
+        in: path
+        required: true
+    get:
+      summary: searchOrgSites
+      tags:
+        - Orgs Sites
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/site'
+              examples:
+                example-1:
+                  value:
+                    results:
+                      - rogue_enabled: true
+                        honeypot_enabled: true
+                        mesh_enabled: true
+                        locate_unconnected: true
+                        wifi_enabled: true
+                        timezone: America/Los_Angeles
+                        radio_config.band_24_band: auto
+                        radio_config.band_24:
+                          allow_rrm_disable: true
+                          disabled: false
+                        country_code: US
+                        timestamp: 1613674438.508053
+                        org_id: 3139f2c2-fac6-11e5-8156-0242ac110006
+                        site_id: 70e0f468-fc13-11e5-85ad-0242ac110008
+                        name: Mist Site
+                        id: f688779c-e335-4f88-8d7c-9c5e9964528b
+                        auto_upgrade_version: stable
+                        auto_upgrade_enabled: true
+                        analytic_enabled: true
+      operationId: searchOrgSites
+      description: Search Sites
+      parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: analytic_enabled
+          description: if Advanced Analytic feature is enabled
+        - schema:
+            type: boolean
+          in: query
+          name: app_waking
+          description: if App Waking feature is enabled
+        - schema:
+            type: boolean
+          in: query
+          name: asset_enabled
+          description: if Asset Tracking is enabled
+        - schema:
+            type: boolean
+          in: query
+          name: auto_upgrade_enabled
+          description: if Auto Upgrade feature is enabled
+        - schema:
+            type: boolean
+          in: query
+          name: auto_upgrade_version
+          description: if Auto Upgrade feature is enabled
+        - schema:
+            type: string
+          in: query
+          name: country_code
+          description: site country code
+        - schema:
+            type: boolean
+          in: query
+          name: honeypot_enabled
+          description: if Honeypot detection is enabled
+        - schema:
+            type: string
+          in: query
+          name: id
+          description: site id
+        - schema:
+            type: boolean
+          in: query
+          name: locate_unconnected
+          description: if unconnected client are located
+        - schema:
+            type: boolean
+          in: query
+          name: mesh_enabled
+          description: if Mesh feature is enabled
+        - schema:
+            type: string
+          in: query
+          name: name
+          description: site name
+        - schema:
+            type: boolean
+          in: query
+          name: rogue_enabled
+          description: if Rogue detection is enabled
+        - schema:
+            type: boolean
+          in: query
+          name: remote_syslog_enabled
+          description: if Remote Syslog is enabled
+        - schema:
+            type: boolean
+          in: query
+          name: rtsa_enabled
+          description: if managed mobility feature is enabled
+        - schema:
+            type: boolean
+          in: query
+          name: vna_enabled
+          description: if Virtual Network Assistant is enabled
+        - schema:
+            type: boolean
+          in: query
+          name: wifi_enabled
+          description: if WIFI feature is enabled
+        - schema:
+            type: integer
+          in: query
+          name: limit
+        - schema:
+            type: integer
+          in: query
+          name: page
+  '/api/v1/orgs/{org_id}/sites/count':
+    parameters:
+      - schema:
+          type: string
+        name: org_id
+        in: path
+        required: true
+    get:
+      summary: countOrgSites
+      tags:
+        - Orgs Sites
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  limit:
+                    type: integer
+                  percentage:
+                    type: integer
+                  total:
+                    type: integer
+                  distinct:
+                    type: string
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        count:
+                          type: integer
+                      additionalProperties:
+                        type: string
+              examples:
+                example-1:
+                  value:
+                    end: 1545874660.211871
+                    distinct: country_code
+                    results:
+                      - country_code: US
+                        count: 15
+                      - country_code: IN
+                        count: 2
+                      - country_code: SE
+                        count: 1
+                    start: 1545788260.21184
+                    limit: 10
+                    percentage: 100
+                    total: 3
+      operationId: countOrgSites
+      description: Count Sites
+      parameters:
+        - schema:
+            type: string
+            default: id
+            enum:
+              - analytic_enabled
+              - app_waking
+              - asset_enabled
+              - auto_upgrade_enabled
+              - auto_upgrade_version
+              - country_code
+              - honeypot_enabled
+              - id
+              - locate_unconnected
+              - mesh_enabled
+              - name
+              - rogue_enabled
+              - remote_syslog_enabled
+              - rtsa_enabled
+              - vna_enabled
+              - wifi_enabled
+          in: query
+          name: distinct
+        - schema:
+            type: number
+          in: query
+          name: start
+        - schema:
+            type: number
+          in: query
+          name: end
+        - schema:
+            type: integer
+          in: query
+          name: limit
+        - schema:
+            type: integer
+          in: query
+          name: page
+  '/api/v1/orgs/{org_id}/128routers/register_cmd':
+    parameters:
+      - schema:
+          type: string
+        name: org_id
+        in: path
+        required: true
+    get:
+      summary: getOrg128TRegistrationCommands
+      tags:
+        - Orgs 128T
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  registration_code:
+                    type: string
+                  conductor_cmd:
+                    type: string
+                  router_shell_cmd:
+                    type: string
+              examples:
+                example-1:
+                  value:
+                    registration_code: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJvcmdfaWQiOiIyODE4ZTM4Ni04ZGVjLTI1NjItOWVkZS01YjhhMGZiYmRjNzEiLCJzdmMiOiIxMjhyb3V0ZXIiLCJwcm92aWRlciI6ImF3cyIsImVudiI6ImxvY2FsIiwiZXB0ZXJtX3VybCI6IndzczovL2xvY2FsL3dzIiwiaWF0IjoxNjEzODQ3NDg0LCJleHAiOjE2NDUzODM0ODR9.YnhgThKYAj1uaooi6j-zY8dMipp5YqJxnn79B9TB5XQ
+                    conductor_cmd: register mist eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJvcmdfaWQiOiIyODE4ZTM4Ni04ZGVjLTI1NjItOWVkZS01YjhhMGZiYmRjNzEiLCJzdmMiOiIxMjhyb3V0ZXIiLCJwcm92aWRlciI6ImF3cyIsImVudiI6ImxvY2FsIiwiZXB0ZXJtX3VybCI6IndzczovL2xvY2FsL3dzIiwiaWF0IjoxNjEzODQ3NDg0LCJleHAiOjE2NDUzODM0ODR9.YnhgThKYAj1uaooi6j-zY8dMipp5YqJxnn79B9TB5XQ
+                    router_shell_cmd: 128agent register --registration-code eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJvcmdfaWQiOiIyODE4ZTM4Ni04ZGVjLTI1NjItOWVkZS01YjhhMGZiYmRjNzEiLCJzdmMiOiIxMjhyb3V0ZXIiLCJwcm92aWRlciI6ImF3cyIsImVudiI6ImxvY2FsIiwiZXB0ZXJtX3VybCI6IndzczovL2xvY2FsL3dzIiwiaWF0IjoxNjEzODQ3NDg0LCJleHAiOjE2NDUzODM0ODR9.YnhgThKYAj1uaooi6j-zY8dMipp5YqJxnn79B9TB5XQ
+      operationId: getOrg128TRegistrationCommands
+      description: 128T devices can be managed/adopted by Mist.
+  '/api/v1/sites/{site_id}/devices/{device_id}/clear_macs':
+    parameters:
+      - schema:
+          type: string
+        name: site_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: device_id
+        in: path
+        required: true
+    post:
+      summary: clearAllLearnedMacsFromPortOnSwitch
+      operationId: clearAllLearnedMacsFromPortOnSwitch
+      tags:
+        - Sites Devices Utilities
+      responses:
+        '200':
+          description: OK
+      description: 'Clear all learned MAC addresses, including persistent MAC addresses, on a port.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                port:
+                  type: string
+                  description: the port on which to clear mac addresses
+  '/api/v1/sites/{site_id}/devices/{device_id}/clear_bpdu_error':
+    parameters:
+      - schema:
+          type: string
+        name: site_id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: device_id
+        in: path
+        required: true
+    post:
+      summary: clearBpduErrosFromPortsOnSwitch
+      operationId: clearBpduErrosFromPortsOnSwitch
+      tags:
+        - Sites Devices Utilities
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Port not specified
+      description: Clear bridge protocol data unit (BPDU) error condition caused by the detection of a possible bridging loop from Spanning Tree Protocol (STP) operation that renders the port unoperational.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                port:
+                  type: string
+                  description: 'the port on which to clear the detected BPDU error, or `all` for all ports'
 security:
   - apiToken: []
   - basicAuth: []
@@ -35713,6 +36872,7 @@ tags:
   - name: Msps SSOs
   - name: Msps Stats
   - name: Orgs
+  - name: Orgs 128T
   - name: Orgs Admins
   - name: Orgs Alarms
   - name: Orgs Alarm Templates
@@ -35725,6 +36885,7 @@ tags:
   - name: Orgs CRL
   - name: Orgs Device Profiles
   - name: Orgs Devices
+  - name: Orgs Gateway Templates
   - name: Orgs Inventory
   - name: Orgs Invites
   - name: Orgs Licenses
@@ -35733,6 +36894,7 @@ tags:
   - name: Orgs MxEdges
   - name: Orgs MxTunnels
   - name: Orgs Network Templates
+  - name: Orgs Networks
   - name: Orgs Psks
   - name: Orgs RF Templates
   - name: Orgs SDK Clients
@@ -35764,6 +36926,7 @@ tags:
   - name: Sites Beacons
   - name: Sites Clients
   - name: Sites Devices
+  - name: Sites Devices Utilities
   - name: Sites Events
   - name: Sites Guests
   - name: Sites Insights
@@ -35811,6 +36974,7 @@ x-tagGroups:
       - Sites Beacons
       - Sites Clients
       - Sites Devices
+      - Sites Devices Utilities
       - Sites Events
       - Sites Guests
       - Sites Insights
@@ -35839,6 +37003,7 @@ x-tagGroups:
   - name: Orgs
     tags:
       - Orgs
+      - Orgs 128T
       - Orgs Admins
       - Orgs Alarms
       - Orgs Alarm Templates
@@ -35851,6 +37016,7 @@ x-tagGroups:
       - Orgs CRL
       - Orgs Device Profiles
       - Orgs Devices
+      - Orgs Gateway Templates
       - Orgs Inventory
       - Orgs Invites
       - Orgs Licenses
@@ -35859,6 +37025,7 @@ x-tagGroups:
       - Orgs MxEdges
       - Orgs MxTunnels
       - Orgs Network Templates
+      - Orgs Networks
       - Orgs Psks
       - Orgs RF Templates
       - Orgs SDK Clients
@@ -36841,35 +38008,36 @@ components:
           ssh_keys:
             - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAA...Wxa6p6UW0ZbcP john@host
           mxtunnel:
-            enabled: false
-            vlan_ids:
-              - 3
-              - 5
-              - 6
-            ap_subnets: 0.0.0.0/0
-            protocol: udp
-            mtu: 1100
-            clusters:
-              - name: primary
-                tunterm_hosts:
-                  - mxedge1
-                  - mxedge2.local
-            hello_interval: 60
-            hello_retries: 3
-            radsec:
-              enabled: true
-              auth_servers:
-                - host: 1.2.3.4
-                  port: 1812
-                  secret: testing123
-                - host: radius.internal
-                  port: 1812
-                  secret: testing123
-              acct_servers:
-                - host: 1.2.3.4
-                  port: 1812
-                  secret: testing123
-              use_mxedge: true
+            default:
+              enabled: false
+              vlan_ids:
+                - 3
+                - 5
+                - 6
+              ap_subnets: 0.0.0.0/0
+              protocol: udp
+              mtu: 1100
+              clusters:
+                - name: primary
+                  tunterm_hosts:
+                    - mxedge1
+                    - mxedge2.local
+              hello_interval: 60
+              hello_retries: 3
+              radsec:
+                enabled: true
+                auth_servers:
+                  - host: 1.2.3.4
+                    port: 1812
+                    secret: testing123
+                  - host: radius.internal
+                    port: 1812
+                    secret: testing123
+                acct_servers:
+                  - host: 1.2.3.4
+                    port: 1812
+                    secret: testing123
+                use_mxedge: true
           gateway_mgmt:
             app_usage: false
           skyatp:
@@ -36880,11 +38048,12 @@ components:
             config_revert_timer: 10
           ntp_servers:
             - pool.ntp.org
-          ip_config:
-            dns:
-              - 8.8.8.8
-            dns_suffix:
-              - .mist.local
+          dns_servers:
+            - 8.8.8.8
+            - 4.4.4.4
+          dns_suffix:
+            - .mist.local
+            - .mist.com
           networks:
             default:
               vlan_id: 1
@@ -37077,6 +38246,8 @@ components:
           $ref: '#/components/schemas/ap_led'
         vars:
           type: object
+          additionalProperties:
+            type: string
         auto_upgrade:
           $ref: '#/components/schemas/site_auto_upgrade'
         status_portal:
@@ -37102,6 +38273,8 @@ components:
         flags:
           type: object
           description: name/val pair objects for location engine to use
+          additionalProperties:
+            type: any
         ble_config:
           $ref: '#/components/schemas/ap_ble'
         wids:
@@ -37119,6 +38292,9 @@ components:
           items:
             type: string
             description: ''
+        config_auto_revert:
+          type: boolean
+          description: 'whether to enable ap auto config revert, default is false'
         mxtunnel:
           type: object
           additionalProperties:
@@ -37139,26 +38315,20 @@ components:
           description: list of NTP servers
           items:
             type: string
-        ip_config:
-          $ref: '#/components/schemas/junos_ip_config'
+        dns_servers:
+          type: array
+          description: list of NTP servers
+          items:
+            type: string
+        dns_suffix:
+          type: array
+          description: list of NTP servers
+          items:
+            type: string
         networks:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/junos_networks'
-        oob_ip_config:
-          $ref: '#/components/schemas/junos_ip_config'
-        other_ip_configs:
-          $ref: '#/components/schemas/junos_other_ip_configs'
-        routings:
-          anyOf:
-            - properties:
-                networks:
-                  type: array
-                  items:
-                    type: string
-                ospf:
-                  type: object
-          type: object
         port_usages:
           type: object
           additionalProperties:
@@ -37170,54 +38340,18 @@ components:
           $ref: '#/components/schemas/junos_radius_config'
         switch_matching:
           $ref: '#/components/schemas/template_switch.matching'
-        additional_config_cmds:
           type: array
           description: 'additional CLI commands to append to the generated switches config '
           items:
             type: string
-        report_gatt:
-          type: boolean
-          description: 'default is false; whether AP should periodically connect to BLE devices and report GATT device info (device name, manufacturer name, serial number, battery %, temperature, humidity)'
-        track_anonymous_devices:
-          description: default is false; whether to track anonymous BLE assets (requires ‘track_asset’ enabled)
-          type: boolean
-        track_asset:
-          type: boolean
-          description: 'enable Asset Tracking, default is false (using SUB-AST license)'
-        vna:
-          type: object
-          description: this applied to AP / Switch / Gateway
-          properties:
-            enabled:
-              type: boolean
-              description: 'enable Virtual Network Assistant, default is false (using SUB-VNA license)'
+        additional_config_cmds:
+          type: array
+          items:
+            type: string
         ospf_areas:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/junos_ospf_areas'
-        vrrp_groups:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/junos_vrrp_group'
-        evpn_tenants:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/junos_evpn_tenant'
-        zones:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/junos_gateway_zone'
-        web_filtering:
-          type: object
-        screen:
-          type: object
-        evpn_options:
-          $ref: '#/components/schemas/junos_evpn_options'
-        evpn_config:
-          $ref: '#/components/schemas/junos_evpn_config'
-        config_auto_revert:
-          type: boolean
-          description: 'whether to enable ap auto config revert, default is false'
         bgp_groups:
           type: object
           additionalProperties:
@@ -37229,6 +38363,29 @@ components:
                 enum:
                   - external
                   - internal
+        vrrp_groups:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/junos_vrrp_group'
+        vrf_instances:
+          type: object
+          additionalProperties:
+        evpn_options:
+          $ref: '#/components/schemas/junos_evpn_options'
+        gateway_port_usages:
+          type: object
+          description: |-
+            gateway specific
+            for SRX, where multiple ports can be switching and IRB is created
+            for the L3 purpose
+          additionalProperties:
+            $ref: '#/components/schemas/junos_gateway_port_config'
+        report_gatt:
+          type: boolean
+          description: 'default is false; whether AP should periodically connect to BLE devices and report GATT device info (device name, manufacturer name, serial number, battery %, temperature, humidity)'
+        track_anonymous_devices:
+          description: default is false; whether to track anonymous BLE assets (requires ‘track_asset’ enabled)
+          type: boolean
 
     networktemplate:
       title: ''
@@ -37576,6 +38733,150 @@ components:
             modified_time: 1603117193
           rftemplate_id: b3f20330-xxxx-xxxx-xxxx-0d8727140b1d
           rftemplate_name: Lab
+
+    gatewaytemplate:
+      description: Gateway Template is applied to a site for gateway(s) in a site.
+      type: object
+      x-examples:
+        example-1:
+          name: xxx
+          networks: {}
+          port_usage:
+            wan:
+              mode: wan
+            lte:
+              mode: wan
+            lan:
+              mode: trunk
+              all_networks: false
+              networks:
+                - guest
+                - employee
+                - finance
+              port_network: null
+          port_config:
+            ge-0/0/0:
+              usage: wan
+            ge-0/0/1-5:
+              usage: lan
+            ge-0/0/6:
+              usage: inet
+          ip_configs:
+            guest: {}
+          dhcpd_config:
+            enabled: true
+            guest:
+              type: relay
+              ip_start: 192.168.70.100
+              ip_end: 192.168.70.200
+              gateway: 192.168.70.1
+              dns_servers:
+                - 8.8.8.8
+                - 4.4.4.4
+              dns_suffix:
+                - .mist.local
+                - .mist.com
+              fixed_bindings:
+                5684dae9ac8b:
+                  name: John
+                  ip: 192.168.70.35
+              servers:
+                - 11.2.3.4
+          gateway_matching:
+            enable: true
+      properties:
+        id:
+          type: string
+          minLength: 1
+          readOnly: true
+        org_id:
+          type: string
+          minLength: 1
+          readOnly: true
+        created_time:
+          type: integer
+          readOnly: true
+        modified_time:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          minLength: 1
+        networks:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/network'
+        port_usage:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/junos_port_usages'
+        port_config:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/junos_port_config'
+        ip_configs:
+          type: object
+          additionalProperties:
+            type: object
+        dhcpd_config:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+          additionalProperties:
+            type: object
+            properties:
+              type:
+                type: string
+                minLength: 1
+                enum:
+                  - local
+                  - relay
+                default: local
+              ip_start:
+                type: string
+                minLength: 1
+                format: ipv4
+              ip_end:
+                type: string
+                minLength: 1
+                format: ipv4
+              gateway:
+                type: string
+                minLength: 1
+                format: ipv4
+              dns_servers:
+                type: array
+                items:
+                  type: string
+                  format: ipv4
+              dns_suffix:
+                type: array
+                items:
+                  type: string
+              fixed_bindings:
+                type: object
+                additionalProperies:
+                  type: object
+                  required:
+                    - ip
+                  properties:
+                    name:
+                      type: string
+                      minLength: 1
+                    ip:
+                      type: string
+                      minLength: 1
+                      format: ipv4
+              servers:
+                type: array
+                items:
+                  type: string
+                  format: ipv4
+        gateway_matching:
+          $ref: '#/components/schemas/template_switch.matching'
+      required:
+        - name
 
     portal_template:
       description: Portal Template
@@ -41269,7 +42570,7 @@ components:
           type: object
         deviceprofile_id:
           type: string
-          minLength: 1 
+          minLength: 1
         image1_url:
           type: string
           minLength: 1
@@ -42683,6 +43984,42 @@ components:
       required:
         - name
 
+    network:
+      description: 'Networks are usually subnets that have cross-site significance. For switches, they will got merged into networks in Network Templates and Site Setting For gateways, they can be used to define Service Routes.'
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 1
+          readOnly: true
+        org_id:
+          type: string
+          minLength: 1
+          readOnly: true
+        created_time:
+          type: integer
+          readOnly: true
+        modified_time:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          minLength: 1
+        vlan_id:
+          type: integer
+        subnet:
+          type: string
+          minLength: 1
+      required:
+        - name
+        - vlan_id
+        - subnet
+      x-examples:
+        example-1:
+          name: guest
+          vlan_id: 70
+          subnet: 192.168.70.0/24
+
     orggroup:
       description: Organizations Group
       type: object
@@ -42937,24 +44274,27 @@ components:
       type: object
       x-examples:
         example-1:
-          name: Guest Cluster
+          id: string
+          org_id: string
+          site_id: string
+          created_time: 0
+          modified_time: 0
+          name: string
           tunterm_hosts:
-            - guest-sj1.corp.com
+            - string
           tunterm_ap_subnets:
-            - 0.0.0.0/0
+            - string
           radsec:
             enabled: true
+            server_selection: ordered
             auth_servers:
-              - host: 1.2.3.4
-                port: 1812
-                secret: testing123
-              - host: radius.internal
-                port: 1812
-                secret: testing123
+              - host: string
+                port: 0
+                secret: string
             acct_servers:
-              - host: 1.2.3.4
-                port: 1812
-                secret: testing123
+              - host: string
+                port: 0
+                secret: string
       properties:
         id:
           type: string
@@ -42988,7 +44328,7 @@ components:
           items:
             type: string
         radsec:
-          $ref: '#/components/schemas/radsec'
+          $ref: '#/components/schemas/mxedge_radsec'
       required:
         - name
         - tunterm_hosts
@@ -43120,195 +44460,162 @@ components:
       type: object
       x-examples:
         device-ap-response:
-          id: string
-          name: string
-          org_id: string
-          site_id: string
-          created_time: 0
-          modified_time: 0
-          notes: string
-          map_id: string
-          x: 0
-          'y': 0
+          name: conference room
+          notes: slightly off center
+          map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
+          x: 53.5
+          'y': 173.1
           orientation_overwrite: true
-          orientation: 0
-          height: 0
+          orientation: 45
+          height: 3
           radio_config:
             band_24:
-              disabled: true
+              disabled: false
               channel: 0
-              bandwidth: 0
-              power: 0
-              antenna_mode: string
-              allow_rrm_disable: true
-              power_min: 0
-              power_max: 0
-              preamble: string
-              usage: string
+              bandwidth: 20
+              power: 1
+              antenna_mode: 1x1
+              allow_rrm_disable: false
             band_5:
-              disabled: true
+              disabled: false
               channel: 0
-              bandwidth: 0
+              bandwidth: 40
               power: 0
-              antenna_mode: string
-              allow_rrm_disable: true
-              power_min: 0
-              power_max: 0
-              preamble: string
-              usage: string
-            ant_gain_24: 0
-            ant_gain_5: 0
-            band_24_usage: string
+              antenna_mode: default
+            ant_gain_24: 4
+            ant_gain_5: 5
+            band_24_usage: '5'
             band_5_on_24_radio:
-              disabled: true
+              disabled: false
               channel: 0
-              bandwidth: 0
+              bandwidth: 40
               power: 0
-              antenna_mode: string
-              allow_rrm_disable: true
-              power_min: 0
-              power_max: 0
-              preamble: string
-              usage: string
+              antenna_mode: default
             scanning_enabled: true
           ip_config:
             type: static
-            ip: string
-            netmask: string
-            gateway: string
-            type6: string
-            ip6: string
-            netmask6: string
-            gateway6: string
+            ip: 10.2.1.1
+            netmask: 255.255.255.0
+            gateway: 10.2.1.254
+            type6: static
+            ip6: '2607:f8b0:4005:808::2004'
+            netmask6: /32
+            gateway6: '2607:f8b0:4005:808::1'
             dns:
-              - string
+              - 8.8.8.8
+              - 4.4.4.4
             dns_suffix:
-              - string
-            vlan_id: 0
+              - .mist.local
+              - .mist.com
+            vlan_id: 1
             mtu: 0
           ble_config:
-            power_mode: string
-            power: 0
+            power_mode: custom
+            power: 10
             beacon_enabled: true
-            beacon_rate_mode: string
-            beacon_rate: 0
-            ibeacon_enabled: true
-            ibeacon_uuid: string
-            ibeacon_major: 0
-            ibeacon_minor: 0
-            ibeacon_adv_power: -100
-            ibeacon_beams: string
-            eddystone_uid_enabled: true
-            eddystone_uid_namespace: string
-            eddystone_uid_instance: string
-            eddystone_uid_freq_msec: 0
-            eddystone_uid_adv_power: -100
-            eddystone_uid_beams: string
-            eddystone_url_enabled: true
-            eddystone_url_url: string
-            eddystone_url_freq_msec: 0
-            eddystone_url_adv_power: 0
-            eddystone_url_beams: string
+            beacon_rate_mode: custom
+            beacon_rate: 3
             beam_disabled:
-              - 0
-            ibeacon_freq_msec: 0
+              - 1
+              - 3
+              - 6
+            ibeacon_enabled: true
+            ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
+            ibeacon_major: 13
+            ibeacon_minor: 138
+            ibeacon_adv_power: -65
+            ibeacon_beams: '2-4,7'
+            eddystone_uid_enabled: false
+            eddystone_uid_namespace: 2818e3868dec25629ede
+            eddystone_uid_instance: 5c5b35000001
+            eddystone_uid_freq_msec: 200
+            eddystone_uid_adv_power: -65
+            eddystone_uid_beams: '2-4,7'
+            eddystone_url_enabled: false
+            eddystone_url_url: 'https://www.abc.com'
+            eddystone_url_freq_msec: 1000
+            eddystone_url_adv_power: -65
+            eddystone_url_beams: '2-4,7'
           usb_config:
             enabled: true
-            type: string
-            host: string
-            channel: 0
+            type: imagotag
+            host: 1.1.1.1
+            channel: 3
             port: 0
-            verify_cert: true
-            cacert: string
+            verify_cert: false
+            cacert: ''
           aeroscout:
             enabled: true
-            host: string
+            host: aero.pvt.net
           led:
             enabled: true
-            brightness: 0
+            brightness: 255
           mesh:
             enabled: true
             role: base
             group: 0
+          port_config:
+            'eth1,eth2':
+              forwarding: all
+              vlan_ids:
+                - 1
+                - 10
+                - 50
+              port_vlan_id: 1
+              wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
+              wxtunnel_remote_id: wifiguest
+              mxtunnel_id: 08cd7499-5841-51c8-e663-fb16b6f3b45e
+              mxtunnel_name: default
+              port_auth: dot1x
+              enable_mac_auth: true
+              disabled: false
+              radius_config: {}
+              radsec:
+                enabled: true
+                server_name: radsec.abc.com
+                servers:
+                  - host: 1.1.1.1
+                    port: 1812
+                  - host: radsec
+                    port: 1812
+                use_mxedge: true
+              dynamic_vlan:
+                enabled: true
+                type: standard
+                vlans:
+                  1-10: null
+                  user: null
+                default_vlan_id: 999
           switch_config:
             enabled: true
             eth0:
               vlan_ids:
-                - 0
-              port_vlan_id: 0
-            eth1:
-              vlan_ids:
-                - 0
-              port_vlan_id: 0
-            eth2:
-              vlan_ids:
-                - 0
-              port_vlan_id: 0
-            eth3:
-              vlan_ids:
-                - 0
-              port_vlan_id: 0
-            module:
-              vlan_ids:
-                - 0
-              port_vlan_id: 0
-            wds:
-              vlan_ids:
-                - 0
-              port_vlan_id: 0
+                - 1
+                - 3055
+              port_vlan_id: 1
           iot_config:
             DO:
               enabled: true
-              value: true
-              name: string
-              pullup: internal
-              output: true
+              value: 1
             DI1:
+              name: motion
               enabled: true
-              value: true
-              name: string
-              pullup: internal
-            DI2:
-              enabled: true
-              value: true
-              name: string
-              pullup: internal
             A1:
+              name: pulled-up analog
               enabled: true
-              value: true
-              name: string
-              pullup: internal
-              output: true
-            A2:
-              enabled: true
-              value: true
-              name: string
-              pullup: internal
-              output: true
-            A3:
-              enabled: true
-              value: true
-              name: string
-              pullup: internal
-              output: true
-            A4:
-              enabled: true
-              value: true
-              name: string
-              pullup: internal
-              output: true
-          disable_eth1: true
-          disable_eth2: true
-          disable_eth3: true
-          disable_module: true
-          poe_passthrough: true
+          disable_eth1: false
+          disable_eth2: false
+          disable_eth3: false
+          disable_module: false
+          poe_passthrough: false
           pwr_config:
-            base: 0
-          vars: {}
-          ntp_servers:
-            - string
-          deviceprofile_id: string
-          image1_url: string
+            base: 2000
+          vars:
+            RADIUS_SECRET: 11s64632d
+            RADIUS_IP1: 172.31.2.5
+          ntp_servers: []
+          deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+          image1_url: 'https://url/to/image.png'
       properties:
         id:
           type: string
@@ -43326,10 +44633,10 @@ components:
           minLength: 1
           readOnly: true
         created_time:
-          type: number
+          type: integer
           readOnly: true
         modified_time:
-          type: number
+          type: integer
           readOnly: true
         notes:
           type: string
@@ -43409,6 +44716,70 @@ components:
         image1_url:
           type: string
           minLength: 1
+        port_config:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              forwarding:
+                type: string
+                default: all
+                enum:
+                  - all
+                  - limited
+                  - wxtunnel
+                  - mxtunnel
+                  - site_mxedge
+              vland_ids:
+                type: array
+                description: if forwrding == limited
+                items:
+                  type: integer
+              port_vlan_id:
+                type: integer
+                description: if forwrding == limited
+              wxtunnel_id:
+                type: string
+                description: if forwarding == wxtunnel
+              wxtunnel_remote_id:
+                type: string
+                description: if forwarding == wxtunnel
+              mx_tunnel_id:
+                type: string
+                description: 'if forwarding == mxtunnel, vlan_ids comes from mxtunnel'
+              mxtunnel_name:
+                type: string
+                description: 'if forwarding == site_mxedge, vlan_ids comes from site_mxedge (`mxtunnels` under site setting)'
+              port_auth:
+                type: string
+                description: whether to do port auth
+                default: none
+                enum:
+                  - none
+                  - dot1x
+              enable_mac_auth:
+                type: boolean
+                description: ''
+              disabled:
+                type: boolean
+              radius_config:
+                $ref: '#/components/schemas/junos_radius_config'
+              radsec:
+                $ref: '#/components/schemas/radsec'
+              dynamic_vlan:
+                type: object
+                description: optional dynamic vlan
+                properties:
+                  enabled:
+                    type: boolean
+                  type:
+                    type: string
+                  vlans:
+                    type: object
+                    additionalProperties:
+                      type: string
+                  default_vlan_id:
+                    type: integer
 
     sitegroup:
       description: Sites Group
@@ -43700,6 +45071,75 @@ components:
             type: string
       required:
         - name
+
+    mxedge_radsec:
+      description: MxEdge Radsec Configuration
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: whether to enable radsec
+        server_selection:
+          type: string
+          minLength: 1
+          description: 'ordered (default) / unordered. When ordered, Mist Edge will prefer and go back to the first radius server if possible'
+          default: ordered
+          enum:
+            - ordered
+            - unordered
+        auth_servers:
+          type: array
+          uniqueItems: true
+          minItems: 1
+          description: 'list of RADIUS authentication servers, order matters where the first one is treated as primary'
+          items:
+            type: object
+            properties:
+              host:
+                type: string
+                minLength: 1
+                description: ip / hostname of RADIUS server
+              port:
+                type: number
+                description: 'port of RADIUS server, default is 1812 for auth server and 1813 for acct server'
+              secret:
+                type: string
+                minLength: 1
+                description: secret of RADIUS server
+        acct_servers:
+          type: array
+          uniqueItems: true
+          minItems: 1
+          description: 'list of RADIUS accounting servers, optional, order matters where the first one is treated as primary'
+          items:
+            type: object
+            properties:
+              host:
+                type: string
+                minLength: 1
+                description: ip / hostname of RADIUS server
+              port:
+                type: number
+                description: 'port of RADIUS server, default is 1812 for auth server and 1813 for acct server'
+              secret:
+                type: string
+                minLength: 1
+                description: secret of RADIUS server
+      x-examples:
+        example-1:
+          enabled: true
+          server_selection: ordered
+          auth_servers:
+            - host: 1.2.3.4
+              port: 1812
+              secret: testing123
+            - host: radius.internal
+              port: 1812
+              secret: testing123
+          acct_servers:
+            - host: 1.2.3.4
+              port: 1812
+              secret: testing123
 
     org_auto_rules:
       description: auto_rules in org settings
@@ -44262,6 +45702,7 @@ components:
           dns_suffix:
             - {}
           network: string
+      title: ''
       properties:
         type:
           type: string
@@ -44291,50 +45732,53 @@ components:
         network:
           type: string
           minLength: 1
+          description: 'optional, the network to be used for mgmt'
         dhcp:
-          $ref: '#/components/schemas/junos_dhcp'
+          $ref: '#/components/schemas/junos_dhcpd'
       required:
         - type
-      title: ''
 
-    junos_dhcp:
+    junos_dhcpd:
       title: ''
       description: if DHCP Server/Relay is intended
       type: object
       properties:
         enabled:
           type: boolean
-        type:
-          type: string
-          default: local
-          enum:
-            - local
-            - relay
-          description: DHCP Server (local) or DHCP Relay (relay)
-        ip_start:
-          type: string
-          description: if DHCP Server
-        ip_end:
-          type: string
-          description: if DHCP Server
-        dns:
-          type: array
-          description: 'if DHCP Server - optional, system one will be used'
-          items:
-            type: string
-        dns_suffix:
-          type: array
-          description: 'if DHCP Server - optional, system one will be used'
-          items:
-            type: string
-        servers:
-          type: array
-          description: if DHCP Relay
-          items:
-            type: string
-        gateway:
-          type: string
-          description: 'if DHCP Server - optional, `ip` will be used if not provided'
+        additionalProperties:
+          type: object
+          properties:
+            type:
+              type: string
+              default: local
+              enum:
+                - local
+                - relay
+              description: DHCP Server (local) or DHCP Relay (relay)
+            ip_start:
+              type: string
+              description: if DHCP Server
+            ip_end:
+              type: string
+              description: if DHCP Server
+            dns:
+              type: array
+              description: 'if DHCP Server - optional, system one will be used'
+              items:
+                type: string
+            dns_suffix:
+              type: array
+              description: 'if DHCP Server - optional, system one will be used'
+              items:
+                type: string
+            servers:
+              type: array
+              description: if DHCP Relay
+              items:
+                type: string
+            gateway:
+              type: string
+              description: 'if DHCP Server - optional, `ip` will be used if not provided'
 
     junos_vrrp_config:
       description: Junos VRRP config
@@ -44451,6 +45895,7 @@ components:
           mac_limit: 0
           poe_disabled: true
           storm_control: {}
+      title: ''
       properties:
         mode:
           type: string
@@ -44460,6 +45905,7 @@ components:
             - access
             - trunk
             - inet
+            - wan
         all_networks:
           type: boolean
           description: 'if mode=trunk, whether to trunk all network/vlans, default is false'
@@ -44517,6 +45963,9 @@ components:
         mac_limit:
           type: number
           description: 'max number of mac addresses, default is 0 for unlimited, otherwise range is 1 or higher, with upper bound constrained by platform'
+        persist_mac:
+          type: boolean
+          description: if mode=access and port_auth!=dot1x, whether the port should retain dynamically learned MAC addresses, default is false
         poe_disabled:
           type: boolean
           description: 'whether poe is disabled, default is false'
@@ -44536,12 +45985,26 @@ components:
                 - standard
             networks:
               type: object
-              additionalProperties:          
-                  type: number
+              additionalProperties:
+                type: number
             default_network:
               type: number
               description: default (unmatched) comes from `port_network` above
-      title: ''
+
+    junos_gateway_port_usage:
+      description: ''
+      type: object
+      properties:
+        mode:
+          type: string
+          minLength: 1
+        port_network:
+          type: string
+          minLength: 1
+        networks:
+          type: array
+          items:
+            type: string
 
     junos_storm_control:
       title: ''
@@ -44917,6 +46380,7 @@ components:
           type: static
           ip: string
           netmask: string
+      title: ''
       properties:
         type:
           type: string
@@ -44929,10 +46393,7 @@ components:
           description: required if type==static
         netmask:
           type: string
-          description: required if type==static
-        dhcp:
-          $ref: '#/components/schemas/junos_dhcp'
-      title: ''
+          description: 'optional, `sunbet` from `network` definition will be used if defined  '
 
     junos_evpn_config:
       title: ''
@@ -49448,17 +50909,19 @@ components:
     radsec:
       description: Radsec settings
       type: object
+      title: ''
       properties:
         enabled:
           type: boolean
         server_name:
           type: string
           minLength: 1
-          description: name of the server to verify (against the cacerts in Org Setting)
+          description: name of the server to verify (against the cacerts in Org Setting). Only if not Mist Edge.
         servers:
           type: array
           uniqueItems: true
           minItems: 1
+          description: List of Radsec Servers. Only if not Mist Edge.
           items:
             type: object
             properties:
@@ -49466,14 +50929,9 @@ components:
                 type: string
                 minLength: 1
               port:
-                type: number
-            required:
-              - host
-              - port
-      required:
-        - server_name
-        - servers
-      title: ''
+                type: integer
+        use_mxedge:
+          type: boolean
 
     acct_server:
       description: Accounting Server
@@ -49665,6 +51123,12 @@ components:
         enable_channel_144:
           type: boolean
           description: 'whether to enable channel 144 (some older clients may not support it), default is false'
+        enable_vna:
+          type: boolean
+          description: 'enable Virtual Network Assistant, default is false (using SUB-VNA license)'
+        mesh_allow_dfs:
+          type: boolean
+          description: 'whether to allow Mesh to use DFS channels, default is false. For DFS channels, Remote Mesh AP would have to do CAC when scanning for new Base AP, which is slow and will distrupt the connection. If roaming is desired, keep it disabled.'
 
     site_rogue:
       description: Rogue site settings
@@ -50764,6 +52228,9 @@ components:
           sponsor_enabled: true
           sponsor_email_domains:
             - string
+          sponsors:
+            sponsor1@company.com: FirstName1 LastName1
+            sponsor2@company.com: FirstName2 LastName2
           sponsor_link_validity_duration: 0
           sms_enabled: true
           sms_provider: string
@@ -50784,6 +52251,7 @@ components:
           sso_idp_sign_algo: string
           "sso_default_role\t": string
           portal_sso_url: string
+      title: ''
       properties:
         enabled:
           type: boolean
@@ -50890,8 +52358,13 @@ components:
           description: whether sponsor is enabled
         sponsor_email_domains:
           type: array
-          description: list of domain allowed for sponsor email. Required if sponsor_enabled is true.
+          description: list of domain allowed for sponsor email. Required if `sponsor_enabled` is `true` and `sponsors` is empty.
           items:
+            type: string
+        sponsors:
+          type: object
+          description: object of allowed sponsors email with name. Required if `sponsor_enabled` is `true` and `sponsor_email_domains` is empty.
+          additionalProperties:
             type: string
         sponsor_link_validity_duration:
           type: number
@@ -50961,7 +52434,6 @@ components:
         portal_sso_url:
           type: string
           description: 'for SAML, this is used as the ACS URL'
-      title: ''
 
     wlan_cisco_cwa:
       description: |
@@ -50996,7 +52468,12 @@ components:
         template:
           type: string
           minLength: 1
-          description: 'no-legacy (basically no 11b and only supports 6 or 12 and up for 11a/g) / compatible (allow more, the default for now) / high-density (only 11n and 11ac) / custom'
+          description: |-
+            * no-legacy: no 11b
+            * compatible: all, like before, default setting that Broadcom/Atheros used
+            * legacy-only: disable 802.11n and 802.11ac 
+            * high-density: no 11b, no low rates
+            * custom: user defined
         legacy:
           type: array
           description: 'list of supported rates (IE=1) and extended supported rates (IE=50), append ‘b’ at the end to indicate it being basic/mandatory'
