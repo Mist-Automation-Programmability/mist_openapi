@@ -14,6 +14,6 @@ This is a "standalone" version of the Mist.openapi_collection version. It includ
 
 
 ## Notes
-This library may be used to automate the client SDK generation. It is currently tested with [openapi-generator](https://github.com/OpenAPITools/openapi-generator) and Python, but it may work with others code generators and other languages.
+This library is intented to be used to automate the client SDK generation. 
 
-Generated code is available [here](https://github.com/tmunzer/Mist-OAS3.0-SDK)
+
