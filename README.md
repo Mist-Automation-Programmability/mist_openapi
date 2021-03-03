@@ -2,7 +2,7 @@
 
 Juniper Mist APIs in Open API Standard 3.0 format.
 
-This can be viewed in Live at https://doc.mist-lab.fr/
+Live documentation: https://doc.mist-lab.fr/
 
 ## Files
 #### Mist.openapi_collection.yml:
