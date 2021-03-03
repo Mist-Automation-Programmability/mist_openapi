@@ -14,4 +14,6 @@ This is a "standalone" version of the Mist.openapi_collection version. It includ
 
 
 ## Notes
-This library may be used to automate the client SDK generation. It is currently tested with [swagger-codegen](https://github.com/swagger-api/swagger-codegen) and Python, but it may work with others code generators and other languages.
+This library may be used to automate the client SDK generation. It is currently tested with [openapi-generator](https://github.com/OpenAPITools/openapi-generator) and Python, but it may work with others code generators and other languages.
+
+Generated code is available [here](https://github.com/tmunzer/Mist-OAS3.0-SDK)
