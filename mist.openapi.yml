@@ -154,7 +154,6 @@ tags:
   - name: Self
   - name: Account
   - name: Webhooks
-
 paths:
   '/api/v1/installer/orgs/{org_id}/alarmtemplates':
     get:
@@ -3598,34 +3597,17 @@ paths:
         description: Request Body
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    added:
-                      - 6JG8E-PTFV2-A9Z2N
-                    duplicated:
-                      - DVH4V-SNMSZ-PDXBR
-                    error:
-                      - PO1025335ohoh
-                    inventory_added:
-                      - mac: 5c5b35000018
-                        magic: 6JG8EPTFV2A9Z2N
-                        model: AP41
-                        serial: FXLH2015150025
-                        type: ap
-                    inventory_duplicated:
-                      - mac: 5c5b35000012
-                        magic: DVH4VSNMSZPDXBR
-                        model: AP41
-                        serial: FXLH2015150027
-                        type: ap
-              schema:
-                $ref: '#/components/schemas/response_inventory'
-          description: OK - if any of entries are valid or there’s no errors
+          $ref: '#/components/responses/OrgInventoryAdd'
         '400':
           description: if none of the entries are valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+              examples:
+                example-1:
+                  value: {}
       summary: addOrgInventory
       tags:
         - Orgs Inventory
@@ -3706,7 +3688,7 @@ paths:
               type: object
       responses:
         '200':
-          $ref: '#/components/responses/OrgInventoryAssignmentUpdate'
+          $ref: '#/components/responses/OrgInventoryChanges'
       summary: updateOrgInventoryAssignment
       tags:
         - Orgs Inventory
@@ -3753,7 +3735,7 @@ paths:
         description: Request Body
       responses:
         '200':
-          $ref: '#/components/responses/OrgInventoryAssignmentUpdate'
+          $ref: '#/components/responses/OrgInventoryChanges'
       summary: replaceOrgDevices
       tags:
         - Orgs Inventory
@@ -3842,6 +3824,8 @@ paths:
       tags:
         - Orgs Invites
   '/api/v1/orgs/{org_id}/licenses':
+    parameters:
+      - $ref: '#/components/parameters/org_id'
     get:
       description: |-
         #### Response Parameters
@@ -3860,8 +3844,6 @@ paths:
       summary: getOrgLicencesSummary
       tags:
         - Orgs Licenses
-    parameters:
-      - $ref: '#/components/parameters/org_id'
     put:
       description: |-
         Move, Undo Move or Delete Org License to Another Org
@@ -21069,29 +21051,29 @@ components:
                       scope: orggroup
             example-2:
               value:
-                - admin_id: string
-                  email: userexample@email
-                  first_name: string
+                - first_name: string
                   last_name: string
                   privileges:
-                    - msp_id: string
-                      msp_name: string
-                      name: string
+                    - scope: string
                       org_id: string
-                      org_name: string
+                      name: string
+                      role: string
+                      msp_id: string
                       orggroup_ids:
                         - string
-                      role: string
-                      scope: string
+                      msp_name: string
+                      org_name: string
                       site_id: string
                       sitegroup_ids:
                         - string
+                  email: user@example.com
+                  admin_id: string
           schema:
-            items:
-              $ref: '#/components/schemas/admin'
-            minItems: 1
+            minItems: 0
             type: array
             uniqueItems: true
+            items:
+              $ref: '#/components/schemas/admin'
       description: Successful response
     Admin:
       description: OK
@@ -23872,7 +23854,7 @@ components:
                   site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
                   status: connected
                   type: ap
-    OrgInventoryAssignmentUpdate:
+    OrgInventoryChanges:
       content:
         application/json:
           examples:
@@ -31219,6 +31201,33 @@ components:
                   vertices:
                     - x: 0
                       'y': 0
+    OrgInventoryAdd:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                added:
+                  - 6JG8E-PTFV2-A9Z2N
+                duplicated:
+                  - DVH4V-SNMSZ-PDXBR
+                error:
+                  - PO1025335ohoh
+                inventory_added:
+                  - mac: 5c5b35000018
+                    magic: 6JG8EPTFV2A9Z2N
+                    model: AP41
+                    serial: FXLH2015150025
+                    type: ap
+                inventory_duplicated:
+                  - mac: 5c5b35000012
+                    magic: DVH4VSNMSZPDXBR
+                    model: AP41
+                    serial: FXLH2015150027
+                    type: ap
+          schema:
+            $ref: '#/components/schemas/response_inventory'
+      description: OK - if any of entries are valid or there’s no errors
   parameters:
     admin_id:
       name: admin_id
@@ -45656,51 +45665,6 @@ components:
     privileges:
       description: Privilieges settings
       type: object
-      properties:
-        scope:
-          type: string
-          minLength: 1
-          description: currently org / site / msp
-        org_id:
-          type: string
-          minLength: 1
-          description: org_id of the org or site
-        name:
-          type: string
-          minLength: 1
-          description: name of org or site
-        role:
-          type: string
-          minLength: 1
-          description: admin / write / read / helpdesk / installer
-        msp_id:
-          type: string
-          minLength: 1
-          description: id of MSP (if the org belongs to an MSP)
-        orggroup_ids:
-          type: array
-          description: list of orggroup ids (if the org belongs to an MSP)
-          items:
-            type: string
-        msp_name:
-          type: string
-          minLength: 1
-          description: name of the MSP (if the org belongs to an MSP)
-        org_name:
-          type: string
-          description: name of the org of site
-        site_id:
-          type: string
-          description: site_id of site
-        sitegroup_ids:
-          type: array
-          description: |
-            list of sitegroup ids
-          items:
-            type: string
-      required:
-        - scope
-        - role
       x-examples:
         example-1:
           scope: org
@@ -45725,6 +45689,73 @@ components:
           msp_id: 9520c63a-f7b3-670c-0944-727774d5a722
           name: MSP
           role: admin
+      properties:
+        scope:
+          type: string
+          minLength: 1
+          description: currently org / site / msp
+        org_id:
+          description: org_id of the org or site
+          oneOf:
+            - type: string
+              properties: {}
+            - properties: {}
+              type: 'null'
+        name:
+          type: string
+          minLength: 1
+          description: name of org or site
+        role:
+          type: string
+          minLength: 1
+          description: admin / write / read / helpdesk / installer
+        msp_id:
+          description: id of MSP (if the org belongs to an MSP)
+          oneOf:
+            - type: string
+              properties: {}
+            - type: 'null'
+              properties: {}
+        orggroup_ids:
+          description: list of orggroup ids (if the org belongs to an MSP)
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - properties: {}
+              type: 'null'
+        msp_name:
+          description: name of the MSP (if the org belongs to an MSP)
+          oneOf:
+            - type: string
+            - type: 'null'
+              properties: {}
+        org_name:
+          description: name of the org of site
+          oneOf:
+            - type: string
+              properties: {}
+            - type: 'null'
+              properties: {}
+        site_id:
+          description: site_id of site
+          oneOf:
+            - properties: {}
+              type: string
+            - properties: {}
+              type: 'null'
+        sitegroup_ids:
+          description: |
+            list of sitegroup ids
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: 'null'
+              properties: {}
+      required:
+        - scope
+        - role
     coa_server:
       description: CoA Server
       type: object
