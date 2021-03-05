@@ -1,6 +1,6 @@
-# Juniper-Mist OpenAPI Standard 3.0 library
+# Juniper-Mist OpenAPI Standard 3.1 library
 
-Juniper Mist APIs in Open API Standard 3.0 format.
+Juniper Mist APIs in Open API Standard 3.1 format.
 
 Live documentation: https://doc.mist-lab.fr/
 
