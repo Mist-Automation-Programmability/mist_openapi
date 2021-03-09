@@ -1,6 +1,8 @@
-# Juniper-Mist OpenAPI Standard 3.1 library
+<img src="https://img.shields.io/swagger/valid/3.0?specUrl=https%3A%2F%2Fraw.githubusercontent.com%2Ftmunzer%2FMist-OAS%2Fmain%2Fmist.openapi.yml">
+<img src="https://img.shields.io/github/license/tmunzer/Mist-OAS">
+# Juniper-Mist OpenAPI Standard 3.0 library
 
-Juniper Mist APIs in Open API Standard 3.1 format.
+Juniper Mist APIs in Open API Standard 3.0 format.
 
 Live documentation: https://doc.mist-lab.fr/
 
@@ -12,6 +14,6 @@ This is a "standalone" version of the Mist.openapi_collection version. It includ
 
 
 ## Notes
-This library is intented to be used to automate the client SDK generation, but is currently using OAS3.1 specification which may be an issue for code generators
-
+Examples of generated code from this OpenAPI specifications:
+* Python: [Mist-OAS-Python3](https://github.com/tmunzer/Mist-OAS-Python3)
 
