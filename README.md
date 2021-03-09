@@ -1,5 +1,4 @@
-<img src="https://img.shields.io/swagger/valid/3.0?specUrl=https%3A%2F%2Fraw.githubusercontent.com%2Ftmunzer%2FMist-OAS%2Fmain%2Fmist.openapi.yml">
-<img src="https://img.shields.io/github/license/tmunzer/Mist-OAS">
+<img src="https://img.shields.io/swagger/valid/3.0?specUrl=https%3A%2F%2Fraw.githubusercontent.com%2Ftmunzer%2FMist-OAS%2Fmain%2Fmist.openapi.yml"> <img src="https://img.shields.io/github/license/tmunzer/Mist-OAS">
 
 # Juniper-Mist OpenAPI Standard 3.0 library
 
