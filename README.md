@@ -1,8 +1,8 @@
 <img src="https://img.shields.io/swagger/valid/3.0?specUrl=https%3A%2F%2Fraw.githubusercontent.com%2Ftmunzer%2FMist-OAS%2Fmain%2Fmist.openapi.yml"> <img src="https://img.shields.io/github/license/tmunzer/Mist-OAS">
 
-# Juniper-Mist OpenAPI Standard 3.0 library
+# Juniper-Mist OpenAPI Specifications 3.0 
 
-Juniper Mist APIs in Open API Standard 3.0 format.
+Juniper Mist APIs Open API Specifications 3.0.
 
 Live documentation: https://doc.mist-lab.fr/
 
