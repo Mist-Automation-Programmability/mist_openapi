@@ -2817,7 +2817,7 @@ paths:
                     power_mode: string
                     power: 1
                     beacon_enabled: true
-                    beacon_rate_mode: string
+                    beacon_rate_mode: default
                     beacon_rate: 0
                     ibeacon_enabled: true
                     ibeacon_uuid: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
@@ -2986,7 +2986,7 @@ paths:
                     power_mode: string
                     power: 1
                     beacon_enabled: true
-                    beacon_rate_mode: string
+                    beacon_rate_mode: default
                     beacon_rate: 0
                     ibeacon_enabled: true
                     ibeacon_uuid: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
@@ -3562,53 +3562,40 @@ paths:
                     - FXLH2015150025
                     - FXLH2015150026
             schema:
-              oneOf:
-                - properties:
-                    macs:
-                      description: 'list of MAC, e.g. 5c5b350e0001'
-                      type: array
-                      items:
-                        type: string
-                    op:
-                      default: delete
-                      enum:
-                        - delete
-                      type: string
-                    serials:
-                      description: 'list of serial numbers, e.g. FXLH2015150025'
-                      type: array
-                      items:
-                        type: string
-                  required:
-                    - op
-                - properties:
-                    disable_auto_config:
-                      description: 'a cloud-ready switch/gateway will be managed/configured by Mist by default, this disabled the behavior'
-                      type: boolean
-                    macs:
-                      description: 'list of MAC, e.g. 5c5b350e0001'
-                      type: array
-                      items:
-                        type: string
-                    managed:
-                      description: 'an adopted switch/gateway will not be managed/configured by Mist by default, this enables the behavior'
-                      type: boolean
-                    no_reassign:
-                      description: 'if true, treat site assignment against an already assigned AP as error'
-                      type: boolean
-                    op:
-                      default: assign
-                      enum:
-                        - assign
-                      type: string
-                    site_id:
-                      description: target site id
-                      type: string
-                      format: uuid
-                  required:
-                    - op
-                    - site_id
               type: object
+              properties:
+                op:
+                  type: string
+                  enum:
+                    - delete
+                    - assign
+                macs:
+                  description: 'list of MAC, e.g. 5c5b350e0001'
+                  type: array
+                  items:
+                    type: string
+                serials:
+                  description: 'if `op`==`delete`, list of serial numbers, e.g. FXLH2015150025'
+                  type: array
+                  items:
+                    type: string
+                disable_auto_config:
+                  description: 'if `op`==`assign`, a cloud-ready switch/gateway will be managed/configured by Mist by default, this disabled the behavior'
+                  type: boolean
+                  default: false
+                managed:
+                  description: 'if `op`==`assign`, an adopted switch/gateway will not be managed/configured by Mist by default, this enables the behavior'
+                  type: boolean
+                  default: false
+                no_reassign:
+                  description: 'if `op`==`assign`, if true, treat site assignment against an already assigned AP as error'
+                  type: boolean
+                site_id:
+                  description: 'if `op`==`assign`, target site id'
+                  type: string
+                  format: uuid
+              required:
+                - op
       responses:
         '200':
           $ref: '#/components/responses/OrgInventoryChanges'
@@ -3789,51 +3776,34 @@ paths:
                   amendment_id: 2b9116ab-cd1e-e897-6e08-31fccd88e792
                   op: unamend
             schema:
-              oneOf:
-                - description: Move License To Another Org
-                  properties:
-                    dst_org_id:
-                      type: string
-                      format: uuid
-                    op:
-                      default: amend
-                      enum:
-                        - amend
-                      type: string
-                    quantity:
-                      type: integer
-                    subscription_id:
-                      type: string
-                  required:
-                    - dst_org_id
-                    - op
-                    - quantity
-                    - subscription_id
-                - description: Undo the License Move
-                  properties:
-                    amendment_id:
-                      type: string
-                    op:
-                      default: unamend
-                      enum:
-                        - unamend
-                      type: string
-                  required:
-                    - amendment_id
-                    - op
-                - description: Delete License
-                  properties:
-                    license_id:
-                      type: string
-                    op:
-                      default: delete
-                      enum:
-                        - delete
-                      type: string
-                  required:
-                    - license_id
-                    - op
               type: object
+              properties:
+                op:
+                  type: string
+                  enum:
+                    - amend
+                    - unamend
+                    - delete
+                dst_org_id:
+                  type: string
+                  format: uuid
+                  description: 'if `op`==`amend`, the id of the org where the licence is moved'
+                quantity:
+                  type: integer
+                  description: 'if `op`==`amend`, the number of licences to mo'
+                subscription_id:
+                  type: string
+                  description: 'if `op`==`amend`, the ID of the subscription to use'
+                amendment_id:
+                  type: string
+                  description: 'if `op`==`unamend`, the ID of the operation to cancel'
+                  format: uuid
+                license_id:
+                  type: string
+                  description: 'if `op`==`delete`, the ID of the licence to delete'
+                  format: uuid
+              required:
+                - op
         description: Request Body
       responses:
         '200':
@@ -4576,25 +4546,6 @@ paths:
       operationId: importOrgPskJson
       requestBody:
         content:
-          application/json:
-            schema:
-              items:
-                $ref: '#/components/schemas/psk'
-              type: array
-            examples:
-              example-1:
-                value:
-                  - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-                    name: string
-                    org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-                    site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
-                    created_time: 0
-                    modified_time: 0
-                    passphrase: stringst
-                    ssid: string
-                    usage: multi
-                    vlan_id: 0
-                    mac: string
           multipart/form-data:
             schema:
               properties:
@@ -4603,7 +4554,7 @@ paths:
                   type: string
               type: object
         description: |-
-          PSK Import CSV File Format
+          PSK Import CSV File Format:
           name,ssid,passphrase,usage,vlan_id,mac
           Common,warehouse,foryoureyesonly,single,35,a31425f31278
           Justin,reception,visible,multi,1002,
@@ -4613,6 +4564,32 @@ paths:
       summary: importOrgPskJson
       tags:
         - Orgs Psks
+  '/api/v1/sites/{site_id}/psks/import':
+    parameters:
+      - $ref: '#/components/parameters/site_id'
+    post:
+      description: Import PSK from CSV file
+      operationId: importSitePskJson
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                file:
+                  format: binary
+                  type: string
+              type: object
+        description: |-
+          PSK Import CSV File Format:
+          name,ssid,passphrase,usage,vlan_id,mac
+          Common,warehouse,foryoureyesonly,single,35,a31425f31278
+          Justin,reception,visible,multi,1002,
+      responses:
+        '200':
+          $ref: '#/components/responses/PsksArray'
+      summary: importSitePskJson
+      tags:
+        - Sites Psks
   '/api/v1/orgs/{org_id}/psks/{psk_id}':
     delete:
       description: Delete Org PSK
@@ -5580,25 +5557,6 @@ paths:
                 file:
                   format: binary
                   type: string
-              type: object
-          text/plain:
-            examples: {}
-            schema:
-              properties:
-                import_all_floorplans:
-                  type: boolean
-                import_height:
-                  type: boolean
-                import_orientation:
-                  type: boolean
-                site_id:
-                  type: string
-                  format: uuid
-                vendor_name:
-                  type: string
-              required:
-                - vendor_name
-                - site_id
               type: object
         description: |-
           a JSON string, site id required, vendor option: ekahau, ibwave, etc., import_all_floorplans: optional, default: false, import_height: optional, default: true, import_orientation: optional, default: true
@@ -8261,7 +8219,7 @@ paths:
                     power_mode: string
                     power: 1
                     beacon_enabled: true
-                    beacon_rate_mode: string
+                    beacon_rate_mode: custom
                     beacon_rate: 0
                     ibeacon_enabled: true
                     ibeacon_uuid: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
@@ -9440,7 +9398,7 @@ paths:
                     power_mode: string
                     power: 1
                     beacon_enabled: true
-                    beacon_rate_mode: string
+                    beacon_rate_mode: default
                     beacon_rate: 0
                     ibeacon_enabled: true
                     ibeacon_uuid: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
@@ -12059,7 +12017,7 @@ paths:
                     power_mode: string
                     power: 1
                     beacon_enabled: true
-                    beacon_rate_mode: string
+                    beacon_rate_mode: default
                     beacon_rate: 0
                     ibeacon_enabled: true
                     ibeacon_uuid: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
@@ -12728,7 +12686,6 @@ paths:
                     created_time: 0
                     modified_time: 0
                     rftemplate_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                    secpolicy_id: null
                     alarmtemplate_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                     networktemplate_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                     tzoffset: 0
@@ -12768,7 +12725,7 @@ paths:
       summary: getSiteAssetsStats
       tags:
         - Sites Stats
-      parameters:        
+      parameters:
         - $ref: '#/components/parameters/page'
         - $ref: '#/components/parameters/limit'
         - $ref: '#/components/parameters/start'
@@ -12857,8 +12814,8 @@ paths:
                         uptime: 0
                         idle_time: 0
                         power_saving: true
-                        band: string
-                        proto: string
+                        band: "24"
+                        proto: ac
                         key_mgmt: string
                         dual_band: true
                         channel: 0
@@ -12940,8 +12897,8 @@ paths:
                       uptime: 0
                       idle_time: 0
                       power_saving: true
-                      band: string
-                      proto: string
+                      band: "24"
+                      proto: ac
                       key_mgmt: string
                       dual_band: true
                       channel: 0
@@ -13988,8 +13945,8 @@ paths:
                         uptime: 0
                         idle_time: 0
                         power_saving: true
-                        band: string
-                        proto: string
+                        band: "24"
+                        proto: ac
                         key_mgmt: string
                         dual_band: true
                         channel: 0
@@ -14565,8 +14522,8 @@ paths:
                         uptime: 0
                         idle_time: 0
                         power_saving: true
-                        band: string
-                        proto: string
+                        band: "24"
+                        proto: ac
                         key_mgmt: string
                         dual_band: true
                         channel: 0
@@ -14937,7 +14894,7 @@ paths:
           name: speed
           schema:
             type: integer
-        - description: 'if up == true, forwarding / blocking / learning / listening / disabled'
+        - description: 'if `up`==`true`'
           in: query
           name: stp_state
           schema:
@@ -14948,7 +14905,7 @@ paths:
               - listening
               - disabled
             type: string
-        - description: 'if up == true, designated / backup / alternate / root / root-prevented'
+        - description: 'if `up`==`true`'
           in: query
           name: stp_role
           schema:
@@ -14959,7 +14916,7 @@ paths:
               - root
               - root-prevented
             type: string
-        - description: 'if up == true && has Authenticator role, init / authenticated / authenticating / held'
+        - description: 'if `up`==`true` && has Authenticator role'
           in: query
           name: auth_state
           schema:
@@ -15145,7 +15102,7 @@ paths:
           name: speed
           schema:
             type: integer
-        - description: 'if up == true, forwarding / blocking / learning / listening / disabled'
+        - description: 'if `up`==`true`'
           in: query
           name: stp_state
           schema:
@@ -15156,7 +15113,7 @@ paths:
               - listening
               - disabled
             type: string
-        - description: 'if up == true, designated / backup / alternate / root / root-prevented'
+        - description: 'if `up`==`true`'
           in: query
           name: stp_role
           schema:
@@ -15167,7 +15124,7 @@ paths:
               - root
               - root-prevented
             type: string
-        - description: 'if up == true && has Authenticator role, init / authenticated / authenticating / held'
+        - description: 'if `up`==`true` && has Authenticator role'
           in: query
           name: auth_state
           schema:
@@ -15428,7 +15385,7 @@ paths:
           name: speed
           schema:
             type: integer
-        - description: 'if up == true, forwarding / blocking / learning / listening / disabled'
+        - description: 'if `up`==`true`'
           in: query
           name: stp_state
           schema:
@@ -15439,7 +15396,7 @@ paths:
               - listening
               - disabled
             type: string
-        - description: 'if up == true, designated / backup / alternate / root / root-prevented'
+        - description: 'if `up`==`true`'
           in: query
           name: stp_role
           schema:
@@ -15450,7 +15407,7 @@ paths:
               - root
               - root-prevented
             type: string
-        - description: 'if up == true && has Authenticator role, init / authenticated / authenticating / held'
+        - description: 'if `up`==`true`'
           in: query
           name: auth_state
           schema:
@@ -15636,7 +15593,7 @@ paths:
           name: speed
           schema:
             type: integer
-        - description: 'if up == true, forwarding / blocking / learning / listening / disabled'
+        - description: 'if `up`==`true`'
           in: query
           name: stp_state
           schema:
@@ -15647,7 +15604,7 @@ paths:
               - listening
               - disabled
             type: string
-        - description: 'if up == true, designated / backup / alternate / root / root-prevented'
+        - description: 'if `up`==`true`'
           in: query
           name: stp_role
           schema:
@@ -15658,7 +15615,7 @@ paths:
               - root
               - root-prevented
             type: string
-        - description: 'if up == true && has Authenticator role, init / authenticated / authenticating / held'
+        - description: 'if `up`==`true` && has Authenticator role'
           in: query
           name: auth_state
           schema:
@@ -16207,8 +16164,7 @@ paths:
                   isCustomDataboard: true
                   isTimeRangeLinked: true
                   tiles:
-                    - sortedColumns: null
-                      rowspan: 0
+                    - rowspan: 0
                       chartBand: string
                       name: string
                       column: 0
@@ -16265,8 +16221,7 @@ paths:
                     isCustomDataboard: true
                     isTimeRangeLinked: true
                     tiles:
-                      - sortedColumns: null
-                        rowspan: 0
+                      - rowspan: 0
                         chartBand: string
                         name: string
                         column: 0
@@ -17801,7 +17756,7 @@ paths:
               - scope_id
               - scope
             type: string
-        - description: 'user type, client (default) / sdkclient / asset'
+        - description: 'user type'
           in: query
           name: user_type
           schema:
@@ -17816,12 +17771,12 @@ paths:
           name: user
           schema:
             type: string
-        - description: 'if scope == map/zone/rssizone, the scope id'
+        - description: 'if `scope`==`map`/`zone`/`rssizone`, the scope id'
           in: query
           name: scope_id
           schema:
             type: string
-        - description: 'scope, site (default) / map / zone / rssizone'
+        - description: 'scope'
           in: query
           name: scope
           schema:
@@ -17908,12 +17863,12 @@ paths:
           name: user
           schema:
             type: string
-        - description: 'if scope == map/zone/rssizone, the scope id'
+        - description: 'if `scope`==`map`/`zone`/`rssizone`, the scope id'
           in: query
           name: scope_id
           schema:
             type: string
-        - description: 'scope, site (default) / map / zone / rssizone'
+        - description: 'scope'
           in: query
           name: scope
           schema:
@@ -18861,20 +18816,17 @@ paths:
           content:
             application/json:
               schema:
-                oneOf:
-                  - properties:
-                      email:
-                        type: string
-                      two_factor_required:
-                        type: boolean
-                      two_factor_passed:
-                        type: boolean
-                    required:
-                      - email
-                      - two_factor_required
-                      - two_factor_passed
                 type: object
+                properties:
+                  email:
+                    type: string
+                  two_factor_required:
+                    type: boolean
+                  two_factor_passed:
+                    type: boolean
               examples:
+                OK:
+                  value: {}
                 2FA Required:
                   value:
                     email: test@mistsys.com
@@ -19279,7 +19231,7 @@ paths:
                   description: to enable or disable two-factory authentication
                 two_factor_verified:
                   type: boolean
-                  description: 'if enable_two_factor=true, whether it’s verified.'
+                  description: 'if `enable_two_factor`==`true`, whether it’s verified.'
             examples:
               example-1:
                 value:
@@ -22267,7 +22219,7 @@ components:
                   power_mode: string
                   power: 1
                   beacon_enabled: true
-                  beacon_rate_mode: string
+                  beacon_rate_mode: default
                   beacon_rate: 0
                   ibeacon_enabled: true
                   ibeacon_uuid: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
@@ -22407,7 +22359,7 @@ components:
                     power_mode: string
                     power: 1
                     beacon_enabled: true
-                    beacon_rate_mode: string
+                    beacon_rate_mode: default
                     beacon_rate: 0
                     ibeacon_enabled: true
                     ibeacon_uuid: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
@@ -22543,7 +22495,7 @@ components:
                   power_mode: string
                   power: 1
                   beacon_enabled: true
-                  beacon_rate_mode: string
+                  beacon_rate_mode: default
                   beacon_rate: 0
                   ibeacon_enabled: true
                   ibeacon_uuid: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
@@ -23762,15 +23714,10 @@ components:
                 usages:
                   readOnly: true
                   description: subscriptions and their quantities
-                  properties:
-                    SUB-LOC:
-                      type: integer
-                    SUB-MAN:
-                      type: integer
-                  required:
-                    - SUB-MAN
-                    - SUB-LOC
                   type: object
+                  additionalProperties:
+                    type: integer
+                    readOnly: true
               required:
                 - site_id
                 - num_devices
@@ -25451,7 +25398,6 @@ components:
                   url: 'https://cloudshark.hosted.domain'
                 auto_deviceprofile_assignment:
                   enable: true
-                  rules: null
                 cacerts:
                   - |-
                     -----BEGIN CERTIFICATE-----
@@ -29831,8 +29777,6 @@ components:
                 type: client
                 max_pkt_len: 128
                 includes_mcast: false
-                ssid: null
-                ap_mac: null
                 client_mac: 60a10a773412
                 num_packets: 1000
                 duration: 300
@@ -29913,7 +29857,6 @@ components:
                 site_id: 67970e46-4e12-11e6-9188-0242ac110007
                 aps: []
                 ssid: ''
-                client_mac: null
                 type: radiotap
                 num_packets: 100
                 max_pkt_len: 68
@@ -29925,7 +29868,6 @@ components:
                 invalid_aps: {}
                 format: stream
                 raw: true
-                tcpdump_parser_expression: null
     RfdiagsArray:
       description: OK
       content:
@@ -31230,7 +31172,7 @@ components:
                   power_mode: string
                   power: 9
                   beacon_enabled: true
-                  beacon_rate_mode: string
+                  beacon_rate_mode: default
                   beacon_rate: 0
                   ibeacon_enabled: false
                   ibeacon_uuid: 1f89bc00-d0af-481b-82fe-a6629259a39f
@@ -31461,7 +31403,6 @@ components:
                           usage: string
                           aggregated: false
                           description: string
-                          dynamic_usage: null
                           ae_idx: 0
                           ae_disable_lacp: true
                           esilag: true
@@ -31469,7 +31410,6 @@ components:
                           usage: string
                           aggregated: false
                           description: string
-                          dynamic_usage: null
                           ae_idx: 0
                           ae_disable_lacp: true
                           esilag: true
@@ -32312,7 +32252,6 @@ components:
           description: SSID this PSK should be applicable to
         usage:
           type: string
-          description: multi (default) / single
           default: multi
           enum:
             - multi
@@ -32322,7 +32261,7 @@ components:
           description: VLAN for this PSK key
         mac:
           type: string
-          description: 'if usage==single, the mac that this PSK ties to, empty if auto-binding'
+          description: 'if `usage`==`single`, the mac that this PSK ties to, empty if `auto-binding`'
       required:
         - name
         - passphrase
@@ -32589,7 +32528,7 @@ components:
                 description: next-hop IP Address
         router_id:
           type: string
-          description: 'router-id used for OSPF/ BGP, required if ospf_config.enabled=true'
+          description: 'router-id used for OSPF/ BGP, required `ospf_config.enabled`==`true`'
         ospf_config:
           $ref: '#/components/schemas/junos_ospf_config'
         vrrp_config:
@@ -32610,7 +32549,6 @@ components:
                 psk: string123
                 enable_mac_auth: true
                 multi_psk_only: true
-                pairwise: null
                 wep_as_secondary_auth: true
                 keys:
                   - string
@@ -34292,16 +34230,13 @@ components:
                   disabled: false
                   power_min: 8
                   power_max: 15
-                  power: null
                   preamble: short
-                  channels: null
                   bandwidth: 40
             band_24:
               ant_gain: 0
               disabled: false
               power_min: 3
               power_max: 11
-              power: null
               preamble: short
               channels:
                 - 1
@@ -34315,7 +34250,6 @@ components:
               disabled: false
               power_min: 9
               power_max: 16
-              power: null
               preamble: short
               channels:
                 - 36
@@ -34446,7 +34380,6 @@ components:
                 - guest
                 - employee
                 - finance
-              port_network: null
           port_config:
             ge-0/0/0:
               usage: wan
@@ -35296,7 +35229,7 @@ components:
               default: client
             client_mac:
               type: string
-              description: 'client mac, required if type==client; optional otherwise'
+              description: 'client mac, required if `type`==`client`; optional otherwise'
             num_packets:
               description: 'number of packets to capture, 0 for unlimited, default is 1024 for client-capture'
               default: 1024
@@ -35327,7 +35260,7 @@ components:
               description: new-assoc
             client_mac:
               type: string
-              description: 'client mac, required if type==client; optional otherwise'
+              description: 'client mac, required if `type`==`client`; optional otherwise'
             num_packets:
               description: 'number of packets to capture, 0 for unlimited, default is 100 for new association'
               default: 1024
@@ -35974,7 +35907,7 @@ components:
           description: 'whether to use UDP instead of IP (proto=115, which is default of L2TPv3)'
         udp_port:
           type: integer
-          description: udp port if use_udp=true
+          description: udp port if `use_udp`==`true`
         mtu:
           type: integer
           minimum: 0
@@ -36002,10 +35935,8 @@ components:
         router_id:
           type: string
           description: 'optional, overwrite the router-id in SCCRQ control message, default is “0” or null, can also be an IPv4 address'
-          default: null
         hostname:
           type: string
-          default: null
           description: |
             optional, overwrite the hostname in SCCRQ control message, default is “” or null, %H and %M can be used, which will be replace with corresponding values. %H: name of the ap if provided (and will be stripped so it can be used for hostname) and fallbacks to MAC, %M: MAC (e.g. 5c5b350e0060)
         sessions:
@@ -36042,7 +35973,7 @@ components:
                 description: whether to use AP (last 4 bytes of MAC currently) as session ids
               ap_as_session_id:
                 type: string
-                description: 'if use_ap_as_session_ids=true, only apmac is supported right now. This is the name WLAN should use for wxtunnel_remote_id'
+                description: 'if `use_ap_as_session_ids`==`true`, only apmac is supported right now. This is the name WLAN should use for wxtunnel_remote_id'
               pseudo_802.1ad_enabled:
                 type: boolean
                 default: false
@@ -36481,7 +36412,7 @@ components:
           default: ordered
         auth_servers:
           type: array
-          description: 'list of RADIUS authentication servers, at least one is needed if auth type == eap, order matters where the first one is treated as primary'
+          description: 'list of RADIUS authentication servers, at least one is needed if `auth type`==`eap`, order matters where the first one is treated as primary'
           items:
             $ref: '#/components/schemas/auth_server'
         acct_servers:
@@ -36826,7 +36757,7 @@ components:
         use_eapol_v1:
           type: boolean
           default: false
-          description: 'if auth.type==’eap’ or ‘psk’, should only be set for legacy client, such as pre-2004, 802.11b devices'
+          description: 'if `auth.type`==’eap’ or ‘psk’, should only be set for legacy client, such as pre-2004, 802.11b devices'
       required:
         - ssid
     ticket:
@@ -37050,7 +36981,6 @@ components:
           created_time: 1594743745
           modified_time: 1594743745
           map_id: 5a8b84e6-xxxx-xxxx-xxxx-fce4c3998516
-          tag_id: null
       properties:
         id:
           type: string
@@ -37114,7 +37044,7 @@ components:
           description: y in pixel
         power:
           type: integer
-          description: 'required if power_mode==custom, -30 - 100, in dBm. For default power_mode, power = 4 dBm.'
+          description: 'required if `power_mode`==`custom`, -30 - 100, in dBm. For default power_mode, power = 4 dBm.'
           minimum: -30
           maximum: 100
           default: 4
@@ -38197,7 +38127,6 @@ components:
           org_id: 203d3d02-xxxx-xxxx-xxxx-76896a3330f4
           created_time: 1594743733
           modified_time: 1594743733
-          map_id: null
           tag_id: 00000000000000000000000000000000-0-0
           mac: df8dff060000
       properties:
@@ -38254,7 +38183,6 @@ components:
             power: 16
           band_5:
             disabled: false
-            channels: null
             bandwidth: 40
             power: 0
             preamble: short
@@ -38318,7 +38246,7 @@ components:
             - '24'
             - '5'
             - auto
-          description: 'If band_24_usage == "5", by default, `band_5` properties is used, if specific channel/bandwidth/power/... If desired, use `band_5_on_24_radio`'
+          description: 'If `band_24_usage`==`5`, by default, `band_5` properties is used, if specific channel/bandwidth/power/... If desired, use `band_5_on_24_radio`'
         band_5_on_24_radio:
           $ref: '#/components/schemas/ap_radio_band'
         scanning_enabled:
@@ -38430,8 +38358,6 @@ components:
           type: client
           max_pkt_len: 128
           includes_mcast: false
-          ssid: null
-          ap_mac: null
           client_mac: 60a10a773412
           num_packets: 1000
           duration: 300
@@ -38586,13 +38512,13 @@ components:
             properties:
               mac:
                 type: string
-                description: same as the mac of device_id. Required if "op"=="add"
+                description: same as the mac of device_id. Required if `op`==`add`
               member:
                 type: integer
-                description: Required if "op"=="remove". Optional if "op"=="add"
+                description: Required if `op`==`remove`. Optional if `op`==`add`
               vc_ports:
                 type: array
-                description: Optional. Only if "op"=="add"
+                description: Optional. Only if `op`==`add`
                 items:
                   type: string
               vc_role:
@@ -38601,7 +38527,7 @@ components:
                   - master
                   - backup
                   - linecard
-                description: Optional. Only if "op"=="add"
+                description: Optional. Only if `op`==`add`
       required:
         - members
     wxlan_tag:
@@ -38743,7 +38669,7 @@ components:
         sdkclient_id:
           type: string
           format: uuid
-          description: 'if type==sdkclient, sdkclient_id of this recording'
+          description: 'if `type`==`sdkclient`, sdkclient_id of this recording'
         duration:
           type: integer
           description: 'recording length in seconds, max is 180. Default value is also 180.'
@@ -38751,7 +38677,7 @@ components:
           maximum: 180
         mac:
           type: string
-          description: 'if type==client or asset, mac of the device'
+          description: 'if `type`==`client` or `asset`, mac of the device'
       required:
         - name
         - type
@@ -38795,14 +38721,14 @@ components:
           sdkclient_id:
             type: string
             format: uuid
-            description: 'if type==sdkclient, sdkclient_id of this recording'
+            description: 'if `type`==`sdkclient`, sdkclient_id of this recording'
           sdkclient_name:
             type: string
-            description: 'if type==sdkclient, name of the sdkclient'
+            description: 'if `type`==`sdkclient`, name of the sdkclient'
           sdkclient_uuid:
             type: string
             format: uuid
-            description: 'if type==sdkclient, device_id of sdkclient'
+            description: 'if `type`==`sdkclient`, device_id of sdkclient'
           map_id:
             format: uuid
             type: string
@@ -38833,16 +38759,16 @@ components:
           asset_id:
             type: string
             format: uuid
-            description: 'if type==asset, id of the asset'
+            description: 'if `type`==`asset`, id of the asset'
           mac:
             type: string
-            description: 'if type==client or type==asset, mac of the device'
+            description: 'if `type`==`client` or `asset`, mac of the device'
           client_name:
             type: string
-            description: 'if type==client, hostname of the client'
+            description: 'if `type`==`client`, hostname of the client'
           asset_name:
             type: string
-            description: 'if type==asset, name of the asset'
+            description: 'if `type`==`asset`, name of the asset'
         required:
           - name
           - type
@@ -38920,33 +38846,32 @@ components:
           isCustomDataboard: true
           isTimeRangeLinked: true
           tiles:
-            - sortedColumns: null
-              rowspan: 2
-              chartBand: 2.4 ghz
-              name: New Analysis
-              column: 1
-              colspan: 5
-              metric:
-                apiName: client-dhcp-latency
-              timeRange:
-                end: 1508823743
-                name: Past 7 Days
-                interval: 1d
-                start: 1508223600
-                usePreset: true
-                endDate: 10/23/2017
-                shortName: 7d
-              chartDirection: tx + rx
-              chartRankBy: ''
-              scopeType: client
-              hideEmptyRows: true
-              scopeId: e0c767834b4c
-              chartType: timeSeries
-              vizType: averageTimeSeriesChart
-              row: 1
-              trendType: line
-              id: 7a9ab38c-cfc3-483d-b51a-0aec571fadc0-j956nurl
-              chartColor: '#00B4AD'
+            rowspan: 2
+            chartBand: 2.4 ghz
+            name: New Analysis
+            column: 1
+            colspan: 5
+            metric:
+              apiName: client-dhcp-latency
+            timeRange:
+              end: 1508823743
+              name: Past 7 Days
+              interval: 1d
+              start: 1508223600
+              usePreset: true
+              endDate: 10/23/2017
+              shortName: 7d
+            chartDirection: tx + rx
+            chartRankBy: ''
+            scopeType: client
+            hideEmptyRows: true
+            scopeId: e0c767834b4c
+            chartType: timeSeries
+            vizType: averageTimeSeriesChart
+            row: 1
+            trendType: line
+            id: 7a9ab38c-cfc3-483d-b51a-0aec571fadc0-j956nurl
+            chartColor: '#00B4AD'
           defaultTimeRange:
             end: 1508828400
             name: This Week
@@ -40763,7 +40688,7 @@ components:
           description: antenna gain for 5G - for models with external antenna only
         band_24_usage:
           type: string
-          description: 'if band_24_usage == "5", by default, band_5 properties is used, if specific channel/bandwidth/power/... is desired, use the "band_5_on_24_radio"'
+          description: 'if `band_24_usage`==`5`, by default, band_5 properties is used, if specific channel/bandwidth/power/... is desired, use the "band_5_on_24_radio"'
           enum:
             - '24'
             - '5'
@@ -40804,15 +40729,15 @@ components:
           description: static / dhcp (default)
         ip:
           type: string
-          description: required if type==static
+          description: required if `type`==`static`
           format: ipv4
         netmask:
           type: string
-          description: required if type==static
+          description: required if `type`==`static`
           format: ipv4
         gateway:
           type: string
-          description: required if type==static
+          description: required if `type`==`static`
           format: ipv4
         type6:
           type: string
@@ -40830,12 +40755,12 @@ components:
           format: ipv6
         dns:
           type: array
-          description: if type==static
+          description: if `type`==`static`
           items:
             type: string
         dns_suffix:
           type: array
-          description: required if type==static
+          description: required if `type`==`static`
           items:
             type: string
         vlan_id:
@@ -41006,25 +40931,25 @@ components:
             - site_mxedge
         vland_ids:
           type: array
-          description: if forwrding == limited
+          description: if `forwrding`==`limited`
           items:
             type: integer
         port_vlan_id:
           type: integer
-          description: if forwrding == limited
+          description: if `forwrding`==`limited`
         wxtunnel_id:
           type: string
-          description: if forwarding == wxtunnel
+          description: if `forwarding`==`wxtunnel`
         wxtunnel_remote_id:
           type: string
-          description: if forwarding == wxtunnel
+          description: if `forwarding`==`wxtunnel`
         mx_tunnel_id:
           type: string
-          description: 'if forwarding == mxtunnel, vlan_ids comes from mxtunnel'
+          description: 'if `forwarding`==`mxtunnel`, vlan_ids comes from mxtunnel'
           format: uuid
         mxtunnel_name:
           type: string
-          description: 'if forwarding == site_mxedge, vlan_ids comes from site_mxedge (`mxtunnels` under site setting)'
+          description: 'if `forwarding`==`site_mxedge`, vlan_ids comes from site_mxedge (`mxtunnels` under site setting)'
         port_auth:
           type: string
           description: whether to do port auth
@@ -41065,14 +40990,13 @@ components:
         type:
           type: string
           nullable: true
-          default: null
           description: usb config type
           enum:
             - imagotag
         host:
           type: string
           nullable: true
-          description: required if type==imagotag
+          description: required if `type`==`imagotag`
         channel:
           type: integer
           nullable: true
@@ -41123,21 +41047,24 @@ components:
           minimum: 1
           maximum: 10
           default: 9
-          description: required if power_mode==custom
+          description: required if `power_mode`==`custom`
         beacon_enabled:
           type: boolean
           default: true
           description: whether Mist beacons is enabled
         beacon_rate_mode:
           type: string
-          description: default / custom
+          enum:
+            - default
+            - custom
+          default: default          
         beacon_rate:
           type: integer
-          description: 'required if beacon_rate_mode==custom, 1-10, in number-beacons-per-second'
+          description: 'required if `beacon_rate_mode`==`custom`, 1-10, in number-beacons-per-second'
         ibeacon_enabled:
           type: boolean
           default: false
-          description: 'can be enabled if beacon_enabled=true, whether to send iBeacon'
+          description: 'can be enabled if `beacon_enabled`==`true`, whether to send iBeacon'
         ibeacon_uuid:
           type: string
           format: uuid
@@ -41157,7 +41084,7 @@ components:
           type: string
         eddystone_uid_enabled:
           type: boolean
-          description: 'only if beacon_enabled=false, Whether Eddystone-UID beacon is enabled'
+          description: 'only if `beacon_enabled`==`false`, Whether Eddystone-UID beacon is enabled'
         eddystone_uid_namespace:
           type: string
           description: Eddystone-UID namespace
@@ -41176,7 +41103,7 @@ components:
           type: string
         eddystone_url_enabled:
           type: boolean
-          description: 'only if beacon_enabled=false, Whether Eddystone-URL beacon is enabled'
+          description: 'only if `beacon_enabled`==`false`, Whether Eddystone-URL beacon is enabled'
         eddystone_url_url:
           type: string
           description: URL pointed by Eddystone-URL beacon
@@ -41392,10 +41319,10 @@ components:
             - simple
         auth_key:
           type: string
-          description: if auth_type==md5
+          description: if `auth_type`==`md5`
         auth_password:
           type: string
-          description: if auth_type==simple
+          description: if `auth_type`==`simple`
     junos_gateway_port_config:
       type: object
       x-examples:
@@ -41462,7 +41389,7 @@ components:
         all_networks:
           type: boolean
           default: false
-          description: 'if mode=trunk, whether to trunk all network/vlans'
+          description: 'if `mode`==`trunk`, whether to trunk all network/vlans'
         stp_edge:
           type: boolean
           description: 'when enabled, the port is not expected to receive BPDU frames'
@@ -41474,7 +41401,7 @@ components:
           description: media maximum transmission unit (MTU) is the largest data unit that can be forwarded without fragmentation. The default value is 1514.
         networks:
           type: array
-          description: 'if mode=trunk, the list of network/vlans'
+          description: 'if `mode`==`trunk`, the list of network/vlans'
           items:
             type: string
         disabled:
@@ -41492,14 +41419,13 @@ components:
           description: 'if dot1x is desired, set to dot1x'
         enable_mac_auth:
           type: boolean
-          description: 'if port_auth=dot1x, whether to enable MAC Auth'
+          description: 'if `port_auth`==`dot1x`, whether to enable MAC Auth'
         bypass_auth_when_server_down:
           type: boolean
-          description: 'if port_auth=dot1x, whether to allow the device to connect if RADIUS server is down'
+          description: 'if `port_auth`==`dot1x`, whether to allow the device to connect if RADIUS server is down'
         guest_network:
           type: string
-          default: null
-          description: 'if port_auth=dot1x, which network to put the device into if the device cannot do dot1x. default is null (i.e. not allowed)'
+          description: 'if `port_auth`==`dot1x`, which network to put the device into if the device cannot do dot1x. default is null (i.e. not allowed)'
         speed:
           type: string
           description: 'speed, default is auto to automatically negotiate speed'
@@ -41523,7 +41449,7 @@ components:
         persist_mac:
           type: boolean
           default: false
-          description: 'if mode=access and port_auth!=dot1x, whether the port should retain dynamically learned MAC addresses'
+          description: 'if `mode`==`access` and `port_auth`!=`dot1x`, whether the port should retain dynamically learned MAC addresses'
         poe_disabled:
           type: boolean
           default: false
@@ -41715,15 +41641,15 @@ components:
                   - none
                   - md5
                   - password
-                description: 'auth type, none (default) / md5 / password'
+                description: 'auth type'
               auth_keys:
                 type: object
-                description: if auth_type==md5
+                description: if `auth_type`==`md5`
                 additionalProperties:
                   type: string
               auth_password:
                 type: string
-                description: 'if auth_type==’password’, the password, max length is 8'
+                description: 'if `auth_type`==`password`, the password, max length is 8'
               passive:
                 type: boolean
                 default: false
@@ -41940,10 +41866,10 @@ components:
           enum:
             - static
             - dhcp
-          description: static / dhcp (default)
+          default: dhcp
         ip:
           type: string
-          description: required if type==static
+          description: required if `type`==`static`
         netmask:
           type: string
           description: 'optional, `sunbet` from `network` definition will be used if defined  '
@@ -42000,7 +41926,6 @@ components:
         dynamic_usage:
           type: string
           nullable: true
-          default: null
           description: Enable dynamic usage for this port. Set to `dynamic` to enable.
         ae_idx:
           type: integer
@@ -42960,10 +42885,18 @@ components:
             description: if it’s currently in power-save mode
           band:
             type: string
-            description: “24” or “5”
+            enum:
+              - "24"
+              - "5"
           proto:
             type: string
-            description: b / g / n / a / ac
+            enum:
+              - a
+              - b
+              - g
+              - n 
+              - ac
+              - ax
           key_mgmt:
             type: string
             description: e.g. WPA2-PSK/CCMP
@@ -43416,7 +43349,6 @@ components:
             created_time: 1594743731
             modified_time: 1599721190
             rftemplate_id: b3f20330-xxxx-xxxx-xxxx-0d8727140b1d
-            secpolicy_id: null
             alarmtemplate_id: 2448aeb8-85c9-449b-a0d9-4f0043313f62
             networktemplate_id: 185c4c32-b0b8-4a88-9dce-3a260b017013
             tzoffset: 60
@@ -46461,7 +46393,7 @@ components:
                 type: string
                 description: host to which syslog is sent
               port:
-                description: 'port on which to connect to host for syslog, default is 514 if protocol=udp, 6514 if protocol=tcp'
+                description: 'port on which to connect to host for syslog, default is `514` if `protocol`==`udp`, `6514` if `protocol`==`tcp`'
                 type: integer
               protocol:
                 type: string
@@ -46725,8 +46657,6 @@ components:
       x-examples:
         example-1:
           dwell_tags:
-            passerby: null
-            bounce: null
             engaged: 300-14400
             stationed: 14400-43200
           max_dwell: 43200
@@ -47496,7 +47426,6 @@ components:
           psk: string123
           enable_mac_auth: true
           multi_psk_only: true
-          pairwise: null
           wep_as_secondary_auth: true
           keys:
             - string
