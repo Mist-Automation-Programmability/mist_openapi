@@ -1,6 +1,6 @@
 info:
   title: Mist API
-  version: 0.2.9
+  version: 0.3.0
   x-logo:
     url: 'https://cdn.mist.com/wp-content/uploads/logo.png'
     backgroundColor: '#FFFFFF'
@@ -9,9 +9,9 @@ info:
     email: tmunzer@juniper.net
     name: Thomas Munzer
   description: |
-    > *Version 0.2.9*
+    > *Version 0.3.0*
     >
-    > Date: February 26th, 2021
+    > Date: March 25th, 2021
     >
 
     *This is still a Work In Progress.*
@@ -7958,136 +7958,74 @@ paths:
             examples:
               gateway:
                 value:
-                  name: string
-                  ip_config:
-                    type: static
-                    ip: string
-                    netmask: string
-                    gateway: string
-                    dns:
-                      - string
-                    dns_suffix:
-                      - string
-                    network: string
-                    dhcp:
-                      enabled: true
-                      type: local
-                      ip_start: string
-                      ip_end: string
-                      dns:
-                        - string
-                      dns_suffix:
-                        - string
-                      servers:
-                        - string
-                      gateway: string
-                  other_ip_configs:
-                    type: static
-                    ip: string
-                    netmask: string
-                  wan2_ip_config:
-                    type: static
-                    ip: string
-                    netmask: string
-                    gateway: string
-                    dns:
-                      - string
-                    dns_suffix:
-                      - string
-                    network: string
-                    dhcp:
-                      enabled: true
-                      type: local
-                      ip_start: string
-                      ip_end: string
-                      dns:
-                        - string
-                      dns_suffix:
-                        - string
-                      servers:
-                        - string
-                      gateway: string
-                  oob_ip_config:
-                    type: dynamic
-                    ip: string
-                    netmask: string
-                    gateway: string
-                    dns:
-                      - string
-                    dns_suffix:
-                      - string
-                    network: string
-                    dhcp:
-                      enabled: true
-                      type: local
-                      ip_start: string
-                      ip_end: string
-                      dns:
-                        - string
-                      dns_suffix:
-                        - string
-                      servers:
-                        - string
-                      gateway: string
-                  ntp_servers:
-                    - string
+                  name: corp-a135
+                  networks: {}
                   port_config:
-                    usage: string
-                    aggregated: true
-                    description: string
-                    dynamic_usage: true
-                  radius_config:
-                    auth_servers_timeout: 0
-                    auth_servers_retries: 0
-                    auth_servers:
-                      - host: string
-                        port: 0
-                        secret: string
-                    acct_servers:
-                      - host: string
-                        secret: string
-                        port: 0
-                    acct_interim_interval: 0
-                  port_usages:
-                    mode: access
-                    all_networks: true
-                    stp_edge: true
-                    port_network: string
-                    mtu: 0
-                    networks:
-                      - string
-                    disabled: true
-                    description: string
-                    voip_network: string
-                    port_auth: string
-                    enable_mac_auth: true
-                    bypass_auth_when_server_down: true
-                    guest_network: string
-                    speed: string
-                    duplex: half
-                    disable_autoneg: true
-                    mac_limit: 0
-                    poe_disabled: true
-                    storm_control:
-                      percentage: 0
-                      no_broadcast: true
-                      no_unknown_unicast: true
-                      no_multicast: true
-                      no_registered_multicast: true
-                  networks:
-                    vlan_id: 1
-                    subnet: string
-                    gateway: string
-                    dns:
-                      - string
-                    dns_suffix:
-                      - string
-                  managed: true
+                    ge-0/0/0:
+                      usage: wan
+                      ip_config:
+                        type: dhcp
+                    ge-0/0/7:
+                      usage: wan
+                      ip_config:
+                        type: static
+                    cl-0/0/1:
+                      usage: wan
+                      wan_config:
+                        backup_only: true
+                      ip_config:
+                        type: pppoe
+                    ge-0/0/1-5:
+                      usage: lan
+                    'ge-0/0/0,ge-7/0/0':
+                      usage: wan
+                      clustered: true
+                      reth_idx: 3
+                      ip_config: {}
+                  ip_configs:
+                    corp:
+                      type: static
+                      ip: 192.168.10.1
+                  dhcpd_config:
+                    enabled: true
+                    corp:
+                      type: local
+                      ip_start: 192.168.70.100
+                      ip_end: 192.168.70.200
+                      gateway: 192.168.70.1
+                      dns_servers:
+                        - 8.8.8.8
+                        - 4.4.4.4
+                      dns_suffix:
+                        - .mist.local
+                        - .mist.com
+                      fixed_bindings:
+                        5684dae9ac8b:
+                          name: John
+                          ip: 192.168.70.35
+                  extra_routes:
+                    0.0.0.0/0:
+                      via: 10.2.1.1
+                  port_forward:
+                    remote-ssh:
+                      protocol: tcp
+                      ip_port: 10.2.5.3
+                      ip_range: 10.2.5.1/32-10.2.5.20/32
+                  oob_ip_config:
+                    type: static
+                    ip: 192.168.50.3
+                    netmask: 255.255.255.0
+                  ntp_servers:
+                    - pool.ntp.org
+                    - time.google.com
+                  managed: false
                   additional_config_cmds:
-                    - string
-                  vars: {}
-                  deviceprofile_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  image1_url: string
+                    - set snmp community public
+                  vars:
+                    RADIUS_SECRET: 11s64632d
+                    RADIUS_IP1: 172.31.2.5
+                  deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+                  image1_url: 'https://url/to/image.png'
               switch:
                 value:
                   additional_config_cmds:
@@ -9596,71 +9534,74 @@ paths:
                         default_vlan_id: 1
               gateway:
                 value:
-                  additional_config_cmds:
-                    - set snmp community public
-                  deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
-                  image1_url: 'https://url/to/image.png'
-                  ip_config:
-                    dhcp:
-                      enabled: true
-                      ip_end: 192.167.70.200
-                      ip_start: 192.167.70.100
-                      type: local
-                    dns:
-                      - 8.8.8.8
-                      - 4.4.4.4
-                    dns_suffix:
-                      - .mist.local
-                      - .mist.com
-                    gateway: 192.168.1.1
-                    ip: 192.168.1.1
-                    network: default
-                    subnet: 192.168.1.0/24
-                    type: static
-                  managed: false
                   name: corp-a135
                   networks: {}
+                  port_config:
+                    ge-0/0/0:
+                      usage: wan
+                      ip_config:
+                        type: dhcp
+                    ge-0/0/7:
+                      usage: wan
+                      ip_config:
+                        type: static
+                    cl-0/0/1:
+                      usage: wan
+                      wan_config:
+                        backup_only: true
+                      ip_config:
+                        type: pppoe
+                    ge-0/0/1-5:
+                      usage: lan
+                    'ge-0/0/0,ge-7/0/0':
+                      usage: wan
+                      clustered: true
+                      reth_idx: 3
+                      ip_config: {}
+                  ip_configs:
+                    corp:
+                      type: static
+                      ip: 192.168.10.1
+                  dhcpd_config:
+                    enabled: true
+                    corp:
+                      type: local
+                      ip_start: 192.168.70.100
+                      ip_end: 192.168.70.200
+                      gateway: 192.168.70.1
+                      dns_servers:
+                        - 8.8.8.8
+                        - 4.4.4.4
+                      dns_suffix:
+                        - .mist.local
+                        - .mist.com
+                      fixed_bindings:
+                        5684dae9ac8b:
+                          name: John
+                          ip: 192.168.70.35
+                  extra_routes:
+                    0.0.0.0/0:
+                      via: 10.2.1.1
+                  port_forward:
+                    remote-ssh:
+                      protocol: tcp
+                      ip_port: 10.2.5.3
+                      ip_range: 10.2.5.1/32-10.2.5.20/32
+                  oob_ip_config:
+                    type: static
+                    ip: 192.168.50.3
+                    netmask: 255.255.255.0
                   ntp_servers:
                     - pool.ntp.org
                     - time.google.com
-                  oob_ip_config:
-                    ip: 192.168.50.3
-                    mgmt_only: true
-                    netmask: 255.255.255.0
-                    network: mgmt
-                    type: static
-                  other_ip_configs:
-                    guest:
-                      ip: 10.3.3.1
-                      netmask: 255.255.255.0
-                      type: static
-                  port_config:
-                    '*':
-                      usage: default
-                    ge-0/0/0:
-                      usage: wan
-                    ge-0/0/1-5:
-                      usage: lan
-                  port_usages: {}
-                  radius_config:
-                    acct_interim_interval: 0
-                    acct_servers:
-                      - host: 1.2.3.4
-                        port: 1812
-                        secret: testing123
-                    auth_servers:
-                      - host: 1.2.3.4
-                        port: 1812
-                        secret: testing123
-                      - host: radius.internal
-                        port: 1812
-                        secret: testing123
-                    auth_servers_retries: 3
-                    auth_servers_timeout: 5
+                  managed: false
+                  additional_config_cmds:
+                    - set snmp community public
                   vars:
-                    RADIUS_IP1: 172.31.2.5
                     RADIUS_SECRET: 11s64632d
-                  wan2_ip_config: {}
+                    RADIUS_IP1: 172.31.2.5
+                  deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+                  image1_url: 'https://url/to/image.png'
               switch:
                 value:
                   additional_config_cmds:
@@ -15077,6 +15018,16 @@ paths:
           name: rx_bps
           schema:
             type: integer
+        - description: Output errors
+          in: query
+          name: tx_errors
+          schema:
+            type: integer
+        - description: Input errors
+          in: query
+          name: rx_errors
+          schema:
+            type: integer
         - description: Multicast output packets
           in: query
           name: tx_mcast_pkts
@@ -15102,6 +15053,11 @@ paths:
           name: speed
           schema:
             type: integer
+        - description: indicates if interface is up
+          in: query
+          name: up
+          schema:
+            type: boolean
         - description: if `up`==`true`
           in: query
           name: stp_state
@@ -15134,11 +15090,6 @@ paths:
               - authenticating
               - held
             type: string
-        - description: indicates if interface is up
-          in: query
-          name: up
-          schema:
-            type: boolean
         - $ref: '#/components/parameters/page'
         - $ref: '#/components/parameters/limit'
         - $ref: '#/components/parameters/start'
@@ -22699,73 +22650,79 @@ components:
                       default_vlan_id: 1
             gateway:
               value:
-                additional_config_cmds:
-                  - set snmp community public
-                created_time: 0
-                deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
-                disable_auto_config: false
                 id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                image1_url: 'https://url/to/image.png'
-                ip_config:
-                  dns:
-                    - 8.8.8.8
-                    - 4.4.4.4
-                  dns_suffix:
-                    - .mist.local
-                    - .mist.com
-                  gateway: 10.2.1.254
-                  ip: 10.2.1.1
-                  netmask: 255.255.255.0
-                  network: default
-                  type: static
-                managed: false
+                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                created_time: 0
                 modified_time: 0
                 name: corp-a135
                 networks: {}
-                notes: slightly off center
+                port_config:
+                  ge-0/0/0:
+                    usage: wan
+                    ip_config:
+                      type: dhcp
+                  ge-0/0/7:
+                    usage: wan
+                    ip_config:
+                      type: static
+                  cl-0/0/1:
+                    usage: wan
+                    wan_config:
+                      backup_only: true
+                    ip_config:
+                      type: pppoe
+                  ge-0/0/1-5:
+                    usage: lan
+                  'ge-0/0/0,ge-7/0/0':
+                    usage: wan
+                    clustered: true
+                    reth_idx: 3
+                    ip_config: {}
+                ip_configs:
+                  corp:
+                    type: static
+                    ip: 192.168.10.1
+                dhcpd_config:
+                  enabled: true
+                  corp:
+                    type: local
+                    ip_start: 192.168.70.100
+                    ip_end: 192.168.70.200
+                    gateway: 192.168.70.1
+                    dns_servers:
+                      - 8.8.8.8
+                      - 4.4.4.4
+                    dns_suffix:
+                      - .mist.local
+                      - .mist.com
+                    fixed_bindings:
+                      5684dae9ac8b:
+                        name: John
+                        ip: 192.168.70.35
+                extra_routes:
+                  0.0.0.0/0:
+                    via: 10.2.1.1
+                port_forward:
+                  remote-ssh:
+                    protocol: tcp
+                    ip_port: 10.2.5.3
+                    ip_range: 10.2.5.1/32-10.2.5.20/32
+                oob_ip_config:
+                  type: static
+                  ip: 192.168.50.3
+                  netmask: 255.255.255.0
                 ntp_servers:
                   - pool.ntp.org
                   - time.google.com
-                oob_ip_config: {}
-                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                other_ip_configs:
-                  guest:
-                    ip: 10.3.3.1
-                    netmask: 255.255.255.0
-                    type: static
-                port_config:
-                  '*':
-                    usage: default
-                  ge-0/0/0:
-                    aggregated: true
-                    description: to dist-sw-01
-                    usage: uplink
-                  ge-0/0/1:
-                    dynamic_usage: dynamic
-                    usage: default
-                  'ge-0/0/8-16,ge-1/0/0-47':
-                    usage: ap
-                port_usages: {}
-                radius_config:
-                  acct_interim_interval: 0
-                  acct_servers:
-                    - host: 1.2.3.4
-                      port: 1812
-                      secret: testing123
-                  auth_servers:
-                    - host: 1.2.3.4
-                      port: 1812
-                      secret: testing123
-                    - host: radius.internal
-                      port: 1812
-                      secret: testing123
-                  auth_servers_retries: 3
-                  auth_servers_timeout: 5
-                role: access
-                site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                managed: false
+                additional_config_cmds:
+                  - set snmp community public
                 vars:
-                  RADIUS_IP1: 172.31.2.5
                   RADIUS_SECRET: 11s64632d
+                  RADIUS_IP1: 172.31.2.5
+                deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+                image1_url: 'https://url/to/image.png'
             switch:
               value:
                 additional_config_cmds:
@@ -33988,14 +33945,6 @@ components:
             $ref: '#/components/schemas/junos_vrf_instance'
         evpn_options:
           $ref: '#/components/schemas/junos_evpn_options'
-        gateway_port_usages:
-          type: object
-          description: |-
-            gateway specific
-            for SRX, where multiple ports can be switching and IRB is created
-            for the L3 purpose
-          additionalProperties:
-            $ref: '#/components/schemas/junos_gateway_port_config'
         report_gatt:
           type: boolean
           default: false
@@ -34004,6 +33953,8 @@ components:
           default: false
           description: whether to track anonymous BLE assets (requires ‘track_asset’ enabled)
           type: boolean
+        mxedge_mgmt:
+          $ref: '#/components/schemas/mxedge_mgmt'
     networktemplate:
       type: object
       x-examples:
@@ -35108,6 +35059,7 @@ components:
             key: string
           tags:
             - string
+      additionalProperties: true
       properties:
         id:
           type: string
@@ -35285,7 +35237,8 @@ components:
           default: 0
           minimum: 0
           maximum: 30
-      additionalProperties: true
+        mxedge_mgmt:
+          $ref: '#/components/schemas/stats_mxedge'
     capture:
       oneOf:
         - description: Initiate a Client Packet Capture
@@ -36991,8 +36944,6 @@ components:
           enum:
             - http-post
             - splunk
-            - google-pubsub
-            - aws-sns
         url:
           type: string
           nullable: true
@@ -38007,70 +37958,55 @@ components:
           created_time: 0
           modified_time: 0
           name: corp-a135
-          networks:
-            default:
-              vlan_id: 1
-              zone: trust
-            wan:
-              zone: untrust
-            corp:
-              vlan_id: 60
-              zone: trust
-              subnet: 192.168.70.0/24
-            it_mgmt:
-              subnet: 192.168.70.0/24
-              zone: trust
-          port_usages:
-            lan:
-              mode: access
-              port_network: default
-            wan:
-              mode: inet
-              port_network: wan
-            internal:
-              mode: inet
+          networks: {}
           port_config:
             ge-0/0/0:
               usage: wan
-              ip_config: {}
-            ge-0/0/1-6:
-              usage: lan
+              ip_config:
+                type: dhcp
             ge-0/0/7:
               usage: wan
-              ip_config: {}
+              ip_config:
+                type: static
+            cl-0/0/1:
+              usage: wan
+              wan_config:
+                backup_only: true
+              ip_config:
+                type: pppoe
+            ge-0/0/1-5:
+              usage: lan
             'ge-0/0/0,ge-7/0/0':
               usage: wan
-              zone: untrust
-              redundancy: true
+              clustered: true
+              reth_idx: 3
               ip_config: {}
-          ip_config:
-            type: static
-            ip: 192.168.1.1
-            netmask: 255.255.255.0
-            dhcp:
-              enabled: true
+          ip_configs:
+            corp:
+              type: static
+              ip: 192.168.10.1
+          dhcpd_config:
+            enabled: true
+            corp:
               type: local
-              ip_start: 192.167.1.100
-              ip_end: 192.167.1.200
-              gateway: 192.168.1.1
-              dns:
+              ip_start: 192.168.70.100
+              ip_end: 192.168.70.200
+              gateway: 192.168.70.1
+              dns_servers:
                 - 8.8.8.8
                 - 4.4.4.4
               dns_suffix:
                 - .mist.local
                 - .mist.com
-          other_ip_configs:
-            corp:
-              type: static
-              ip: 10.3.3.1
-              netmask: 255.255.255.0
+              fixed_bindings:
+                5684dae9ac8b:
+                  name: John
+                  ip: 192.168.70.35
           extra_routes:
-            - dest: 0.0.0.0/0
+            0.0.0.0/0:
               via: 10.2.1.1
           port_forward:
             remote-ssh:
-              from_zone: untrust
-              to_zone: trust
               protocol: tcp
               ip_port: 10.2.5.3
               ip_range: 10.2.5.1/32-10.2.5.20/32
@@ -38081,20 +38017,6 @@ components:
           ntp_servers:
             - pool.ntp.org
             - time.google.com
-          zones:
-            trust:
-              to_host:
-                protocols:
-                  - all
-                system_services:
-                  - all
-              to_self:
-                allow_all: true
-              to:
-                untrust:
-                  nat: true
-                  web_filtering: true
-          radius_config: {}
           managed: false
           additional_config_cmds:
             - set snmp community public
@@ -38131,26 +38053,41 @@ components:
         modified_time:
           type: number
           readOnly: true
+        networks:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              vlan_id:
+                type: integer
+          minProperties: 0
+        port_config:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/junos_gateway_port_config'
         ip_config:
           $ref: '#/components/schemas/junos_ip_config'
-        other_ip_configs:
-          $ref: '#/components/schemas/junos_other_ip_configs'
-        wan2_ip_config:
-          $ref: '#/components/schemas/junos_ip_config'
+        dhcpd_config:
+          $ref: '#/components/schemas/junos_dhcpd'
+        extra_routes:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              via:
+                type: string
+          minProperties: 0
+        port_forward:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/junos_port_forward'
+          minProperties: 0
         oob_ip_config:
           $ref: '#/components/schemas/junos_ip_config'
         ntp_servers:
           type: array
           items:
             type: string
-        port_config:
-          $ref: '#/components/schemas/junos_gateway_port_config'
-        radius_config:
-          $ref: '#/components/schemas/junos_radius_config'
-        gateway_port_usages:
-          $ref: '#/components/schemas/junos_port_usages'
-        networks:
-          $ref: '#/components/schemas/junos_networks'
         managed:
           type: boolean
         additional_config_cmds:
@@ -38159,6 +38096,7 @@ components:
             type: string
         vars:
           type: object
+          minProperties: 0
         deviceprofile_id:
           type: string
           format: uuid
@@ -38168,23 +38106,6 @@ components:
           type: string
         image3_url:
           type: string
-        port_forward:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/junos_port_forward'
-        extra_routes:
-          type: array
-          items:
-            type: object
-            properties:
-              dest:
-                type: string
-              via:
-                type: string
-        zones:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/junos_gateway_zone'
     asset:
       description: Asset
       type: object
@@ -38374,7 +38295,7 @@ components:
         - status
         - type
     org:
-      description: Organization
+      description: 'An organization usualy represents a customer - which has inventories, licenses. An Organization can contain multiple sites. A site usually represents a deployment at the same location (a campus, an office).'
       type: object
       x-examples:
         example-1:
@@ -40784,8 +40705,9 @@ components:
           type: string
           nullable: true
           description: 'required if enabled, aeroscout server host'
-        port:
-          type: integer
+        locate_connected:
+          type: boolean
+          description: whether to enable the feature to allow wireless clients data received and sent to AES server for location calculation
     ap_ip:
       description: IP AP settings
       type: object
@@ -41021,7 +40943,7 @@ components:
           description: 'if `forwarding`==`site_mxedge`, vlan_ids comes from site_mxedge (`mxtunnels` under site setting)'
         port_auth:
           type: string
-          description: whether to do port auth
+          description: When doing port auth
           default: none
           enum:
             - none
@@ -41049,6 +40971,7 @@ components:
                 type: string
             default_vlan_id:
               type: integer
+      description: ''
     ap_usb:
       description: USB AP settings
       type: object
@@ -41297,8 +41220,6 @@ components:
         network:
           type: string
           description: 'optional, the network to be used for mgmt'
-        dhcp:
-          $ref: '#/components/schemas/junos_dhcpd'
       required:
         - type
     junos_dhcpd:
@@ -41341,6 +41262,15 @@ components:
             gateway:
               type: string
               description: 'if DHCP Server - optional, `ip` will be used if not provided'
+            fixed_bindings:
+              type: object
+              additionalProperties:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  ip:
+                    type: string
     junos_vrrp_config:
       description: Junos VRRP config
       type: object
@@ -41403,6 +41333,7 @@ components:
         example-2:
           usage: wan
           ip_config: {}
+      description: Gateway port config
       properties:
         usage:
           type: string
@@ -41418,9 +41349,20 @@ components:
           type: string
         redundancy:
           type: boolean
+        wan_config:
+          type: object
+          properties:
+            backup_only:
+              type: boolean
+              description: only used when all other links are down
+        clustered:
+          type: boolean
+          description: in case of HA
+        reth_idx:
+          type: integer
+          description: in case of HA
       required:
         - usage
-      description: Gateway port config
     junos_port_usages:
       description: Junos port usages
       type: object
@@ -41447,6 +41389,9 @@ components:
           poe_disabled: true
           storm_control: {}
       properties:
+        description:
+          type: string
+          description: description
         mode:
           type: string
           description: access (default) / trunk
@@ -41455,31 +41400,25 @@ components:
             - trunk
             - inet
             - wan
+        disabled:
+          type: boolean
+          default: false
+          description: whether the port is disabled
         all_networks:
           type: boolean
           default: false
           description: 'if `mode`==`trunk`, whether to trunk all network/vlans'
-        stp_edge:
-          type: boolean
-          description: 'when enabled, the port is not expected to receive BPDU frames'
-        port_network:
-          type: string
-          description: native network/vlan for untagged traffic
-        mtu:
-          type: integer
-          description: media maximum transmission unit (MTU) is the largest data unit that can be forwarded without fragmentation. The default value is 1514.
         networks:
           type: array
           description: 'if `mode`==`trunk`, the list of network/vlans'
           items:
             type: string
-        disabled:
-          type: boolean
-          default: false
-          description: whether the port is disabled
-        description:
+        port_network:
           type: string
-          description: description
+          description: native network/vlan for untagged traffic
+        stp_edge:
+          type: boolean
+          description: 'when enabled, the port is not expected to receive BPDU frames'
         voip_network:
           type: string
           description: 'network/vlan for voip traffic, must also set port_network. to authenticate device, set port_auth'
@@ -41489,12 +41428,15 @@ components:
         enable_mac_auth:
           type: boolean
           description: 'if `port_auth`==`dot1x`, whether to enable MAC Auth'
-        bypass_auth_when_server_down:
-          type: boolean
-          description: 'if `port_auth`==`dot1x`, whether to allow the device to connect if RADIUS server is down'
         guest_network:
           type: string
           description: 'if `port_auth`==`dot1x`, which network to put the device into if the device cannot do dot1x. default is null (i.e. not allowed)'
+        bypass_auth_when_server_down:
+          type: boolean
+          description: 'if `port_auth`==`dot1x`, whether to allow the device to connect if RADIUS server is down'
+        mac_auth_only:
+          type: boolean
+          description: only effect once `enable_mac_auth`==`true`
         speed:
           type: string
           description: 'speed, default is auto to automatically negotiate speed'
@@ -41525,6 +41467,9 @@ components:
           description: whether poe is disabled
         storm_control:
           $ref: '#/components/schemas/junos_storm_control'
+        mtu:
+          type: integer
+          description: media maximum transmission unit (MTU) is the largest data unit that can be forwarded without fragmentation. The default value is 1514.
         enable_qos:
           type: boolean
         dynamic_vlan:
@@ -41544,18 +41489,6 @@ components:
             default_network:
               type: integer
               description: default (unmatched) comes from `port_network` above
-    junos_gateway_port_usage:
-      description: ''
-      type: object
-      properties:
-        mode:
-          type: string
-        port_network:
-          type: string
-        networks:
-          type: array
-          items:
-            type: string
     junos_storm_control:
       type: object
       properties:
@@ -41609,63 +41542,6 @@ components:
           ip_port: 10.2.5.3
           ip_range: 10.2.5.1/32-10.2.5.20/32
       description: Junos port forward
-    junos_gateway_zone:
-      type: object
-      x-examples:
-        example-1:
-          to_host:
-            protocols:
-              - all
-            system_services:
-              - all
-          to_self:
-            allow_all: true
-          to:
-            untrust:
-              nat: true
-              web_filtering: true
-      properties:
-        to_host:
-          type: object
-          properties:
-            protocols:
-              type: array
-              items:
-                type: string
-            system_services:
-              type: array
-              items:
-                type: string
-            allow_all:
-              type: boolean
-        to_self:
-          type: object
-          properties:
-            protocols:
-              type: array
-              items:
-                type: string
-            system_services:
-              type: array
-              items:
-                type: string
-            allow_all:
-              type: boolean
-        to:
-          type: object
-          additionalProperties:
-            type: object
-            properties:
-              nat:
-                type: boolean
-              web_filtering:
-                type: boolean
-        screen:
-          type: object
-          properties:
-            enabled:
-              type: boolean
-      description: Gateway zones
     junos_ospf_areas:
       description: Junos OSPF areas
       type: object
@@ -41771,6 +41647,7 @@ components:
           description: 'how frequently should interim accounting be reported, 60-65535. default is 0 (use one specified in Access-Accept request from RADIUS Server). Very frequent messages can affect the performance of the radius server, 600 and up is recommended when enabled'
     junos_evpn_options:
       type: object
+      description: EVPN Options
       properties:
         overlay:
           type: object
@@ -41778,14 +41655,19 @@ components:
             as:
               type: integer
               description: 'optional, these are defaults'
+              example: 65000
         underlay:
           type: object
           properties:
             as_base:
               type: integer
+              example: 65001
             subnet:
               type: string
-      description: EVPN Options
+              example: 10.255.240.0/20
+            routed_id_prefix:
+              type: string
+              example: /24
     junos_port_usages_dynamic:
       description: 'In many scenarios, people have conventions like having port ge-0/0/0 as uplink, ge-0/0/5-42 for user devices, … for many switches in the same site. While it’s achievable by doing Switch Config on each of them, switch_matching allows them to use same setting by matching name/model/role.'
       type: object
@@ -41879,7 +41761,7 @@ components:
             property2:
               via: 192.168.0.1
     junos_networks:
-      description: Junos Networks
+      description: 'A network represents a network segment. It can either represent a VLAN (then usually ties to a L3 subnet), optionally associate it with a subnet which can later be used to create addition routes. Used for ports doing `family ethernet-switching`. It can also be a pure L3-subnet that can then be used against a port that with `family inet`.'
       type: object
       x-examples:
         example-1:
@@ -46844,6 +46726,26 @@ components:
           minimum: 1
           maximum: 30
           default: 10
+        custom_apps:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              protocol:
+                type: string
+                default: http
+                enum:
+                  - http
+                  - tcp
+                  - udp
+              hostname:
+                type: array
+                items:
+                  type: string
+              app_type:
+                type: string
     wlan_hotspot_20:
       description: hostspot 2.0 wlan settings
       type: object
@@ -48109,6 +48011,16 @@ components:
       x-examples:
         example-1:
           email: user@example.com
+    mxedge_mgmt:
+      title: mxedge_mgmt
+      type: object
+      properties:
+        mist_password:
+          type: string
+        root_password:
+          type: string
+        '':
+          type: string
 x-tagGroups:
   - name: Account
     tags:
