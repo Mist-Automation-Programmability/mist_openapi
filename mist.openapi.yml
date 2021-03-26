@@ -1,6 +1,6 @@
 info:
   title: Mist API
-  version: 0.3.1
+  version: 0.3.2
   x-logo:
     url: 'https://cdn.mist.com/wp-content/uploads/logo.png'
     backgroundColor: '#FFFFFF'
@@ -9,7 +9,7 @@ info:
     email: tmunzer@juniper.net
     name: Thomas Munzer
   description: |
-    > *Version 0.3.1*
+    > *Version 0.3.2*
     >
     > Date: March 25th, 2021
     >
@@ -9257,7 +9257,7 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Device'
-      summary: getSiteDeviceConfig
+      summary: getSiteDevice
       tags:
         - Sites Devices
     parameters:
@@ -12655,15 +12655,7 @@ paths:
       operationId: getSiteAssetsStats
       responses:
         '200':
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/stats_asset'
-                minItems: 1
-                type: array
-                uniqueItems: true
-          description: OK
+          $ref: '#/components/responses/AssetsArrayStats'
       summary: getSiteAssetsStats
       tags:
         - Sites Stats
@@ -12681,25 +12673,14 @@ paths:
       operationId: getSiteAssetStats
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    created_time: 0
-                    id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                    mac: string
-                    modified_time: 0
-                    name: string
-                    org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                    site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                    tag_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-              schema:
-                $ref: '#/components/schemas/asset'
-          description: OK
+          $ref: '#/components/responses/AssetStats'
       summary: getSiteAssetStats
       tags:
         - Sites Stats
+      parameters:
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/end'
+        - $ref: '#/components/parameters/duration'
     parameters:
       - $ref: '#/components/parameters/site_id'
   '/api/v1/sites/{site_id}/stats/beacons':
@@ -20533,7 +20514,13 @@ paths:
                       port: 0
 components:
   securitySchemes:
-    apiToken:
+    basicAuth:
+      type: http
+      scheme: basic
+      description: |-
+        Basic Auth
+        While our current UI uses Session / Cookie-based authentication, it’s also possible to do Basic Auth.
+  apiToken:
       in: header
       name: Authorization
       type: apiKey
@@ -20546,12 +20533,6 @@ components:
          * an API token will be automatically removed if not used for > 90 days
 
          SSO admins cannot generate these API tokens. Refer Org level API tokens which can have privileges of a specific Org/Site for more information.
-    basicAuth:
-      type: http
-      scheme: basic
-      description: |-
-        Basic Auth
-        While our current UI uses Session / Cookie-based authentication, it’s also possible to do Basic Auth.
   responses:
     OK:
       description: OK
@@ -31688,6 +31669,64 @@ components:
                   specs:
                     - protocol: https
                       port: 80
+    AssetsArrayStats:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/stats_asset'
+          examples:
+            example-1:
+              value:
+                - name: string
+                  mac: string
+                  last_seen: 0
+                  map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
+                  x: 0
+                  'y': 0
+                  ibeacon_uuid: 1f89bc00-d0af-481b-82fe-a6629259a39f
+                  ibeacon_major: 0
+                  ibeacon_minor: 0
+                  eddystone_uid_namespace: string
+                  eddystone_uid_instance: string
+                  eddystone_url_url: string
+                  battery_voltage: 0
+                  zones:
+                    - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                      since: 0
+                  rssizones:
+                    - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                      since: 0
+    AssetStats:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/stats_asset'
+          examples:
+            example-1:
+              value:
+                name: string
+                mac: string
+                last_seen: 0
+                map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
+                x: 0
+                'y': 0
+                ibeacon_uuid: 1f89bc00-d0af-481b-82fe-a6629259a39f
+                ibeacon_major: 0
+                ibeacon_minor: 0
+                eddystone_uid_namespace: string
+                eddystone_uid_instance: string
+                eddystone_url_url: string
+                battery_voltage: 0
+                zones:
+                  - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                    since: 0
+                rssizones:
+                  - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                    since: 0
   parameters:
     admin_id:
       name: admin_id
@@ -32055,6 +32094,8 @@ components:
       required: true
       schema:
         type: string
+        example: 0000000000ab
+        pattern: '^[0-9a-fA-F]{12}$'
     rogue_type:
       name: rogue_type
       in: path
