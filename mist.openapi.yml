@@ -1,6 +1,6 @@
 info:
   title: Mist API
-  version: 0.3.2
+  version: 0.4.0
   x-logo:
     url: 'https://cdn.mist.com/wp-content/uploads/logo.png'
     backgroundColor: '#FFFFFF'
@@ -9,12 +9,10 @@ info:
     email: tmunzer@juniper.net
     name: Thomas Munzer
   description: |
-    > *Version 0.3.2*
+    > *Version 0.4.0*
     >
-    > Date: March 25th, 2021
+    > Date: April 9th, 2021
     >
-
-    *This is still a Work In Progress.*
 
     ---
 
@@ -126,6 +124,10 @@ tags:
   - name: Sites Devices
   - name: Sites Devices Utilities
   - name: Sites Events
+  - name: Sites EVPN
+    description: |-
+      EVPN allows an alternative but more efficient LAN architecture utilizing VxLAN / MP-BGP - separating control plane (MAC / IP Learning) from forwarding plane.
+      In our implementation, following the steps to deploy EVPN topologies in a Site
   - name: Sites Guests
   - name: Sites Insights
   - name: Sites Licenses
@@ -10095,6 +10097,18 @@ paths:
         5. The Org’s Inventory shows the switch is removed.
 
         Please notice that member ID 0 (fpc0) cannot be removed. When a VC has two switches left, unpluging the cable may result in the situation that fpc0 becomes a line card (LC). When this situation is happened, please re-plug in the cable, wait for both switches becoming present (show virtual-chassis) and then removing the cable again.
+
+        ## Renumber a member switch
+        When a member switch doesn’t work properly and needed to be replaced, the renumber API could be used. The following two types of renumber are supported:
+
+        1. Replace a non-fpc0 member switch
+        2. Replace fpc0. When fpc0 is relaced, PAPI device config and JUNOS config will be both updated.
+
+        For renumber to work, the following procedures are needed: 
+        1. Ensuring the VC is connected to the cloud and the state of the member switch to be replaced must be non present. 
+        2. Adding the new member switch to the VC 
+        3. Waiting for the VC state (vc_state) of this VC to be updated to API server 
+        4. Invoke vc with renumber to replace the new member switch from fpc X to
       operationId: removeSiteVirtualChassisMember
       requestBody:
         content:
@@ -10124,6 +10138,11 @@ paths:
                     - member: 2
                     - member: 3
                   op: remove
+              Renumber member ID 3 to member ID 2:
+                value:
+                  op: renumber
+                  member: 3
+                  new-member: 2
             schema:
               $ref: '#/components/schemas/device_switch.vc'
         description: Request Body
@@ -20444,7 +20463,7 @@ paths:
                   allow_mist: true
                   session_expiry: 0
                   alarmtemplate_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-  '/api/v1/sites/{site_id}/devices/build_evpn_topology':
+  '/api/v1/sites/{site_id}/devices/evpn_topology':
     parameters:
       - schema:
           type: string
@@ -20454,7 +20473,7 @@ paths:
     post:
       summary: createSiteEvpnTopology
       tags:
-        - Sites Devices
+        - Sites EVPN
       responses:
         '200':
           $ref: '#/components/responses/EvpnTopology'
@@ -20463,8 +20482,10 @@ paths:
         While all the `evpn_id` / `downlink_ips` can be specifidd by hand, the easiest way is to call the `build_vpn_topology` API, allowing you to examine the diff, and update it yourself. You can also simply call it with `overwrite=true` which will apply the updates for you.
 
         *Notes:*
-        1. The API will attempt to preserve the existing configs and add the missing pieces.
-        2. The API uses a few pre-defined parameters and best-practices to generate the configs. It can be customized by using `evpn_options` in Site Setting / Network Template. (e.g. a different subnet for the underlay)
+        1. You can use `core` / `distribution` / `access` to create a CLOS topology (or `super-spine` / `spine` / `leaf`)
+        2. You can also use `core` / `distribution` to form a 2-tier EVPN topology where ESI-Lag is configured distribution to connect to access switches
+        3. In a small/medium campus, `collapsed-core` can be used where core switches are the inter-connected to do EVPN
+        4. The API uses a few pre-defined parameters and best-practices to generate the configs. It can be customized by using `evpn_options` in Site Setting / Network Template. (e.g. a different subnet for the underlay)
       requestBody:
         content:
           application/json:
@@ -20473,6 +20494,61 @@ paths:
               properties:
                 overwrite:
                   type: boolean
+    put:
+      summary: updateSiteEvpnTopology
+      operationId: updateSiteEvpnTopology
+      tags:
+        - Sites EVPN
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              properties:
+                overwrite:
+                  type: boolean
+                switches:
+                  type: array
+                  uniqueItems: true
+                  minItems: 1
+                  items:
+                    type: object
+                    properties:
+                      mac:
+                        type: string
+                        minLength: 1
+                      role:
+                        type: string
+                        minLength: 1
+                        enum:
+                          - collapsed-core
+                          - none
+                    required:
+                      - mac
+                      - role
+      description: Update EVPN Topology
+    get:
+      summary: getSiteEvpnTopology
+      operationId: getSiteEvpnTopology
+      tags:
+        - Sites EVPN
+      responses:
+        '200':
+          description: OK
+      description: Get the existing EVPN topology
+    delete:
+      summary: deleteSiteEvpnTopology
+      operationId: deleteSiteEvpnTopology
+      tags:
+        - Sites EVPN
+      responses:
+        '200':
+          description: OK
+      description: Delete existing EVPN topology
   '/api/v1/orgs/{org_id}/services':
     parameters:
       - $ref: '#/components/parameters/org_id'
@@ -34617,7 +34693,7 @@ components:
         port_config:
           type: object
           additionalProperties:
-            $ref: '#/components/schemas/junos_port_config_gateway'
+            $ref: '#/components/schemas/junos_port_config_gateway_org'
         ip_configs:
           type: object
           additionalProperties:
@@ -38320,7 +38396,7 @@ components:
         port_config:
           type: object
           additionalProperties:
-            $ref: '#/components/schemas/junos_gateway_port_config'
+            $ref: '#/components/schemas/junos_port_config_gateway_device'
         ip_config:
           $ref: '#/components/schemas/junos_ip_config'
         dhcpd_config:
@@ -38751,6 +38827,7 @@ components:
           enum:
             - add
             - remove
+            - renumber
         members:
           type: array
           items:
@@ -38774,8 +38851,12 @@ components:
                   - backup
                   - linecard
                 description: Optional. Only if `op`==`add`
-      required:
-        - members
+        member:
+          type: integer
+          description: Only if `op`==`renumber`
+        new-member:
+          type: integer
+          description: Only if `op`==`renumber`
     wxlan_tag:
       description: |-
         WxLAN Tag
@@ -39369,6 +39450,21 @@ components:
               type: integer
               description: native VLAN id for upstream ports
               default: 1
+        tunterm_switch_config:
+          type: object
+          description: if custom vlan settings are desired
+          properties:
+            enabled:
+              type: boolean
+          additionalProperties:
+            type: object
+            properties:
+              vlan_ids:
+                type: array
+                items:
+                  type: integer
+              port_vlan_id:
+                type: integer
         ntp_servers:
           type: array
           items:
@@ -41190,6 +41286,7 @@ components:
               property1: string
               property2: string
             default_vlan_id: 1
+      description: ''
       properties:
         forwarding:
           type: string
@@ -41221,6 +41318,11 @@ components:
         mxtunnel_name:
           type: string
           description: 'if `forwarding`==`site_mxedge`, vlan_ids comes from site_mxedge (`mxtunnels` under site setting)'
+        vlan_id:
+          type: integer
+          description: |-
+            optional to specify the vlan id for a tunnel if forwarding is for `wxtunnel`, `mxtunnel` or `site_mxedge`.
+            If vlan_id is not specified then it will use the tunnel's setting
         port_auth:
           type: string
           description: When doing port auth
@@ -41251,7 +41353,6 @@ components:
                 type: string
             default_vlan_id:
               type: integer
-      description: ''
     ap_usb:
       description: USB AP settings
       type: object
@@ -41602,7 +41703,7 @@ components:
         auth_password:
           type: string
           description: if `auth_type`==`simple`
-    junos_gateway_port_config:
+    junos_port_config_gateway_device:
       type: object
       x-examples:
         example-1:
@@ -41711,6 +41812,9 @@ components:
         guest_network:
           type: string
           description: 'if `port_auth`==`dot1x`, which network to put the device into if the device cannot do dot1x. default is null (i.e. not allowed)'
+        rejected_network:
+          type: boolean
+          description: 'if `port_auth`==`dot1x`, when radius server reject / fails'
         bypass_auth_when_server_down:
           type: boolean
           description: 'if `port_auth`==`dot1x`, whether to allow the device to connect if RADIUS server is down'
@@ -42154,7 +42258,7 @@ components:
           type: boolean
       required:
         - usage
-    junos_port_config_gateway:
+    junos_port_config_gateway_org:
       type: object
       x-examples:
         PPOE:
@@ -42180,6 +42284,12 @@ components:
             - guest
             - pos
           port_network: default
+        VPN:
+          vpns:
+            data-center:
+              role: spoke
+              links:
+                - wan0
       description: Gateway port config
       properties:
         usage:
@@ -42208,10 +42318,22 @@ components:
             ppoe_password:
               type: string
               description: if `type`==`ppoe`
-        peers:
-          type: array
-          items:
-            type: string
+        vpn:
+          type: object
+          properties:
+            data-center:
+              type: object
+              properties:
+                role:
+                  type: string
+                  enum:
+                    - spoke
+                    - hub
+                links:
+                  type: array
+                  description: 'by default, all ports will be used'
+                  items:
+                    type: string
         backup_only:
           type: boolean
           description: if the interface should only be used when all other WAN interfaces are down
@@ -42221,6 +42343,9 @@ components:
             type: string
         port_network:
           type: string
+        name:
+          type: string
+          description: name that we'll use to derive config
       required:
         - usage
     template_switch.matching:
@@ -48480,6 +48605,68 @@ components:
                 enum:
                   - default
                   - enterprise
+    vpn:
+      title: vpn
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        org_id:
+          type: string
+          format: uuid
+          readOnly: true
+        site_id:
+          type: string
+          format: uuid
+          readOnly: true
+        for_site:
+          type: boolean
+          readOnly: true
+        created_time:
+          type: number
+          readOnly: true
+        modified_time:
+          type: number
+          readOnly: true
+        name:
+          type: string
+          nullable: true
+          description: name of the vpn
+        flavor:
+          type: string
+        peers:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              ports:
+                type: object
+                additionalProperties:
+                  type: object
+                  properties:
+                    host:
+                      type: string
+      x-examples:
+        example-1:
+          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+          site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+          for_site: true
+          created_time: 0
+          modified_time: 0
+          name: string
+          flavor: string
+          peers:
+            - name: string
+              ports:
+                property1:
+                  host: string
+                property2:
+                  host: string
 x-tagGroups:
   - name: Account
     tags:
@@ -48501,6 +48688,7 @@ x-tagGroups:
       - Sites Devices
       - Sites Devices Utilities
       - Sites Events
+      - Sites EVPN
       - Sites Guests
       - Sites Insights
       - Sites Licenses
