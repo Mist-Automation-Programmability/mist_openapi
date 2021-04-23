@@ -1,6 +1,6 @@
 info:
   title: Mist API
-  version: 0.4.2
+  version: 0.5.0
   x-logo:
     url: 'https://cdn.mist.com/wp-content/uploads/logo.png'
     backgroundColor: '#FFFFFF'
@@ -9,9 +9,9 @@ info:
     email: tmunzer@juniper.net
     name: Thomas Munzer
   description: |
-    > *Version 0.4.2*
+    > *Version 0.5.0*
     >
-    > Date: April 9th, 2021
+    > Date: April 23th, 2021
     >
 
     ---
@@ -2532,6 +2532,11 @@ paths:
         - description: ip address
           in: query
           name: ip
+          schema:
+            type: string
+        - description: 'full MAC address, hostname, username or ip'
+          in: query
+          name: text
           schema:
             type: string
         - $ref: '#/components/parameters/page'
@@ -7138,7 +7143,7 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/OK'
-  '/api/v1/sites/{site_id}/anomaly/ap/{device_id}/{metric}':
+  '/api/v1/sites/{site_id}/anomaly/device/{mac}/{metric}':
     get:
       description: Get Device Anomaly Events
       operationId: getSiteAnomalyEventsforDevice
@@ -7149,9 +7154,23 @@ paths:
       tags:
         - Sites Anomaly
     parameters:
-      - $ref: '#/components/parameters/site_id'
-      - $ref: '#/components/parameters/device_id'
-      - $ref: '#/components/parameters/metric'
+      - name: site_id
+        in: path
+        required: true
+        schema:
+          type: string
+          example: 000000ab-00ab-00ab-00ab-0000000000ab
+          format: uuid
+      - name: metric
+        in: path
+        required: true
+        schema:
+          type: string
+      - schema:
+          type: string
+        name: mac
+        in: path
+        required: true
   '/api/v1/sites/{site_id}/anomaly/client/{client_mac}/{metric}':
     get:
       description: Get Client Anomaly Events
@@ -7678,6 +7697,11 @@ paths:
           name: ssid
           schema:
             type: string
+        - schema:
+            type: string
+          in: query
+          name: text
+          description: 'full MAC address, hostname, username or ip'
         - $ref: '#/components/parameters/page'
         - $ref: '#/components/parameters/limit'
         - $ref: '#/components/parameters/start'
@@ -7686,7 +7710,7 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/ClientsSearch'
-      summary: searchSiteClients
+      summary: searchSiteWirelessClients
       tags:
         - Sites Clients
     parameters:
@@ -10390,7 +10414,7 @@ paths:
       summary: updateSiteGuestAuthorization
       tags:
         - Sites Guests
-  '/api/v1/sites/{site_id}/insights/ap/{device_id}/{metric}':
+  '/api/v1/sites/{site_id}/insights/device/{mac}/{metric}':
     get:
       description: |-
         Get AP Insight Metrics
@@ -10409,9 +10433,23 @@ paths:
       tags:
         - Sites Insights
     parameters:
-      - $ref: '#/components/parameters/site_id'
-      - $ref: '#/components/parameters/device_id'
-      - $ref: '#/components/parameters/metric'
+      - name: site_id
+        in: path
+        required: true
+        schema:
+          type: string
+          example: 000000ab-00ab-00ab-00ab-0000000000ab
+          format: uuid
+      - name: metric
+        in: path
+        required: true
+        schema:
+          type: string
+      - schema:
+          type: string
+        name: mac
+        in: path
+        required: true
   '/api/v1/sites/{site_id}/insights/client/{client_mac}/{metric}':
     get:
       description: |-
@@ -15051,6 +15089,16 @@ paths:
         - description: port speed
           in: query
           name: speed
+          schema:
+            type: integer
+        - description: Limit on number of dynamically learned macs
+          in: query
+          name: mac_limit
+          schema:
+            type: integer
+        - description: Number of mac addresses in the forwarding table
+          in: query
+          name: mac_count
           schema:
             type: integer
         - description: indicates if interface is up
@@ -20411,9 +20459,16 @@ paths:
             schema:
               type: object
               properties:
-                port:
-                  type: string
-                  description: the port on which to clear mac addresses
+                ports:
+                  type: array
+                  description: 'the ports on which to clear the detected BPDU error, or `["all"]` for all ports'
+                  items:
+                    type: string
+            examples:
+              example-1:
+                value:
+                  ports:
+                    - ge-0/0/0.0
   '/api/v1/sites/{site_id}/devices/{device_id}/clear_bpdu_error':
     parameters:
       - $ref: '#/components/parameters/site_id'
@@ -32509,6 +32564,12 @@ components:
         mac:
           type: string
           description: 'if `usage`==`single`, the mac that this PSK ties to, empty if `auto-binding`'
+        expire_time:
+          type: integer
+          description: 'If ORG Psk: Expire time for this PSK key. Default is half year, max is 1 year'
+        max_usage:
+          type: integer
+          description: 'If ORG Psk: max concurrent users for this PSK key. Default is 0 (unlimited)'
       required:
         - name
         - passphrase
@@ -35580,6 +35641,11 @@ components:
           maximum: 30
         mxedge_mgmt:
           $ref: '#/components/schemas/stats_mxedge'
+        vpn_options:
+          type: object
+          properties:
+            st_subnet:
+              type: string
     capture:
       oneOf:
         - description: Initiate a Client Packet Capture
@@ -36714,9 +36780,11 @@ components:
             for dynamic PSK where we get per-user PSK from Radius
             dynamic_psk allows PSK to be selected at runtime depending on context (wlan/site/user/...) thus following configurations are assumed (currently)
             - PSK will come from RADIUS server
-              - AP sends client MAC as username ans password (i.e. `enable_mac_auth` is assumed)
-              - AP sends BSSID:SSID as Caller-Station-ID
+            - AP sends client MAC as username ans password (i.e. `enable_mac_auth` is assumed)
+            - AP sends BSSID:SSID as Caller-Station-ID
             - `auth_servers` is required
+            - PSK will come from cloud WLC if source is cloud_psks
+            - default_psk will be used if cloud WLC is not available
             - `multi_psk_only` and `psk` is ignored
             - `pairwise` can only be wpa2-ccmp (for now, wpa3 support on the roadmap)
           properties:
@@ -36737,9 +36805,12 @@ components:
                 nullable: true
             default_vlan_id:
               type: integer
-              minimum: 1
-              maximum: 4094
               nullable: true
+            default_psk:
+              type: string
+              description: 'default PSK to use if cloud WLC is not available, 8-63 characters'
+              minLength: 8
+              maxLength: 63
         roam_mode:
           type: string
           nullable: true
@@ -38418,11 +38489,6 @@ components:
               via:
                 type: string
           minProperties: 0
-        port_forward:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/junos_port_forward'
-          minProperties: 0
         oob_ip_config:
           $ref: '#/components/schemas/junos_ip_config'
         ntp_servers:
@@ -39462,9 +39528,6 @@ components:
         tunterm_switch_config:
           type: object
           description: if custom vlan settings are desired
-          properties:
-            enabled:
-              type: boolean
           additionalProperties:
             type: object
             properties:
@@ -39474,6 +39537,9 @@ components:
                   type: integer
               port_vlan_id:
                 type: integer
+          properties:
+            enabled:
+              type: boolean
         ntp_servers:
           type: array
           items:
@@ -39511,6 +39577,30 @@ components:
               port:
                 type: string
                 description: when protocol == tcp
+        oob_ip_config:
+          type: object
+          description: ip configuration of the Mist Edge out-of-band management interface
+          properties:
+            type:
+              type: string
+              default: dhcp
+              enum:
+                - static
+                - dhcp
+            ip:
+              type: string
+              description: if `type`=`static`
+            netmask:
+              type: string
+              description: if `type`=`static`
+            gateway:
+              type: string
+              description: if `type`=`static`
+            dns:
+              type: array
+              description: 'if `type`=`static`, . default is `[ "8.8.8.8", "8.8.4.4" ]`'
+              items:
+                type: string
       required:
         - name
         - model
@@ -39859,6 +39949,76 @@ components:
           properties:
             enabled:
               type: boolean
+        isolation:
+          type: boolean
+        internet_access:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+            static_nat:
+              type: object
+              additionalProperties:
+                type: object
+                properties:
+                  to:
+                    type: string
+                  name:
+                    type: string
+            destination_nat:
+              type: object
+              additionalProperties:
+                type: object
+                properties:
+                  to:
+                    type: string
+                  name:
+                    type: string
+                  port:
+                    type: string
+        vpn_access:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              routed:
+                type: boolean
+                description: whether this network is routable
+              nat_pool:
+                type: string
+                description: 'if `routed` = `false` (usually at Spoke), but some hosts needs to be reachable from Hub'
+              static_nat:
+                type: object
+                description: 'if `routed` = `false` (usually at Spoke), but some hosts needs to be reachable from Hub'
+                additionalProperties:
+                  type: object
+                  properties:
+                    to:
+                      type: string
+                    name:
+                      type: string
+              destination_nat:
+                type: object
+                description: 'if `routed` = `false` (usually at Spoke), but some hosts needs to be reachable from Hub'
+                additionalProperties:
+                  type: object
+                  properties:
+                    to:
+                      type: string
+                    name:
+                      type: string
+                    port:
+                      type: string
+          properties:
+            enabled:
+              type: boolean
+        tenants:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              members:
+                type: string
     orggroup:
       description: Organizations Group
       type: object
@@ -42062,7 +42222,7 @@ components:
               type: string
               example: /24
     junos_port_usages_dynamic:
-      description: 'In many scenarios, people have conventions like having port ge-0/0/0 as uplink, ge-0/0/5-42 for user devices, … for many switches in the same site. While it’s achievable by doing Switch Config on each of them, switch_matching allows them to use same setting by matching name/model/role.'
+      description: 'This is a special mode where the actually usage is determined by a set of rules the port will start with `access` mode and isolated depending on the rules, if resolved, the port will have the resolved usage applied.'
       type: object
       x-examples:
         example-1:
@@ -42092,6 +42252,15 @@ components:
           default: dynamic
           enum:
             - dynamic
+        reset_default_when:
+          type: string
+          default: link_down
+          enum:
+            - none
+            - link_down
+          description: |-
+            Control when the DPC port should be changed to the default port usage
+            Configuring to none will let the DPC port keep at the current port usage.
         rules:
           type: array
           items:
@@ -42125,6 +42294,7 @@ components:
               - src
       required:
         - mode
+      title: ''
     junos_vrf_instance:
       description: ''
       type: object
@@ -42331,20 +42501,18 @@ components:
               description: if `type`==`ppoe`
         vpn:
           type: object
-          properties:
-            data-center:
-              type: object
-              properties:
-                role:
+          additionalProperties:
+            type: object
+            properties:
+              role:
+                type: string
+                enum:
+                  - spoke
+                  - hub
+              peer_wan_names:
+                type: array
+                items:
                   type: string
-                  enum:
-                    - spoke
-                    - hub
-                links:
-                  type: array
-                  description: 'by default, all ports will be used'
-                  items:
-                    type: string
         backup_only:
           type: boolean
           description: if the interface should only be used when all other WAN interfaces are down
@@ -48546,14 +48714,15 @@ components:
               protocol:
                 type: string
                 description: |-
-                  `tcp` / `udp` / `icmp` / `gre` / `any` / `:protocol_number`.
+                  `https`/ `tcp` / `udp` / `icmp` / `gre` / `any` / `:protocol_number`.
                   `protocol_number` is between 1-254
                 default: any
-              address:
-                type: string
-                description: either the ip address for icmp or the url for http protocol RPMs
-              port:
+              port_range:
                 type: integer
+        addresses:
+          type: array
+          items:
+            type: string
     junos_urlfilter_config:
       description: ''
       type: object
@@ -48619,6 +48788,23 @@ components:
     vpn:
       title: vpn
       type: object
+      x-examples:
+        example-1:
+          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+          site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+          for_site: true
+          created_time: 0
+          modified_time: 0
+          name: string
+          flavor: string
+          peers:
+            - name: string
+              ports:
+                property1:
+                  host: string
+                property2:
+                  host: string
       properties:
         id:
           type: string
@@ -48645,39 +48831,15 @@ components:
           type: string
           nullable: true
           description: name of the vpn
-        flavor:
-          type: string
-        peers:
-          type: array
-          items:
+        hubs:
+          type: object
+          additionalProperties:
             type: object
-            properties:
-              name:
-                type: string
-              ports:
-                type: object
-                additionalProperties:
-                  type: object
-                  properties:
-                    host:
-                      type: string
-      x-examples:
-        example-1:
-          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-          org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-          site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
-          for_site: true
-          created_time: 0
-          modified_time: 0
-          name: string
-          flavor: string
-          peers:
-            - name: string
-              ports:
-                property1:
-                  host: string
-                property2:
-                  host: string
+            additionalProperties:
+              type: object
+              properties:
+                ip:
+                  type: string
 x-tagGroups:
   - name: Account
     tags:
