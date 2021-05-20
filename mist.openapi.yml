@@ -1,6 +1,6 @@
 info:
   title: Mist API
-  version: 0.6.0
+  version: 0.7.0
   x-logo:
     url: 'https://cdn.mist.com/wp-content/uploads/logo.png'
     backgroundColor: '#FFFFFF'
@@ -9,9 +9,9 @@ info:
     email: tmunzer@juniper.net
     name: Thomas Munzer
   description: |
-    > *Version 0.6.0*
+    > *Version 0.7.0*
     >
-    > Date: May 12nd, 2021
+    > Date: May 20th, 2021
     >
 
     ---
@@ -91,7 +91,6 @@ tags:
   - name: Orgs MxTunnels
   - name: Orgs Network Templates
   - name: Orgs Networks
-  - name: Orgs Peers
   - name: Orgs Psks
   - name: Orgs RF Templates
   - name: Orgs SDK Clients
@@ -108,6 +107,7 @@ tags:
   - name: Orgs Subscriptions
   - name: Orgs Templates
   - name: Orgs Tickets
+  - name: Orgs VPNs
   - name: Orgs Webhooks
   - name: Orgs Wlans
   - name: Orgs WxRules
@@ -128,6 +128,7 @@ tags:
     description: |-
       EVPN allows an alternative but more efficient LAN architecture utilizing VxLAN / MP-BGP - separating control plane (MAC / IP Learning) from forwarding plane.
       In our implementation, following the steps to deploy EVPN topologies in a Site
+  - name: Sites Devices Virtual Chassis
   - name: Sites Devices Utilities
   - name: Sites Events
   - name: Sites Guests
@@ -2521,6 +2522,8 @@ paths:
           name: ap
           schema:
             type: string
+        - $ref: '#/components/parameters/psk_id_query'
+        - $ref: '#/components/parameters/psk_name'
         - description: vlan
           in: query
           name: vlan
@@ -2531,11 +2534,7 @@ paths:
           name: ssid
           schema:
             type: string
-        - description: ip address
-          in: query
-          name: ip
-          schema:
-            type: string
+        - $ref: '#/components/parameters/ip'
         - description: 'full MAC address, hostname, username or ip'
           in: query
           name: text
@@ -2689,6 +2688,8 @@ paths:
           name: wlan_id
           schema:
             type: string
+        - $ref: '#/components/parameters/psk_id_query'
+        - $ref: '#/components/parameters/psk_name'
         - $ref: '#/components/parameters/page'
         - $ref: '#/components/parameters/limit'
         - $ref: '#/components/parameters/start'
@@ -7657,6 +7658,69 @@ paths:
         - Sites Clients
     parameters:
       - $ref: '#/components/parameters/site_id'
+  '/api/v1/or/{org_id}/clients/events/search':
+    get:
+      description: Get Org Clients Events
+      operationId: searchOrgClientEvents
+      parameters:
+        - description: 'event type, e.g. MARVIS_EVENT_CLIENT_FBT_FAILURE'
+          in: query
+          name: type
+          schema:
+            type: string
+        - description: for assoc/disassoc events
+          in: query
+          name: reason_code
+          schema:
+            type: integer
+        - description: SSID Name
+          in: query
+          name: ssid
+          schema:
+            type: string
+        - description: AP MAC
+          in: query
+          name: ap
+          schema:
+            type: string
+        - description: 802.11 standard
+          in: query
+          name: proto
+          schema:
+            enum:
+              - b
+              - g
+              - 'n'
+              - ac
+              - ax
+              - a
+            type: string
+        - description: 24 / 5
+          in: query
+          name: band
+          schema:
+            enum:
+              - '24'
+              - '5'
+            type: string
+        - description: wlan_id
+          in: query
+          name: wlan_id
+          schema:
+            type: string
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/end'
+        - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          $ref: '#/components/responses/EventsSearch'
+      summary: searchOrgClientEvents
+      tags:
+        - Orgs Clients
+    parameters:
+      - $ref: '#/components/parameters/org_id'
   '/api/v1/sites/{site_id}/clients/search':
     get:
       description: |-
@@ -10034,7 +10098,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: deleteSiteVirtualChassis
       tags:
-        - Sites Devices
+        - Sites Devices Virtual Chassis
     get:
       description: |-
         Get VC Status
@@ -10045,7 +10109,7 @@ paths:
           $ref: '#/components/responses/Vc'
       summary: getSiteVirtualChassis
       tags:
-        - Sites Devices
+        - Sites Devices Virtual Chassis
     parameters:
       - $ref: '#/components/parameters/site_id'
       - $ref: '#/components/parameters/device_id'
@@ -10087,7 +10151,7 @@ paths:
           $ref: '#/components/responses/Vc'
       summary: createSiteVirtualChassis
       tags:
-        - Sites Devices
+        - Sites Devices Virtual Chassis
     put:
       description: |-
         ## Add new members
@@ -10165,7 +10229,7 @@ paths:
           $ref: '#/components/responses/Vc'
       summary: updateSiteVirtualChassisMember
       tags:
-        - Sites Devices
+        - Sites Devices Virtual Chassis
   '/api/v1/sites/{site_id}/devices/{device_id}/{image_name}':
     delete:
       description: Delete image from a device
@@ -12425,7 +12489,10 @@ paths:
     parameters:
       - $ref: '#/components/parameters/site_id'
     post:
-      description: Create Site Blacklist Client List
+      description: |-
+        This endpoint is to provide list of client macs for annotation blacklist.
+
+        Retrieve the current clients list `blacklist_url` under Site:Setting
       operationId: createSiteClientsBlocklist
       requestBody:
         content:
@@ -12445,6 +12512,43 @@ paths:
       summary: createSiteClientsBlocklist
       tags:
         - Sites Setting
+  '/api/v1/orgs/{org_id}/setting/blacklist':
+    delete:
+      description: Delete Org Blacklist Station Clients
+      operationId: deleteOrgClientsBlocklist
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: deleteOrgClientsBlocklist
+      tags:
+        - Orgs Setting
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+    post:
+      description: |
+        Create Org Blacklist Client List. 
+        If there is already a blacklist, this API will replace it with the new one. 
+        Max number of blacklist clients is 1000. 
+        Retrieve the current blacklisted clients from ‘blacklist_url’ under Org:Setting
+      operationId: createOrgClientsBlocklist
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  macs:
+                    - 18-65-90-de-f4-c6
+                    - 84-89-ad-5d-69-0d
+            schema:
+              $ref: '#/components/schemas/Model_object_macs_array_string'
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/MacsArray'
+      summary: createOrgClientsBlocklist
+      tags:
+        - Orgs Setting
   '/api/v1/sites/{site_id}/setting/watched_station':
     delete:
       description: Delete Site Watched Station Clients
@@ -12458,7 +12562,10 @@ paths:
     parameters:
       - $ref: '#/components/parameters/site_id'
     post:
-      description: Create Site Watched Station Clients
+      description: |-
+        This endpoint is to provide list of client macs for annotation as  watched station.
+
+        Retrieve the current clients list from  `watched_station_url` under Site:Setting
       operationId: createSiteWatchedStations
       requestBody:
         content:
@@ -12491,7 +12598,10 @@ paths:
     parameters:
       - $ref: '#/components/parameters/site_id'
     post:
-      description: Create Site Whitelist Station Clients
+      description: |-
+        This endpoint is to provide list of client macs for annotation as whitelist.
+
+        Retrieve the current clients list from `whitelist_url` under Site:Setting
       operationId: createSiteClientsAllowlist
       requestBody:
         content:
@@ -20822,13 +20932,13 @@ paths:
           $ref: '#/components/responses/OK'
       operationId: deleteOrgAptemplate
       description: Delete existing AP Template
-  '/api/v1/orgs/{org_id}/stats/peers/search':
+  '/api/v1/orgs/{org_id}/stats/vpn_peers/search':
     parameters:
       - $ref: '#/components/parameters/org_id'
     get:
-      summary: searchPeerPathStats
+      summary: searchOrgPeerPathStats
       tags:
-        - Orgs Peers
+        - Orgs VPNs
       responses:
         '200':
           description: OK
@@ -20840,107 +20950,42 @@ paths:
                 x-examples:
                   example-1:
                     results:
-                      - is_active: true
-                        latency: 91
-                        peer_port_id: DC_Internet
-                        router_name: RIST01544AP1
+                      - org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
+                        site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
                         mac: 020001c04668
-                        mtu: 1500
+                        port_id: Lte
+                        peer_mac: 020001367edd
+                        peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
+                        peer_port_id: DC_Internet
+                        type: svr
+                        up: true
+                        is_active: true
                         uptime: 1527128046
-                        mos: 436
                         last_seen: 1619518709.222
-                        org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
-                        peer_router_name: RIDCBBP1
-                        peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        peer_mac: 020001367edd
-                        site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        port_id: Lte
-                        timestamp: 1619518860000
-                      - is_active: true
-                        latency: 15
-                        peer_port_id: DC_Internet
                         router_name: RIST01544AP1
-                        mac: 020001c04668
-                        mtu: 1500
-                        uptime: 1527128021
-                        mos: 440
-                        last_seen: 1619518709.222
-                        org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
                         peer_router_name: RIDCBBP1
-                        peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        peer_mac: 020001367edd
-                        site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        port_id: Broadband
-                        timestamp: 1619518860000
-                      - is_active: true
-                        latency: 85
-                        peer_port_id: aws
-                        router_name: seattle-site-03
-                        mac: 020001066c29
+                        latency: 91
                         mtu: 1500
-                        uptime: 244373975
                         mos: 436
-                        last_seen: 1619518744.402
-                        jitter: 1
-                        org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
-                        peer_router_name: aws-site-01
-                        peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        peer_mac: 0200018c95e1
+                      - org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
                         site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        port_id: ryan-lab
-                        timestamp: 1619518890000
-                      - is_active: true
-                        latency: 117
-                        peer_port_id: aws
-                        router_name: berlin-site-02
-                        mac: 020001de91c4
-                        mtu: 1500
-                        uptime: 33977731
-                        mos: 434
-                        last_seen: 1619518760.893
-                        org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
-                        peer_router_name: aws-site-01
-                        peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        peer_mac: 0200018c95e1
-                        site_id: a8405b5c-693d-4086-be51-8cca9f38ce1c
-                        port_id: WAN
-                        timestamp: 1619518891000
-                      - is_active: true
-                        latency: 97
-                        peer_port_id: DC_Internet
-                        router_name: RIST05868AP1
-                        mac: 02000111d2dc
-                        mtu: 1500
-                        uptime: 1527187979
-                        mos: 435
-                        last_seen: 1619518927.66
-                        org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
-                        peer_router_name: RIDCBBP1
-                        peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        peer_mac: 020001367edd
-                        site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
+                        mac: 020001c04668
                         port_id: Lte
-                        timestamp: 1619518920000
-                      - is_active: true
-                        latency: 62
-                        peer_port_id: DC_Internet
-                        router_name: RIST05868AP1
-                        mac: 02000111d2dc
-                        mtu: 1500
-                        uptime: 1527187965
-                        mos: 437
-                        last_seen: 1619518927.66
-                        org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
-                        peer_router_name: RIDCBBP1
-                        peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
                         peer_mac: 020001367edd
-                        site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        port_id: Broadband
-                        timestamp: 1619518920000
+                        peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
+                        peer_port_id: DC_Internet
+                        type: svr
+                        up: true
+                        is_active: true
+                        uptime: 1527128046
+                        last_seen: 1619518709.222
+                        auth_algo: hmac-sha1-96
+                        enc_algo: aes-cbc-128
+                        ike_version: '1'
                     start: 1619518689.4989705
                     end: 1619518989.4989712
                     limit: 10
-                    total: 6
+                    total: 1
                 properties:
                   results:
                     type: array
@@ -20949,57 +20994,64 @@ paths:
                     items:
                       type: object
                       properties:
-                        is_active:
-                          type: boolean
-                        latency:
-                          type: number
-                        peer_port_id:
-                          type: string
-                          minLength: 1
-                        router_name:
-                          type: string
-                          minLength: 1
-                        mac:
-                          type: string
-                          minLength: 1
-                        mtu:
-                          type: number
-                        uptime:
-                          type: number
-                        mos:
-                          type: number
-                        last_seen:
-                          type: number
-                        jitter:
-                          type: number
                         org_id:
-                          type: string
-                          minLength: 1
-                        peer_router_name:
-                          type: string
-                          minLength: 1
-                        peer_site_id:
-                          type: string
-                          minLength: 1
-                        peer_mac:
                           type: string
                           minLength: 1
                         site_id:
                           type: string
                           minLength: 1
+                        mac:
+                          type: string
+                          minLength: 1
+                          description: router mac address
                         port_id:
                           type: string
                           minLength: 1
-                        timestamp:
+                          description: router device interface
+                        peer_mac:
+                          type: string
+                          minLength: 1
+                          description: peer router mac address
+                        peer_site_id:
+                          type: string
+                          minLength: 1
+                        peer_port_id:
+                          type: string
+                          minLength: 1
+                          description: peer router device interface
+                        type:
+                          type: string
+                          minLength: 1
+                          description: '`ipsec`for SRX, `svr` for 128T'
+                        up:
+                          type: boolean
+                        is_active:
+                          type: boolean
+                          description: Redundancy status of the associated interface
+                        uptime:
+                          type: integer
+                        last_seen:
+                          type: number
+                        router_name:
+                          type: string
+                          minLength: 1
+                        peer_router_name:
+                          type: string
+                          minLength: 1
+                        latency:
+                          type: number
+                        mtu:
+                          type: integer
+                        mos:
                           type: number
                   start:
                     type: number
                   end:
                     type: number
                   limit:
-                    type: number
+                    type: integer
                   total:
-                    type: number
+                    type: integer
                 required:
                   - results
                   - start
@@ -21010,115 +21062,284 @@ paths:
                 example-1:
                   value:
                     results:
-                      - is_active: true
-                        latency: 91
-                        peer_port_id: DC_Internet
-                        router_name: RIST01544AP1
+                      - org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
+                        site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
                         mac: 020001c04668
-                        mtu: 1500
+                        port_id: Lte
+                        peer_mac: 020001367edd
+                        peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
+                        peer_port_id: DC_Internet
+                        type: svr
+                        up: true
+                        is_active: true
                         uptime: 1527128046
-                        mos: 436
                         last_seen: 1619518709.222
-                        org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
-                        peer_router_name: RIDCBBP1
-                        peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        peer_mac: 020001367edd
+                        auth_algo: hmac-sha1-96
+                        enc_algo: aes-cbc-128
+                        ike_version: '1'
+                      - org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
                         site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        port_id: Lte
-                        timestamp: 1619518860000
-                      - is_active: true
-                        latency: 15
-                        peer_port_id: DC_Internet
-                        router_name: RIST01544AP1
                         mac: 020001c04668
-                        mtu: 1500
-                        uptime: 1527128021
-                        mos: 440
-                        last_seen: 1619518709.222
-                        org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
-                        peer_router_name: RIDCBBP1
-                        peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        peer_mac: 020001367edd
-                        site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        port_id: Broadband
-                        timestamp: 1619518860000
-                      - is_active: true
-                        latency: 85
-                        peer_port_id: aws
-                        router_name: seattle-site-03
-                        mac: 020001066c29
-                        mtu: 1500
-                        uptime: 244373975
-                        mos: 436
-                        last_seen: 1619518744.402
-                        jitter: 1
-                        org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
-                        peer_router_name: aws-site-01
-                        peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        peer_mac: 0200018c95e1
-                        site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        port_id: ryan-lab
-                        timestamp: 1619518890000
-                      - is_active: true
-                        latency: 117
-                        peer_port_id: aws
-                        router_name: berlin-site-02
-                        mac: 020001de91c4
-                        mtu: 1500
-                        uptime: 33977731
-                        mos: 434
-                        last_seen: 1619518760.893
-                        org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
-                        peer_router_name: aws-site-01
-                        peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        peer_mac: 0200018c95e1
-                        site_id: a8405b5c-693d-4086-be51-8cca9f38ce1c
-                        port_id: WAN
-                        timestamp: 1619518891000
-                      - is_active: true
-                        latency: 97
-                        peer_port_id: DC_Internet
-                        router_name: RIST05868AP1
-                        mac: 02000111d2dc
-                        mtu: 1500
-                        uptime: 1527187979
-                        mos: 435
-                        last_seen: 1619518927.66
-                        org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
-                        peer_router_name: RIDCBBP1
-                        peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        peer_mac: 020001367edd
-                        site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
                         port_id: Lte
-                        timestamp: 1619518920000
-                      - is_active: true
-                        latency: 62
-                        peer_port_id: DC_Internet
-                        router_name: RIST05868AP1
-                        mac: 02000111d2dc
-                        mtu: 1500
-                        uptime: 1527187965
-                        mos: 437
-                        last_seen: 1619518927.66
-                        org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
-                        peer_router_name: RIDCBBP1
-                        peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
                         peer_mac: 020001367edd
-                        site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                        port_id: Broadband
-                        timestamp: 1619518920000
+                        peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
+                        peer_port_id: DC_Internet
+                        type: svr
+                        up: true
+                        is_active: true
+                        uptime: 1527128046
+                        last_seen: 1619518709.222
+                        router_name: RIST01544AP1
+                        peer_router_name: RIDCBBP1
+                        latency: 91
+                        mtu: 1500
+                        mos: 436
                     start: 1619518689.4989705
                     end: 1619518989.4989712
                     limit: 10
-                    total: 6
-      operationId: searchPeerPathStats
-      description: Search Peer Path Stats
+                    total: 2
+      operationId: searchOrgPeerPathStats
+      description: Search Org Peer Path Stats
       parameters:
         - $ref: '#/components/parameters/start'
         - $ref: '#/components/parameters/end'
         - $ref: '#/components/parameters/duration'
         - $ref: '#/components/parameters/page'
         - $ref: '#/components/parameters/limit'
+  '/api/v1/orgs/{org_id}/psks/validate':
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+    post:
+      tags:
+        - Orgs Psks
+      summary: validateOrgPsks
+      operationId: validateOrgPsks
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    empty_psks:
+                      reason: ssid or passphrase can not be empty
+                      psks: []
+                    invalid_psks:
+                      reason: passphrase length must be 8-63
+                      psks:
+                        - 5ec3bdca-b0ba-4f29-87f5-09c002763e8f
+                        - bd774db5-feaa-4fd3-9af0-0b451123c3df
+                        - eacf90ce-c16f-4347-a85e-93939fe8eef0
+                    duplicate_psks:
+                      reason: passphrase must be unique within one ssid
+                      psks:
+                        - 5ec3bdca-b0ba-4f29-87f5-09c002763e8f
+                        - bd774db5-feaa-4fd3-9af0-0b451123c3df
+                    expiring_psks:
+                      reason: PSKs will expire in 30 days
+                      psks: []
+                properties:
+                  empty_psks:
+                    type: object
+                    properties:
+                      reason:
+                        type: string
+                        minLength: 1
+                      psks:
+                        type: array
+                        items:
+                          type: string
+                  invalid_psks:
+                    type: object
+                    properties:
+                      reason:
+                        type: string
+                        minLength: 1
+                      psks:
+                        type: array
+                        items:
+                          type: string
+                  duplicate_psks:
+                    type: object
+                    properties:
+                      reason:
+                        type: string
+                        minLength: 1
+                      psks:
+                        type: array
+                        items:
+                          type: string
+                  expiring_psks:
+                    type: object
+                    properties:
+                      reason:
+                        type: string
+                        minLength: 1
+                      psks:
+                        type: array
+                        items:
+                          type: string
+              examples:
+                example-1:
+                  value:
+                    empty_psks:
+                      reason: ssid or passphrase can not be empty
+                      psks: []
+                    invalid_psks:
+                      reason: passphrase length must be 8-63
+                      psks:
+                        - 5ec3bdca-b0ba-4f29-87f5-09c002763e8f
+                        - bd774db5-feaa-4fd3-9af0-0b451123c3df
+                        - eacf90ce-c16f-4347-a85e-93939fe8eef0
+                    duplicate_psks:
+                      reason: passphrase must be unique within one ssid
+                      psks:
+                        - 5ec3bdca-b0ba-4f29-87f5-09c002763e8f
+                        - bd774db5-feaa-4fd3-9af0-0b451123c3df
+                    expiring_psks:
+                      reason: PSKs will expire in 30 days
+                      psks: []
+      description: Validate Org Psks
+  '/api/v1/orgs/{org_id}/mxedges/{mxedge_id}/services/tunterm/bounce_port':
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+      - $ref: '#/components/parameters/mxedge_id'
+    post:
+      tags:
+        - Orgs MxEdges
+      summary: bounceOrgMxEdgeDataPorts
+      operationId: bounceOrgMxEdgeDataPorts
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      description: Bounce TunTerm Data Ports
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ports:
+                  type: array
+                  description: list of ports to bounce
+                  items:
+                    type: string
+                hold_time:
+                  type: integer
+                  description: 'in milli seconds, hold time between multiple port bounces'
+              required:
+                - ports
+            examples:
+              example-1:
+                value:
+                  ports:
+                    - '0'
+                    - '2'
+              example-2:
+                value:
+                  ports:
+                    - string
+                  hold_time: 0
+  '/api/v1/orgs/{org_id}/stats/vpn_peers/count':
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+    get:
+      summary: countOrgPeerPathStats
+      tags: []
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+      operationId: countOrgPeerPathStats
+      description: Count Org Peer Path Statgs
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: distinct
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/end'
+        - $ref: '#/components/parameters/duration'
+  '/api/v1/sites/{site_id}/devices/{device_id}/vc/vc_port':
+    parameters:
+      - $ref: '#/components/parameters/site_id'
+      - $ref: '#/components/parameters/device_id'
+    post:
+      summary: setSiteVcPort
+      tags:
+        - Sites Devices Virtual Chassis
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      operationId: setSiteVcPort
+      description: Set VC port
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              type: object
+              x-examples:
+                example-1:
+                  op: set
+                  members:
+                    - member: 0
+                      vc_ports:
+                        - xe-0/1/1
+                    - member: 2
+                      vc_ports:
+                        - xe-0/1/1
+              properties:
+                op:
+                  type: string
+                  minLength: 1
+                  enum:
+                    - set
+                    - delete
+                members:
+                  type: array
+                  uniqueItems: true
+                  minItems: 1
+                  items:
+                    type: object
+                    properties:
+                      member:
+                        type: number
+                      vc_ports:
+                        type: array
+                        items:
+                          type: string
+                    required:
+                      - member
+              required:
+                - op
+                - members
+            examples:
+              Set VC port of xe-0/1/1 of member 0 and member 2:
+                value:
+                  op: set
+                  members:
+                    - member: 0
+                      vc_ports:
+                        - xe-0/1/1
+                    - member: 2
+                      vc_ports:
+                        - xe-0/1/1
+              Delete VC port of xe-0/1/1 of member 0 and member 2:
+                value:
+                  op: delete
+                  members:
+                    - member: 0
+                      vc_ports:
+                        - xe-0/1/1
+                    - member: 2
+                      vc_ports:
+                        - xe-0/1/1
 components:
   securitySchemes:
     basicAuth:
@@ -32275,6 +32496,7 @@ components:
       schema:
         type: string
         format: ipv4
+      description: ip address
     invite_id:
       name: invite_id
       in: path
@@ -32421,6 +32643,16 @@ components:
         type: string
         example: 000000ab-00ab-00ab-00ab-0000000000ab
         format: uuid
+      description: PSK ID
+    psk_id_query:
+      name: psk_id
+      in: query
+      required: true
+      schema:
+        type: string
+        example: 000000ab-00ab-00ab-00ab-0000000000ab
+        format: uuid
+      description: PSK ID
     psk_name:
       name: psk_name
       in: query
@@ -32428,6 +32660,7 @@ components:
       schema:
         type: string
         default: ''
+      description: PSK name
     q:
       name: q
       in: query
@@ -32819,11 +33052,12 @@ components:
           description: 'if `usage`==`single`, the mac that this PSK ties to, empty if `auto-binding`'
         expire_time:
           type: integer
-          description: 'Expire time for this PSK key. Default is half year, max is 1 year'
+          description: 'Expire time for this PSK key. Default is half year, max is 5 year'
           example: 1614990263
         max_usage:
           type: integer
-          description: max concurrent users for this PSK key. Default is 0 (unlimited)
+          description: For Org PSK Only. Max concurrent users for this PSK key. Default is 0 (unlimited)
+          default: 0
       required:
         - name
         - passphrase
@@ -32907,6 +33141,13 @@ components:
         default_role:
           type: string
           description: 'default role to assign if there’s no match. By default, an assertion is treated as invalid when there’s no role matched'
+        role_attr_extraction:
+          type: string
+          description: |-
+            optional, custom role attribute parsing scheme
+
+            Supported Role Parsing Schemes
+            <table><tr><th>Name</th><th>Scheme</th></tr><tr><td>cn</td><td><ul><li>The expected role attribute format in SAML Assertion is “CN=cn,OU=ou1,OU=ou2,…”</li><li>CN (the key) is case insensitive and exactly 1 CN is expected (or the entire entry will be ignored)</li><li>E.g. if role attribute is “CN=cn,OU=ou1,OU=ou2” then parsed role value is “cn”</li></ul></td></tr></table>
       required:
         - name
         - idp_cert
@@ -34523,6 +34764,15 @@ components:
           type: boolean
         mxedge_mgmt:
           $ref: '#/components/schemas/mxedge_mgmt'
+        whitelist_url:
+          type: string
+          readOnly: true
+        blacklist_url:
+          type: string
+          readOnly: true
+        watched_station_url:
+          type: string
+          readOnly: true
     networktemplate:
       type: object
       x-examples:
@@ -35870,8 +36120,8 @@ components:
             enable:
               type: boolean
             rules:
-              nullable: true
               type: array
+              nullable: true
               items:
                 $ref: '#/components/schemas/org_auto_rules'
         auto_device_naming:
@@ -35880,8 +36130,8 @@ components:
             enable:
               type: boolean
             rules:
-              nullable: true
               type: array
+              nullable: true
               items:
                 $ref: '#/components/schemas/org_auto_rules'
         cloudshark:
@@ -35897,8 +36147,8 @@ components:
             enable:
               type: boolean
             rules:
-              nullable: true
               type: array
+              nullable: true
               items:
                 $ref: '#/components/schemas/org_auto_rules'
         cacerts:
@@ -35932,6 +36182,9 @@ components:
           properties:
             st_subnet:
               type: string
+        blacklist_url:
+          type: string
+          readOnly: true
     capture:
       oneOf:
         - description: Initiate a Client Packet Capture
@@ -40202,7 +40455,7 @@ components:
       required:
         - name
     network:
-      description: 'Networks are usually subnets that have cross-site significance. For switches, they will got merged into networks in Network Templates and Site Setting For gateways, they can be used to define Service Routes.'
+      description: 'Networks are usually subnets that have cross-site significance. `networks`in Org Settings will got merged into `networks`in Site Setting. For gateways, they can be used to define Service Routes.'
       type: object
       x-examples:
         example-1:
@@ -40260,8 +40513,10 @@ components:
               type: boolean
         isolation:
           type: boolean
+          description: whether to allow clients in the network to talk to each other
         internet_access:
           type: object
+          description: whether this network has direct internet access
           properties:
             enabled:
               type: boolean
@@ -40322,6 +40577,7 @@ components:
                       type: string
                     port:
                       type: string
+          description: whether this network can be accessed from vpn
         tenants:
           type: object
           additionalProperties:
@@ -40501,6 +40757,10 @@ components:
             dns_servers:
               type: array
               nullable: true
+              items:
+                type: string
+            dns_suffix:
+              type: array
               items:
                 type: string
             extra_routes:
@@ -42120,15 +42380,6 @@ components:
             gateway:
               type: string
               description: 'if DHCP Server - optional, `ip` will be used if not provided'
-            fixed_bindings:
-              type: object
-              additionalProperties:
-                type: object
-                properties:
-                  name:
-                    type: string
-                  ip:
-                    type: string
     junos_vrrp_config:
       description: Junos VRRP config
       type: object
@@ -42735,8 +42986,8 @@ components:
           type: string
         dynamic_usage:
           type: string
-          nullable: true
           description: Enable dynamic usage for this port. Set to `dynamic` to enable.
+          nullable: true
         ae_idx:
           type: integer
           description: Users could force to use the designated AE name
@@ -42744,6 +42995,27 @@ components:
           type: boolean
           description: To disable LACP support for the AE interface
         esilag:
+          type: boolean
+        speed:
+          type: string
+          default: auto
+          enum:
+            - auto
+            - 10m
+            - 100m
+            - 1g
+            - 2.5g
+            - 5g
+        duplex:
+          type: string
+          default: auto
+          enum:
+            - auto
+            - full
+            - half
+        disable_autoneg:
+          type: boolean
+        poe_disabled:
           type: boolean
       required:
         - usage
@@ -49053,6 +49325,19 @@ components:
           type: array
           items:
             type: string
+      x-examples:
+        example-1:
+          name: string
+          type: string
+          apps:
+            - string
+          subnet: string
+          network: d72f4655-059b-4c8a-bb9d-87f2df3b2fcf
+          specs:
+            - protocol: any
+              port_range: 0
+          addresses:
+            - string
     junos_urlfilter_config:
       description: ''
       type: object
@@ -49248,6 +49533,7 @@ x-tagGroups:
       - Sites Clients
       - Sites Devices
       - Sites Devices Utilities
+      - Sites Devices Virtual Chassis
       - Sites Events
       - Sites Devices EVPN
       - Sites Guests
@@ -49301,7 +49587,6 @@ x-tagGroups:
       - Orgs MxTunnels
       - Orgs Network Templates
       - Orgs Networks
-      - Orgs Peers
       - Orgs Psks
       - Orgs RF Templates
       - Orgs SDK Clients
@@ -49318,6 +49603,7 @@ x-tagGroups:
       - Orgs Subscriptions
       - Orgs Templates
       - Orgs Tickets
+      - Orgs VPNs
       - Orgs Webhooks
       - Orgs Wlans
       - Orgs WxRules
