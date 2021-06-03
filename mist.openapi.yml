@@ -1,6 +1,6 @@
 info:
   title: Mist API
-  version: 0.7.2
+  version: 0.8.0
   x-logo:
     url: 'https://cdn.mist.com/wp-content/uploads/logo.png'
     backgroundColor: '#FFFFFF'
@@ -9,9 +9,9 @@ info:
     email: tmunzer@juniper.net
     name: Thomas Munzer
   description: |
-    > *Version 0.7.2*
+    > *Version 0.8.0*
     >
-    > Date: May 20th, 2021
+    > Date: June 3rd, 2021
     >
 
     ---
@@ -4523,6 +4523,14 @@ paths:
         - example: psk_name
           in: query
           name: name
+          schema:
+            type: string
+        - in: query
+          name: ssid
+          schema:
+            type: string
+        - in: query
+          name: role
           schema:
             type: string
         - $ref: '#/components/parameters/page'
@@ -11361,11 +11369,15 @@ paths:
       description: Get Site PSKs
       operationId: getSitePsks
       parameters:
-        - example: myPsk
-          in: query
-          name: name
-          schema:
+        - schema:
             type: string
+          in: query
+          name: ssid
+        - schema:
+            type: string
+          in: query
+          name: role
+        - $ref: '#/components/parameters/name'
         - $ref: '#/components/parameters/page'
         - $ref: '#/components/parameters/limit'
       responses:
@@ -21106,103 +21118,6 @@ paths:
         - $ref: '#/components/parameters/duration'
         - $ref: '#/components/parameters/page'
         - $ref: '#/components/parameters/limit'
-  '/api/v1/orgs/{org_id}/psks/validate':
-    parameters:
-      - $ref: '#/components/parameters/org_id'
-    post:
-      tags:
-        - Orgs Psks
-      summary: validateOrgPsks
-      operationId: validateOrgPsks
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                description: ''
-                type: object
-                x-examples:
-                  example-1:
-                    empty_psks:
-                      reason: ssid or passphrase can not be empty
-                      psks: []
-                    invalid_psks:
-                      reason: passphrase length must be 8-63
-                      psks:
-                        - 5ec3bdca-b0ba-4f29-87f5-09c002763e8f
-                        - bd774db5-feaa-4fd3-9af0-0b451123c3df
-                        - eacf90ce-c16f-4347-a85e-93939fe8eef0
-                    duplicate_psks:
-                      reason: passphrase must be unique within one ssid
-                      psks:
-                        - 5ec3bdca-b0ba-4f29-87f5-09c002763e8f
-                        - bd774db5-feaa-4fd3-9af0-0b451123c3df
-                    expiring_psks:
-                      reason: PSKs will expire in 30 days
-                      psks: []
-                properties:
-                  empty_psks:
-                    type: object
-                    properties:
-                      reason:
-                        type: string
-                        minLength: 1
-                      psks:
-                        type: array
-                        items:
-                          type: string
-                  invalid_psks:
-                    type: object
-                    properties:
-                      reason:
-                        type: string
-                        minLength: 1
-                      psks:
-                        type: array
-                        items:
-                          type: string
-                  duplicate_psks:
-                    type: object
-                    properties:
-                      reason:
-                        type: string
-                        minLength: 1
-                      psks:
-                        type: array
-                        items:
-                          type: string
-                  expiring_psks:
-                    type: object
-                    properties:
-                      reason:
-                        type: string
-                        minLength: 1
-                      psks:
-                        type: array
-                        items:
-                          type: string
-              examples:
-                example-1:
-                  value:
-                    empty_psks:
-                      reason: ssid or passphrase can not be empty
-                      psks: []
-                    invalid_psks:
-                      reason: passphrase length must be 8-63
-                      psks:
-                        - 5ec3bdca-b0ba-4f29-87f5-09c002763e8f
-                        - bd774db5-feaa-4fd3-9af0-0b451123c3df
-                        - eacf90ce-c16f-4347-a85e-93939fe8eef0
-                    duplicate_psks:
-                      reason: passphrase must be unique within one ssid
-                      psks:
-                        - 5ec3bdca-b0ba-4f29-87f5-09c002763e8f
-                        - bd774db5-feaa-4fd3-9af0-0b451123c3df
-                    expiring_psks:
-                      reason: PSKs will expire in 30 days
-                      psks: []
-      description: Validate Org Psks
   '/api/v1/orgs/{org_id}/mxedges/{mxedge_id}/services/tunterm/bounce_port':
     parameters:
       - $ref: '#/components/parameters/org_id'
@@ -47977,7 +47892,7 @@ components:
             type: string
         whitelisted_bssids:
           type: array
-          description: list of BSSIDs to whitelist
+          description: 'list of BSSIDs to whitelist. Ex: "cc-:8e-:6f-:d4-:bf-:16", "cc-8e-6f-d4-bf-16", "cc-73-*", "cc:82:*"'
           items:
             type: string
     site_wids:
