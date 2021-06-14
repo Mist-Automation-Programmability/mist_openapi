@@ -1,8 +1,10 @@
 <img src="https://img.shields.io/swagger/valid/3.0?specUrl=https%3A%2F%2Fraw.githubusercontent.com%2Ftmunzer%2FMist-OAS%2Fmain%2Fmist.openapi.yml"> <img src="https://img.shields.io/github/license/tmunzer/Mist-OAS">
 
-# Juniper-Mist OpenAPI Specifications 3.0 
+# Juniper-Mist OpenAPI 3.0 Specifications
 
-Juniper Mist APIs Open API Specifications 3.0.
+Juniper Mist APIs Open API 3.0 Specifications.
+
+Please be aware this specification is currently intended to be used for **documentation only**, and not for **NOT** code generation, testing tools, or other use cases.
 
 Live documentation: https://doc.mist-lab.fr/
 
@@ -11,9 +13,4 @@ Live documentation: https://doc.mist-lab.fr/
 This is a "standalone" version of the Mist.openapi_collection version. It includes all the API endpoints, the models, the responses... It is using YAML format.
 #### Mist.openapi_bindled.json:
 This is a "standalone" version of the Mist.openapi_collection version. It includes all the API endpoints, the models, the responses... It is using JSON format.
-
-
-## Notes
-Examples of generated code from this OpenAPI specifications:
-* Python: [Mist-OAS-Python3](https://github.com/tmunzer/Mist-OAS-Python3)
 
