@@ -1,6 +1,6 @@
 info:
   title: Mist API
-  version: 0.9.3
+  version: 0.10.0
   x-logo:
     url: 'https://cdn.mist.com/wp-content/uploads/logo.png'
     backgroundColor: '#FFFFFF'
@@ -9,9 +9,9 @@ info:
     email: tmunzer@juniper.net
     name: Thomas Munzer
   description: |
-    > *Version 0.9.3*
+    > *Version 0.10.0*
     >
-    > Date: June 17th, 2021
+    > Date: June 30th, 2021
     >
 
     ---
@@ -73,6 +73,7 @@ tags:
   - name: Orgs Alarm Templates
   - name: Orgs AP Templates
   - name: Orgs API Tokens
+  - name: Orgs Assets
   - name: Orgs Asset Filters
   - name: Orgs Cert
   - name: Orgs Claim
@@ -7393,6 +7394,72 @@ paths:
       summary: updateSiteAsset
       tags:
         - Sites Assets
+  '/api/v1/orgs/{org_id}/assets':
+    get:
+      description: Get Org Assets
+      operationId: getOrgAssets
+      responses:
+        '200':
+          $ref: '#/components/responses/AssetsArray'
+      summary: getOrgAssets
+      tags:
+        - Orgs Assets
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+    post:
+      description: Create Org Asset
+      operationId: createOrgAsset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/asset'
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/Asset'
+      summary: createOrgAsset
+      tags:
+        - Orgs Assets
+  '/api/v1/orgs/{org_id}/assets/{asset_id}':
+    delete:
+      description: Delete Org Asset
+      operationId: deleteOrgAsset
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '201':
+          description: Created
+      summary: deleteOrgAsset
+      tags:
+        - Orgs Assets
+    get:
+      description: Get Org Asset Details
+      operationId: getOrgAsset
+      responses:
+        '200':
+          $ref: '#/components/responses/Asset'
+      summary: getOrgAsset
+      tags:
+        - Orgs Assets
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+      - $ref: '#/components/parameters/asset_id'
+    put:
+      description: Update Org Asset
+      operationId: updateOrgAsset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/asset'
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/Asset'
+      summary: updateOrgAsset
+      tags:
+        - Orgs Assets
   '/api/v1/sites/{site_id}/beacons':
     get:
       description: Get Site Beacons
@@ -14130,7 +14197,7 @@ paths:
       description: |-
         Get Discovered BLE Assets
         Get a list of Discovered Assets that doesn’t match any of the Asset / Assetfilters
-      operationId: getSiteDiscoveredAsset
+      operationId: getSiteDiscoveredAssets
       responses:
         '200':
           content:
@@ -14146,7 +14213,7 @@ paths:
         - $ref: '#/components/parameters/start'
         - $ref: '#/components/parameters/end'
         - $ref: '#/components/parameters/duration'
-      summary: getSiteDiscoveredAsset
+      summary: getSiteDiscoveredAssets
       tags:
         - Sites Stats
     parameters:
@@ -14189,11 +14256,8 @@ paths:
                   value:
                     results:
                       - details:
-                          aps:
-                            - missing_vlans:
-                                - '200'
-                              port_id: '42'
-                              mac: 5c-5b-35-0e-02-1c
+                          system_names:
+                            - CORP-D-SW-2
                         site_id: c1698122-c14c-11e5-8e81-1258369c38a9
                         org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
                         timestamp: 1568917200
@@ -14233,15 +14297,60 @@ paths:
               schema:
                 description: ''
                 type: object
+                properties:
+                  results:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      properties:
+                        timestamp:
+                          type: number
+                        site_id:
+                          type: string
+                          minLength: 1
+                        org_id:
+                          type: string
+                          minLength: 1
+                        scope:
+                          type: string
+                          minLength: 1
+                        total_switch_count:
+                          type: number
+                        type:
+                          type: string
+                          minLength: 1
+                        score:
+                          type: number
+                        details:
+                          type: object
+                          properties:
+                            major_versions:
+                              type: array
+                              uniqueItems: true
+                              minItems: 1
+                              items:
+                                properties:
+                                  major_version:
+                                    type: string
+                                    minLength: 1
+                                  system_names:
+                                    type: array
+                                    items:
+                                      properties: {}
+                                  model:
+                                    type: string
+                                    minLength: 1
+                                  major_count:
+                                    type: number
+                required:
+                  - results
                 x-examples:
                   example-1:
                     results:
                       - details:
-                          aps:
-                            - missing_vlans:
-                                - '200'
-                              port_id: '42'
-                              mac: 5c-5b-35-0e-02-1c
+                          system_names:
+                            - CORP-D-SW-2
                         site_id: c1698122-c14c-11e5-8e81-1258369c38a9
                         org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
                         timestamp: 1568917200
@@ -14278,60 +14387,6 @@ paths:
                         score: 100
                         details:
                           threshold: 12
-                properties:
-                  results:
-                    type: array
-                    uniqueItems: true
-                    minItems: 1
-                    items:
-                      type: object
-                      properties:
-                        timestamp:
-                          type: number
-                        site_id:
-                          type: string
-                          minLength: 1
-                        org_id:
-                          type: string
-                          minLength: 1
-                        scope:
-                          type: string
-                          minLength: 1
-                        total_switch_count:
-                          type: number
-                        type:
-                          type: string
-                          minLength: 1
-                        score:
-                          type: number
-                        details:
-                          type: object
-                          properties:
-                            major_versions:
-                              type: array
-                              uniqueItems: true
-                              minItems: 1
-                              items:
-                                type: object
-                                properties:
-                                  major_version:
-                                    type: string
-                                    minLength: 1
-                                  system_names:
-                                    type: array
-                                    items:
-                                      type: object
-                                  model:
-                                    type: string
-                                    minLength: 1
-                                  major_count:
-                                    type: number
-                                required:
-                                  - major_version
-                                  - model
-                                  - major_count
-                required:
-                  - results
           description: OK
       summary: searchSiteDiscoveredSwitchesMetrics
       tags:
@@ -21466,6 +21521,68 @@ paths:
                   format: binary
                   description: CSV file
         description: ''
+  '/api/v1/orgs/{org_id}}/assets/import':
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+    post:
+      summary: importOrgAssets
+      tags:
+        - Orgs Assets
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      operationId: importOrgAssets
+      description: |-
+        Impert Org Assets. 
+        It can be done via a CSV file or a JSON payload.
+
+        ## CSV File Format
+        ```
+        name,mac
+        "asset_name",5c5b53010101
+        ``` 
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              description: ''
+              minItems: 1
+              uniqueItems: true
+              items:
+                type: object
+                required:
+                  - name
+                  - mac
+                properties:
+                  name:
+                    type: string
+                    minLength: 1
+                  mac:
+                    type: string
+                    minLength: 1
+              x-examples:
+                example-1:
+                  - name: Expensive Instrument
+                    mac: a31eb04e1c38
+                  - name: Cheap Instrument
+                    mac: a31eb04e1c37
+            examples:
+              example-1:
+                value:
+                  - name: Expensive Instrument
+                    mac: a31eb04e1c38
+                  - name: Cheap Instrument
+                    mac: a31eb04e1c37
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: CSV file
+        description: ''
   '/api/v1/orgs/{org_id}/maps/import':
     parameters:
       - $ref: '#/components/parameters/org_id'
@@ -21647,6 +21764,7 @@ paths:
                   format: binary
                 auto_deviceprofile_assignment:
                   type: boolean
+                  default: false
                   description: 'boolean, whether to auto assign device to deviceprofile by name'
                 csv:
                   type: string
@@ -30002,30 +30120,6 @@ components:
                       vc_ports:
                         - string
                       vc_role: master
-    Capture:
-      description: OK
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/capture.response'
-          examples:
-            example-1:
-              value:
-                type: string
-                max_pkt_len: 0
-                includes_mcast: true
-                ssid: string
-                ap_mac: string
-                client_mac: string
-                num_packets: 0
-                duration: 0
-                started_time: 0
-                aps:
-                  - string
-                ok:
-                  - string
-                failed:
-                  - {}
     Rfdiag:
       description: OK
       content:
@@ -33643,211 +33737,6 @@ components:
         format: uuid
       required: true
   schemas:
-    sdkinvite:
-      type: object
-      x-examples:
-        example-1:
-          name: string
-          quota_limited: true
-          quota: 0
-          enabled: true
-      description: SDK invite
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        org_id:
-          type: string
-          format: uuid
-          readOnly: true
-        site_id:
-          type: string
-          format: uuid
-          readOnly: true
-        created_time:
-          type: number
-          readOnly: true
-        modified_time:
-          type: number
-          readOnly: true
-        name:
-          type: string
-          description: 'name, will show up in mobile'
-        quota_limited:
-          type: boolean
-          default: false
-          description: whether quota limiting is enabled
-        quota:
-          type: integer
-          description: number of time this invite can be used
-        enabled:
-          type: boolean
-          default: true
-        expire_time:
-          type: integer
-      required:
-        - name
-    psk:
-      description: PSK
-      type: object
-      x-examples:
-        example-1:
-          name: string
-          passphrase: stringst
-          ssid: string
-          usage: multi
-          vlan_id: 1
-          mac: string
-          id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-          created_time: 0
-          modified_time: 0
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        name:
-          type: string
-        org_id:
-          type: string
-          format: uuid
-          readOnly: true
-        site_id:
-          type: string
-          format: uuid
-          readOnly: true
-        created_time:
-          type: number
-          readOnly: true
-        modified_time:
-          type: number
-          readOnly: true
-        passphrase:
-          type: string
-          description: passphrase of the PSK (8-63 character or 64 in hex)
-          minLength: 8
-          maxLength: 64
-        ssid:
-          type: string
-          description: SSID this PSK should be applicable to
-        usage:
-          type: string
-          default: multi
-          enum:
-            - multi
-            - single
-        vlan_id:
-          type: integer
-          description: VLAN for this PSK key
-        mac:
-          type: string
-          description: 'if `usage`==`single`, the mac that this PSK ties to, empty if `auto-binding`'
-        expire_time:
-          type: integer
-          description: 'Expire time for this PSK key. Default is half year, max is 5 year'
-          example: 1614990263
-        max_usage:
-          type: integer
-          description: For Org PSK Only. Max concurrent users for this PSK key. Default is 0 (unlimited)
-          default: 0
-      required:
-        - name
-        - passphrase
-        - ssid
-    sso:
-      description: SSO
-      type: object
-      x-examples:
-        example-1:
-          name: PingId
-          idp_cert: |-
-            -----BEGIN CERTIFICATE-----
-            MIIJIjC...HpsEn8Y=
-            -----END CERTIFICATE-----
-          idp_sso_url: 'https://...'
-          custom_logout_url: 'https://...'
-          nameid_format: email
-          idp_sign_algo: sha256
-          type: SAML
-          issuer: 'https://...'
-          id: de6ec5cd-xxxx-xxxx-xxxx-c8cda102947f
-          msp_id: 00000000-xxxx-xxxx-xxxx-000000000000
-          org_id: 30ab0bf5-xxxx-xxxx-xxxx-feeb1c17654f
-          domain: xxxxxxxx
-          created_time: 1583144587
-          modified_time: 1583144587
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        name:
-          type: string
-          description: name
-        msp_id:
-          type: string
-          format: uuid
-          readOnly: true
-        org_id:
-          type: string
-          format: uuid
-          readOnly: true
-        site_id:
-          type: string
-          format: uuid
-          readOnly: true
-        created_time:
-          type: number
-          readOnly: true
-        modified_time:
-          type: number
-          readOnly: true
-        idp_cert:
-          type: string
-          description: IDP Cert (used to verify the signed response)
-        idp_sso_url:
-          type: string
-          description: IDP Single-Sign-On URL
-        custom_logout_url:
-          type: string
-          description: 'optional, a URL we will redirect the user after user logout from Mist (for some IdP which supports a custom logout URL that is different from SP-initiated SLO process)'
-        nameid_format:
-          type: string
-          default: email
-          enum:
-            - email
-            - unspecified
-        idp_sign_algo:
-          type: string
-          description: signing algorithm for SAML Assertion
-        type:
-          type: string
-        issuer:
-          type: string
-          description: IDP issuer URL
-        domain:
-          type: string
-        ignore_unmatched_roles:
-          type: boolean
-          description: 'ignore any unmatched roles provided in assertion. By default, an assertion is treated as invalid for any unmatched role'
-        default_role:
-          type: string
-          description: 'default role to assign if there’s no match. By default, an assertion is treated as invalid when there’s no role matched'
-        role_attr_extraction:
-          type: string
-          description: |-
-            optional, custom role attribute parsing scheme
-
-            Supported Role Parsing Schemes
-            <table><tr><th>Name</th><th>Scheme</th></tr><tr><td>cn</td><td><ul><li>The expected role attribute format in SAML Assertion is “CN=cn,OU=ou1,OU=ou2,…”</li><li>CN (the key) is case insensitive and exactly 1 CN is expected (or the entire entry will be ignored)</li><li>E.g. if role attribute is “CN=cn,OU=ou1,OU=ou2” then parsed role value is “cn”</li></ul></td></tr></table>
-      required:
-        - name
-        - idp_cert
-        - idp_sso_url
-        - nameid_format
-        - idp_sign_algo
-        - issuer
     device_switch:
       description: |-
         Switch Configuration
@@ -33961,6 +33850,8 @@ components:
           $ref: '#/components/schemas/junos_ip_config'
         oob_ip_config:
           $ref: '#/components/schemas/junos_ip_config'
+        networks:
+          $ref: '#/components/schemas/junos_networks'
         other_ip_configs:
           description: 'optional, if it''s required to have switch''s L3 presense on a network/vlan'
           type: object
@@ -33969,6 +33860,16 @@ components:
         ntp_servers:
           type: array
           description: 'list of NTP servers specific to this device. By default, those in Site Settings will be used'
+          items:
+            type: string
+        dns_servers:
+          type: array
+          description: 'Global dns settings. To keep compatibility, dns settings in `ip_config` and `oob_ip_config` will overwrite this setting'
+          items:
+            type: string
+        dns_suffix:
+          type: array
+          description: 'Global dns settings. To keep compatibility, dns settings in `ip_config` and `oob_ip_config` will overwrite this setting'
           items:
             type: string
         port_config:
@@ -33984,8 +33885,30 @@ components:
           properties:
             dynamic:
               $ref: '#/components/schemas/junos_port_usages_dynamic'
-        networks:
-          $ref: '#/components/schemas/junos_networks'
+        extra_routes:
+          type: object
+          additionalProperties:
+            type: object
+            description: CIDR or name from "networks"
+            properties:
+              via:
+                type: string
+                description: next-hop IP Address
+        router_id:
+          type: string
+          description: used for OSPF / BGP / EVPN
+        ospf_config:
+          $ref: '#/components/schemas/junos_ospf_config'
+        dhcp_config:
+          $ref: '#/components/schemas/junos_dhcpd'
+        dhcp_snooping:
+          $ref: '#/components/schemas/junos_dhcp_snooping'
+        vrrp_config:
+          $ref: '#/components/schemas/junos_vrrp_config'
+        vrf_config:
+          $ref: '#/components/schemas/junos_vrf_config'
+        evpn_config:
+          $ref: '#/components/schemas/junos_evpn_config'
         managed:
           type: boolean
           default: false
@@ -34013,24 +33936,75 @@ components:
         image3_url:
           type: string
           nullable: true
-        extra_routes:
-          type: object
-          additionalProperties:
-            type: object
-            description: CIDR or name from "networks"
-            properties:
-              via:
-                type: string
-                description: next-hop IP Address
-        router_id:
+    psk:
+      description: PSK
+      type: object
+      x-examples:
+        example-1:
+          name: string
+          passphrase: stringst
+          ssid: string
+          usage: multi
+          vlan_id: 1
+          mac: string
+          id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          created_time: 0
+          modified_time: 0
+      properties:
+        id:
           type: string
-          description: used for OSPF / BGP / EVPN
-        ospf_config:
-          $ref: '#/components/schemas/junos_ospf_config'
-        vrrp_config:
-          $ref: '#/components/schemas/junos_vrrp_config'
-        evpn_config:
-          $ref: '#/components/schemas/junos_evpn_config'
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+        org_id:
+          type: string
+          format: uuid
+          readOnly: true
+        site_id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_time:
+          type: number
+          readOnly: true
+        modified_time:
+          type: number
+          readOnly: true
+        passphrase:
+          type: string
+          description: passphrase of the PSK (8-63 character or 64 in hex)
+          minLength: 8
+          maxLength: 64
+        ssid:
+          type: string
+          description: SSID this PSK should be applicable to
+        usage:
+          type: string
+          default: multi
+          enum:
+            - multi
+            - single
+        vlan_id:
+          type: integer
+          description: VLAN for this PSK key
+        mac:
+          type: string
+          description: 'if `usage`==`single`, the mac that this PSK ties to, empty if `auto-binding`'
+        expire_time:
+          type: integer
+          nullable: true
+          description: Expire time for this PSK key. Default `null` (as no expiration)
+          example: 1614990263
+          default: null
+        max_usage:
+          type: integer
+          description: For Org PSK Only. Max concurrent users for this PSK key. Default is 0 (unlimited)
+          default: 0
+      required:
+        - name
+        - passphrase
+        - ssid
     secpolicy:
       description: 'Security Policy is designed to audit / catch discripancies between “what’s intended to be running” versus “what’s actually running” in a network. Many big organizations have separated Security and IT team (for good reasons). Each site can be assigned a security policy. Whenever an AP is provisioned, the configuration will be checked against the security policy. Any violations will be flagged in Device Config History where you can search for the when and where the violation occurs.'
       type: object
@@ -34297,6 +34271,144 @@ components:
           minItems: 1
           items:
             $ref: '#/components/schemas/wlan'
+    sdkinvite:
+      type: object
+      x-examples:
+        example-1:
+          name: string
+          quota_limited: true
+          quota: 0
+          enabled: true
+      description: SDK invite
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        org_id:
+          type: string
+          format: uuid
+          readOnly: true
+        site_id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_time:
+          type: number
+          readOnly: true
+        modified_time:
+          type: number
+          readOnly: true
+        name:
+          type: string
+          description: 'name, will show up in mobile'
+        quota_limited:
+          type: boolean
+          default: false
+          description: whether quota limiting is enabled
+        quota:
+          type: integer
+          description: number of time this invite can be used
+        enabled:
+          type: boolean
+          default: true
+        expire_time:
+          type: integer
+      required:
+        - name
+    sso:
+      description: SSO
+      type: object
+      x-examples:
+        example-1:
+          name: PingId
+          idp_cert: |-
+            -----BEGIN CERTIFICATE-----
+            MIIJIjC...HpsEn8Y=
+            -----END CERTIFICATE-----
+          idp_sso_url: 'https://...'
+          custom_logout_url: 'https://...'
+          nameid_format: email
+          idp_sign_algo: sha256
+          type: SAML
+          issuer: 'https://...'
+          id: de6ec5cd-xxxx-xxxx-xxxx-c8cda102947f
+          msp_id: 00000000-xxxx-xxxx-xxxx-000000000000
+          org_id: 30ab0bf5-xxxx-xxxx-xxxx-feeb1c17654f
+          domain: xxxxxxxx
+          created_time: 1583144587
+          modified_time: 1583144587
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          description: name
+        msp_id:
+          type: string
+          format: uuid
+          readOnly: true
+        org_id:
+          type: string
+          format: uuid
+          readOnly: true
+        site_id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_time:
+          type: number
+          readOnly: true
+        modified_time:
+          type: number
+          readOnly: true
+        idp_cert:
+          type: string
+          description: IDP Cert (used to verify the signed response)
+        idp_sso_url:
+          type: string
+          description: IDP Single-Sign-On URL
+        custom_logout_url:
+          type: string
+          description: 'optional, a URL we will redirect the user after user logout from Mist (for some IdP which supports a custom logout URL that is different from SP-initiated SLO process)'
+        nameid_format:
+          type: string
+          default: email
+          enum:
+            - email
+            - unspecified
+        idp_sign_algo:
+          type: string
+          description: signing algorithm for SAML Assertion
+        type:
+          type: string
+        issuer:
+          type: string
+          description: IDP issuer URL
+        domain:
+          type: string
+        ignore_unmatched_roles:
+          type: boolean
+          description: 'ignore any unmatched roles provided in assertion. By default, an assertion is treated as invalid for any unmatched role'
+        default_role:
+          type: string
+          description: 'default role to assign if there’s no match. By default, an assertion is treated as invalid when there’s no role matched'
+        role_attr_extraction:
+          type: string
+          description: |-
+            optional, custom role attribute parsing scheme
+
+            Supported Role Parsing Schemes
+            <table><tr><th>Name</th><th>Scheme</th></tr><tr><td>cn</td><td><ul><li>The expected role attribute format in SAML Assertion is “CN=cn,OU=ou1,OU=ou2,…”</li><li>CN (the key) is case insensitive and exactly 1 CN is expected (or the entire entry will be ignored)</li><li>E.g. if role attribute is “CN=cn,OU=ou1,OU=ou2” then parsed role value is “cn”</li></ul></td></tr></table>
+      required:
+        - name
+        - idp_cert
+        - idp_sso_url
+        - nameid_format
+        - idp_sign_algo
+        - issuer
     deviceprofile:
       type: object
       description: Device Profile
@@ -40443,60 +40555,6 @@ components:
           - duration
           - frame_count
           - ready
-    application:
-      type: object
-      properties:
-        name:
-          type: string
-        app_key:
-          type: string
-        monitored:
-          type: boolean
-        specs:
-          type: object
-          properties:
-            protocol:
-              type: string
-              default: any
-              description: 'tcp / udp / icmp / gre / any / ":protocol_number", `protocol_number` is between 1-254, default is `any`'
-            subnets:
-              type: array
-              default:
-                - 0.0.0.0/0
-              description: matched dst subnet
-              items:
-                type: string
-            hostname:
-              type: array
-              description: matched hostnames
-              items:
-                type: string
-            port_range:
-              type: integer
-              minimum: 0
-              default: 0
-              description: 'matched dst port, "0" means any'
-      required:
-        - name
-        - app_key
-        - monitored
-      x-examples:
-        predefined:
-          name: zoom
-          app_key: zoom
-          monitored: true
-        custom:
-          name: zoom
-          monitored: true
-          app_key: custom
-          specs:
-            - protocol: tcp
-              subnets:
-                - 10.1.2.0/24
-              hostnames:
-                - www.abc.com
-              port_range: '80'
-      description: application
     curd_ui_settings:
       description: CURD UI Settings
       type: object
@@ -43332,10 +43390,6 @@ components:
             - trunk
             - inet
             - wan
-        disabled:
-          type: boolean
-          default: false
-          description: whether the port is disabled
         all_networks:
           type: boolean
           default: false
@@ -43348,6 +43402,10 @@ components:
         port_network:
           type: string
           description: native network/vlan for untagged traffic
+        disabled:
+          type: boolean
+          default: false
+          description: whether the port is disabled
         stp_edge:
           type: boolean
           description: 'when enabled, the port is not expected to receive BPDU frames'
@@ -43407,6 +43465,11 @@ components:
           description: media maximum transmission unit (MTU) is the largest data unit that can be forwarded without fragmentation. The default value is 1514.
         enable_qos:
           type: boolean
+        allow_dhcpd:
+          type: boolean
+          description: |-
+            if DHCP snooping is enabled, whether DHCP server is allowed on the interfaces with. All the interfaces from port configs using this port usage are effected. Please notice that allow_dhcpd is a tri-state.
+            When it is not defined, it means using the system’s default setting which depends on whether the port is a access or trunk port.
         dynamic_vlan:
           type: object
           properties:
@@ -50247,61 +50310,6 @@ components:
                 enum:
                   - default
                   - enterprise
-    vpn:
-      title: vpn
-      type: object
-      x-examples:
-        example-1:
-          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-          org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-          site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
-          for_site: true
-          created_time: 0
-          modified_time: 0
-          name: string
-          flavor: string
-          peers:
-            - name: string
-              ports:
-                property1:
-                  host: string
-                property2:
-                  host: string
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        org_id:
-          type: string
-          format: uuid
-          readOnly: true
-        site_id:
-          type: string
-          format: uuid
-          readOnly: true
-        for_site:
-          type: boolean
-          readOnly: true
-        created_time:
-          type: number
-          readOnly: true
-        modified_time:
-          type: number
-          readOnly: true
-        name:
-          type: string
-          nullable: true
-          description: name of the vpn
-        hubs:
-          type: object
-          additionalProperties:
-            type: object
-            additionalProperties:
-              type: object
-              properties:
-                ip:
-                  type: string
     aptemplate:
       description: ''
       type: object
@@ -50387,6 +50395,40 @@ components:
             type: array
             items:
               type: string
+    junos_dhcp_snooping:
+      description: ''
+      type: object
+      x-examples:
+        example-1:
+          enabled: true
+          all_networks: false
+          networks:
+            - corp
+          enable_arp_spoof_check: true
+          enable_ip_source_guard: true
+      properties:
+        enabled:
+          type: boolean
+        all_networks:
+          type: boolean
+        networks:
+          type: array
+          description: 'if `all_networks`==`false`, list of network with DHCP snooping enabled'
+          items:
+            type: string
+        enable_arp_spoof_check:
+          type: boolean
+          description: 'Enable for dynamic ARP inspection check '
+        enable_ip_source_guard:
+          type: boolean
+          description: Enable for check for forging source IP address
+    junos_vrf_config:
+      title: junos_vrf_config
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: whether to enable VRF (when supported on the device)
 x-tagGroups:
   - name: Account
     tags:
@@ -50443,6 +50485,7 @@ x-tagGroups:
       - Orgs Alarm Templates
       - Orgs AP Templates
       - Orgs API Tokens
+      - Orgs Assets
       - Orgs Asset Filters
       - Orgs Cert
       - Orgs Claim
