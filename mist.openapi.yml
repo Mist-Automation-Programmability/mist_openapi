@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> *Version 0.11.1*
+  description: '> *Version 0.11.2*
 
     >
 
-    > Date: July 16th, 2021
+    > Date: July 20th, 2021
 
     >
 
@@ -42,7 +42,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.11.1
+  version: 0.11.2
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -132,6 +132,7 @@ tags:
   - name: Orgs Tickets
   - name: Orgs VPNs
   - name: Orgs Webhooks
+  - name: Orgs Wired Clients
   - name: Orgs Wlans
   - name: Orgs WxRules
   - name: Orgs WxTags
@@ -9000,6 +9001,91 @@ paths:
       summary: updateOrgWebhook
       tags:
         - Orgs Webhooks
+  /api/v1/orgs/{org_id}/wired_clients/count:
+    get:
+      description: Count by Distinct Attributes of Clients
+      operationId: countOrgWiredClients
+      parameters:
+        - in: query
+          name: distinct
+          schema:
+            default: mac
+            enum:
+              - port_id
+              - vlan
+              - mac
+            type: string
+        - description: client mac
+          in: query
+          name: mac
+          schema:
+            type: string
+        - description: device mac
+          in: query
+          name: device_mac
+          schema:
+            type: string
+        - description: port id
+          in: query
+          name: port_id
+          schema:
+            type: string
+        - description: vlan
+          in: query
+          name: vlan
+          schema:
+            type: string
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/end'
+        - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+      summary: countOrgWiredClients
+      tags:
+        - Orgs Wired Clients
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/wired_clients/search:
+    get:
+      description: Search Wired Clients
+      operationId: searchOrgWiredClients
+      parameters:
+        - description: client mac
+          in: query
+          name: mac
+          schema:
+            type: string
+        - description: device mac
+          in: query
+          name: device_mac
+          schema:
+            type: string
+        - description: port id
+          in: query
+          name: port_id
+          schema:
+            type: string
+        - description: vlan
+          in: query
+          name: vlan
+          schema:
+            type: string
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/end'
+        - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          $ref: '#/components/responses/WiredClientsSearch'
+      summary: searchOrgWiredClients
+      tags:
+        - Orgs Wired Clients
+    parameters:
+      - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/wlans:
     get:
       description: Get Org Wlans
@@ -22223,6 +22309,14 @@ paths:
                   topic: alarms
             schema:
               $ref: '#/components/schemas/webhook.alarms'
+        description: "**N.B.**: Fields like `aps`, `bssids`, `ssids` are event specific.\
+          \ They are relevant to this event type ( rogue-ap-detected). For a different\
+          \ event type, different fields may be sent. These don\u2019t contain all\
+          \ affected entities and are representative samples of entities (capped at\
+          \ 10). For marvis action related events, we expose `details` to include\
+          \ more event specific details.\n\nEvents specific fields for other alarm\
+          \ event type can be found with API https://api.mist.com/api/v1/const/alarm_defs,\
+          \ under \u201Cfields\u201D array of /alarm_defs response object."
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -48139,34 +48233,25 @@ components:
       type: object
       x-examples:
         example-1:
-          events:
-            - aps:
-                - 5c5b350e1003
-              bssids:
-                - 00024a00310c
-                - 5c5b3500e10f
-                - 000f24090ff1
-                - c03f0e76fe91
-                - e091f512eda2
-                - e894f6258a3f
-                - 40169f1157a4
-                - 40169f1151b2
-                - c03f0e7aba91
-                - 5c5b35090ff3
-              count: 16
-              id: 95193bda-1fef-4ea6-9e5b-97c9f5e0655a
-              last_seen: 1549068720
-              org_id: 2b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-              site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-              ssids:
-                - qwerty
-                - A-Dot
-                - xfinity
-                - alpha
-              timestamp: 1549068202
-              type: rogue-ap-detected
-              update: true
-          topic: alarms
+          value:
+            events:
+              - aps:
+                  - string
+                bssids:
+                  - string
+                count: 0
+                event_id: a7a26ff2-e851-45b6-9634-d595f45458b7
+                for_site: true
+                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                last_seen: 0
+                org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                ssids:
+                  - string
+                timestamp: 0
+                type: string
+                update: true
+            topic: alarms
     webhook.asset_raw:
       description: asset raw webhook
       properties:
@@ -51600,6 +51685,7 @@ x-tagGroups:
       - Orgs Tickets
       - Orgs VPNs
       - Orgs Webhooks
+      - Orgs Wired Clients
       - Orgs Wlans
       - Orgs WxRules
       - Orgs WxTags
