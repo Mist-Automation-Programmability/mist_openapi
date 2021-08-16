@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> *Version 0.11.4*
+  description: '> *Version 0.12.0*
 
     >
 
-    > Date: July 26th, 2021
+    > Date: August 16th, 2021
 
     >
 
@@ -42,7 +42,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.11.4
+  version: 0.12.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -8361,6 +8361,24 @@ paths:
         - Orgs Stats
     parameters:
       - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/stats/assets:
+    get:
+      description: Get Org Assets Stats
+      operationId: getOrgAssetsStats
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/end'
+        - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          $ref: '#/components/responses/AssetsArrayStats'
+      summary: getOrgAssetsStats
+      tags:
+        - Orgs Stats
+    parameters:
+      - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/stats/devices:
     get:
       description: 'Org Devices stats
@@ -10957,10 +10975,21 @@ paths:
     parameters:
       - $ref: '#/components/parameters/site_id'
     post:
-      description: "Impert Site Assets. \nIt can be done via a CSV file or a JSON\
+      description: "Impert Site Assets. \n\nIt can be done via a CSV file or a JSON\
         \ payload.\n\n## CSV File Format\n```\nname,mac\n\"asset_name\",5c5b53010101\n\
         ``` "
       operationId: importSiteAssets
+      parameters:
+        - description: API will replace the assets with same mac if provided `upsert`==`True`,
+            otherwise will report in errors in response.
+          in: query
+          name: upsert
+          schema:
+            default: 'False'
+            enum:
+              - 'True'
+              - 'False'
+            type: string
       requestBody:
         content:
           application/json:
@@ -17341,12 +17370,7 @@ paths:
       - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/assets:
     get:
-      description: " #### Body Response\r\n**Parameter**|**Type**|**Description**\
-        \ \r\n :-------------: |:-------------: |:-------------: \r\n name|string|name\
-        \ / label of the device\r\n mac|string|bluetooth MAC\r\n last_seen|int|last\
-        \ seen timestamp\r\n map_id|string|map where the device belongs to\r\n x|float|x\
-        \ in pixel\r\n y|float|y in pixel\r\n battery_voltage|int|battery voltage,\
-        \ in mV"
+      description: Get Site Assets Stats
       operationId: getSiteAssetsStats
       parameters:
         - $ref: '#/components/parameters/page'
@@ -40758,6 +40782,21 @@ components:
           default: 5
           description: radius auth session timeout
           type: integer
+        coa_enabled:
+          default: false
+          type: boolean
+        coa_port:
+          default: 3799
+          type: integer
+        network:
+          description: 'use `network`or `source_ip`
+
+            which network the RADIUS server resides, if there''s static IP for this
+            network, we''d use it as source-ip'
+          type: string
+        source_ip:
+          description: use `network`or `source_ip`
+          type: string
       type: object
       x-examples:
         example-1:
@@ -41451,6 +41490,10 @@ components:
           items:
             type: string
           type: array
+        tunterm_monitoring:
+          items:
+            $ref: '#/components/schemas/site_tunterm_monitoring'
+          type: array
       type: object
       x-examples:
         example-1:
@@ -41567,26 +41610,7 @@ components:
           type: object
         tunterm_monitoring:
           items:
-            properties:
-              host:
-                description: can be ip, ipv6, hostname
-                type: string
-              port:
-                description: when protocol == tcp
-                type: string
-              protocol:
-                default: ping
-                enum:
-                  - arp
-                  - ping
-                  - tcp
-                type: string
-              timeout:
-                default: 300
-                maximum: 3600
-                minimum: 60
-                type: integer
-            type: object
+            $ref: '#/components/schemas/site_tunterm_monitoring'
           type: array
         tunterm_port_config:
           description: ethernet port configurations
@@ -41630,9 +41654,9 @@ components:
               type: boolean
           type: object
       required:
-        - name
-        - model
         - magic
+        - model
+        - name
       type: object
       x-examples:
         example-1:
@@ -43291,6 +43315,8 @@ components:
       properties:
         enabled:
           type: boolean
+        idle_timeout:
+          type: integer
         server_name:
           description: name of the server to verify (against the cacerts in Org Setting).
             Only if not Mist Edge.
@@ -45066,6 +45092,10 @@ components:
           description: "whether to track anonymous BLE assets (requires \u2018track_asset\u2019\
             \ enabled)"
           type: boolean
+        tunterm_monitoring:
+          items:
+            $ref: '#/components/schemas/site_tunterm_monitoring'
+          type: array
         van:
           properties:
             enabled:
@@ -45100,156 +45130,391 @@ components:
       type: object
       x-examples:
         example-1:
-          additional_config_cmds:
-            - string
-          analytic:
-            enabled: true
-          auto_upgrade:
-            custom_versions:
+          value:
+            additional_config_cmds:
+              - string
+            analytic:
+              enabled: false
+            ap_matching:
+              enabled: true
+              rules:
+                - match_model: string
+                  name: string
+                  port_config:
+                    property1:
+                      disabled: true
+                      dynamic_vlan:
+                        default_vlan_id: 0
+                        enabled: true
+                        type: string
+                        vlans:
+                          property1: string
+                          property2: string
+                      enable_mac_auth: true
+                      forwarding: all
+                      mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
+                      mxtunnel_name: string
+                      port_auth: none
+                      port_vlan_id: 0
+                      radius_config:
+                        acct_interim_interval: 0
+                        acct_servers:
+                          - host: string
+                            port: 1813
+                            secret: string
+                        auth_servers:
+                          - host: string
+                            port: 1812
+                            secret: string
+                        auth_servers_retries: 3
+                        auth_servers_timeout: 5
+                        coa_enabled: false
+                        coa_port: 3799
+                        network: string
+                        source_ip: string
+                      radsec:
+                        enabled: true
+                        idle_timeout: 0
+                        server_name: string
+                        servers:
+                          - host: string
+                            port: 0
+                        use_mxedge: true
+                      vlan_id: 0
+                      vland_ids:
+                        - 0
+                      wxtunnel_id: string
+                      wxtunnel_remote_id: string
+                    property2:
+                      disabled: true
+                      dynamic_vlan:
+                        default_vlan_id: 0
+                        enabled: true
+                        type: string
+                        vlans:
+                          property1: string
+                          property2: string
+                      enable_mac_auth: true
+                      forwarding: all
+                      mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
+                      mxtunnel_name: string
+                      port_auth: none
+                      port_vlan_id: 0
+                      radius_config:
+                        acct_interim_interval: 0
+                        acct_servers:
+                          - host: string
+                            port: 1813
+                            secret: string
+                        auth_servers:
+                          - host: string
+                            port: 1812
+                            secret: string
+                        auth_servers_retries: 3
+                        auth_servers_timeout: 5
+                        coa_enabled: false
+                        coa_port: 3799
+                        network: string
+                        source_ip: string
+                      radsec:
+                        enabled: true
+                        idle_timeout: 0
+                        server_name: string
+                        servers:
+                          - host: string
+                            port: 0
+                        use_mxedge: true
+                      vlan_id: 0
+                      vland_ids:
+                        - 0
+                      wxtunnel_id: string
+                      wxtunnel_remote_id: string
+            ap_port_config:
+              model_specific:
+                property1:
+                  property1:
+                    disabled: true
+                    dynamic_vlan:
+                      default_vlan_id: 0
+                      enabled: true
+                      type: string
+                      vlans:
+                        property1: string
+                        property2: string
+                    enable_mac_auth: true
+                    forwarding: all
+                    mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
+                    mxtunnel_name: string
+                    port_auth: none
+                    port_vlan_id: 0
+                    radius_config:
+                      acct_interim_interval: 0
+                      acct_servers:
+                        - host: string
+                          port: 1813
+                          secret: string
+                      auth_servers:
+                        - host: string
+                          port: 1812
+                          secret: string
+                      auth_servers_retries: 3
+                      auth_servers_timeout: 5
+                      coa_enabled: false
+                      coa_port: 3799
+                      network: string
+                      source_ip: string
+                    radsec:
+                      enabled: true
+                      idle_timeout: 0
+                      server_name: string
+                      servers:
+                        - host: string
+                          port: 0
+                      use_mxedge: true
+                    vlan_id: 0
+                    vland_ids:
+                      - 0
+                    wxtunnel_id: string
+                    wxtunnel_remote_id: string
+                  property2:
+                    disabled: true
+                    dynamic_vlan:
+                      default_vlan_id: 0
+                      enabled: true
+                      type: string
+                      vlans:
+                        property1: string
+                        property2: string
+                    enable_mac_auth: true
+                    forwarding: all
+                    mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
+                    mxtunnel_name: string
+                    port_auth: none
+                    port_vlan_id: 0
+                    radius_config:
+                      acct_interim_interval: 0
+                      acct_servers:
+                        - host: string
+                          port: 1813
+                          secret: string
+                      auth_servers:
+                        - host: string
+                          port: 1812
+                          secret: string
+                      auth_servers_retries: 3
+                      auth_servers_timeout: 5
+                      coa_enabled: false
+                      coa_port: 3799
+                      network: string
+                      source_ip: string
+                    radsec:
+                      enabled: true
+                      idle_timeout: 0
+                      server_name: string
+                      servers:
+                        - host: string
+                          port: 0
+                      use_mxedge: true
+                    vlan_id: 0
+                    vland_ids:
+                      - 0
+                    wxtunnel_id: string
+                    wxtunnel_remote_id: string
+                property2:
+                  property1:
+                    disabled: true
+                    dynamic_vlan:
+                      default_vlan_id: 0
+                      enabled: true
+                      type: string
+                      vlans:
+                        property1: string
+                        property2: string
+                    enable_mac_auth: true
+                    forwarding: all
+                    mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
+                    mxtunnel_name: string
+                    port_auth: none
+                    port_vlan_id: 0
+                    radius_config:
+                      acct_interim_interval: 0
+                      acct_servers:
+                        - host: string
+                          port: 1813
+                          secret: string
+                      auth_servers:
+                        - host: string
+                          port: 1812
+                          secret: string
+                      auth_servers_retries: 3
+                      auth_servers_timeout: 5
+                      coa_enabled: false
+                      coa_port: 3799
+                      network: string
+                      source_ip: string
+                    radsec:
+                      enabled: true
+                      idle_timeout: 0
+                      server_name: string
+                      servers:
+                        - host: string
+                          port: 0
+                      use_mxedge: true
+                    vlan_id: 0
+                    vland_ids:
+                      - 0
+                    wxtunnel_id: string
+                    wxtunnel_remote_id: string
+                  property2:
+                    disabled: true
+                    dynamic_vlan:
+                      default_vlan_id: 0
+                      enabled: true
+                      type: string
+                      vlans:
+                        property1: string
+                        property2: string
+                    enable_mac_auth: true
+                    forwarding: all
+                    mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
+                    mxtunnel_name: string
+                    port_auth: none
+                    port_vlan_id: 0
+                    radius_config:
+                      acct_interim_interval: 0
+                      acct_servers:
+                        - host: string
+                          port: 1813
+                          secret: string
+                      auth_servers:
+                        - host: string
+                          port: 1812
+                          secret: string
+                      auth_servers_retries: 3
+                      auth_servers_timeout: 5
+                      coa_enabled: false
+                      coa_port: 3799
+                      network: string
+                      source_ip: string
+                    radsec:
+                      enabled: true
+                      idle_timeout: 0
+                      server_name: string
+                      servers:
+                        - host: string
+                          port: 0
+                      use_mxedge: true
+                    vlan_id: 0
+                    vland_ids:
+                      - 0
+                    wxtunnel_id: string
+                    wxtunnel_remote_id: string
+            auto_upgrade:
+              custom_versions:
+                property1: string
+                property2: string
+              day_of_week: any
+              enabled: false
+              time_of_day: string
+              version: stable
+            bgp_groups:
+              property1:
+                type: external
+              property2:
+                type: external
+            blacklist_url: string
+            ble_config:
+              beacon_enabled: true
+              beacon_rate: 0
+              beacon_rate_mode: default
+              beam_disabled:
+                - 0
+              eddystone_uid_adv_power: -100
+              eddystone_uid_beams: string
+              eddystone_uid_enabled: true
+              eddystone_uid_freq_msec: 0
+              eddystone_uid_instance: string
+              eddystone_uid_namespace: string
+              eddystone_url_adv_power: 0
+              eddystone_url_beams: string
+              eddystone_url_enabled: true
+              eddystone_url_freq_msec: 0
+              eddystone_url_url: string
+              ibeacon_adv_power: -100
+              ibeacon_beams: string
+              ibeacon_enabled: false
+              ibeacon_freq_msec: 0
+              ibeacon_major: 0
+              ibeacon_minor: 0
+              ibeacon_uuid: 1f89bc00-d0af-481b-82fe-a6629259a39f
+              power: 9
+              power_mode: string
+            config_auto_revert: false
+            created_time: 0
+            device_updown_threshold: 0
+            dns_servers:
+              - string
+            dns_suffix:
+              - string
+            enable_channel_144: false
+            engagement:
+              dwell_tag_names:
+                bounce: string
+                engaged: string
+                passerby: string
+                stationed: string
+              dwell_tags:
+                bounce: string
+                engaged: string
+                passerby: string
+                stationed: string
+              hours:
+                fri: string
+                mon: string
+                sta: string
+                sun: string
+                thu: string
+                tue: string
+                wed: string
+              max_dwell: 43200
+              min_dwell: 0
+            evpn_options:
+              overlay:
+                as: 65000
+              underlay:
+                as_base: 65001
+                routed_id_prefix: /24
+                subnet: 10.255.240.0/20
+            flags:
               property1: string
               property2: string
-            day_of_week: any
-            enabled: true
-            time_of_day: string
-            version: beta
-          bgp_groups:
-            property1:
-              type: external
-            property2:
-              type: external
-          ble_config:
-            beacon_enabled: true
-            beacon_rate: 0
-            beacon_rate_mode: string
-            beam_disabled:
-              - 0
-            eddystone_uid_adv_power: -100
-            eddystone_uid_beams: string
-            eddystone_uid_enabled: true
-            eddystone_uid_freq_msec: 0
-            eddystone_uid_instance: string
-            eddystone_uid_namespace: string
-            eddystone_url_adv_power: 0
-            eddystone_url_beams: string
-            eddystone_url_enabled: true
-            eddystone_url_freq_msec: 0
-            eddystone_url_url: string
-            ibeacon_adv_power: -100
-            ibeacon_beams: string
-            ibeacon_enabled: true
-            ibeacon_freq_msec: 0
-            ibeacon_major: 0
-            ibeacon_minor: 0
-            ibeacon_uuid: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-            power: 0
-            power_mode: string
-          config_auto_revert: true
-          created_time: 0
-          device_updown_threshold: 0
-          dns_servers:
-            - string
-          dns_suffix:
-            - string
-          enable_channel_144: true
-          engagement:
-            dwell_tag_names:
-              bounce: string
-              engaged: string
-              passerby: string
-              stationed: string
-            dwell_tags:
-              bounce: string
-              engaged: string
-              passerby: string
-              stationed: string
-            hours:
-              fri: string
-              mon: string
-              sta: string
-              sun: string
-              thu: string
-              tue: string
-              wed: string
-            max_dwell: 0
-            min_dwell: 0
-          evpn_options:
-            overlay:
-              as: 0
-            underlay:
-              as_base: 0
-              subnet: string
-          flags:
-            property1: string
-            property2: string
-          gateway_mgmt:
-            app_usage: true
-            config_revert_timer: 10
-          gateway_port_usages:
-            property1:
-              aggregated: true
-              description: string
-              ip_config:
-                dhcp:
-                  additionalProperties:
-                    dns:
-                      - string
-                    dns_suffix:
-                      - string
-                    gateway: string
-                    ip_end: string
-                    ip_start: string
-                    servers:
-                      - string
-                    type: local
-                  enabled: true
-                dns:
+            for_site: true
+            gateway_mgmt:
+              app_probing:
+                apps:
                   - string
-                dns_suffix:
-                  - string
-                gateway: string
-                ip: string
-                netmask: string
-                network: string
-                type: dynamic
-              redundancy: true
-              usage: string
-              zone: string
-            property2:
-              aggregated: true
-              description: string
-              ip_config:
-                dhcp:
-                  additionalProperties:
-                    dns:
+                custom_apps:
+                  - app_type: string
+                    hostname:
                       - string
-                    dns_suffix:
-                      - string
-                    gateway: string
-                    ip_end: string
-                    ip_start: string
-                    servers:
-                      - string
-                    type: local
-                  enabled: true
-                dns:
-                  - string
-                dns_suffix:
-                  - string
-                gateway: string
-                ip: string
-                netmask: string
-                network: string
-                type: dynamic
-              redundancy: true
-              usage: string
-              zone: string
-          id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-          led:
-            brightness: 0
-            enabled: true
-          modified_time: 0
-          mxtunnels:
-            property1:
+                    name: string
+                    protocol: http
+                enabled: true
+              app_usage: true
+              config_revert_timer: 10
+              security_log_source_address: string
+              security_log_source_interface: string
+            id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+            led:
+              brightness: 0
+              enabled: true
+            modified_time: 0
+            mxedge_mgmt:
+              ? ''
+              : string
+              mist_password: string
+              root_password: string
+            mxtunnels:
               ap_subnets:
                 - string
               clusters:
@@ -45257,389 +45522,394 @@ components:
                   tunterm_hosts:
                     - string
               created_time: 0
-              enabled: true
+              for_site: true
               hello_interval: 60
               hello_retries: 7
               hosts:
                 - string
-              id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
               modified_time: 0
               mtu: 0
-              org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+              org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
               protocol: udp
               radsec:
                 acct_servers:
                   - host: string
-                    port: 0
+                    port: 1813
                     secret: string
                 auth_servers:
                   - host: string
-                    port: 0
+                    port: 1812
                     secret: string
                 enabled: true
                 use_mxedge: true
-              site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+              site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
               vlan_ids:
                 - 0
-            property2:
-              ap_subnets:
-                - string
-              clusters:
-                - name: string
-                  tunterm_hosts:
-                    - string
-              created_time: 0
-              enabled: true
-              hello_interval: 60
-              hello_retries: 7
-              hosts:
-                - string
-              id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-              modified_time: 0
-              mtu: 0
-              org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-              protocol: udp
-              radsec:
-                acct_servers:
-                  - host: string
-                    port: 0
-                    secret: string
-                auth_servers:
-                  - host: string
-                    port: 0
-                    secret: string
-                enabled: true
-                use_mxedge: true
-              site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-              vlan_ids:
-                - 0
-          networks:
-            property1:
-              dns:
-                - string
-              dns_suffix:
-                - string
-              gateway: string
-              ospf_interface_type: string
-              subnet: string
-              vlan_id: 1
-              zone: string
-            property2:
-              dns:
-                - string
-              dns_suffix:
-                - string
-              gateway: string
-              ospf_interface_type: string
-              subnet: string
-              vlan_id: 1
-              zone: string
-          ntp_servers:
-            - string
-          occupancy:
-            assets_enabled: true
-            clients_enabled: true
-            min_duration: 0
-            sdkclients_enabled: true
-            unconnected_clients_enabled: true
-          org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-          ospf_areas:
-            property1:
-              networks:
-                property1:
-                  auth_keys:
-                    property1: string
-                    property2: string
-                  auth_password: string
-                  auth_type: none
-                  interface_type: nbma
-                  passive: true
-                property2:
-                  auth_keys:
-                    property1: string
-                    property2: string
-                  auth_password: string
-                  auth_type: none
-                  interface_type: nbma
-                  passive: true
-              type: default
-            property2:
-              networks:
-                property1:
-                  auth_keys:
-                    property1: string
-                    property2: string
-                  auth_password: string
-                  auth_type: none
-                  interface_type: nbma
-                  passive: true
-                property2:
-                  auth_keys:
-                    property1: string
-                    property2: string
-                  auth_password: string
-                  auth_type: none
-                  interface_type: nbma
-                  passive: true
-              type: default
-          persist_config_on_device: true
-          port_usages:
-            dynamic:
-              mode: dynamic
-              rules:
-                - equals: string
-                  expression: string
-                  src: lldp_chassis_id
-                  usage: string
-            property1:
-              all_networks: true
-              bypass_auth_when_server_down: true
-              description: string
-              disable_autoneg: true
-              disabled: true
-              duplex: half
-              dynamic_vlan:
-                default_network: 0
-                enabled: true
-                networks:
-                  property1: 0
-                  property2: 0
-                type: standard
-              enable_mac_auth: true
-              enable_qos: true
-              guest_network: string
-              mac_limit: 0
-              mode: access
-              mtu: 0
-              networks:
-                - string
-              persist_mac: true
-              poe_disabled: true
-              port_auth: string
-              port_network: string
-              speed: string
-              storm_control:
-                no_broadcast: true
-                no_multicast: true
-                no_registered_multicast: true
-                "no_unknown_unicast\t": true
-                percentage: 0
-              stp_edge: true
-              voip_network: string
-            property2:
-              all_networks: true
-              bypass_auth_when_server_down: true
-              description: string
-              disable_autoneg: true
-              disabled: true
-              duplex: half
-              dynamic_vlan:
-                default_network: 0
-                enabled: true
-                networks:
-                  property1: 0
-                  property2: 0
-                type: standard
-              enable_mac_auth: true
-              enable_qos: true
-              guest_network: string
-              mac_limit: 0
-              mode: access
-              mtu: 0
-              networks:
-                - string
-              persist_mac: true
-              poe_disabled: true
-              port_auth: string
-              port_network: string
-              speed: string
-              storm_control:
-                no_broadcast: true
-                no_multicast: true
-                no_registered_multicast: true
-                "no_unknown_unicast\t": true
-                percentage: 0
-              stp_edge: true
-              voip_network: string
-          proxy:
-            url: string
-          radio_config:
-            ant_gain_24: 0
-            ant_gain_5: 0
-            band_24:
-              allow_rrm_disable: true
-              antenna_mode: default
-              bandwidth: 0
-              channel: 0
-              disabled: true
-              power: 0
-              power_max: 0
-              power_min: 0
-              preamble: auto
-              usage: '24'
-            band_24_usage: '24'
-            band_5:
-              allow_rrm_disable: true
-              antenna_mode: default
-              bandwidth: 0
-              channel: 0
-              disabled: true
-              power: 0
-              power_max: 0
-              power_min: 0
-              preamble: auto
-              usage: string
-            band_5_on_24_radio:
-              allow_rrm_disable: true
-              antenna_mode: default
-              bandwidth: 0
-              channel: 0
-              disabled: true
-              power: 0
-              power_max: 0
-              power_min: 0
-              preamble: auto
-              usage: '24'
-            scanning_enabled: true
-          radius_config:
-            acct_interim_interval: 0
-            acct_servers:
-              - host: string
-                port: 0
-                secret: string
-            auth_servers:
-              - host: string
-                port: 0
-                secret: string
-            auth_servers_retries: 0
-            auth_servers_timeout: 0
-          remote_syslog:
-            enabled: true
-            send_to_all_servers: true
-            servers:
-              - facility: config
-                host: string
-                port: 0
-                protocol: udp
-                severity: emerg
-                tag: string
-          report_gatt: true
-          rogue:
-            enabled: true
-            honeypot_enabled: true
-            min_duration: 0
-            min_rssi: 0
-            whitelisted_bssids:
-              - string
-            whitelisted_ssids:
-              - string
-          rtsa:
-            app_waking: true
-            disable_dead_reckoning: true
-            disable_pressure_sensor: true
-            enabled: true
-            track_asset: true
-          skyatp:
-            enabled: true
-            send_ip_mac_mapping: true
-          ssh_keys:
-            - string
-          status_portal:
-            enabled: true
-            hostnames:
-              - string
-          switch_matching:
-            enable: true
-            rules:
-              - additional_config_cmds:
+            networks:
+              property1:
+                dns:
                   - string
-                match_model: string
-                match_name[0:3]: string
-                match_role: string
-                name: string
-                port_config:
+                dns_suffix:
+                  - string
+                gateway: string
+                ospf_interface_type: string
+                subnet: string
+                vlan_id: 0
+                zone: string
+              property2:
+                dns:
+                  - string
+                dns_suffix:
+                  - string
+                gateway: string
+                ospf_interface_type: string
+                subnet: string
+                vlan_id: 0
+                zone: string
+            ntp_servers:
+              - string
+            occupancy:
+              assets_enabled: false
+              clients_enabled: true
+              min_duration: 3000
+              sdkclients_enabled: false
+              unconnected_clients_enabled: false
+            org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+            ospf_areas:
+              property1:
+                networks:
                   property1:
-                    ae_disable_lacp: true
-                    ae_idx: 0
-                    aggregated: true
-                    description: string
-                    dynamic_usage: true
-                    esilag: true
-                    usage: string
+                    auth_keys:
+                      property1: string
+                      property2: string
+                    auth_password: string
+                    auth_type: none
+                    interface_type: nbma
+                    passive: false
                   property2:
-                    ae_disable_lacp: true
-                    ae_idx: 0
-                    aggregated: true
-                    description: string
-                    dynamic_usage: true
-                    esilag: true
+                    auth_keys:
+                      property1: string
+                      property2: string
+                    auth_password: string
+                    auth_type: none
+                    interface_type: nbma
+                    passive: false
+                type: default
+              property2:
+                networks:
+                  property1:
+                    auth_keys:
+                      property1: string
+                      property2: string
+                    auth_password: string
+                    auth_type: none
+                    interface_type: nbma
+                    passive: false
+                  property2:
+                    auth_keys:
+                      property1: string
+                      property2: string
+                    auth_password: string
+                    auth_type: none
+                    interface_type: nbma
+                    passive: false
+                type: default
+            persist_config_on_device: false
+            port_usages:
+              dynamic:
+                mode: dynamic
+                reset_default_when: link_down
+                rules:
+                  - equals: string
+                    expression: string
+                    src: lldp_chassis_id
                     usage: string
-          switch_mgmt:
-            config_revert_timer: 10
-            root_password: string
-          track_anonymous_devices: true
-          vars:
-            property1: string
-            property2: string
-          vrf_instances:
-            property1:
-              extra_routes:
-                property1:
-                  via: 192.168.0.1
-                property2:
-                  via: 192.168.0.1
-              networks:
+              property1:
+                all_networks: false
+                allow_dhcpd: true
+                bypass_auth_when_server_down: true
+                description: string
+                disable_autoneg: false
+                disabled: false
+                duplex: auto
+                dynamic_vlan:
+                  default_network: 0
+                  enabled: true
+                  networks:
+                    property1: 0
+                    property2: 0
+                  type: standard
+                enable_mac_auth: true
+                enable_qos: true
+                guest_network: string
+                mac_auth_only: true
+                mac_limit: 0
+                mode: access
+                mtu: 0
+                networks:
+                  - string
+                persist_mac: false
+                poe_disabled: false
+                port_auth: string
+                port_network: string
+                rejected_network: true
+                speed: string
+                storm_control:
+                  no_broadcast: false
+                  no_multicast: false
+                  no_registered_multicast: false
+                  no_unknown_unicast: false
+                  percentage: 80
+                stp_edge: true
+                voip_network: string
+              property2:
+                all_networks: false
+                allow_dhcpd: true
+                bypass_auth_when_server_down: true
+                description: string
+                disable_autoneg: false
+                disabled: false
+                duplex: auto
+                dynamic_vlan:
+                  default_network: 0
+                  enabled: true
+                  networks:
+                    property1: 0
+                    property2: 0
+                  type: standard
+                enable_mac_auth: true
+                enable_qos: true
+                guest_network: string
+                mac_auth_only: true
+                mac_limit: 0
+                mode: access
+                mtu: 0
+                networks:
+                  - string
+                persist_mac: false
+                poe_disabled: false
+                port_auth: string
+                port_network: string
+                rejected_network: true
+                speed: string
+                storm_control:
+                  no_broadcast: false
+                  no_multicast: false
+                  no_registered_multicast: false
+                  no_unknown_unicast: false
+                  percentage: 80
+                stp_edge: true
+                voip_network: string
+            proxy:
+              url: string
+            radio_config:
+              ant_gain_24: 0
+              ant_gain_5: 0
+              band_24:
+                allow_rrm_disable: true
+                ant_gain: 0
+                antenna_mode: default
+                bandwidth: 20
+                channel: 0
+                channels:
+                  - 0
+                disabled: true
+                power: 0
+                power_max: 0
+                power_min: 0
+                preamble: short
+                usage: '24'
+              band_24_usage: '24'
+              band_5:
+                allow_rrm_disable: true
+                ant_gain: 0
+                antenna_mode: default
+                bandwidth: 20
+                channel: 0
+                channels:
+                  - 0
+                disabled: true
+                power: 0
+                power_max: 0
+                power_min: 0
+                preamble: short
+                usage: '24'
+              band_5_on_24_radio:
+                allow_rrm_disable: true
+                ant_gain: 0
+                antenna_mode: default
+                bandwidth: 20
+                channel: 0
+                channels:
+                  - 0
+                disabled: true
+                power: 0
+                power_max: 0
+                power_min: 0
+                preamble: short
+                usage: '24'
+              scanning_enabled: true
+            radius_config:
+              acct_interim_interval: 0
+              acct_servers:
+                - host: string
+                  port: 1813
+                  secret: string
+              auth_servers:
+                - host: string
+                  port: 1812
+                  secret: string
+              auth_servers_retries: 3
+              auth_servers_timeout: 5
+              coa_enabled: false
+              coa_port: 3799
+              network: string
+              source_ip: string
+            remote_syslog:
+              enabled: true
+              send_to_all_servers: true
+              servers:
+                - facility: config
+                  host: string
+                  port: 0
+                  protocol: udp
+                  severity: emerg
+                  tag: string
+            report_gatt: false
+            rogue:
+              enabled: true
+              honeypot_enabled: true
+              min_duration: 10
+              min_rssi: -80
+              whitelisted_bssids:
                 - string
-            property2:
-              extra_routes:
-                property1:
-                  via: 192.168.0.1
-                property2:
-                  via: 192.168.0.1
-              networks:
+              whitelisted_ssids:
                 - string
-          vrrp_groups:
-            property1:
-              auth_key: string
-              auth_password: string
-              auth_type: md5
-              networks:
-                property1:
-                  ip: string
-                property2:
-                  ip: string
-            property2:
-              auth_key: string
-              auth_password: string
-              auth_type: md5
-              networks:
-                property1:
-                  ip: string
-                property2:
-                  ip: string
-          wids:
-            repeated_auth_failures:
-              duration: 0
-              threshold: 0
-          wifi:
-            cisco_enabled: true
-            disable_11k: true
-            disable_radios_when_power_constrained: true
-            enable_arp_spoof_check: true
-            enable_channel_144: true
-            enable_shared_radio_scanning: true
-            enable_vna: true
-            enabled: true
-            locate_connected: true
-            locate_unconnected: true
-            mesh_allow_dfs: true
-            mesh_enabled: true
-            proxy_arp: default
-          zone_occupancy_alert:
-            email_notifiers:
+            rtsa:
+              app_waking: false
+              disable_dead_reckoning: true
+              disable_pressure_sensor: true
+              enabled: true
+              track_asset: true
+            site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+            skyatp:
+              enabled: true
+              send_ip_mac_mapping: true
+            ssh_keys:
               - string
-            enabled: true
-            threshold: 0
+            status_portal:
+              enabled: true
+              hostnames:
+                - string
+            switch_matching:
+              enable: true
+              rules:
+                - additional_config_cmds:
+                    - string
+                  name: string
+                  port_config:
+                    property1:
+                      ae_disable_lacp: true
+                      ae_idx: 0
+                      aggregated: false
+                      description: string
+                      disable_autoneg: true
+                      duplex: auto
+                      dynamic_usage: string
+                      esilag: true
+                      poe_disabled: true
+                      speed: auto
+                      usage: string
+                    property2:
+                      ae_disable_lacp: true
+                      ae_idx: 0
+                      aggregated: false
+                      description: string
+                      disable_autoneg: true
+                      duplex: auto
+                      dynamic_usage: string
+                      esilag: true
+                      poe_disabled: true
+                      speed: auto
+                      usage: string
+                  property1: string
+                  property2: string
+            switch_mgmt:
+              config_revert_timer: 10
+              root_password: string
+            track_anonymous_devices: false
+            tunterm_monitoring:
+              - host: string
+                port: 0
+                protocol: arp
+                timeout: 300
+            van:
+              enabled: false
+            vars:
+              property1: string
+              property2: string
+            vrf_instances:
+              property1:
+                extra_routes:
+                  property1:
+                    via: 192.168.0.1
+                  property2:
+                    via: 192.168.0.1
+                networks:
+                  - string
+              property2:
+                extra_routes:
+                  property1:
+                    via: 192.168.0.1
+                  property2:
+                    via: 192.168.0.1
+                networks:
+                  - string
+            vrrp_groups:
+              property1:
+                auth_key: string
+                auth_password: string
+                auth_type: md5
+                networks:
+                  property1:
+                    ip: string
+                  property2:
+                    ip: string
+              property2:
+                auth_key: string
+                auth_password: string
+                auth_type: md5
+                networks:
+                  property1:
+                    ip: string
+                  property2:
+                    ip: string
+            watched_station_url: string
+            whitelist_url: string
+            wids:
+              repeated_auth_failures:
+                duration: 0
+                threshold: 0
+            wifi:
+              cisco_enabled: true
+              disable_11k: false
+              disable_radios_when_power_constrained: true
+              enable_arp_spoof_check: false
+              enable_channel_144: false
+              enable_shared_radio_scanning: true
+              enable_vna: false
+              enabled: true
+              locate_connected: false
+              locate_unconnected: false
+              mesh_allow_dfs: false
+              mesh_enabled: false
+              proxy_arp: default
+            zone_occupancy_alert:
+              email_notifiers:
+                - string
+              enabled: false
+              threshold: 5
     site_switch:
       description: Switch site settings
       properties:
@@ -45652,6 +45922,33 @@ components:
         root_password:
           type: string
       type: object
+    site_tunterm_monitoring:
+      description: ''
+      properties:
+        host:
+          description: can be ip, ipv6, hostname
+          minLength: 1
+          type: string
+        port:
+          description: when `protocol`==`tcp`
+          type: integer
+        protocol:
+          enum:
+            - arp
+            - ping
+            - tcp
+          minLength: 1
+          type: string
+        timeout:
+          default: 300
+          type: integer
+      type: object
+      x-examples:
+        example-1:
+          host: 10.2.8.15
+          port: 80
+          protocol: ping
+          timeout: 300
     site_wids:
       description: WIDS site settings
       properties:
@@ -48442,19 +48739,15 @@ components:
                 type: string
             required:
               - authorized
-              - authorized_time
               - authorized_expiring_time
-              - name
-              - email
+              - authorized_time
               - company
+              - email
               - field1
+              - name
             type: object
           hostname:
             description: hostname that we learned from sniffing DHCP
-            type: string
-          id:
-            description: client id (if client object created)
-            format: uuid
             type: string
           idle_time:
             description: how long, in seconds, has the client been idle (since the
@@ -48484,9 +48777,6 @@ components:
             type: string
           model:
             description: device model, may be available if we can identify them
-            type: string
-          name:
-            description: "client\u2019s annotated name (if client object is created)"
             type: string
           num_locating_aps:
             description: number of APs used to locate this client
@@ -48576,43 +48866,41 @@ components:
             description: estimated clinet location in pixels
             type: number
         required:
-          - id
-          - name
-          - mac
-          - last_seen
-          - username
-          - hostname
-          - os
-          - manufacture
-          - family
-          - model
-          - ip
-          - ap_mac
-          - ap_id
-          - ssid
-          - wlan_id
-          - uptime
-          - idle_time
-          - power_saving
-          - band
-          - proto
-          - key_mgmt
-          - dual_band
-          - channel
-          - rssi
-          - snr
-          - tx_rate
-          - rx_rate
-          - tx_bytes
-          - tx_bps
-          - tx_packets
-          - tx_retries
-          - rx_bytes
-          - rx_bps
-          - rx_packets
-          - rx_retries
-          - is_guest
           - _ttl
+          - ap_id
+          - ap_mac
+          - band
+          - channel
+          - dual_band
+          - family
+          - hostname
+          - idle_time
+          - ip
+          - is_guest
+          - key_mgmt
+          - last_seen
+          - mac
+          - manufacture
+          - model
+          - os
+          - power_saving
+          - proto
+          - rssi
+          - rx_bps
+          - rx_bytes
+          - rx_packets
+          - rx_rate
+          - rx_retries
+          - snr
+          - ssid
+          - tx_bps
+          - tx_bytes
+          - tx_packets
+          - tx_rate
+          - tx_retries
+          - uptime
+          - username
+          - wlan_id
         type: object
       minItems: 1
       type: array
