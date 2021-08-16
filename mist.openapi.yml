@@ -3,7 +3,7 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> *Version 0.12.0*
+  description: '> *Version 0.12.1*
 
     >
 
@@ -42,7 +42,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.12.0
+  version: 0.12.1
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -4932,6 +4932,94 @@ paths:
         - Orgs Devices
     parameters:
       - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/devices/upgrade:
+    get:
+      operationId: getOrgMultiSitesDevices
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: ''
+                items:
+                  properties:
+                    id:
+                      description: unique id for the org upgrade
+                      format: uuid
+                      minLength: 1
+                      type: string
+                    upgrades:
+                      description: site upgrades part of this upgrade
+                      items:
+                        properties:
+                          site_id:
+                            description: id of the site upgrade
+                            format: uuid
+                            minLength: 1
+                            type: string
+                          upgrade_id:
+                            description: site the upgrade belongs to
+                            format: uuid
+                            minLength: 1
+                            type: string
+                        required:
+                          - site_id
+                          - upgrade_id
+                        type: object
+                      minItems: 1
+                      type: array
+                      uniqueItems: true
+                  required:
+                    - id
+                    - upgrades
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+                x-examples:
+                  example-1:
+                    - id: c4a69d92-46b9-44a8-ae90-7de44be58a4b
+                      upgrades:
+                        - site_id: 1916d52a-4a90-11e5-8b45-1258369c38a9
+                          upgrade_id: f9d03e9a-28ae-4b09-8cef-f682801b46c3
+                        - site_id: 495363c9-be25-4fde-8bef-65b28a1a6eaa
+                          upgrade_id: 6de92826-a348-4bae-9005-2d1d8041d327
+          description: OK
+      summary: getOrgMultiSitesDevices
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+    post:
+      description: Upgrade Multiple Sites
+      operationId: upgradeOrgMultiSitesDevices
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/device_upgrade'
+      responses:
+        '200':
+          $ref: '#/components/responses/Id'
+      summary: upgradeOrgMultiSitesDevices
+      tags:
+        - Orgs Devices
+  /api/v1/orgs/{org_id}/devices/upgrade/{upgrade_id}:
+    get:
+      description: Get Multi Site Upgrade
+      operationId: getOrgMultiSitesUpgrade
+      responses:
+        '200':
+          $ref: '#/components/responses/OrgDeviceUpgrade'
+      summary: getOrgMultiSitesUpgrade
+      tags:
+        - Orgs Devices
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+      - in: path
+        name: upgrade_id
+        required: true
+        schema:
+          format: uuid
+          type: string
   /api/v1/orgs/{org_id}/gatewaytemplates:
     get:
       description: Get Organization Gateway Templates
@@ -4954,7 +5042,6 @@ paths:
               example-1:
                 value:
                   dhcpd_config:
-                    enabled: true
                     property1:
                       dns_servers:
                         - 192.168.0.1
@@ -5153,7 +5240,6 @@ paths:
               example-1:
                 value:
                   dhcpd_config:
-                    enabled: true
                     property1:
                       dns_servers:
                         - 192.168.0.1
@@ -13027,6 +13113,26 @@ paths:
       requestBody:
         content:
           application/json:
+            examples:
+              example-1:
+                value:
+                  canary_phases:
+                    - 1
+                    - 10
+                    - 50
+                    - 100
+                  device_ids:
+                    - string
+                  enable_p2p: true
+                  force: false
+                  max_failure_percentage: 5
+                  max_failures:
+                    - 0
+                  models:
+                    - string
+                  start_time: 0
+                  strategy: big_bang
+                  version: stable
             schema:
               $ref: '#/components/schemas/device_upgrade'
         description: Request Body
@@ -13034,6 +13140,19 @@ paths:
         '200':
           $ref: '#/components/responses/DeviceUpgrade'
       summary: multiUpgradeSiteDevices
+      tags:
+        - Sites Devices
+  /api/v1/sites/{site_id}/devices/upgrade/cancel:
+    parameters:
+      - $ref: '#/components/parameters/site_id'
+    post:
+      description: Best effort to cancel an upgrade. Devices which are already upgraded
+        wont be touched
+      operationId: cancelSiteDeviceUpgrade
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: cancelSiteDeviceUpgrade
       tags:
         - Sites Devices
   /api/v1/sites/{site_id}/devices/versions:
@@ -14272,6 +14391,13 @@ paths:
     get:
       description: Get Guest Authorizations
       operationId: getSiteAllGuestAuthorizations
+      parameters:
+        - description: UUID of single or multiple (Comma separated) WLAN under Site
+            `site_id` (to filter by WLAN)
+          in: query
+          name: wlan_id
+          schema:
+            type: string
       responses:
         '200':
           $ref: '#/components/responses/GuestsArray'
@@ -26092,7 +26218,7 @@ components:
                 target_version: string
           schema:
             $ref: '#/components/schemas/device_upgrade_response'
-      description: Example response
+      description: OK
     DeviceUpgradeArray:
       content:
         application/json:
@@ -27796,7 +27922,6 @@ components:
               value:
                 created_time: 0
                 dhcpd_config:
-                  enabled: true
                   property1:
                     dns_servers:
                       - 192.168.0.1
@@ -27982,7 +28107,6 @@ components:
               value:
                 - created_time: 0
                   dhcpd_config:
-                    enabled: true
                     property1:
                       dns_servers:
                         - 192.168.0.1
@@ -28310,6 +28434,21 @@ components:
               - results
               - start
               - total
+            type: object
+      description: OK
+    Id:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          schema:
+            properties:
+              id:
+                format: uuid
+                readOnly: true
+                type: string
             type: object
       description: OK
     InsightMetric:
@@ -30039,6 +30178,37 @@ components:
                 session_expiry: 0
           schema:
             $ref: '#/components/schemas/org'
+      description: OK
+    OrgDeviceUpgrade:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                enable_p2p: true
+                force: true
+                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                start_time: 0
+                status: created
+                strategy: big_bang
+                target_version: string
+                upgrades:
+                  - site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                    upgrade:
+                      id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                      start_time: 0
+                      status: created
+                      targets:
+                        downloaded:
+                          - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                        failed:
+                          - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                        reboot_in_progress:
+                          - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                        rebooted:
+                          - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          schema:
+            $ref: '#/components/schemas/org_device_upgrade_response'
       description: OK
     OrgDevices:
       content:
@@ -38788,7 +38958,18 @@ components:
             - member: 3
           op: remove
     device_upgrade:
+      description: ''
       properties:
+        canary_phases:
+          default:
+            - 1
+            - 10
+            - 50
+            - 100
+          description: phases for canary deployment
+          items:
+            type: integer
+          type: array
         device_ids:
           items:
             type: string
@@ -38796,50 +38977,39 @@ components:
         enable_p2p:
           description: whether to allow local AP-to-AP FW upgrade
           type: boolean
+        force:
+          default: false
+          description: true will force upgrade when requested version is same as running
+            version
+          type: boolean
+        max_failure_percentage:
+          default: 5
+          description: percentage of failures allowed within a canary phase or serial
+            rollout
+          maximum: 100
+          minimum: 0
+          type: number
+        max_failures:
+          description: number of failures allowed within a canary phase or serial
+            rollout. Will be used if provided, else max_failure_percentage will be
+            used
+          items:
+            type: integer
+          type: array
         models:
           items:
             type: string
           type: array
-        upgrade_config:
-          properties:
-            canary_max_failure_percentage:
-              default: 5
-              description: percentage of errors allowed within a canary phase
-              maximum: 100
-              minimum: 0
-              type: number
-            canary_max_failures:
-              description: number of errors allowed within a canary phase. Will be
-                used if provided, else canary_max_failure_percentage will be used
-              items:
-                type: integer
-              type: array
-            canary_phases:
-              default:
-                - 1
-                - 10
-                - 50
-                - 100
-              description: phases for canary deployment
-              items:
-                type: integer
-              type: array
-            force:
-              default: false
-              description: true will force upgrade when requested version is same
-                as running version
-              type: boolean
-            start_time:
-              description: upgrade start time in epoch seconds, default is now
-              type: number
-            strategy:
-              default: big_bang
-              enum:
-                - big_bang
-                - canary
-              minLength: 1
-              type: string
-          type: object
+        start_time:
+          description: upgrade start time in epoch seconds, default is now
+          type: number
+        strategy:
+          default: big_bang
+          enum:
+            - big_bang
+            - canary
+          minLength: 1
+          type: string
         version:
           default: stable
           minLength: 1
@@ -38849,23 +39019,22 @@ components:
       x-examples:
         example-1:
           value:
+            canary_phases:
+              - 1
+              - 10
+              - 50
+              - 100
             device_ids:
               - string
             enable_p2p: true
+            force: false
+            max_failure_percentage: 5
+            max_failures:
+              - 0
             models:
               - string
-            upgrade_config:
-              canary_max_failure_percentage: 5
-              canary_max_failures:
-                - 0
-              canary_phases:
-                - 1
-                - 10
-                - 50
-                - 100
-              force: false
-              start_time: 0
-              strategy: big_bang
+            start_time: 0
+            strategy: big_bang
             version: stable
     device_upgrade_response:
       properties:
@@ -38910,6 +39079,7 @@ components:
             - created
             - in_progress
             - completed
+            - canceled
           type: string
         strategy:
           default: big_bang
@@ -39535,9 +39705,6 @@ components:
                   - relay
                 type: string
             type: object
-          properties:
-            enabled:
-              type: boolean
           type: object
         gateway_matching:
           $ref: '#/components/schemas/template_switch.matching'
@@ -39576,7 +39743,9 @@ components:
             $ref: '#/components/schemas/junos_port_config_gateway_org'
           type: object
         service_policies:
-          $ref: '#/components/schemas/junos_service_policies'
+          items:
+            $ref: '#/components/schemas/junos_service_policy'
+          type: array
         urlfilter_config:
           $ref: '#/components/schemas/junos_urlfilter_config'
       required:
@@ -40814,54 +40983,93 @@ components:
               secret: testing123
           auth_servers_retries: 3
           auth_servers_timeout: 5
-    junos_service_policies:
+    junos_service_policy:
       description: ''
-      items:
-        properties:
-          name:
-            minLength: 1
-            type: string
-          paths:
-            items:
-              properties:
-                allow_internet:
-                  type: boolean
-                peer_mac:
-                  type: string
-                peer_wan_name:
-                  type: string
-                vpn_name:
-                  type: string
-                wan_name:
-                  type: string
-              type: object
-            type: array
-          services:
-            items:
-              type: string
-            type: array
-          tenants:
-            items:
-              type: string
-            type: array
-        type: object
       minItems: 1
-      type: array
+      properties:
+        internet_paths:
+          items:
+            properties:
+              wan_name:
+                type: string
+            type: object
+          type: array
+        name:
+          minLength: 1
+          type: string
+        overlay_paths:
+          description: by default, we derive all paths available and use them
+          items:
+            properties:
+              allow_internet:
+                description: allow the overlay to be used for internet traffic
+                type: boolean
+              peer_mac:
+                type: string
+              peer_wan_name:
+                type: string
+              vpn_name:
+                type: string
+              wan_name:
+                type: string
+            type: object
+          type: array
+        paths:
+          items:
+            properties:
+              allow_internet:
+                type: boolean
+              peer_mac:
+                type: string
+              peer_wan_name:
+                type: string
+              vpn_name:
+                type: string
+              wan_name:
+                type: string
+            type: object
+          type: array
+        services:
+          items:
+            type: string
+          type: array
+        strategy:
+          default: default
+          enum:
+            - default
+            - load_balanced
+            - ordered
+            - weighted
+          type: string
+        tenants:
+          items:
+            type: string
+          type: array
+      type: object
       uniqueItems: true
       x-examples:
         example-1:
           value:
-            - name: string
-              paths:
-                - allow_internet: true
-                  peer_mac: string
-                  peer_wan_name: string
-                  vpn_name: string
-                  wan_name: string
-              services:
-                - string
-              tenants:
-                - string
+            internet_paths:
+              - wan_name: string
+            name: string
+            overlay_paths:
+              - allow_internet: true
+                peer_mac: string
+                peer_wan_name: string
+                vpn_name: string
+                wan_name: string
+            paths:
+              - allow_internet: true
+                peer_mac: string
+                peer_wan_name: string
+                vpn_name: string
+                wan_name: string
+            services:
+              - string
+            strategy: default
+            tenants:
+              - string
     junos_storm_control:
       description: Switch storm control
       properties:
@@ -41917,13 +42125,15 @@ components:
             destination_nat:
               additionalProperties:
                 properties:
+                  internal_ip:
+                    type: string
                   name:
                     type: string
                   port:
                     type: string
-                  to:
-                    type: string
                 type: object
+              description: '`property_name` may be an IP Address (i.e. "172.16.0.1"),
+                and IP Address and Port (i.e. "172.16.0.1:8443") or a CIDR (i.e. "172.16.0.12/20")'
               type: object
             enabled:
               type: boolean
@@ -41935,11 +42145,13 @@ components:
             static_nat:
               additionalProperties:
                 properties:
+                  internal_ip:
+                    type: string
                   name:
                     type: string
-                  to:
-                    type: string
                 type: object
+              description: '`property_name` may be an IP Address (i.e. "172.16.0.1"),
+                and IP Address and Port (i.e. "172.16.0.1:8443") or a CIDR (i.e. "172.16.0.12/20")'
               type: object
           type: object
         isolation:
@@ -42006,16 +42218,88 @@ components:
       type: object
       x-examples:
         example-1:
-          gateway: 192.168.70.1
-          hosts:
-            pos_terminals:
-              external_ips: 172.16.10.32-172.16.10.35
-              ips: 192.168.70.32-192.168.70.35
-          internet_access:
-            enabled: true
-          name: store
-          subnet: 192.168.70.0/24
-          vlan_id: 70
+          value:
+            created_time: 0
+            gateway: 192.168.70.1
+            hosts:
+              property1:
+                external_ips: 172.16.10.32-172.16.10.35
+                ips: 192.168.70.32-192.168.70.35
+              property2:
+                external_ips: 172.16.10.32-172.16.10.35
+                ips: 192.168.70.32-192.168.70.35
+            id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+            internal_access:
+              enabled: true
+            internet_access:
+              destination_nat:
+                property1:
+                  internal_ip: string
+                  name: string
+                  port: string
+                property2:
+                  internal_ip: string
+                  name: string
+                  port: string
+              enabled: true
+              restricted: false
+              static_nat:
+                property1:
+                  internal_ip: string
+                  name: string
+                property2:
+                  internal_ip: string
+                  name: string
+            isolation: true
+            modified_time: 0
+            name: string
+            org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+            subnet: 192.168.70.0/24
+            tenants:
+              property1:
+                addresses: string
+              property2:
+                addresses: string
+            vlan_id: 0
+            vpn_access:
+              property1:
+                destination_nat:
+                  property1:
+                    name: string
+                    port: string
+                    to: string
+                  property2:
+                    name: string
+                    port: string
+                    to: string
+                nat_pool: string
+                routed: true
+                static_nat:
+                  property1:
+                    name: string
+                    to: string
+                  property2:
+                    name: string
+                    to: string
+              property2:
+                destination_nat:
+                  property1:
+                    name: string
+                    port: string
+                    to: string
+                  property2:
+                    name: string
+                    port: string
+                    to: string
+                nat_pool: string
+                routed: true
+                static_nat:
+                  property1:
+                    name: string
+                    to: string
+                  property2:
+                    name: string
+                    to: string
     networktemplate:
       description: Network Template
       properties:
@@ -42241,6 +42525,124 @@ components:
           src: subnet
           subnet: 10.1.2.0/18
           value: s1351
+    org_device_upgrade_response:
+      properties:
+        enable_p2p:
+          description: whether to allow local AP-to-AP FW upgrade
+          type: boolean
+        force:
+          description: whether to force upgrade when requested version is same as
+            running version
+          type: boolean
+        id:
+          description: unique id for the upgrade
+          format: uuid
+          minLength: 1
+          readOnly: true
+          type: string
+        start_time:
+          description: upgrade start time in epoch
+          type: number
+        status:
+          description: status upgrade is in
+          enum:
+            - created
+            - in_progress
+            - completed
+            - canceled
+          type: string
+        strategy:
+          default: big_bang
+          description: upgrade strategy
+          enum:
+            - big_bang
+          minLength: 1
+          type: string
+        target_version:
+          description: version to upgrade to
+          minLength: 1
+          type: string
+        upgrades:
+          items:
+            properties:
+              site_id:
+                format: uuid
+                type: string
+              upgrade:
+                properties:
+                  id:
+                    format: uuid
+                    type: string
+                  start_time:
+                    description: upgrade start time in epoch
+                    type: integer
+                  status:
+                    description: status upgrade is in
+                    enum:
+                      - created
+                      - in_progress
+                      - completed
+                      - cancelled
+                    type: string
+                  targets:
+                    properties:
+                      downloaded:
+                        description: devices which have the firmware downloaded
+                        items:
+                          format: uuid
+                          type: string
+                        type: array
+                      failed:
+                        description: devices which have the failed to upgrade
+                        items:
+                          format: uuid
+                          type: string
+                        type: array
+                      reboot_in_progress:
+                        description: devices which are rebooting
+                        items:
+                          format: uuid
+                          type: string
+                        type: array
+                      rebooted:
+                        description: devices which have rebooted successfully
+                        items:
+                          format: uuid
+                          type: string
+                        type: array
+                    type: object
+                type: object
+            type: object
+          type: array
+      required:
+        - id
+      title: org_device_upgrade_response
+      type: object
+      x-examples:
+        example-1:
+          value:
+            enable_p2p: true
+            force: true
+            id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+            start_time: 0
+            status: created
+            strategy: big_bang
+            target_version: string
+            upgrades:
+              - site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                upgrade:
+                  id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  start_time: 0
+                  status: created
+                  targets:
+                    downloaded:
+                      - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                    failed:
+                      - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                    reboot_in_progress:
+                      - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                    rebooted:
+                      - 497f6eca-6276-4993-bfeb-53cbbbba6f08
     org_info:
       description: ''
       properties:
