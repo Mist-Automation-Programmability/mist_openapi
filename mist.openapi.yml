@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> *Version 0.12.4*
+  description: '> *Version 0.13.0*
 
     >
 
-    > Date: August 16th, 2021
+    > Date: August 28th, 2021
 
     >
 
@@ -42,7 +42,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.12.4
+  version: 0.13.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -4989,7 +4989,8 @@ paths:
       - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/devices/upgrade:
     get:
-      operationId: getOrgMultiSitesDevices
+      description: get Site multi devces upgrades
+      operationId: getOrgMultiSitesDevicesUpgrades
       responses:
         '200':
           content:
@@ -5040,7 +5041,9 @@ paths:
                         - site_id: 495363c9-be25-4fde-8bef-65b28a1a6eaa
                           upgrade_id: 6de92826-a348-4bae-9005-2d1d8041d327
           description: OK
-      summary: getOrgMultiSitesDevices
+      summary: getOrgMultiSitesDevicesUpgrades
+      tags:
+        - Orgs Devices
     parameters:
       - $ref: '#/components/parameters/org_id'
     post:
@@ -5781,8 +5784,8 @@ paths:
             examples:
               delete:
                 value:
-                  license_id: 2b9116ab-cd1e-e897-6e08-31fccd88e782
                   op: delete
+                  subscription_id: SUB-0000144
               move:
                 value:
                   dst_org_id: 3eff35f7-c218-894e-bca2-24e5325601cc
@@ -5802,10 +5805,6 @@ paths:
                 dst_org_id:
                   description: if `op`==`amend`, the id of the org where the licence
                     is moved
-                  format: uuid
-                  type: string
-                license_id:
-                  description: if `op`==`delete`, the ID of the licence to delete
                   format: uuid
                   type: string
                 op:
@@ -6990,6 +6989,38 @@ paths:
         '200':
           $ref: '#/components/responses/Psk'
       summary: createOrgPsk
+      tags:
+        - Orgs Psks
+    put:
+      description: Update multi PSKs
+      operationId: updateOrgMultiPsks
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  - created_time: 0
+                    expire_time: 1614990263
+                    id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                    mac: string
+                    max_usage: 0
+                    modified_time: 0
+                    name: string
+                    org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                    passphrase: stringst
+                    site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                    ssid: string
+                    usage: multi
+                    vlan_id: 0
+            schema:
+              items:
+                $ref: '#/components/schemas/psk'
+              type: array
+      responses:
+        '200':
+          $ref: '#/components/responses/PsksArray'
+      summary: updateOrgMultiPsks
       tags:
         - Orgs Psks
   /api/v1/orgs/{org_id}/psks/import:
@@ -9083,6 +9114,43 @@ paths:
       summary: addOrgTicketComment
       tags:
         - Orgs Tickets
+  /api/v1/orgs/{org_id}/vpns:
+    get:
+      description: Get Org VPNs
+      operationId: getOrgsVpns
+      responses:
+        '200':
+          $ref: '#/components/responses/VpnsArray'
+      summary: getOrgsVpns
+      tags:
+        - Orgs VPNs
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+    post:
+      description: Create Org VPN
+      operationId: createOrgVpns
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  name: string
+                  paths:
+                    property1:
+                      bfd_profile: broadband
+                      ip: string
+                    property2:
+                      bfd_profile: lte
+                      ip: string
+            schema:
+              $ref: '#/components/schemas/vpn'
+      responses:
+        '200':
+          $ref: '#/components/responses/Vpn'
+      summary: createOrgVpns
+      tags:
+        - Orgs VPNs
   /api/v1/orgs/{org_id}/webhooks:
     get:
       description: Get Org Webhooks
@@ -12645,104 +12713,6 @@ paths:
         - Sites Devices
     parameters:
       - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/devices/evpn_topology:
-    delete:
-      description: Delete existing EVPN topology
-      operationId: deleteSiteEvpnTopology
-      responses:
-        '200':
-          description: OK
-      summary: deleteSiteEvpnTopology
-      tags:
-        - Sites Devices EVPN
-    get:
-      description: Get the existing EVPN topology
-      operationId: getSiteEvpnTopology
-      responses:
-        '200':
-          description: OK
-      summary: getSiteEvpnTopology
-      tags:
-        - Sites Devices EVPN
-    parameters:
-      - in: path
-        name: site_id
-        required: true
-        schema:
-          type: string
-    post:
-      description: "While all the `evpn_id` / `downlink_ips` can be specifidd by hand,\
-        \ the easiest way is to call the `build_vpn_topology` API, allowing you to\
-        \ examine the diff, and update it yourself. You can also simply call it with\
-        \ `overwrite=true` which will apply the updates for you.\n\n*Notes:*\n1. You\
-        \ can use `core` / `distribution` / `access` to create a CLOS topology (or\
-        \ `super-spine` / `spine` / `leaf`)\n2. You can also use `core` / `distribution`\
-        \ to form a 2-tier EVPN topology where ESI-Lag is configured distribution\
-        \ to connect to access switches\n3. In a small/medium campus, `collapsed-core`\
-        \ can be used where core switches are the inter-connected to do EVPN\n4. The\
-        \ API uses a few pre-defined parameters and best-practices to generate the\
-        \ configs. It can be customized by using `evpn_options` in Site Setting /\
-        \ Network Template. (e.g. a different subnet for the underlay)\n\n## Collapsed\
-        \ Core\nIn a small-medium campus, EVPN can also be enabled only at the core\
-        \ switches (up to 4) by assigning all participating switches with `collapsed-core\
-        \ role`. When there are more than 2 switches, a ring-like topology will be\
-        \ formed.\n\n## ESI-Lag\nIf the access switchess does not have EVPN support,\
-        \ you can still take advantage of EVPN by setting up ESI-Lag on distribution\
-        \ switches\n\n## Leaf / Access / Collapsed-Core\nFor leaf nodes in a EVPN\
-        \ topology, you\u2019d have to configure the IPs for networks that would participate\
-        \ in EVPN. Optionally, VRFs to isolate traffic from one tenant verus another"
-      operationId: createSiteEvpnTopology
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                overwrite:
-                  type: boolean
-              type: object
-      responses:
-        '200':
-          $ref: '#/components/responses/EvpnTopology'
-      summary: createSiteEvpnTopology
-      tags:
-        - Sites Devices EVPN
-    put:
-      description: Update EVPN Topology
-      operationId: updateSiteEvpnTopology
-      requestBody:
-        content:
-          application/json:
-            schema:
-              description: ''
-              properties:
-                overwrite:
-                  type: boolean
-                switches:
-                  items:
-                    properties:
-                      mac:
-                        minLength: 1
-                        type: string
-                      role:
-                        enum:
-                          - collapsed-core
-                          - none
-                        minLength: 1
-                        type: string
-                    required:
-                      - mac
-                      - role
-                    type: object
-                  minItems: 1
-                  type: array
-                  uniqueItems: true
-              type: object
-      responses:
-        '200':
-          description: OK
-      summary: updateSiteEvpnTopology
-      tags:
-        - Sites Devices EVPN
   /api/v1/sites/{site_id}/devices/export:
     get:
       description: 'To download the exported device information
@@ -14372,6 +14342,110 @@ paths:
         - Sites Events
     parameters:
       - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/evpn_topologies:
+    get:
+      description: Get the existing EVPN topology
+      operationId: getSiteEvpnTopologies
+      responses:
+        '200':
+          $ref: '#/components/responses/EvpnTopology'
+      summary: getSiteEvpnTopologies
+      tags:
+        - Sites Devices EVPN
+    parameters:
+      - in: path
+        name: site_id
+        required: true
+        schema:
+          type: string
+    post:
+      description: "While all the `evpn_id` / `downlink_ips` can be specifidd by hand,\
+        \ the easiest way is to call the `build_vpn_topology` API, allowing you to\
+        \ examine the diff, and update it yourself. You can also simply call it with\
+        \ `overwrite=true` which will apply the updates for you.\n\n*Notes:*\n1. You\
+        \ can use `core` / `distribution` / `access` to create a CLOS topology (or\
+        \ `super-spine` / `spine` / `leaf`)\n2. You can also use `core` / `distribution`\
+        \ to form a 2-tier EVPN topology where ESI-Lag is configured distribution\
+        \ to connect to access switches\n3. In a small/medium campus, `collapsed-core`\
+        \ can be used where core switches are the inter-connected to do EVPN\n4. The\
+        \ API uses a few pre-defined parameters and best-practices to generate the\
+        \ configs. It can be customized by using `evpn_options` in Site Setting /\
+        \ Network Template. (e.g. a different subnet for the underlay)\n\n## Collapsed\
+        \ Core\nIn a small-medium campus, EVPN can also be enabled only at the core\
+        \ switches (up to 4) by assigning all participating switches with `collapsed-core\
+        \ role`. When there are more than 2 switches, a ring-like topology will be\
+        \ formed.\n\n## ESI-Lag\nIf the access switchess does not have EVPN support,\
+        \ you can still take advantage of EVPN by setting up ESI-Lag on distribution\
+        \ switches\n\n## Leaf / Access / Collapsed-Core\nFor leaf nodes in a EVPN\
+        \ topology, you\u2019d have to configure the IPs for networks that would participate\
+        \ in EVPN. Optionally, VRFs to isolate traffic from one tenant verus another"
+      operationId: createSiteEvpnTopology
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  name: CC
+                  overwrite: true
+                  switches:
+                    - mac: 5c5b35000003
+                      role: collapsed-core
+                    - mac: 5c5b35000004
+                      role: collapsed-core
+            schema:
+              $ref: '#/components/schemas/junos_evpn_topology'
+      responses:
+        '200':
+          $ref: '#/components/responses/EvpnTopology'
+      summary: createSiteEvpnTopology
+      tags:
+        - Sites Devices EVPN
+  /api/v1/sites/{site_id}/evpn_topologies/{evpn_topology_id}:
+    delete:
+      description: Delete the site EVPN Topology
+      operationId: deleteSiteEvpnTopology
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: deleteSiteEvpnTopology
+      tags:
+        - Sites Devices EVPN
+    get:
+      description: Get One EVPN Topology Detail
+      operationId: getSiteEvpnTolopogy
+      responses:
+        '200':
+          description: OK
+      summary: getSiteEvpnTolopogy
+      tags:
+        - Sites Devices EVPN
+    parameters:
+      - $ref: '#/components/parameters/site_id'
+      - $ref: '#/components/parameters/evpn_topology_id'
+    put:
+      description: Update the EVPN Topolgy
+      operationId: updateSiteEvpnTopology
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  overwrite: false
+                  switches:
+                    - mac: 5c5b35000003
+                      role: collapsed-core
+                    - mac: 5c5b35000004
+                      role: none
+            schema:
+              $ref: '#/components/schemas/junos_evpn_topology'
+      responses:
+        '200':
+          $ref: '#/components/responses/EvpnTopology'
+      summary: updateSiteEvpnTopology
+      tags:
+        - Sites Devices EVPN
   /api/v1/sites/{site_id}/guests:
     get:
       description: Get Guest Authorizations
@@ -15626,6 +15700,32 @@ paths:
         '200':
           $ref: '#/components/responses/Psk'
       summary: createSitePsk
+      tags:
+        - Sites Psks
+    put:
+      description: Update multi PSKs
+      operationId: updateSitePsks
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  - id: 2f64a022-9422-4fa3-92aa-ff6559a9f7f9
+                    name: common123
+                  - id: 110c59ae-d7b2-40f9-9bf2-82367370e55a
+                    name: common12
+                    passphrase: foryoureyesonly1
+                    role: teacher
+                    usage: single
+            schema:
+              items:
+                $ref: '#/components/schemas/psk'
+              type: array
+      responses:
+        '200':
+          $ref: '#/components/responses/PsksArray'
+      summary: updateSitePsks
       tags:
         - Sites Psks
   /api/v1/sites/{site_id}/psks/import:
@@ -22850,8 +22950,10 @@ paths:
         - Sites
   /webhook_alarm_uri:
     post:
-      description: '**Note**: The server host will be your own server FQDN where the
-        Mist Cloud is sending the webhook messages'
+      description: 'Webhook sample for `alarm` topic
+
+        **Note**: The server host will be your own server FQDN where the Mist Cloud
+        is sending the webhook messages'
       operationId: alarms
       requestBody:
         content:
@@ -22895,8 +22997,12 @@ paths:
         - Webhook Samples
   /webhook_asset_raw_uri:
     post:
-      description: '**Note**: The server host will be your own server FQDN where the
-        Mist Cloud is sending the webhook messages'
+      description: 'Webhook sample for `asset_raw` topic
+
+        **Note**: The server host will be your own server FQDN where the Mist Cloud
+        is sending the webhook messages
+
+        '
       operationId: assetRaw
       requestBody:
         content:
@@ -22929,8 +23035,12 @@ paths:
         - Webhook Samples
   /webhook_audit_uri:
     post:
-      description: '**Note**: The server host will be your own server FQDN where the
-        Mist Cloud is sending the webhook messages'
+      description: 'Webhook sample for `audit` topic
+
+        **Note**: The server host will be your own server FQDN where the Mist Cloud
+        is sending the webhook messages
+
+        '
       operationId: audits
       requestBody:
         content:
@@ -22958,8 +23068,12 @@ paths:
         - Webhook Samples
   /webhook_client_join_uri:
     post:
-      description: '**Note**: The server host will be your own server FQDN where the
-        Mist Cloud is sending the webhook messages'
+      description: 'Webhook sample for `clilent_join` topic
+
+        **Note**: The server host will be your own server FQDN where the Mist Cloud
+        is sending the webhook messages
+
+        '
       operationId: clientJoin
       requestBody:
         content:
@@ -22994,8 +23108,12 @@ paths:
         - Webhook Samples
   /webhook_client_sessions_uri:
     post:
-      description: '**Note**: The server host will be your own server FQDN where the
-        Mist Cloud is sending the webhook messages'
+      description: 'Webhook sample for `client_sessions` topic
+
+        **Note**: The server host will be your own server FQDN where the Mist Cloud
+        is sending the webhook messages
+
+        '
       operationId: clientSessions
       requestBody:
         content:
@@ -23039,8 +23157,12 @@ paths:
         - Webhook Samples
   /webhook_device_events_uri:
     post:
-      description: '**Note**: The server host will be your own server FQDN where the
-        Mist Cloud is sending the webhook messages'
+      description: 'Webhook sample for `device_events` topic
+
+        **Note**: The server host will be your own server FQDN where the Mist Cloud
+        is sending the webhook messages
+
+        '
       operationId: deviceEvents
       requestBody:
         content:
@@ -23074,8 +23196,12 @@ paths:
         - Webhook Samples
   /webhook_device_updowns_uri:
     post:
-      description: '**Note**: The server host will be your own server FQDN where the
-        Mist Cloud is sending the webhook messages'
+      description: 'Webhook sample for `device_updowns` topic
+
+        **Note**: The server host will be your own server FQDN where the Mist Cloud
+        is sending the webhook messages
+
+        '
       operationId: deviceUpDown
       requestBody:
         content:
@@ -23103,8 +23229,12 @@ paths:
         - Webhook Samples
   /webhook_location_uri:
     post:
-      description: '**Note**: The server host will be your own server FQDN where the
-        Mist Cloud is sending the webhook messages'
+      description: 'Webhook sample for `location` topic
+
+        **Note**: The server host will be your own server FQDN where the Mist Cloud
+        is sending the webhook messages
+
+        '
       operationId: location
       requestBody:
         content:
@@ -23142,8 +23272,12 @@ paths:
         - Webhook Samples
   /webhook_occupancy_alerts_uri:
     post:
-      description: '**Note**: The server host will be your own server FQDN where the
-        Mist Cloud is sending the webhook messages'
+      description: 'Webhook sample for `occupancy_alerts` topic
+
+        **Note**: The server host will be your own server FQDN where the Mist Cloud
+        is sending the webhook messages
+
+        '
       operationId: occupancyAlerts
       requestBody:
         content:
@@ -23175,8 +23309,12 @@ paths:
         - Webhook Samples
   /webhook_ping_uri:
     post:
-      description: '**Note**: The server host will be your own server FQDN where the
-        Mist Cloud is sending the webhook messages'
+      description: 'Webhook sample for `ping` topic
+
+        **Note**: The server host will be your own server FQDN where the Mist Cloud
+        is sending the webhook messages
+
+        '
       operationId: ping
       requestBody:
         content:
@@ -23198,10 +23336,63 @@ paths:
       summary: ping
       tags:
         - Webhook Samples
+  /webhook_sdkclient_scan_data_uri:
+    parameters: []
+    post:
+      description: 'Webhook sample for `sdkclient_scan_data` topic
+
+        **Note**: The server host will be your own server FQDN where the Mist Cloud
+        is sending the webhook messages
+
+        '
+      operationId: sdkclientScanData
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  events:
+                    - connection_ap: 5c5b352f587e
+                      connection_band: '2.4'
+                      connection_bssid: 5c5b352b51b4
+                      connection_channel: 11
+                      connection_rssi: -87
+                      last_seen: 1592333828
+                      mac: 70ef0071535f
+                      scan_data:
+                        - ap: 5c5b352f587e
+                          band: '2.4'
+                          bssid: 5c5b352b51b4
+                          channel: 11
+                          rssi: -87
+                          ssid: mist-wifi
+                          timestamp: 1592333828
+                        - ap: 5c5b352f587e
+                          band: '5'
+                          bssid: 5c5b352b51b8
+                          channel: 36
+                          rssi: -75
+                          ssid: mist-wifi
+                          timestamp: 1592333828
+                      site_id: d761985e-49b1-4506-88e9-e0368a05c301
+                  topic: sdkclient-scan-data
+            schema:
+              $ref: '#/components/schemas/webhook.sdkclient-scan-data'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: sdkclientScanData
+      tags:
+        - Webhook Samples
   /webhook_zone_uri:
     post:
-      description: '**Note**: The server host will be your own server FQDN where the
-        Mist Cloud is sending the webhook messages'
+      description: 'Webhook sample for `zone` topic
+
+        **Note**: The server host will be your own server FQDN where the Mist Cloud
+        is sending the webhook messages
+
+        '
       operationId: zone
       requestBody:
         content:
@@ -23353,6 +23544,14 @@ components:
         default: 0
         minimum: 0
         type: integer
+    evpn_topology_id:
+      in: path
+      name: evpn_topology_id
+      required: true
+      schema:
+        example: 000000ab-00ab-00ab-00ab-0000000000ab
+        format: uuid
+        type: string
     gatewaytemplate_id:
       in: path
       name: gatewaytemplate_id
@@ -23368,12 +23567,6 @@ components:
       schema:
         example: 0000000000ab
         pattern: ^[0-9a-fA-F]{12}$
-        type: string
-    hostname:
-      in: query
-      name: hostname
-      schema:
-        default: ''
         type: string
     image_name:
       in: path
@@ -23469,17 +23662,6 @@ components:
       schema:
         default: ''
         type: string
-    neighbor_ap_type:
-      in: query
-      name: neighbor_ap_type
-      schema:
-        default: others
-        enum:
-          - honeypot
-          - lan
-          - others
-          - spoof
-        type: string
     network_id:
       in: path
       name: network_id
@@ -23520,12 +23702,6 @@ components:
         default: 1
         minimum: 1
         type: integer
-    provider:
-      in: path
-      name: provider
-      required: true
-      schema:
-        type: string
     psk_id:
       description: PSK ID
       in: path
@@ -23726,17 +23902,6 @@ components:
       schema:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
         format: uuid
-        type: string
-    user_type:
-      in: path
-      name: user_type
-      required: true
-      schema:
-        default: client
-        enum:
-          - client
-          - sdkclient
-          - asset
         type: string
     vbeacon_id:
       in: path
@@ -27834,62 +27999,24 @@ components:
           examples:
             example-1:
               value:
+                id: 9197ec96-4c8d-529f-c595-035895e688b2
+                name: CC
                 switches:
-                  - evpn_config:
-                      downlink_ips:
-                        - 10.255.240.6
-                        - 10.255.240.8
-                      downlinks:
-                        - 5c5b35000007
-                        - 5c5b35000008
-                      enabled: true
-                      evpn_id: 1
-                      role: core
-                      uplinks:
-                        - 5c5b35000005
-                        - 5c5b35000006
+                  - downlink_ips:
+                      - 10.255.240.6
+                      - 10.255.240.8
+                    downlinks:
+                      - 5c5b35000007
+                      - 5c5b35000008
+                    evpn_id: 1
                     mac: 5c5b35000003
                     model: QFX10002-36Q
+                    role: collapsed-core
+                    uplinks:
+                      - 5c5b35000005
+                      - 5c5b35000006
           schema:
-            description: ''
-            properties:
-              switches:
-                items:
-                  properties:
-                    evpn_config:
-                      properties:
-                        downlink_ips:
-                          items:
-                            type: string
-                          type: array
-                        downlinks:
-                          items:
-                            type: string
-                          type: array
-                        enabled:
-                          type: boolean
-                        evpn_id:
-                          type: integer
-                        role:
-                          minLength: 1
-                          type: string
-                        uplinks:
-                          items:
-                            type: string
-                          type: array
-                      type: object
-                    mac:
-                      minLength: 1
-                      type: string
-                    model:
-                      minLength: 1
-                      type: string
-                  type: object
-                type: array
-                uniqueItems: true
-            required:
-              - switches
-            type: object
+            $ref: '#/components/schemas/junos_evpn_topology'
       description: Example response
     File:
       content:
@@ -30191,6 +30318,8 @@ components:
                         reboot_in_progress:
                           - 497f6eca-6276-4993-bfeb-53cbbbba6f08
                         rebooted:
+                          - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                        skipped:
                           - 497f6eca-6276-4993-bfeb-53cbbbba6f08
           schema:
             $ref: '#/components/schemas/org_device_upgrade_response'
@@ -34375,6 +34504,42 @@ components:
               id:
                 $ref: '#/components/schemas/device_switch.vc'
             type: object
+      description: Example response
+    Vpn:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                name: string
+                paths:
+                  property1:
+                    bfd_profile: broadband
+                    ip: string
+                  property2:
+                    bfd_profile: lte
+                    ip: string
+          schema:
+            $ref: '#/components/schemas/vpn'
+      description: Example response
+    VpnsArray:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                - name: string
+                  paths:
+                    property1:
+                      bfd_profile: broadband
+                      ip: string
+                    property2:
+                      bfd_profile: lte
+                      ip: string
+          schema:
+            items:
+              $ref: '#/components/schemas/vpn'
+            type: array
       description: Example response
     Webhook:
       content:
@@ -39037,6 +39202,10 @@ components:
             rebooted:
               description: "count of ap\u2019s which have rebooted successfully"
               type: number
+            skipped:
+              description: "count of ap\u2019s which skipped upgrade since requested\
+                \ version was same as running version. Use force to always upgrade"
+              type: number
             total:
               description: "count of ap\u2019s part of this upgrade"
               type: number
@@ -39642,6 +39811,10 @@ components:
     gatewaytemplate:
       description: Gateway Template is applied to a site for gateway(s) in a site.
       properties:
+        bgp_config:
+          additionalProperties:
+            $ref: '#/components/schemas/junos_bgp_config'
+          type: object
         created_time:
           readOnly: true
           type: number
@@ -39692,7 +39865,7 @@ components:
             type: object
           type: object
         gateway_matching:
-          $ref: '#/components/schemas/template_switch.matching'
+          $ref: '#/components/schemas/template_gateway.matching'
         id:
           format: uuid
           readOnly: true
@@ -39727,174 +39900,388 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/junos_port_config_gateway_org'
           type: object
+        routing_policies:
+          additionalProperties:
+            $ref: '#/components/schemas/junos_routing_policy'
+          type: object
         service_policies:
-          items:
+          additionalProperties:
             $ref: '#/components/schemas/junos_service_policy'
-          type: array
+          type: object
         urlfilter_config:
           $ref: '#/components/schemas/junos_urlfilter_config'
       required:
         - name
       type: object
       x-examples:
-        example-1:
-          created_time: 0
-          dhcpd_config:
-            enabled: true
-            property1:
-              dns_servers:
-                - 192.168.0.1
-              dns_suffix:
-                - string
-              fixed_bindings:
-                property1:
-                  ip: 192.168.0.1
-                  name: string
-                property2:
-                  ip: 192.168.0.1
-                  name: string
-              gateway: 192.168.0.1
-              ip_end: 192.168.0.1
-              ip_start: 192.168.0.1
-              servers:
-                - 192.168.0.1
-              type: local
-            property2:
-              dns_servers:
-                - 192.168.0.1
-              dns_suffix:
-                - string
-              fixed_bindings:
-                property1:
-                  ip: 192.168.0.1
-                  name: string
-                property2:
-                  ip: 192.168.0.1
-                  name: string
-              gateway: 192.168.0.1
-              ip_end: 192.168.0.1
-              ip_start: 192.168.0.1
-              servers:
-                - 192.168.0.1
-              type: local
-          gateway_matching:
-            enable: true
-            rules:
-              - additional_config_cmds:
+        example-2:
+          value:
+            created_time: 0
+            dhcpd_config:
+              property1:
+                dns_servers:
+                  - 192.168.0.1
+                dns_suffix:
                   - string
-                name: string
-                port_config:
+                fixed_bindings:
                   property1:
-                    ae_disable_lacp: true
-                    ae_idx: 0
-                    aggregated: false
-                    description: string
-                    dynamic_usage: string
-                    esilag: true
-                    usage: string
+                    ip: 192.168.0.1
+                    name: string
                   property2:
-                    ae_disable_lacp: true
-                    ae_idx: 0
-                    aggregated: false
-                    description: string
-                    dynamic_usage: string
-                    esilag: true
-                    usage: string
-                property1: string
-                property2: string
-          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-          idp_config:
-            enabled: true
+                    ip: 192.168.0.1
+                    name: string
+                gateway: 192.168.0.1
+                ip_end: 192.168.0.1
+                ip_start: 192.168.0.1
+                servers:
+                  - 192.168.0.1
+                type: local
+              property2:
+                dns_servers:
+                  - 192.168.0.1
+                dns_suffix:
+                  - string
+                fixed_bindings:
+                  property1:
+                    ip: 192.168.0.1
+                    name: string
+                  property2:
+                    ip: 192.168.0.1
+                    name: string
+                gateway: 192.168.0.1
+                ip_end: 192.168.0.1
+                ip_start: 192.168.0.1
+                servers:
+                  - 192.168.0.1
+                type: local
+            gateway_matching:
+              enable: true
+              rules:
+                - additional_config_cmds:
+                    - string
+                  name: string
+                  port_config:
+                    property1:
+                      ae_disable_lacp: true
+                      ae_idx: 0
+                      aggregated: false
+                      description: string
+                      disable_autoneg: true
+                      duplex: auto
+                      dynamic_usage: string
+                      esilag: true
+                      poe_disabled: true
+                      speed: auto
+                      usage: string
+                    property2:
+                      ae_disable_lacp: true
+                      ae_idx: 0
+                      aggregated: false
+                      description: string
+                      disable_autoneg: true
+                      duplex: auto
+                      dynamic_usage: string
+                      esilag: true
+                      poe_disabled: true
+                      speed: auto
+                      usage: string
+                  property1: string
+                  property2: string
+            id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+            idp_config:
+              enabled: true
+              networks:
+                property1:
+                  profile: default
+                property2:
+                  profile: default
+              profile: default
+            ip_configs:
+              property1:
+                ip: 192.168.0.1
+                netmask: /24
+              property2:
+                ip: 192.168.0.1
+                netmask: /24
+            modified_time: 0
+            name: string
             networks:
               property1:
-                profile: default
+                created_time: 0
+                gateway: 192.168.70.1
+                hosts:
+                  property1:
+                    external_ips: 172.16.10.32-172.16.10.35
+                    ips: 192.168.70.32-192.168.70.35
+                  property2:
+                    external_ips: 172.16.10.32-172.16.10.35
+                    ips: 192.168.70.32-192.168.70.35
+                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                internal_access:
+                  enabled: true
+                internet_access:
+                  destination_nat:
+                    property1:
+                      internal_ip: string
+                      name: string
+                      port: string
+                    property2:
+                      internal_ip: string
+                      name: string
+                      port: string
+                  enabled: true
+                  restricted: false
+                  static_nat:
+                    property1:
+                      internal_ip: string
+                      name: string
+                    property2:
+                      internal_ip: string
+                      name: string
+                isolation: true
+                modified_time: 0
+                name: string
+                org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                subnet: 192.168.70.0/24
+                tenants:
+                  property1:
+                    addresses: string
+                  property2:
+                    addresses: string
+                vlan_id: 0
+                vpn_access:
+                  property1:
+                    destination_nat:
+                      property1:
+                        name: string
+                        port: string
+                        to: string
+                      property2:
+                        name: string
+                        port: string
+                        to: string
+                    nat_pool: string
+                    routed: true
+                    static_nat:
+                      property1:
+                        name: string
+                        to: string
+                      property2:
+                        name: string
+                        to: string
+                  property2:
+                    destination_nat:
+                      property1:
+                        name: string
+                        port: string
+                        to: string
+                      property2:
+                        name: string
+                        port: string
+                        to: string
+                    nat_pool: string
+                    routed: true
+                    static_nat:
+                      property1:
+                        name: string
+                        to: string
+                      property2:
+                        name: string
+                        to: string
               property2:
-                profile: default
-            profile: default
-          ip_configs:
-            property1:
-              ip: 192.168.0.1
-              netmask: /24
-            property2:
-              ip: 192.168.0.1
-              netmask: /24
-          modified_time: 0
-          name: string
-          networks:
-            property1:
-              created_time: 0
-              gateway: 192.168.70.1
-              hosts:
-                property1:
-                  external_ips: 172.16.10.32-172.16.10.35
-                  ips: 192.168.70.32-192.168.70.35
-                property2:
-                  external_ips: 172.16.10.32-172.16.10.35
-                  ips: 192.168.70.32-192.168.70.35
-              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-              internal_access:
-                enabled: true
-              modified_time: 0
-              name: string
-              org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-              subnet: 192.168.70.0/24
-              vlan_id: 0
-            property2:
-              created_time: 0
-              gateway: 192.168.70.1
-              hosts:
-                property1:
-                  external_ips: 172.16.10.32-172.16.10.35
-                  ips: 192.168.70.32-192.168.70.35
-                property2:
-                  external_ips: 172.16.10.32-172.16.10.35
-                  ips: 192.168.70.32-192.168.70.35
-              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-              internal_access:
-                enabled: true
-              modified_time: 0
-              name: string
-              org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-              subnet: 192.168.70.0/24
-              vlan_id: 0
-          org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-          port_config:
-            property1:
-              backup_only: true
-              ip_config:
-                ppoe_password: string
-                ppoe_username: string
-                type: dhcp
-              networks:
-                - string
-              peers:
-                - string
-              port_network: string
-              usage: string
-              wan_type: broadband
-            property2:
-              backup_only: true
-              ip_config:
-                ppoe_password: string
-                ppoe_username: string
-                type: dhcp
-              networks:
-                - string
-              peers:
-                - string
-              port_network: string
-              usage: string
-              wan_type: broadband
-          urlfilter_config:
-            blocked_categories:
-              - '[ "adult", "gaming", "violance" ]'
-            enabled: true
-            networks:
+                created_time: 0
+                gateway: 192.168.70.1
+                hosts:
+                  property1:
+                    external_ips: 172.16.10.32-172.16.10.35
+                    ips: 192.168.70.32-192.168.70.35
+                  property2:
+                    external_ips: 172.16.10.32-172.16.10.35
+                    ips: 192.168.70.32-192.168.70.35
+                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                internal_access:
+                  enabled: true
+                internet_access:
+                  destination_nat:
+                    property1:
+                      internal_ip: string
+                      name: string
+                      port: string
+                    property2:
+                      internal_ip: string
+                      name: string
+                      port: string
+                  enabled: true
+                  restricted: false
+                  static_nat:
+                    property1:
+                      internal_ip: string
+                      name: string
+                    property2:
+                      internal_ip: string
+                      name: string
+                isolation: true
+                modified_time: 0
+                name: string
+                org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                subnet: 192.168.70.0/24
+                tenants:
+                  property1:
+                    addresses: string
+                  property2:
+                    addresses: string
+                vlan_id: 0
+                vpn_access:
+                  property1:
+                    destination_nat:
+                      property1:
+                        name: string
+                        port: string
+                        to: string
+                      property2:
+                        name: string
+                        port: string
+                        to: string
+                    nat_pool: string
+                    routed: true
+                    static_nat:
+                      property1:
+                        name: string
+                        to: string
+                      property2:
+                        name: string
+                        to: string
+                  property2:
+                    destination_nat:
+                      property1:
+                        name: string
+                        port: string
+                        to: string
+                      property2:
+                        name: string
+                        port: string
+                        to: string
+                    nat_pool: string
+                    routed: true
+                    static_nat:
+                      property1:
+                        name: string
+                        to: string
+                      property2:
+                        name: string
+                        to: string
+            org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+            path_preferences:
               property1:
-                profile: default
+                paths:
+                  - cost: 0
+                    name: string
+                strategy: default
               property2:
-                profile: default
-            profile: default
+                paths:
+                  - cost: 0
+                    name: string
+                strategy: default
+            port_config:
+              property1:
+                backup_only: true
+                description: string
+                ip_config:
+                  dns:
+                    - string
+                  dns_suffix:
+                    - string
+                  gateway: string
+                  ip: string
+                  netmask: string
+                  network: string
+                  poser_password: string
+                  ppoe_username: string
+                  type: dhcp
+                lte_apn: string
+                lte_auth: none
+                lte_password: string
+                lte_username: string
+                name: string
+                networks:
+                  - string
+                pci_address: string
+                port_network: string
+                usage: string
+                vlan_id: 0
+                vpn_overlays:
+                  property1:
+                    peer_wan_names:
+                      - string
+                    role: spoke
+                  property2:
+                    peer_wan_names:
+                      - string
+                    role: spoke
+                vpn_paths:
+                  property1:
+                    role: spoke
+                  property2:
+                    role: spoke
+                wan_type: broadband
+              property2:
+                backup_only: true
+                description: string
+                ip_config:
+                  dns:
+                    - string
+                  dns_suffix:
+                    - string
+                  gateway: string
+                  ip: string
+                  netmask: string
+                  network: string
+                  poser_password: string
+                  ppoe_username: string
+                  type: dhcp
+                lte_apn: string
+                lte_auth: none
+                lte_password: string
+                lte_username: string
+                name: string
+                networks:
+                  - string
+                pci_address: string
+                port_network: string
+                usage: string
+                vlan_id: 0
+                vpn_overlays:
+                  property1:
+                    peer_wan_names:
+                      - string
+                    role: spoke
+                  property2:
+                    peer_wan_names:
+                      - string
+                    role: spoke
+                vpn_paths:
+                  property1:
+                    role: spoke
+                  property2:
+                    role: spoke
+                wan_type: broadband
+            service_policies:
+              - name: string
+                path_preference: string
+                services:
+                  - string
+                tenants:
+                  - string
+            urlfilter_config:
+              blocked_categories:
+                - '[ "adult", "gaming", "violance" ]'
+              enabled: true
+              networks:
+                property1:
+                  profile: default
+                property2:
+                  profile: default
+              profile: default
     guest:
       description: Guest
       properties:
@@ -40006,6 +40393,47 @@ components:
         - status
         - type
       type: object
+    junos_bgp_config:
+      description: ''
+      properties:
+        auth_key:
+          minLength: 1
+          type: string
+        export:
+          minLength: 1
+          type: string
+        import:
+          minLength: 1
+          type: string
+        local_as:
+          type: integer
+        neighbors:
+          additionalProperties:
+            properties:
+              neighbor_as:
+                type: integer
+            type: object
+          type: object
+        remote_as:
+          type: integer
+        type:
+          minLength: 1
+          type: string
+      type: object
+      x-examples:
+        example-1:
+          value:
+            auth_key: string
+            export: string
+            import: string
+            local_as: 0
+            neighbors:
+              property1:
+                neighbor_as: 0
+              property2:
+                neighbor_as: 0
+            remote_as: 0
+            type: string
     junos_dhcp_snooping:
       description: ''
       properties:
@@ -40185,6 +40613,72 @@ components:
               type: string
           type: object
       type: object
+    junos_evpn_topology:
+      properties:
+        id:
+          readOnly: true
+          type: string
+        name:
+          type: string
+        switches:
+          items:
+            properties:
+              downlink_ips:
+                items:
+                  type: string
+                readOnly: true
+                type: array
+              downlinks:
+                items:
+                  type: string
+                readOnly: true
+                type: array
+              evpn_id:
+                type: integer
+              mac:
+                minLength: 1
+                type: string
+              role:
+                description: use `role`==`none` to remove a switch from the topology
+                enum:
+                  - core
+                  - distribution
+                  - access
+                  - collapsed-core
+                  - none
+                minLength: 1
+                type: string
+              uplinks:
+                items:
+                  type: string
+                readOnly: true
+                type: array
+            type: object
+          type: array
+          uniqueItems: true
+      required:
+        - switches
+      title: junos_evpn_topology
+      type: object
+      x-examples:
+        example-1:
+          value:
+            id: 9197ec96-4c8d-529f-c595-035895e688b2
+            name: CC
+            switches:
+              - downlink_ips:
+                  - 10.255.240.6
+                  - 10.255.240.8
+                downlinks:
+                  - 5c5b35000007
+                  - 5c5b35000008
+                evpn_id: 1
+                mac: 5c5b35000003
+                model: QFX10002-36Q
+                role: collapsed-core
+                uplinks:
+                  - 5c5b35000005
+                  - 5c5b35000006
     junos_idp_config:
       description: ''
       properties:
@@ -40563,6 +41057,8 @@ components:
           description: if the interface should only be used when all other WAN interfaces
             are down
           type: boolean
+        description:
+          type: string
         ip_config:
           $ref: '#/components/schemas/junos_ip_config_gateway'
         lte_apn:
@@ -40599,6 +41095,9 @@ components:
         usage:
           description: port usage name
           type: string
+        vlan_id:
+          description: if WAN interface is on a VLAN
+          type: integer
         vpn_overlays:
           additionalProperties:
             properties:
@@ -40607,6 +41106,17 @@ components:
                   type: string
                 type: array
               role:
+                enum:
+                  - spoke
+                  - hub
+                type: string
+            type: object
+          type: object
+        vpn_paths:
+          additionalProperties:
+            properties:
+              role:
+                default: spoke
                 enum:
                   - spoke
                   - hub
@@ -40654,35 +41164,6 @@ components:
               links:
                 - wan0
               role: spoke
-    junos_port_forward:
-      description: Junos port forward
-      properties:
-        from_zone:
-          default: untrust
-          type: string
-        ip_port:
-          description: translate destination ip (optionally port). IP or IP:Port ("10.2.5.3",
-            or "10.2.5.3:22")
-          type: string
-        ip_range:
-          description: or ip-range, where port will not be translated
-          type: string
-        protocol:
-          default: any
-          description: '`tcp` / `udp` / `icmp` / `gre` / `any` / `:protocol_number`.
-            `:protocol_number` is between 1-254'
-          type: string
-        to_zone:
-          default: trust
-          type: string
-      type: object
-      x-examples:
-        example-1:
-          from_zone: untrust
-          ip_port: 10.2.5.3
-          ip_range: 10.2.5.1/32-10.2.5.20/32
-          protocol: tcp
-          to_zone: trust
     junos_port_usages:
       description: Junos port usages
       properties:
@@ -40968,64 +41449,61 @@ components:
               secret: testing123
           auth_servers_retries: 3
           auth_servers_timeout: 5
+    junos_routing_policy:
+      description: ''
+      properties:
+        terms:
+          items:
+            properties:
+              as_path:
+                minLength: 1
+                type: string
+              community:
+                minLength: 1
+                type: string
+              prefix:
+                minLength: 1
+                type: string
+              prefix_match:
+                minLength: 1
+                type: string
+              protocol:
+                minLength: 1
+                type: string
+              then:
+                minLength: 1
+                type: string
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+      type: object
+      x-examples:
+        example-1:
+          value:
+            terms:
+              - as_path: string
+                community: string
+                prefix: string
+                prefix_match: string
+                protocol: string
+                then: string
     junos_service_policy:
       description: ''
       minItems: 1
       properties:
-        internet_paths:
-          items:
-            properties:
-              wan_name:
-                type: string
-            type: object
-          type: array
         name:
           minLength: 1
           type: string
-        overlay_paths:
-          description: by default, we derive all paths available and use them
-          items:
-            properties:
-              allow_internet:
-                description: allow the overlay to be used for internet traffic
-                type: boolean
-              peer_mac:
-                type: string
-              peer_wan_name:
-                type: string
-              vpn_name:
-                type: string
-              wan_name:
-                type: string
-            type: object
-          type: array
-        paths:
-          items:
-            properties:
-              allow_internet:
-                type: boolean
-              peer_mac:
-                type: string
-              peer_wan_name:
-                type: string
-              vpn_name:
-                type: string
-              wan_name:
-                type: string
-            type: object
-          type: array
+        path_preference:
+          description: 'by default, we derive all paths available and use them
+
+            optionally, you can customize by using `path_preference`'
+          type: string
         services:
           items:
             type: string
           type: array
-        strategy:
-          default: default
-          enum:
-            - default
-            - load_balanced
-            - ordered
-            - weighted
-          type: string
         tenants:
           items:
             type: string
@@ -42291,6 +42769,14 @@ components:
         created_time:
           readOnly: true
           type: number
+        dns_servers:
+          items:
+            type: string
+          type: array
+        dns_suffix:
+          items:
+            type: string
+          type: array
         id:
           format: uuid
           readOnly: true
@@ -42308,10 +42794,6 @@ components:
           format: uuid
           readOnly: true
           type: string
-        port_config:
-          additionalProperties:
-            $ref: '#/components/schemas/junos_port_config_gateway_device'
-          type: object
         port_usages:
           additionalProperties:
             $ref: '#/components/schemas/junos_port_usages'
@@ -42595,6 +43077,14 @@ components:
                           format: uuid
                           type: string
                         type: array
+                      skipped:
+                        description: devices which have skipped upgrade since requested
+                          version was same as running version. Use `force` to always
+                          upgrade
+                        items:
+                          format: uuid
+                          type: string
+                        type: array
                     type: object
                 type: object
             type: object
@@ -42627,6 +43117,8 @@ components:
                     reboot_in_progress:
                       - 497f6eca-6276-4993-bfeb-53cbbbba6f08
                     rebooted:
+                      - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                    skipped:
                       - 497f6eca-6276-4993-bfeb-53cbbbba6f08
     org_info:
       description: ''
@@ -43681,10 +44173,6 @@ components:
         vlan_id:
           description: VLAN for this PSK key
           type: integer
-      required:
-        - name
-        - passphrase
-        - ssid
       type: object
       x-examples:
         example-1:
@@ -44734,17 +45222,12 @@ components:
             type: string
           type: array
         dscp_class:
-          description: 'when `type`==`app`, we''ll select the recommended dscp_class
-            automatically if needed
-
-            when `type`==`custom`, you can provide your own settings, also optionally,'
           type: string
         max_jitter:
           description: for uplink selection
           type: integer
         max_latency:
-          description: for uplink selection
-          type: integer
+          type: string
         max_loss:
           description: for uplink selection
           type: integer
@@ -44768,6 +45251,20 @@ components:
             type: object
           type: array
           uniqueItems: true
+        traffic_class:
+          default: best_effort
+          enum:
+            - best_effort
+            - high
+            - medium
+            - low
+          type: string
+        traffic_type:
+          default: default
+          description: 'when `type`=`app`, we''ll choose traffic_type automatically
+
+            when `type`=`custom`, you can provide your own settings, also optionally'
+          type: string
         type:
           type: string
       type: object
@@ -45455,6 +45952,12 @@ components:
             send_ip_mac_mapping:
               type: boolean
           type: object
+        srx_app:
+          properties:
+            enabled:
+              default: false
+              type: boolean
+          type: object
         ssh_keys:
           description: when limit_ssh_access = true in Org Setting, list of SSH public
             keys provided by Mist Support to install onto APs (see Org:Setting)
@@ -45483,16 +45986,17 @@ components:
           items:
             $ref: '#/components/schemas/site_tunterm_monitoring'
           type: array
-        van:
-          properties:
-            enabled:
-              default: false
-              description: enable Virtual Network Assistant (using SUB-VNA license)
-              type: boolean
-          type: object
         vars:
           additionalProperties:
             type: string
+          type: object
+        vna:
+          properties:
+            enabled:
+              default: false
+              description: enable Virtual Network Assistant (using SUB-VNA license).
+                This applied to AP / Switch / Gateway
+              type: boolean
           type: object
         vrf_instances:
           additionalProperties:
@@ -45501,6 +46005,12 @@ components:
         vrrp_groups:
           additionalProperties:
             $ref: '#/components/schemas/junos_vrrp_group'
+          type: object
+        wan_vna:
+          properties:
+            enabled:
+              default: false
+              type: boolean
           type: object
         watched_station_url:
           readOnly: true
@@ -50567,49 +51077,6 @@ components:
           type: switch
           uptime: 13500
           version: 18.4R1.8
-    stats_ml:
-      description: ML statistics
-      properties:
-        beacon_id:
-          description: id of beacon if this ML is for 3rd party beacon
-          format: uuid
-          type: string
-        current:
-          additionalProperties:
-            properties:
-              completed:
-                description: learning completeness to the next level
-                type: number
-              int:
-                description: internal
-                type: number
-              level:
-                description: level of learning
-                type: number
-              ple:
-                description: internal
-                type: number
-              quality:
-                description: from 0 - 4, 4 being most accurate
-                type: string
-              src:
-                description: where the PLF comes from. machine (PLF from last learning)
-                  / device (last learnt PLF from this device) / model (model of the
-                  client device) / overwrite (from ML overwrite)
-                type: string
-              timestamp:
-                description: epoch, last updated
-                type: number
-            type: object
-          description: ml stats, per client_type
-          type: object
-        device_id:
-          description: id of device if this ML is for Mist AP
-          format: uuid
-          type: string
-      required:
-        - current
-      type: object
     stats_mxedge:
       description: MxEdge statistics
       properties:
@@ -52001,6 +52468,56 @@ components:
               - 90badd2e-c028-5e8e-dd8f-b3c718882b9d
           filter_by_deviceprofile: true
           name: west
+    template_gateway.matching:
+      description: Gateway matching
+      properties:
+        enable:
+          type: boolean
+        rules:
+          items:
+            additionalProperties:
+              description: 'property name define the type of matchine. e.g: `match_name[0:3]`,
+                `match_model[0-6]` or   `match_role`'
+              type: string
+            properties:
+              additional_config_cmds:
+                items:
+                  type: string
+                type: array
+              name:
+                type: string
+              port_config:
+                additionalProperties:
+                  $ref: '#/components/schemas/junos_port_config'
+                type: object
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+      type: object
+      x-examples:
+        example-1:
+          enable: true
+          rules:
+            - additional_config_cmds:
+                - set snmp community public
+              match_model: EX4300
+              match_name[0:3]: abc
+              name: match by name
+              port_config:
+                '*':
+                  usage: default
+                ge-0/0/0:
+                  usage: uplink
+                ge-0/0/8-16,ge-1/0/0-47:
+                  usage: ap
+            - additional_config_cmds:
+                - set snmp community public2
+              match_role: access
+              name: match by role
+              port_config:
+                ge-0/0/0:
+                  usage: uplink
     template_switch.matching:
       description: Switch template
       properties:
@@ -52206,6 +52723,47 @@ components:
           x_m: 8.32265100962277
           y: 580
           y_m: 8.279824332043237
+    vpn:
+      description: ''
+      properties:
+        id:
+          format: uuid
+          readOnly: true
+          type: string
+        name:
+          minLength: 1
+          type: string
+        paths:
+          additionalProperties:
+            properties:
+              bfd_profile:
+                default: broadband
+                enum:
+                  - broadband
+                  - lte
+                minLength: 1
+                type: string
+              ip:
+                description: if different from the wan port
+                minLength: 1
+                type: string
+            type: object
+          type: object
+      required:
+        - name
+        - paths
+      type: object
+      x-examples:
+        example-1:
+          value:
+            name: string
+            paths:
+              property1:
+                bfd_profile: string
+                ip: string
+              property2:
+                bfd_profile: string
+                ip: string
     webhook:
       description: "Webhook\nNOTE: \n * when `secret` is provided, two HTTP headers\
         \ will be added:\n   * `X-Mist-Signature-v2`: HMAC_SHA256(secret, body)\n\
@@ -52275,6 +52833,7 @@ components:
               - mxedge-events
               - occupancy-alerts
               - rssizone
+              - sdkclient-scan-data
               - vbeacon
               - zone
             type: string
@@ -53263,6 +53822,165 @@ components:
               site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
               timestamp: 1461220784
           topic: ping
+    webhook.sdkclient-scan-data:
+      description: ''
+      properties:
+        events:
+          items:
+            properties:
+              connection_ap:
+                description: mac address of the AP the client is connected to
+                minLength: 1
+                type: string
+              connection_band:
+                description: 5GHz or 2.4GHz band, of the BSSID the client is connected
+                  to
+                minLength: 1
+                type: string
+              connection_bssid:
+                description: BSSID of the AP the client is connected to
+                minLength: 1
+                type: string
+              connection_channel:
+                description: channel of the band the client is connected to
+                type: integer
+              connection_rssi:
+                description: "RSSI of the client\u2019s connection to the AP/BSSID"
+                type: number
+              last_seen:
+                description: time client last seen with scan data
+                type: number
+              mac:
+                description: "the client\u2019s mac"
+                minLength: 1
+                type: string
+              scan_data:
+                items:
+                  properties:
+                    ap:
+                      description: mac address of the AP associated with the BSSID
+                        scanned
+                      minLength: 1
+                      type: string
+                    band:
+                      description: 5GHz or 2.4GHz band, associated with the BSSID
+                        scanned
+                      enum:
+                        - '2.4'
+                        - '5'
+                      minLength: 1
+                      type: string
+                    bssid:
+                      description: "BSSID found during client\u2019s background scan\
+                        \ for wifi"
+                      minLength: 1
+                      type: string
+                    channel:
+                      description: channel of the band found in the scan
+                      type: integer
+                    rssi:
+                      description: "client\u2019s RSSI relative to the BSSID scanned"
+                      type: number
+                    ssid:
+                      description: ESSID containing the BSSID scanned
+                      minLength: 1
+                      type: string
+                    timestamp:
+                      description: time the scan of the particular BSSID occurred
+                      type: number
+                  required:
+                    - ap
+                    - bssid
+                    - band
+                    - channel
+                    - rssi
+                    - ssid
+                    - timestamp
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+              site_id:
+                description: Site ID
+                minLength: 1
+                type: string
+            required:
+              - connection_ap
+              - connection_band
+              - connection_channel
+              - connection_bssid
+              - mac
+              - connection_rssi
+              - site_id
+              - last_seen
+            type: object
+          minItems: 1
+          readOnly: true
+          type: array
+          uniqueItems: true
+        topic:
+          default: sdkclient-scan-data
+          enum:
+            - sdkclient-scan-data
+          minLength: 1
+          type: string
+      required:
+        - topic
+        - events
+      type: object
+      x-examples:
+        example-1:
+          events:
+            - connection_ap: 5c5b352f587e
+              connection_band: '2.4'
+              connection_bssid: 5c5b352b51b4
+              connection_channel: 11
+              connection_rssi: -87
+              last_seen: 1592333828
+              mac: 70ef0071535f
+              scan_data:
+                - ap: 5c5b352f587e
+                  band: '2.4'
+                  bssid: 5c5b352b51b4
+                  channel: 11
+                  rssi: -87
+                  ssid: mist-wifi
+                  timestamp: 1592333828
+                - ap: 5c5b352f587e
+                  band: '5'
+                  bssid: 5c5b352b51b8
+                  channel: 36
+                  rssi: -75
+                  ssid: mist-wifi
+                  timestamp: 1592333828
+              site_id: d761985e-49b1-4506-88e9-e0368a05c301
+          topic: sdkclient-scan-data
+          value:
+            events:
+              - connection_ap: 5c5b352f587e
+                connection_band: '2.4'
+                connection_bssid: 5c5b352b51b4
+                connection_channel: 11
+                connection_rssi: -87
+                last_seen: 1592333828
+                mac: 70ef0071535f
+                scan_data:
+                  - ap: 5c5b352f587e
+                    band: '2.4'
+                    bssid: 5c5b352b51b4
+                    channel: 11
+                    rssi: -87
+                    ssid: mist-wifi
+                    timestamp: 1592333828
+                  - ap: 5c5b352f587e
+                    band: '5'
+                    bssid: 5c5b352b51b8
+                    channel: 36
+                    rssi: -75
+                    ssid: mist-wifi
+                    timestamp: 1592333828
+                site_id: d761985e-49b1-4506-88e9-e0368a05c301
+            topic: sdkclient-scan-data
     webhook.zone:
       description: zone webhook
       properties:
@@ -54637,6 +55355,19 @@ components:
           description: how long to remain valid sponsored guest request approve/deny
             link received in email, in minutes.
           type: string
+        sponsor_notify_all:
+          default: false
+          description: whether to notify all sponsors that are mentioned in sponsors
+            object. Only one among `sponsor_notify_all` and `sponsor_show_emails`
+            will be applicable.
+          type: boolean
+        sponsor_show_emails:
+          default: true
+          description: whether to show list of sponsor emails mentioned in sponsors
+            object as a dropdown. This is the default option if both `sponsor_notify_all`
+            and `sponsor_show_emails` are true. If both false, behaviour is acc to
+            `sponsor_email_domains`.
+          type: boolean
         sponsors:
           additionalProperties:
             type: string
@@ -55047,6 +55778,9 @@ components:
           type: string
         sponsorNotePending:
           description: "\u201CPlease wait for them to acknowledge.\u201D"
+          type: string
+        sponsorSelectEmail:
+          description: "\u201CSelect sponsor email\u201D"
           type: string
         sponsorStatusApproved:
           description: text to display if sponsor approves request
@@ -55816,8 +56550,8 @@ x-tagGroups:
       - Sites Devices
       - Sites Devices Utilities
       - Sites Devices Virtual Chassis
-      - Sites Events
       - Sites Devices EVPN
+      - Sites Events
       - Sites Guests
       - Sites Insights
       - Sites Licenses
