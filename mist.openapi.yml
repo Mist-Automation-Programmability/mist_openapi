@@ -3,7 +3,7 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> *Version 0.14.1*
+  description: '> *Version 0.14.2*
 
     >
 
@@ -42,7 +42,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.14.1
+  version: 0.14.2
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -3449,6 +3449,65 @@ paths:
 
         Note that the token key is only available during creation time.'
       operationId: createOrgApiToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              properties:
+                name:
+                  minLength: 1
+                  type: string
+                privileges:
+                  description: list of privileges the token has on the orgs/sites
+                  items:
+                    properties:
+                      role:
+                        enum:
+                          - admin
+                          - write
+                          - read
+                        minLength: 1
+                        type: string
+                      scope:
+                        enum:
+                          - site
+                          - org
+                          - sitegroup
+                        minLength: 1
+                        type: string
+                      site_id:
+                        description: if `scope`==`site`
+                        format: uuid
+                        type: string
+                      sitegroup_id:
+                        description: if `scope`==`sitegroup`
+                        format: uuid
+                        type: string
+                    required:
+                      - scope
+                      - role
+                      - site_id
+                    type: object
+                  minItems: 1
+                  type: array
+                  uniqueItems: true
+              required:
+                - name
+                - privileges
+              type: object
+              x-examples:
+                example-1:
+                  name: org_token_xyz
+                  privileges:
+                    - role: read
+                      scope: org
+                    - role: admin
+                      scope: site
+                      site_id: d96e3952-53e8-4266-959a-45acd55f5114
+                    - role: write
+                      scope: sitegroup
+                      sitegroup_id: 581328b6-e382-f54e-c9dc-999983183a34
       responses:
         '200':
           $ref: '#/components/responses/Apitoken'
