@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> *Version 0.14.2*
+  description: '> *Version 0.15.0*
 
     >
 
-    > Date: September 10th, 2021
+    > Date: September 24th, 2021
 
     >
 
@@ -42,7 +42,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.14.2
+  version: 0.15.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -806,7 +806,95 @@ paths:
                         bytes:
                           unit: bytes
               schema:
+                additionalProperties:
+                  properties:
+                    description:
+                      type: string
+                    example:
+                      type: array
+                    intervals:
+                      additionalProperties:
+                        properties:
+                          interval:
+                            type: number
+                          max_age:
+                            type: number
+                        type: object
+                      type: object
+                    report_intervals:
+                      additionalProperties:
+                        properties:
+                          interval:
+                            type: number
+                        type: object
+                      type: object
+                    report_scopes:
+                      items:
+                        properties: {}
+                      type: array
+                    scopes:
+                      items:
+                        type: string
+                      type: array
+                    type:
+                      type: string
+                    unit:
+                      type: string
+                  type: object
+                description: The property name is the metric name
                 type: object
+                x-examples:
+                  example-1:
+                    num_clients:
+                      description: number of client over time
+                      example:
+                        - 18
+                        - null
+                        - 15
+                      intervals:
+                        10m:
+                          interval: 600
+                          max_age: 86400
+                        1h:
+                          interval: 3600
+                          max_age: 1209600
+                      report_intervals:
+                        1d:
+                          interval: 86400
+                      report_scopes:
+                        - site
+                      scopes:
+                        - site
+                        - ap
+                      type: timeseries
+                      unit: ''
+                    top-client:
+                      description: top clients
+                      example:
+                        - bytes: 1232333
+                          mac: 5684dae9ac8b
+                      intervals:
+                        10m:
+                          interval: 600
+                          max_age: 86400
+                        1h:
+                          interval: 3600
+                          max_age: 1209600
+                      key:
+                        mac:
+                          hint: client
+                      report_intervals:
+                        1d:
+                          interval: 86400
+                      report_scopes:
+                        - site
+                      scopes:
+                        - site
+                        - ap
+                      type: keyvalues
+                      values:
+                        bytes:
+                          unit: bytes
           description: OK
       summary: getSiteAvailableInsightMetrics
       tags:
@@ -838,9 +926,9 @@ paths:
                     key:
                       type: string
                   required:
-                    - key
                     - display
                     - display_native
+                    - key
                   type: object
                 minItems: 1
                 type: array
@@ -2149,6 +2237,20 @@ paths:
       summary: updateMspAdmin
       tags:
         - Msps Admins
+  /api/v1/msps/{msp_id}/insights/{metric}:
+    get:
+      description: See getSiteAvailableInsightMetrics for metrics description of MSP
+        Scope
+      operationId: getMspsInsightMetrics
+      responses:
+        '200':
+          $ref: '#/components/responses/InsightMetric'
+      summary: getMspsInsightMetrics
+      tags:
+        - Msps
+    parameters:
+      - $ref: '#/components/parameters/msp_id'
+      - $ref: '#/components/parameters/metric'
   /api/v1/msps/{msp_id}/inventory/{mac}:
     get:
       description: Get Inventoy By device MAC address
@@ -36674,6 +36776,7 @@ components:
           readOnly: true
           type: boolean
         privileges:
+          description: list of privileges the admin has on the orgs/sites
           items:
             $ref: '#/components/schemas/privileges'
           minItems: 1
@@ -36688,6 +36791,7 @@ components:
           readOnly: true
           type: array
         two_factor_verified:
+          description: two factor status
           readOnly: true
           type: boolean
       required:
@@ -40537,6 +40641,23 @@ components:
           format: uuid
           readOnly: true
           type: string
+        path_preferences:
+          additionalProperties:
+            description: experimental
+            properties:
+              paths:
+                properties:
+                  cost:
+                    type: integer
+                  name:
+                    type: string
+                  type:
+                    type: string
+                type: object
+              strategy:
+                type: string
+            type: object
+          type: object
         port_config:
           additionalProperties:
             $ref: '#/components/schemas/junos_port_config_gateway'
@@ -41955,6 +42076,11 @@ components:
             properties:
               equals:
                 type: string
+              equals_any:
+                description: use `equals_any` to match any item in a list
+                items:
+                  type: string
+                type: array
               expression:
                 description: '"[0:3]":"abcdef" -> "abc"
 
@@ -42084,10 +42210,9 @@ components:
               community:
                 minLength: 1
                 type: string
-              prefix:
-                minLength: 1
+              network:
                 type: string
-              prefix_match:
+              prefix:
                 minLength: 1
                 type: string
               protocol:
@@ -42962,6 +43087,34 @@ components:
                 type: string
             type: object
           description: The property name is a CIDR
+          type: object
+        tunterm_igmp_snooping_config:
+          description: tunterm igmp snooping config
+          properties:
+            querier:
+              properties:
+                max_response_time:
+                  description: "querier\u2019s query response interval, in tenths-of-seconds"
+                  type: integer
+                mtu:
+                  type: integer
+                query_interval:
+                  description: "querier\u2019s query interval, in seconds"
+                  type: integer
+                robustness:
+                  description: "querier\u2019s robustness (1 to 7)"
+                  maximum: 7
+                  minimum: 1
+                  type: integer
+                version:
+                  description: "querier\u2019s maximum protocol version"
+                  type: integer
+              type: object
+            vlan_ids:
+              description: the list of vlans on which tunterm performs IGMP snooping
+              items:
+                type: integer
+              type: array
           type: object
         tunterm_ip_config:
           description: ip configuration of the Mist Tunnel interface
@@ -56041,11 +56194,19 @@ components:
           description: azure active directory tenant id.
           nullable: true
           type: string
+        broadnet_password:
+          type: string
+        broadnet_sid:
+          type: string
+        broadnet_user_id:
+          type: string
         bypass_when_cloud_down:
           default: false
           description: whether to bypass the guest portal when cloud not reachable
             (and apply the default policies)
           type: boolean
+        clickatell_api_key:
+          type: string
         email_enabled:
           description: whether email (access code verification) is enabled as a login
             method
@@ -56108,6 +56269,10 @@ components:
         google_enabled:
           description: whether google is enabled as login method
           type: boolean
+        gupshup_password:
+          type: string
+        gupshup_userid:
+          type: string
         microsoft_client_id:
           description: microsoft 365 OAuth2 client id. This is optional. If not provided,
             it will use a default one.
@@ -56156,6 +56321,12 @@ components:
           type: string
         privacy:
           type: boolean
+        puzzel_password:
+          type: string
+        puzzel_service_id:
+          type: string
+        puzzel_username:
+          type: string
         smsMessageFormat:
           type: string
         sms_enabled:
