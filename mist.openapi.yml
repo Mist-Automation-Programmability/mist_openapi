@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> *Version 0.15.0*
+  description: '> *Version 0.15.1*
 
     >
 
-    > Date: September 24th, 2021
+    > Date: October 5th, 2021
 
     >
 
@@ -42,7 +42,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.15.0
+  version: 0.15.1
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -811,6 +811,7 @@ paths:
                     description:
                       type: string
                     example:
+                      items: {}
                       type: array
                     intervals:
                       additionalProperties:
@@ -843,58 +844,6 @@ paths:
                   type: object
                 description: The property name is the metric name
                 type: object
-                x-examples:
-                  example-1:
-                    num_clients:
-                      description: number of client over time
-                      example:
-                        - 18
-                        - null
-                        - 15
-                      intervals:
-                        10m:
-                          interval: 600
-                          max_age: 86400
-                        1h:
-                          interval: 3600
-                          max_age: 1209600
-                      report_intervals:
-                        1d:
-                          interval: 86400
-                      report_scopes:
-                        - site
-                      scopes:
-                        - site
-                        - ap
-                      type: timeseries
-                      unit: ''
-                    top-client:
-                      description: top clients
-                      example:
-                        - bytes: 1232333
-                          mac: 5684dae9ac8b
-                      intervals:
-                        10m:
-                          interval: 600
-                          max_age: 86400
-                        1h:
-                          interval: 3600
-                          max_age: 1209600
-                      key:
-                        mac:
-                          hint: client
-                      report_intervals:
-                        1d:
-                          interval: 86400
-                      report_scopes:
-                        - site
-                      scopes:
-                        - site
-                        - ap
-                      type: keyvalues
-                      values:
-                        bytes:
-                          unit: bytes
           description: OK
       summary: getSiteAvailableInsightMetrics
       tags:
@@ -2251,7 +2200,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/msp_id'
       - $ref: '#/components/parameters/metric'
-  /api/v1/msps/{msp_id}/inventory/{mac}:
+  /api/v1/msps/{msp_id}/inventory/{device_mac}:
     get:
       description: Get Inventoy By device MAC address
       operationId: getMspInventoryByMac
@@ -2307,7 +2256,7 @@ paths:
         - Msps Inventory
     parameters:
       - $ref: '#/components/parameters/msp_id'
-      - $ref: '#/components/parameters/mac'
+      - $ref: '#/components/parameters/device_mac'
   /api/v1/msps/{msp_id}/invites:
     parameters:
       - $ref: '#/components/parameters/msp_id'
@@ -2801,69 +2750,6 @@ paths:
         - Msps Stats
     parameters:
       - $ref: '#/components/parameters/msp_id'
-  /api/v1/or/{org_id}/clients/events/search:
-    get:
-      description: Get Org Clients Events
-      operationId: searchOrgClientEvents
-      parameters:
-        - description: event type, e.g. MARVIS_EVENT_CLIENT_FBT_FAILURE
-          in: query
-          name: type
-          schema:
-            type: string
-        - description: for assoc/disassoc events
-          in: query
-          name: reason_code
-          schema:
-            type: integer
-        - description: SSID Name
-          in: query
-          name: ssid
-          schema:
-            type: string
-        - description: AP MAC
-          in: query
-          name: ap
-          schema:
-            type: string
-        - description: 802.11 standard
-          in: query
-          name: proto
-          schema:
-            enum:
-              - b
-              - g
-              - n
-              - ac
-              - ax
-              - a
-            type: string
-        - description: 24 / 5
-          in: query
-          name: band
-          schema:
-            enum:
-              - '24'
-              - '5'
-            type: string
-        - description: wlan_id
-          in: query
-          name: wlan_id
-          schema:
-            type: string
-        - $ref: '#/components/parameters/page'
-        - $ref: '#/components/parameters/limit'
-        - $ref: '#/components/parameters/start'
-        - $ref: '#/components/parameters/end'
-        - $ref: '#/components/parameters/duration'
-      responses:
-        '200':
-          $ref: '#/components/responses/EventsSearch'
-      summary: searchOrgClientEvents
-      tags:
-        - Orgs Clients
-    parameters:
-      - $ref: '#/components/parameters/org_id'
   /api/v1/orgs:
     post:
       description: "Org admin can invite people to manage the org. Furthermore, he\
@@ -4175,6 +4061,69 @@ paths:
         '200':
           $ref: '#/components/responses/count'
       summary: countOrgWirelessClients
+      tags:
+        - Orgs Clients
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/clients/events/search:
+    get:
+      description: Get Org Clients Events
+      operationId: searchOrgClientEvents
+      parameters:
+        - description: event type, e.g. MARVIS_EVENT_CLIENT_FBT_FAILURE
+          in: query
+          name: type
+          schema:
+            type: string
+        - description: for assoc/disassoc events
+          in: query
+          name: reason_code
+          schema:
+            type: integer
+        - description: SSID Name
+          in: query
+          name: ssid
+          schema:
+            type: string
+        - description: AP MAC
+          in: query
+          name: ap
+          schema:
+            type: string
+        - description: 802.11 standard
+          in: query
+          name: proto
+          schema:
+            enum:
+              - b
+              - g
+              - n
+              - ac
+              - ax
+              - a
+            type: string
+        - description: 24 / 5
+          in: query
+          name: band
+          schema:
+            enum:
+              - '24'
+              - '5'
+            type: string
+        - description: wlan_id
+          in: query
+          name: wlan_id
+          schema:
+            type: string
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/end'
+        - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          $ref: '#/components/responses/EventsSearch'
+      summary: searchOrgClientEvents
       tags:
         - Orgs Clients
     parameters:
@@ -11385,7 +11334,7 @@ paths:
       - $ref: '#/components/parameters/site_id'
       - $ref: '#/components/parameters/client_mac'
       - $ref: '#/components/parameters/metric'
-  /api/v1/sites/{site_id}/anomaly/device/{mac}/{metric}:
+  /api/v1/sites/{site_id}/anomaly/device/{device_mac}/{metric}:
     get:
       description: Get Device Anomaly Events
       operationId: getSiteAnomalyEventsforDevice
@@ -11396,23 +11345,9 @@ paths:
       tags:
         - Sites Anomaly
     parameters:
-      - in: path
-        name: site_id
-        required: true
-        schema:
-          example: 000000ab-00ab-00ab-00ab-0000000000ab
-          format: uuid
-          type: string
-      - in: path
-        name: metric
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: mac
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/site_id'
+      - $ref: '#/components/parameters/metric'
+      - $ref: '#/components/parameters/device_mac'
   /api/v1/sites/{site_id}/anomaly/{metric}:
     get:
       description: Get Site Anomaly Events
@@ -24441,12 +24376,6 @@ components:
         default: 100
         minimum: 0
         type: integer
-    mac:
-      in: path
-      name: mac
-      required: true
-      schema:
-        type: string
     map_id:
       in: path
       name: map_id
