@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> *Version 0.15.1*
+  description: '> *Version 0.16.0*
 
     >
 
-    > Date: October 5th, 2021
+    > Date: October 8th, 2021
 
     >
 
@@ -42,7 +42,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.15.1
+  version: 0.16.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -166,6 +166,7 @@ tags:
   - name: Sites Licenses
   - name: Sites Location
   - name: Sites Maps
+  - name: Sites MxTunnels
   - name: Sites Pcaps
   - name: Sites Psks
   - name: Sites Rfdiags
@@ -12239,7 +12240,7 @@ paths:
       description: Get list of devices on the site.
       operationId: getSiteDevices
       parameters:
-        - description: 'device type: ap (default), switch, gateway'
+        - description: device type
           in: query
           name: type
           schema:
@@ -12789,7 +12790,8 @@ paths:
       description: Search for entries in device config history
       operationId: searchSiteDeviceConfigHistory
       parameters:
-        - in: query
+        - description: AP Mac Address
+          in: query
           name: ap
           schema:
             type: string
@@ -13271,6 +13273,7 @@ paths:
                   bands:
                     - '24'
                     - '5'
+                    - '6'
                   force: false
             schema:
               properties:
@@ -16093,6 +16096,45 @@ paths:
       summary: importSiteWayfinding
       tags:
         - Sites Maps
+  /api/v1/sites/{site_id}/mxtunnels/{mxtunnel_id}/preempt_aps:
+    parameters:
+      - in: path
+        name: site_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: mxtunnel_id
+        required: true
+        schema:
+          type: string
+    post:
+      description: "To preempt AP\u2019s which are not connected to preferred peer\
+        \ to the preferred peer"
+      operationId: preemptSitesMxTunnel
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: ''
+                properties:
+                  preempted_aps:
+                    items:
+                      type: string
+                    type: array
+                required:
+                  - preempted_aps
+                type: object
+                x-examples:
+                  example-1:
+                    preempted_aps:
+                      - 5c5b35000001
+                      - 5c5b35000002
+          description: OK
+      summary: preemptSitesMxTunnel
+      tags:
+        - Sites MxTunnels
   /api/v1/sites/{site_id}/pcaps:
     get:
       description: Get a list of captures
@@ -16645,6 +16687,7 @@ paths:
           enum:
             - '24'
             - '5'
+            - '6'
           type: string
   /api/v1/sites/{site_id}/rrm/events:
     get:
@@ -16658,6 +16701,7 @@ paths:
             enum:
               - '24'
               - '5'
+              - '6'
             type: string
         - $ref: '#/components/parameters/page'
         - $ref: '#/components/parameters/limit'
@@ -16687,10 +16731,11 @@ paths:
                   bands:
                     - '24'
                     - '5'
+                    - '6'
             schema:
               properties:
                 bands:
-                  description: list of bands (24, 5)
+                  description: list of bands
                   items:
                     type: string
                   type: array
@@ -26393,8 +26438,9 @@ components:
             ap:
               value:
                 aeroscout:
-                  enabled: true
+                  enabled: false
                   host: string
+                  locate_connected: true
                 ble_config:
                   beacon_enabled: true
                   beacon_rate: 0
@@ -26414,53 +26460,60 @@ components:
                   eddystone_url_url: string
                   ibeacon_adv_power: -100
                   ibeacon_beams: string
-                  ibeacon_enabled: true
+                  ibeacon_enabled: false
                   ibeacon_freq_msec: 0
                   ibeacon_major: 0
                   ibeacon_minor: 0
-                  ibeacon_uuid: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  power: 1
+                  ibeacon_uuid: 1f89bc00-d0af-481b-82fe-a6629259a39f
+                  power: 9
                   power_mode: string
                 created_time: 0
-                deviceprofile_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                disable_eth1: true
-                disable_eth2: true
-                disable_eth3: true
-                disable_module: true
+                deviceprofile_id: 366a0f23-8d77-404c-8908-b2e629ba0782
+                disable_eth1: false
+                disable_eth2: false
+                disable_eth3: false
+                disable_module: false
+                for_site: true
                 height: 0
-                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
                 image1_url: string
+                image2_url: string
+                image3_url: string
                 iot_config:
                   A1:
-                    enabled: true
+                    enabled: false
                     name: string
-                    output: false
+                    output: true
                     pullup: internal
+                    value: 0
                   A2:
-                    enabled: true
+                    enabled: false
                     name: string
-                    output: false
+                    output: true
                     pullup: internal
+                    value: 0
                   A3:
-                    enabled: true
+                    enabled: false
                     name: string
-                    output: false
+                    output: true
                     pullup: internal
+                    value: 0
                   A4:
-                    enabled: true
+                    enabled: false
                     name: string
-                    output: false
+                    output: true
                     pullup: internal
+                    value: 0
                   DI1:
-                    enabled: true
+                    enabled: false
                     name: string
                     pullup: internal
                   DI2:
-                    enabled: true
+                    enabled: false
                     name: string
                     pullup: internal
                   DO:
-                    enabled: true
+                    enabled: false
                     name: string
                     output: true
                     pullup: internal
@@ -26483,9 +26536,9 @@ components:
                 led:
                   brightness: 0
                   enabled: true
-                map_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
                 mesh:
-                  enabled: true
+                  enabled: false
                   group: 0
                   role: base
                 modified_time: 0
@@ -26493,15 +26546,15 @@ components:
                 notes: string
                 ntp_servers:
                   - string
-                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
                 orientation: 0
                 orientation_overwrite: true
-                poe_passthrough: true
+                poe_passthrough: false
                 port_config:
                   property1:
                     disabled: true
                     dynamic_vlan:
-                      default_vlan_id: 1
+                      default_vlan_id: 0
                       enabled: true
                       type: string
                       vlans:
@@ -26509,29 +26562,35 @@ components:
                         property2: string
                     enable_mac_auth: true
                     forwarding: all
-                    mx_tunnel_id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                    mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
                     mxtunnel_name: string
                     port_auth: none
-                    port_vlan_id: 1
+                    port_vlan_id: 0
                     radius_config:
                       acct_interim_interval: 0
                       acct_servers:
                         - host: string
-                          port: 0
+                          port: 1813
                           secret: string
                       auth_servers:
                         - host: string
-                          port: 0
+                          port: 1812
                           secret: string
-                      auth_servers_retries: 0
-                      auth_servers_timeout: 0
+                      auth_servers_retries: 3
+                      auth_servers_timeout: 5
+                      coa_enabled: false
+                      coa_port: 3799
+                      network: string
+                      source_ip: string
                     radsec:
                       enabled: true
+                      idle_timeout: 0
                       server_name: string
                       servers:
                         - host: string
                           port: 0
                       use_mxedge: true
+                    vlan_id: 0
                     vland_ids:
                       - 0
                     wxtunnel_id: string
@@ -26539,7 +26598,7 @@ components:
                   property2:
                     disabled: true
                     dynamic_vlan:
-                      default_vlan_id: 1
+                      default_vlan_id: 0
                       enabled: true
                       type: string
                       vlans:
@@ -26547,29 +26606,35 @@ components:
                         property2: string
                     enable_mac_auth: true
                     forwarding: all
-                    mx_tunnel_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                    mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
                     mxtunnel_name: string
                     port_auth: none
-                    port_vlan_id: 1
+                    port_vlan_id: 0
                     radius_config:
                       acct_interim_interval: 0
                       acct_servers:
                         - host: string
-                          port: 0
+                          port: 1813
                           secret: string
                       auth_servers:
                         - host: string
-                          port: 0
+                          port: 1812
                           secret: string
-                      auth_servers_retries: 0
-                      auth_servers_timeout: 0
+                      auth_servers_retries: 3
+                      auth_servers_timeout: 5
+                      coa_enabled: false
+                      coa_port: 3799
+                      network: string
+                      source_ip: string
                     radsec:
                       enabled: true
+                      idle_timeout: 0
                       server_name: string
                       servers:
                         - host: string
                           port: 0
                       use_mxedge: true
+                    vlan_id: 0
                     vland_ids:
                       - 0
                     wxtunnel_id: string
@@ -26579,66 +26644,96 @@ components:
                 radio_config:
                   ant_gain_24: 0
                   ant_gain_5: 0
+                  ant_gain_6: 0
                   band_24:
                     allow_rrm_disable: true
+                    ant_gain: 0
                     antenna_mode: default
                     bandwidth: 20
                     channel: 0
+                    channels:
+                      - 0
                     disabled: true
                     power: 0
                     power_max: 0
                     power_min: 0
-                    preamble: auto
+                    preamble: short
                     usage: '24'
                   band_24_usage: '24'
                   band_5:
                     allow_rrm_disable: true
+                    ant_gain: 0
                     antenna_mode: default
                     bandwidth: 20
                     channel: 0
+                    channels:
+                      - 0
                     disabled: true
                     power: 0
                     power_max: 0
                     power_min: 0
-                    preamble: auto
+                    preamble: short
                     usage: '24'
                   band_5_on_24_radio:
                     allow_rrm_disable: true
+                    ant_gain: 0
                     antenna_mode: default
                     bandwidth: 20
                     channel: 0
+                    channels:
+                      - 0
                     disabled: true
                     power: 0
                     power_max: 0
                     power_min: 0
-                    preamble: auto
+                    preamble: short
+                    usage: '24'
+                  band_6:
+                    allow_rrm_disable: true
+                    ant_gain: 0
+                    antenna_mode: default
+                    bandwidth: 20
+                    channel: 0
+                    channels:
+                      - 0
+                    disabled: true
+                    power: 0
+                    power_max: 0
+                    power_min: 0
+                    preamble: short
                     usage: '24'
                   scanning_enabled: true
-                site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
                 switch_config:
-                  enabled: true
+                  enabled: false
                   eth0:
-                    port_vlan_id: 1
+                    enable_vlan: true
+                    port_vlan_id: 0
                     vlan_ids:
                       - 0
                   eth1:
-                    port_vlan_id: 1
+                    enable_vlan: true
+                    port_vlan_id: 0
                     vlan_ids:
                       - 0
                   eth2:
-                    port_vlan_id: 1
+                    enable_vlan: true
+                    port_vlan_id: 0
                     vlan_ids:
                       - 0
                   eth3:
-                    port_vlan_id: 1
+                    enable_vlan: true
+                    port_vlan_id: 0
                     vlan_ids:
                       - 0
                   module:
-                    port_vlan_id: 1
+                    enable_vlan: true
+                    port_vlan_id: 0
                     vlan_ids:
                       - 0
                   wds:
-                    port_vlan_id: 1
+                    enable_vlan: true
+                    port_vlan_id: 0
                     vlan_ids:
                       - 0
                 usb_config:
@@ -32381,7 +32476,7 @@ components:
                   site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                 rftemplate_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                 rftemplate_name: string
-                status: string
+                status: updating
                 timestamp: 0
           schema:
             $ref: '#/components/schemas/rrm'
@@ -32486,17 +32581,19 @@ components:
                       format: uuid
                       type: string
                     band:
-                      description: for 2.4G or 5G
+                      description: ''
                       enum:
                         - '24'
                         - '5'
+                        - '6'
                       type: string
                     bandwidth:
-                      description: channel width for the band 20/40/80
+                      description: channel width for the band
                       enum:
                         - 20
                         - 40
                         - 80
+                        - 160
                       type: integer
                     channel:
                       description: channel for the band from rrm
@@ -32518,8 +32615,14 @@ components:
                       description: tx power of the radio
                       type: integer
                     pre_bandwidth:
-                      description: (previously) channel width for the band 20/40/80,
-                        0 means no previously available
+                      description: (previously) channel width for the band , 0 means
+                        no previously available
+                      enum:
+                        - 0
+                        - 20
+                        - 40
+                        - 80
+                        - 160
                       type: integer
                     pre_channel:
                       description: (previously) channel for the band, 0 means no previously
@@ -35482,7 +35585,7 @@ components:
                 acct_interim_interval: 0
                 acct_servers:
                   - host: string
-                    port: 0
+                    port: 1813
                     secret: string
                 airwatch:
                   api_key: string
@@ -35491,9 +35594,9 @@ components:
                   password: string
                   username: string
                 allow_ipv6_ndp: true
-                allow_mdns: true
+                allow_mdns: false
                 ap_ids:
-                  - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  - 497f6eca-6276-4993-bfeb-53cbbbba6f08
                 app_limit:
                   apps: {}
                   enabled: true
@@ -35514,46 +35617,46 @@ components:
                       protocol: string
                       src_subnet: string
                 apply_to: site
-                arp_filter: true
+                arp_filter: false
                 auth:
-                  eap_reauth: true
-                  enable_mac_auth: true
+                  eap_reauth: false
+                  enable_mac_auth: false
                   key_idx: 1
                   keys:
                     - string
-                  multi_psk_only: true
+                  multi_psk_only: false
                   owe: string
                   pairwise:
-                    - string
+                    - wpa2-ccmp
                   private_wlan: true
-                  psk: string123
+                  psk: stringst
                   type: open
                   wep_as_secondary_auth: true
                 auth_server_selection: ordered
                 auth_servers:
                   - host: string
-                    port: 0
+                    port: 1812
                     secret: string
                 auth_servers_nas_id: string
                 auth_servers_nas_ip: string
-                auth_servers_retries: 0
-                auth_servers_timeout: 0
+                auth_servers_retries: 3
+                auth_servers_timeout: 5
                 band: string
-                band_steer: true
-                band_steer_force_band5: true
+                band_steer: false
+                band_steer_force_band5: false
                 block_blacklist_clients: true
                 bonjour:
                   additional_vlan_ids:
                     - 0
-                  enabled: true
+                  enabled: false
                   services:
                     property1:
-                      disable_local: true
+                      disable_local: false
                       radius_groups:
                         - string
                       scope: string
                     property2:
-                      disable_local: true
+                      disable_local: false
                       radius_groups:
                         - string
                       scope: string
@@ -35564,58 +35667,65 @@ components:
                     - string
                   enabled: true
                 client_limit_down: 0
-                client_limit_down_enabled: true
+                client_limit_down_enabled: false
                 client_limit_up: 0
-                client_limit_up_enabled: true
+                client_limit_up_enabled: false
                 coa_servers:
                   - disable_event_timestamp_check: true
                     enabled: true
-                    ip: 192.168.1.1
-                    port: '3799'
+                    ip: 192.168.0.1
+                    port: string
                     secret: string
                 created_time: 0
-                disable_11ax: true
-                disable_uapsd: true
-                disable_wmm: true
+                disable_11ax: false
+                disable_ht_vht_rates: false
+                disable_uapsd: false
+                disable_wmm: false
                 dns_server_rewrite:
                   enabled: true
                   radius_groups: {}
-                dtim: 0
+                dtim: 2
                 dynamic_psk:
-                  default_vlan_id: 1
+                  default_psk: stringst
+                  default_vlan_id: 0
                   enabled: true
                   source: radius
                   vlan_ids:
                     - 1
                 dynamic_vlan:
-                  default_vlan_id: 1
-                  enabled: true
+                  default_vlan_id: 999
+                  enabled: false
                   local_vlan_ids:
                     - 1
                   type: standard
-                  vlans: {}
+                  vlans:
+                    property1: string
+                    property2: string
                 enable_wireless_bridging: true
                 enabled: true
-                hide_ssid: true
-                hostname_ie: true
+                for_site: true
+                hide_ssid: false
+                hostname_ie: false
                 hotspot20:
                   enabled: true
                   operators:
                     - string
                   venue_name: string
-                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
                 interface: all
-                isolation: true
+                isolation: false
                 legacy_overds: true
-                limit_bcast: true
+                limit_bcast: false
                 limit_probe_response: true
-                max_idletime: 60
+                max_idletime: 1800
                 modified_time: 0
-                msp_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                mxtunnel_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                no_static_dns: true
-                no_static_ip: true
-                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                msp_id: c0cf23fc-d82f-4219-988c-82fb61d8c875
+                mxtunnel: {}
+                mxtunnel_id: 6741baab-cbd6-45bd-9e5b-93e8eede3c80
+                mxtunnel_name: default
+                no_static_dns: false
+                no_static_ip: false
+                org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
                 portal:
                   amazon_client_id: string
                   amazon_client_secret: string
@@ -35627,21 +35737,29 @@ components:
                   azure_client_secret: string
                   azure_enabled: true
                   azure_tenant_id: string
-                  bypass_when_cloud_down: true
+                  broadnet_password: string
+                  broadnet_sid: string
+                  broadnet_user_id: string
+                  bypass_when_cloud_down: false
+                  clickatell_api_key: string
                   email_enabled: true
-                  enabled: true
-                  expire: 0
+                  enabled: false
+                  expire: 1440
                   external_portal_url: string
                   facebook_client_id: string
                   facebook_client_secret: string
                   facebook_email_domains:
                     - string
                   facebook_enabled: true
-                  forward: true
+                  forward: false
                   forward_url: string
+                  google_client_id: string
+                  google_client_secret: string
                   google_email_domains:
                     - string
                   google_enabled: true
+                  gupshup_password: string
+                  gupshup_userid: string
                   microsoft_client_id: string
                   microsoft_client_secret: string
                   microsoft_email_domains:
@@ -35655,21 +35773,29 @@ components:
                   portal_denied_hostnames: string
                   portal_image: string
                   portal_sso_url: string
+                  predefined_sponsors_enabled: true
                   privacy: true
+                  puzzel_password: string
+                  puzzel_service_id: string
+                  puzzel_username: string
+                  smsMessageFormat: string
                   sms_enabled: true
                   sms_provider: manual
                   sponsor_email_domains:
                     - string
                   sponsor_enabled: true
-                  sponsor_link_validity_duration: '60'
+                  sponsor_link_validity_duration: string
+                  sponsor_notify_all: false
                   sponsors:
                     property1: string
                     property2: string
                   sso_default_role: string
+                  sso_forced_role: string
                   sso_idp_cert: string
                   sso_idp_sign_algo: string
                   sso_idp_sso_url: string
                   sso_issuer: string
+                  sso_nameid_format: email
                   thumbnail: string
                   twilio_auth_token: string
                   twilio_phone_number: string
@@ -35686,9 +35812,10 @@ components:
                 portal_template_url: string
                 qos:
                   class: best_effort
-                  overwrite: true
+                  overwrite: false
                 radsec:
                   enabled: true
+                  idle_timeout: 0
                   server_name: string
                   servers:
                     - host: string
@@ -35709,27 +35836,28 @@ components:
                     min_rssi: 0
                     template: string
                     vht: string
-                roam_mode: 11r
+                roam_mode: none
                 schedule:
-                  enabled: true
+                  enabled: false
                   hours: {}
-                site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                sle_excluded: true
+                site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                sle_excluded: false
                 ssid: string
+                template_id: c6d67e98-83ea-49f0-8812-e4abae2b68bc
                 thumbnail: http://example.com
-                use_eapol_v1: true
-                vlan_enabled: true
+                use_eapol_v1: false
+                vlan_enabled: false
                 vlan_id: 1
                 vlan_ids:
                   - 1
-                vlan_pooling: true
+                vlan_pooling: false
                 wlan_limit_down: 0
-                wlan_limit_down_enabled: true
+                wlan_limit_down_enabled: false
                 wlan_limit_up: 0
-                wlan_limit_up_enabled: true
+                wlan_limit_up_enabled: false
                 wxtag_ids:
-                  - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                wxtunnel_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                wxtunnel_id: string
                 wxtunnel_remote_id: string
           schema:
             $ref: '#/components/schemas/wlan'
@@ -36540,24 +36668,45 @@ components:
                 org_entitled:
                   SUB-LOC: 30
                   SUB-MAN: 60
+                svna_enabled: false
                 trial_enabled: false
                 usages:
                   SUB-LOC: 30
                   SUB-MAN: 60
+                vna_enabled: false
+                wvna_enabled: false
           schema:
             properties:
               org_entitled:
+                additionalProperties:
+                  type: integer
                 description: license entitlement for the entire org
                 type: object
+              svna_enabled:
+                description: license entitlement for the Switch device whether SVNA
+                  enabled
+                type: boolean
               trial_enabled:
                 type: boolean
               usages:
+                additionalProperties:
+                  type: integer
                 description: subscriptions and their quantities
                 type: object
+              vna_enabled:
+                description: license entitlement for the AP device whether VNA enabled
+                type: boolean
+              wvna_enabled:
+                description: license entitlement for the Gateway device whether WVNA
+                  enabled
+                type: boolean
             required:
               - usages
               - org_entitled
               - trial_enabled
+              - vna_enabled
+              - svna_enabled
+              - wvna_enabled
             type: object
       description: OK
   schemas:
@@ -37947,6 +38096,9 @@ components:
         ant_gain_5:
           description: antenna gain for 5G - for models with external antenna only
           type: integer
+        ant_gain_6:
+          description: antenna gain for 6G - for models with external antenna only
+          type: integer
         band_24:
           $ref: '#/components/schemas/ap_radio_band'
         band_24_usage:
@@ -37962,6 +38114,8 @@ components:
           $ref: '#/components/schemas/ap_radio_band'
         band_5_on_24_radio:
           $ref: '#/components/schemas/ap_radio_band'
+        band_6:
+          $ref: '#/components/schemas/ap_radio_band'
         scanning_enabled:
           description: whether scanning radio is enabled
           type: boolean
@@ -37970,26 +38124,64 @@ components:
         example-1:
           ant_gain_24: 0
           ant_gain_5: 0
+          ant_gain_6: 0
           band_24:
             allow_rrm_disable: true
+            ant_gain: 0
             antenna_mode: default
-            bandwidth: 0
+            bandwidth: 20
             channel: 0
+            channels:
+              - 0
             disabled: true
             power: 0
+            power_max: 0
+            power_min: 0
+            preamble: short
+            usage: '24'
           band_24_usage: '24'
           band_5:
+            allow_rrm_disable: true
+            ant_gain: 0
             antenna_mode: default
-            bandwidth: 0
+            bandwidth: 20
             channel: 0
+            channels:
+              - 0
             disabled: true
             power: 0
+            power_max: 0
+            power_min: 0
+            preamble: short
+            usage: '24'
           band_5_on_24_radio:
+            allow_rrm_disable: true
+            ant_gain: 0
             antenna_mode: default
-            bandwidth: 0
+            bandwidth: 20
             channel: 0
+            channels:
+              - 0
             disabled: true
             power: 0
+            power_max: 0
+            power_min: 0
+            preamble: short
+            usage: '24'
+          band_6:
+            allow_rrm_disable: true
+            ant_gain: 0
+            antenna_mode: default
+            bandwidth: 20
+            channel: 0
+            channels:
+              - 0
+            disabled: true
+            power: 0
+            power_max: 0
+            power_min: 0
+            preamble: short
+            usage: '24'
           scanning_enabled: true
     ap_radio_band:
       description: Radio Band AP settings
@@ -38009,8 +38201,9 @@ components:
             - 4x4
           type: string
         bandwidth:
-          description: Channel width for the band, 80 is only applicable for band_5,
-            ignored if channel is 0
+          description: channel width for the band, 20 / 40 / 80 / 160, 80 is only
+            applicable for band_5 and 160 is only for band_6, ignored if channel is
+            0
           enum:
             - 20
             - 40
@@ -38064,11 +38257,18 @@ components:
       x-examples:
         example-1:
           allow_rrm_disable: true
+          ant_gain: 0
           antenna_mode: default
-          bandwidth: 0
+          bandwidth: 20
           channel: 0
+          channels:
+            - 0
           disabled: true
           power: 0
+          power_max: 0
+          power_min: 0
+          preamble: short
+          usage: '24'
     ap_switch:
       description: for people who want to fully control the vlans (advanced)
       properties:
@@ -38370,6 +38570,35 @@ components:
         - port
         - secret
       type: object
+    auto_preemption:
+      description: "schedule to preempt ap\u2019s which are not connected to preferred\
+        \ peer"
+      properties:
+        day_of_week:
+          enum:
+            - any
+            - mon
+            - tue
+            - wed
+            - thu
+            - fri
+            - sat
+            - sun
+          type: string
+        enabled:
+          default: false
+          description: whether auto preemption should happen
+          type: boolean
+        time_of_day:
+          default: any
+          description: any / HH:MM (24-hour format)
+          type: string
+      type: object
+      x-examples:
+        example-1:
+          day_of_week: any
+          enabled: false
+          time_of_day: any
     beacon:
       description: Beacon
       properties:
@@ -39073,14 +39302,15 @@ components:
           type: number
       type: object
       x-examples:
-        device-ap:
+        device_ap:
           aeroscout:
-            enabled: true
+            enabled: false
             host: string
+            locate_connected: true
           ble_config:
             beacon_enabled: true
             beacon_rate: 0
-            beacon_rate_mode: string
+            beacon_rate_mode: default
             beam_disabled:
               - 0
             eddystone_uid_adv_power: -100
@@ -39096,63 +39326,64 @@ components:
             eddystone_url_url: string
             ibeacon_adv_power: -100
             ibeacon_beams: string
-            ibeacon_enabled: true
+            ibeacon_enabled: false
             ibeacon_freq_msec: 0
             ibeacon_major: 0
             ibeacon_minor: 0
-            ibeacon_uuid: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-            power: 0
+            ibeacon_uuid: 1f89bc00-d0af-481b-82fe-a6629259a39f
+            power: 9
             power_mode: string
           created_time: 0
-          deviceprofile_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-          disable_eth1: true
-          disable_eth2: true
-          disable_eth3: true
-          disable_module: true
+          deviceprofile_id: 366a0f23-8d77-404c-8908-b2e629ba0782
+          disable_eth1: false
+          disable_eth2: false
+          disable_eth3: false
+          disable_module: false
+          for_site: true
           height: 0
-          id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
           image1_url: string
+          image2_url: string
+          image3_url: string
           iot_config:
             A1:
-              enabled: true
+              enabled: false
               name: string
               output: true
               pullup: internal
-              value: true
+              value: 0
             A2:
-              enabled: true
+              enabled: false
               name: string
               output: true
               pullup: internal
-              value: true
+              value: 0
             A3:
-              enabled: true
+              enabled: false
               name: string
               output: true
               pullup: internal
-              value: true
+              value: 0
             A4:
-              enabled: true
+              enabled: false
               name: string
               output: true
               pullup: internal
-              value: true
+              value: 0
             DI1:
-              enabled: true
+              enabled: false
               name: string
               pullup: internal
-              value: true
             DI2:
-              enabled: true
+              enabled: false
               name: string
               pullup: internal
-              value: true
             DO:
-              enabled: true
+              enabled: false
               name: string
               output: true
               pullup: internal
-              value: true
+              value: 0
           ip_config:
             dns:
               - string
@@ -39171,9 +39402,9 @@ components:
           led:
             brightness: 0
             enabled: true
-          map_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
           mesh:
-            enabled: true
+            enabled: false
             group: 0
             role: base
           modified_time: 0
@@ -39181,15 +39412,15 @@ components:
           notes: string
           ntp_servers:
             - string
-          org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
           orientation: 0
           orientation_overwrite: true
-          poe_passthrough: true
+          poe_passthrough: false
           port_config:
             property1:
               disabled: true
               dynamic_vlan:
-                default_vlan_id: 1
+                default_vlan_id: 0
                 enabled: true
                 type: string
                 vlans:
@@ -39197,29 +39428,35 @@ components:
                   property2: string
               enable_mac_auth: true
               forwarding: all
-              mx_tunnel_id: string
+              mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
               mxtunnel_name: string
               port_auth: none
-              port_vlan_id: 1
+              port_vlan_id: 0
               radius_config:
                 acct_interim_interval: 0
                 acct_servers:
                   - host: string
-                    port: 0
+                    port: 1813
                     secret: string
                 auth_servers:
                   - host: string
-                    port: 0
+                    port: 1812
                     secret: string
-                auth_servers_retries: 0
-                auth_servers_timeout: 0
+                auth_servers_retries: 3
+                auth_servers_timeout: 5
+                coa_enabled: false
+                coa_port: 3799
+                network: string
+                source_ip: string
               radsec:
                 enabled: true
+                idle_timeout: 0
                 server_name: string
                 servers:
                   - host: string
                     port: 0
                 use_mxedge: true
+              vlan_id: 0
               vland_ids:
                 - 0
               wxtunnel_id: string
@@ -39227,7 +39464,7 @@ components:
             property2:
               disabled: true
               dynamic_vlan:
-                default_vlan_id: 1
+                default_vlan_id: 0
                 enabled: true
                 type: string
                 vlans:
@@ -39235,29 +39472,35 @@ components:
                   property2: string
               enable_mac_auth: true
               forwarding: all
-              mx_tunnel_id: string
+              mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
               mxtunnel_name: string
               port_auth: none
-              port_vlan_id: 1
+              port_vlan_id: 0
               radius_config:
                 acct_interim_interval: 0
                 acct_servers:
                   - host: string
-                    port: 0
+                    port: 1813
                     secret: string
                 auth_servers:
                   - host: string
-                    port: 0
+                    port: 1812
                     secret: string
-                auth_servers_retries: 0
-                auth_servers_timeout: 0
+                auth_servers_retries: 3
+                auth_servers_timeout: 5
+                coa_enabled: false
+                coa_port: 3799
+                network: string
+                source_ip: string
               radsec:
                 enabled: true
+                idle_timeout: 0
                 server_name: string
                 servers:
                   - host: string
                     port: 0
                 use_mxedge: true
+              vlan_id: 0
               vland_ids:
                 - 0
               wxtunnel_id: string
@@ -39267,66 +39510,96 @@ components:
           radio_config:
             ant_gain_24: 0
             ant_gain_5: 0
+            ant_gain_6: 0
             band_24:
               allow_rrm_disable: true
+              ant_gain: 0
               antenna_mode: default
-              bandwidth: 0
+              bandwidth: 20
               channel: 0
+              channels:
+                - 0
               disabled: true
               power: 0
               power_max: 0
               power_min: 0
-              preamble: auto
+              preamble: short
               usage: '24'
             band_24_usage: '24'
             band_5:
               allow_rrm_disable: true
+              ant_gain: 0
               antenna_mode: default
-              bandwidth: 0
+              bandwidth: 20
               channel: 0
+              channels:
+                - 0
               disabled: true
               power: 0
               power_max: 0
               power_min: 0
-              preamble: auto
-              usage: string
+              preamble: short
+              usage: '24'
             band_5_on_24_radio:
               allow_rrm_disable: true
+              ant_gain: 0
               antenna_mode: default
-              bandwidth: 0
+              bandwidth: 20
               channel: 0
+              channels:
+                - 0
               disabled: true
               power: 0
               power_max: 0
               power_min: 0
-              preamble: auto
-              usage: string
+              preamble: short
+              usage: '24'
+            band_6:
+              allow_rrm_disable: true
+              ant_gain: 0
+              antenna_mode: default
+              bandwidth: 20
+              channel: 0
+              channels:
+                - 0
+              disabled: true
+              power: 0
+              power_max: 0
+              power_min: 0
+              preamble: short
+              usage: '24'
             scanning_enabled: true
-          site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
           switch_config:
-            enabled: true
+            enabled: false
             eth0:
-              port_vlan_id: 1
+              enable_vlan: true
+              port_vlan_id: 0
               vlan_ids:
                 - 0
             eth1:
-              port_vlan_id: 1
+              enable_vlan: true
+              port_vlan_id: 0
               vlan_ids:
                 - 0
             eth2:
-              port_vlan_id: 1
+              enable_vlan: true
+              port_vlan_id: 0
               vlan_ids:
                 - 0
             eth3:
-              port_vlan_id: 1
+              enable_vlan: true
+              port_vlan_id: 0
               vlan_ids:
                 - 0
             module:
-              port_vlan_id: 1
+              enable_vlan: true
+              port_vlan_id: 0
               vlan_ids:
                 - 0
             wds:
-              port_vlan_id: 1
+              enable_vlan: true
+              port_vlan_id: 0
               vlan_ids:
                 - 0
           usb_config:
@@ -39335,7 +39608,7 @@ components:
             enabled: true
             host: string
             port: 0
-            type: string
+            type: imagotag
             verify_cert: true
           vars: {}
           x: 0
@@ -40624,374 +40897,405 @@ components:
         - name
       type: object
       x-examples:
-        example-2:
-          value:
-            created_time: 0
-            dhcpd_config:
-              property1:
-                dns_servers:
-                  - 192.168.0.1
-                dns_suffix:
-                  - string
-                fixed_bindings:
-                  property1:
-                    ip: 192.168.0.1
-                    name: string
-                  property2:
-                    ip: 192.168.0.1
-                    name: string
-                gateway: 192.168.0.1
-                ip_end: 192.168.0.1
-                ip_start: 192.168.0.1
-                servers:
-                  - 192.168.0.1
-                type: local
-              property2:
-                dns_servers:
-                  - 192.168.0.1
-                dns_suffix:
-                  - string
-                fixed_bindings:
-                  property1:
-                    ip: 192.168.0.1
-                    name: string
-                  property2:
-                    ip: 192.168.0.1
-                    name: string
-                gateway: 192.168.0.1
-                ip_end: 192.168.0.1
-                ip_start: 192.168.0.1
-                servers:
-                  - 192.168.0.1
-                type: local
-            gateway_matching:
-              enable: true
-              rules:
-                - additional_config_cmds:
-                    - string
-                  name: string
-                  port_config:
-                    property1:
-                      ae_disable_lacp: true
-                      ae_idx: 0
-                      aggregated: false
-                      description: string
-                      disable_autoneg: true
-                      duplex: auto
-                      dynamic_usage: string
-                      esilag: true
-                      poe_disabled: true
-                      speed: auto
-                      usage: string
-                    property2:
-                      ae_disable_lacp: true
-                      ae_idx: 0
-                      aggregated: false
-                      description: string
-                      disable_autoneg: true
-                      duplex: auto
-                      dynamic_usage: string
-                      esilag: true
-                      poe_disabled: true
-                      speed: auto
-                      usage: string
-                  property1: string
-                  property2: string
-            id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-            idp_config:
-              enabled: true
-              networks:
+        example-1:
+          bgp_config:
+            property1:
+              auth_key: string
+              export: string
+              import: string
+              local_as: 0
+              neighbors:
                 property1:
-                  profile: default
+                  neighbor_as: 0
                 property2:
-                  profile: default
-              profile: default
-            ip_configs:
-              property1:
-                ip: 192.168.0.1
-                netmask: /24
-              property2:
-                ip: 192.168.0.1
-                netmask: /24
-            modified_time: 0
-            name: string
+                  neighbor_as: 0
+              remote_as: 0
+              type: string
+            property2:
+              auth_key: string
+              export: string
+              import: string
+              local_as: 0
+              neighbors:
+                property1:
+                  neighbor_as: 0
+                property2:
+                  neighbor_as: 0
+              remote_as: 0
+              type: string
+          created_time: 0
+          dhcpd_config:
+            property1:
+              dns_servers:
+                - 192.168.0.1
+              dns_suffix:
+                - string
+              fixed_bindings:
+                property1:
+                  ip: 192.168.0.1
+                  name: string
+                property2:
+                  ip: 192.168.0.1
+                  name: string
+              gateway: 192.168.0.1
+              ip_end: 192.168.0.1
+              ip_start: 192.168.0.1
+              servers:
+                - 192.168.0.1
+              type: local
+            property2:
+              dns_servers:
+                - 192.168.0.1
+              dns_suffix:
+                - string
+              fixed_bindings:
+                property1:
+                  ip: 192.168.0.1
+                  name: string
+                property2:
+                  ip: 192.168.0.1
+                  name: string
+              gateway: 192.168.0.1
+              ip_end: 192.168.0.1
+              ip_start: 192.168.0.1
+              servers:
+                - 192.168.0.1
+              type: local
+          gateway_matching:
+            enable: true
+            rules:
+              - additional_config_cmds:
+                  - string
+                name: string
+                port_config:
+                  property1:
+                    ae_disable_lacp: true
+                    ae_idx: 0
+                    aggregated: false
+                    description: string
+                    disable_autoneg: true
+                    duplex: auto
+                    dynamic_usage: string
+                    esilag: true
+                    poe_disabled: true
+                    speed: auto
+                    usage: string
+                  property2:
+                    ae_disable_lacp: true
+                    ae_idx: 0
+                    aggregated: false
+                    description: string
+                    disable_autoneg: true
+                    duplex: auto
+                    dynamic_usage: string
+                    esilag: true
+                    poe_disabled: true
+                    speed: auto
+                    usage: string
+                property1: string
+                property2: string
+          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          idp_config:
+            enabled: true
             networks:
               property1:
-                created_time: 0
-                gateway: 192.168.70.1
-                hosts:
-                  property1:
-                    external_ips: 172.16.10.32-172.16.10.35
-                    ips: 192.168.70.32-192.168.70.35
-                  property2:
-                    external_ips: 172.16.10.32-172.16.10.35
-                    ips: 192.168.70.32-192.168.70.35
-                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-                internal_access:
-                  enabled: true
-                internet_access:
-                  destination_nat:
-                    property1:
-                      internal_ip: string
-                      name: string
-                      port: string
-                    property2:
-                      internal_ip: string
-                      name: string
-                      port: string
-                  enabled: true
-                  restricted: false
-                  static_nat:
-                    property1:
-                      internal_ip: string
-                      name: string
-                    property2:
-                      internal_ip: string
-                      name: string
-                isolation: true
-                modified_time: 0
-                name: string
-                org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-                subnet: 192.168.70.0/24
-                tenants:
-                  property1:
-                    addresses: string
-                  property2:
-                    addresses: string
-                vlan_id: 0
-                vpn_access:
-                  property1:
-                    destination_nat:
-                      property1:
-                        name: string
-                        port: string
-                        to: string
-                      property2:
-                        name: string
-                        port: string
-                        to: string
-                    nat_pool: string
-                    routed: true
-                    static_nat:
-                      property1:
-                        name: string
-                        to: string
-                      property2:
-                        name: string
-                        to: string
-                  property2:
-                    destination_nat:
-                      property1:
-                        name: string
-                        port: string
-                        to: string
-                      property2:
-                        name: string
-                        port: string
-                        to: string
-                    nat_pool: string
-                    routed: true
-                    static_nat:
-                      property1:
-                        name: string
-                        to: string
-                      property2:
-                        name: string
-                        to: string
+                profile: default
               property2:
-                created_time: 0
-                gateway: 192.168.70.1
-                hosts:
-                  property1:
-                    external_ips: 172.16.10.32-172.16.10.35
-                    ips: 192.168.70.32-192.168.70.35
-                  property2:
-                    external_ips: 172.16.10.32-172.16.10.35
-                    ips: 192.168.70.32-192.168.70.35
-                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-                internal_access:
-                  enabled: true
-                internet_access:
-                  destination_nat:
-                    property1:
-                      internal_ip: string
-                      name: string
-                      port: string
-                    property2:
-                      internal_ip: string
-                      name: string
-                      port: string
-                  enabled: true
-                  restricted: false
-                  static_nat:
-                    property1:
-                      internal_ip: string
-                      name: string
-                    property2:
-                      internal_ip: string
-                      name: string
-                isolation: true
-                modified_time: 0
-                name: string
-                org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-                subnet: 192.168.70.0/24
-                tenants:
-                  property1:
-                    addresses: string
-                  property2:
-                    addresses: string
-                vlan_id: 0
-                vpn_access:
-                  property1:
-                    destination_nat:
-                      property1:
-                        name: string
-                        port: string
-                        to: string
-                      property2:
-                        name: string
-                        port: string
-                        to: string
-                    nat_pool: string
-                    routed: true
-                    static_nat:
-                      property1:
-                        name: string
-                        to: string
-                      property2:
-                        name: string
-                        to: string
-                  property2:
-                    destination_nat:
-                      property1:
-                        name: string
-                        port: string
-                        to: string
-                      property2:
-                        name: string
-                        port: string
-                        to: string
-                    nat_pool: string
-                    routed: true
-                    static_nat:
-                      property1:
-                        name: string
-                        to: string
-                      property2:
-                        name: string
-                        to: string
-            org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-            path_preferences:
-              property1:
-                paths:
-                  - cost: 0
-                    name: string
-                strategy: default
-              property2:
-                paths:
-                  - cost: 0
-                    name: string
-                strategy: default
-            port_config:
-              property1:
-                backup_only: true
-                description: string
-                ip_config:
-                  dns:
-                    - string
-                  dns_suffix:
-                    - string
-                  gateway: string
-                  ip: string
-                  netmask: string
-                  network: string
-                  poser_password: string
-                  ppoe_username: string
-                  type: dhcp
-                lte_apn: string
-                lte_auth: none
-                lte_password: string
-                lte_username: string
-                name: string
-                networks:
-                  - string
-                pci_address: string
-                port_network: string
-                usage: string
-                vlan_id: 0
-                vpn_overlays:
-                  property1:
-                    peer_wan_names:
-                      - string
-                    role: spoke
-                  property2:
-                    peer_wan_names:
-                      - string
-                    role: spoke
-                vpn_paths:
-                  property1:
-                    role: spoke
-                  property2:
-                    role: spoke
-                wan_type: broadband
-              property2:
-                backup_only: true
-                description: string
-                ip_config:
-                  dns:
-                    - string
-                  dns_suffix:
-                    - string
-                  gateway: string
-                  ip: string
-                  netmask: string
-                  network: string
-                  poser_password: string
-                  ppoe_username: string
-                  type: dhcp
-                lte_apn: string
-                lte_auth: none
-                lte_password: string
-                lte_username: string
-                name: string
-                networks:
-                  - string
-                pci_address: string
-                port_network: string
-                usage: string
-                vlan_id: 0
-                vpn_overlays:
-                  property1:
-                    peer_wan_names:
-                      - string
-                    role: spoke
-                  property2:
-                    peer_wan_names:
-                      - string
-                    role: spoke
-                vpn_paths:
-                  property1:
-                    role: spoke
-                  property2:
-                    role: spoke
-                wan_type: broadband
-            service_policies:
-              - name: string
-                path_preference: string
-                services:
-                  - string
-                tenants:
-                  - string
-            urlfilter_config:
-              blocked_categories:
-                - '[ "adult", "gaming", "violance" ]'
-              enabled: true
-              networks:
+                profile: default
+            profile: default
+          ip_configs:
+            property1:
+              ip: 192.168.0.1
+              netmask: /24
+            property2:
+              ip: 192.168.0.1
+              netmask: /24
+          modified_time: 0
+          name: string
+          networks:
+            property1:
+              created_time: 0
+              gateway: 192.168.70.1
+              hosts:
                 property1:
-                  profile: default
+                  external_ips: 172.16.10.32-172.16.10.35
+                  ips: 192.168.70.32-192.168.70.35
                 property2:
-                  profile: default
-              profile: default
+                  external_ips: 172.16.10.32-172.16.10.35
+                  ips: 192.168.70.32-192.168.70.35
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              internal_access:
+                enabled: true
+              internet_access:
+                destination_nat:
+                  property1:
+                    internal_ip: string
+                    name: string
+                    port: string
+                  property2:
+                    internal_ip: string
+                    name: string
+                    port: string
+                enabled: true
+                restricted: false
+                static_nat:
+                  property1:
+                    internal_ip: string
+                    name: string
+                  property2:
+                    internal_ip: string
+                    name: string
+              isolation: true
+              modified_time: 0
+              name: string
+              org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+              subnet: 192.168.70.0/24
+              tenants:
+                property1:
+                  addresses: string
+                property2:
+                  addresses: string
+              vlan_id: 0
+              vpn_access:
+                property1:
+                  destination_nat:
+                    property1:
+                      name: string
+                      port: string
+                      to: string
+                    property2:
+                      name: string
+                      port: string
+                      to: string
+                  nat_pool: string
+                  routed: true
+                  static_nat:
+                    property1:
+                      name: string
+                      to: string
+                    property2:
+                      name: string
+                      to: string
+                property2:
+                  destination_nat:
+                    property1:
+                      name: string
+                      port: string
+                      to: string
+                    property2:
+                      name: string
+                      port: string
+                      to: string
+                  nat_pool: string
+                  routed: true
+                  static_nat:
+                    property1:
+                      name: string
+                      to: string
+                    property2:
+                      name: string
+                      to: string
+            property2:
+              created_time: 0
+              gateway: 192.168.70.1
+              hosts:
+                property1:
+                  external_ips: 172.16.10.32-172.16.10.35
+                  ips: 192.168.70.32-192.168.70.35
+                property2:
+                  external_ips: 172.16.10.32-172.16.10.35
+                  ips: 192.168.70.32-192.168.70.35
+              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              internal_access:
+                enabled: true
+              internet_access:
+                destination_nat:
+                  property1:
+                    internal_ip: string
+                    name: string
+                    port: string
+                  property2:
+                    internal_ip: string
+                    name: string
+                    port: string
+                enabled: true
+                restricted: false
+                static_nat:
+                  property1:
+                    internal_ip: string
+                    name: string
+                  property2:
+                    internal_ip: string
+                    name: string
+              isolation: true
+              modified_time: 0
+              name: string
+              org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+              subnet: 192.168.70.0/24
+              tenants:
+                property1:
+                  addresses: string
+                property2:
+                  addresses: string
+              vlan_id: 0
+              vpn_access:
+                property1:
+                  destination_nat:
+                    property1:
+                      name: string
+                      port: string
+                      to: string
+                    property2:
+                      name: string
+                      port: string
+                      to: string
+                  nat_pool: string
+                  routed: true
+                  static_nat:
+                    property1:
+                      name: string
+                      to: string
+                    property2:
+                      name: string
+                      to: string
+                property2:
+                  destination_nat:
+                    property1:
+                      name: string
+                      port: string
+                      to: string
+                    property2:
+                      name: string
+                      port: string
+                      to: string
+                  nat_pool: string
+                  routed: true
+                  static_nat:
+                    property1:
+                      name: string
+                      to: string
+                    property2:
+                      name: string
+                      to: string
+          org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+          path_preferences:
+            property1:
+              paths:
+                cost: 0
+                name: string
+                type: string
+              strategy: string
+            property2:
+              paths:
+                cost: 0
+                name: string
+                type: string
+              strategy: string
+          port_config:
+            property1:
+              description: string
+              dsl_vci: 65535
+              dsl_vpi: 0
+              ip_config:
+                dns:
+                  - string
+                dns_suffix:
+                  - string
+                gateway: string
+                ip: string
+                netmask: string
+                network: string
+                poser_password: string
+                ppoe_username: string
+                pppoe_auth: none
+                type: dhcp
+              lte_apn: string
+              lte_auth: none
+              lte_backup: true
+              lte_password: string
+              lte_username: string
+              name: string
+              networks:
+                - string
+              pci_address: string
+              port_network: string
+              usage: string
+              vlan_id: 0
+              vpn_paths:
+                property1:
+                  role: spoke
+                property2:
+                  role: spoke
+              wan_type: broadband
+            property2:
+              description: string
+              dsl_vci: 65535
+              dsl_vpi: 0
+              ip_config:
+                dns:
+                  - string
+                dns_suffix:
+                  - string
+                gateway: string
+                ip: string
+                netmask: string
+                network: string
+                poser_password: string
+                ppoe_username: string
+                pppoe_auth: none
+                type: dhcp
+              lte_apn: string
+              lte_auth: none
+              lte_backup: true
+              lte_password: string
+              lte_username: string
+              name: string
+              networks:
+                - string
+              pci_address: string
+              port_network: string
+              usage: string
+              vlan_id: 0
+              vpn_paths:
+                property1:
+                  role: spoke
+                property2:
+                  role: spoke
+              wan_type: broadband
+          routing_policies:
+            property1:
+              terms:
+                - as_path: string
+                  community: string
+                  network: string
+                  prefix: string
+                  protocol: string
+                  then: string
+            property2:
+              terms:
+                - as_path: string
+                  community: string
+                  network: string
+                  prefix: string
+                  protocol: string
+                  then: string
+          service_policies:
+            name: string
+            path_preferences: string
+            services:
+              - string
+            tenants:
+              - string
+          urlfilter_config:
+            blocked_categories:
+              - '[ "adult", "gaming", "violance" ]'
+            enabled: true
+            networks:
+              property1:
+                profile: default
+              property2:
+                profile: default
+            profile: default
     guest:
       description: Guest
       properties:
@@ -41109,6 +41413,17 @@ components:
         auth_key:
           minLength: 1
           type: string
+        communities:
+          items:
+            properties:
+              id:
+                type: string
+              local_preference:
+                type: integer
+              vpn_name:
+                type: string
+            type: object
+          type: array
         export:
           minLength: 1
           type: string
@@ -41731,10 +42046,6 @@ components:
     junos_port_config_gateway:
       description: Gateway port config
       properties:
-        backup_only:
-          description: if the interface should only be used when all other WAN interfaces
-            are down
-          type: boolean
         description:
           type: string
         dsl_vci:
@@ -41761,6 +42072,9 @@ components:
             - chap
             - pap
           type: string
+        lte_backup:
+          description: ''
+          type: boolean
         lte_password:
           description: if `wan_type`==`lte`
           type: string
@@ -41818,10 +42132,10 @@ components:
           port_network: default
           usage: lan
         LTE:
-          backup_only: false
           ip_config:
             type: dhcp
           lte_apn: 5ginternet
+          lte_backup: false
           usage: wan
           wan_type: lte
         PPOE:
@@ -42844,6 +43158,8 @@ components:
           items:
             $ref: '#/components/schemas/site_tunterm_monitoring'
           type: array
+        tunterm_monitoring_disabled:
+          type: boolean
       type: object
       x-examples:
         example-1:
@@ -43313,6 +43629,8 @@ components:
     mxtunnel:
       description: MxTunnel
       properties:
+        auto_preemption:
+          $ref: '#/components/schemas/auto_preemption'
         created_time:
           readOnly: true
           type: number
@@ -45493,65 +45811,26 @@ components:
       description: RRM
       properties:
         band_24:
+          additionalProperties:
+            $ref: '#/components/schemas/rrm_band'
+          description: proposal on band 2.4G, key is ap_id, value is the proposal
           type: object
         band_24_metric:
-          properties:
-            avg_aps_per_channel:
-              type: number
-            channel_distribution_uniformity:
-              type: number
-            cochannel_neighbors:
-              type: integer
-            density:
-              type: number
-            naps_by_channel:
-              type: object
-            naps_by_power:
-              type: object
-            neighbors:
-              type: integer
-            noise:
-              type: number
-          required:
-            - noise
-            - cochannel_neighbors
-            - neighbors
-            - density
-            - naps_by_channel
-            - avg_aps_per_channel
-            - naps_by_power
-            - channel_distribution_uniformity
-          type: object
+          $ref: '#/components/schemas/rrm_band_metric'
         band_5:
+          additionalProperties:
+            $ref: '#/components/schemas/rrm_band'
+          description: proposal on band 5G, key is ap_id, value is the proposal
           type: object
         band_5_metric:
-          properties:
-            avg_aps_per_channel:
-              type: number
-            channel_distribution_uniformity:
-              type: number
-            cochannel_neighbors:
-              type: integer
-            density:
-              type: number
-            naps_by_channel:
-              type: object
-            naps_by_power:
-              type: object
-            neighbors:
-              type: integer
-            noise:
-              type: number
-          required:
-            - noise
-            - cochannel_neighbors
-            - neighbors
-            - density
-            - naps_by_channel
-            - avg_aps_per_channel
-            - naps_by_power
-            - channel_distribution_uniformity
+          $ref: '#/components/schemas/rrm_band_metric'
+        band_6:
+          additionalProperties:
+            $ref: '#/components/schemas/rrm_band'
+          description: proposal on band 6G, key is ap_id, value is the proposal
           type: object
+        band_6_metric:
+          $ref: '#/components/schemas/rrm_band_metric'
         rftemplate:
           $ref: '#/components/schemas/rftemplate'
         rftemplate_id:
@@ -45560,19 +45839,24 @@ components:
         rftemplate_name:
           type: string
         status:
+          enum:
+            - unknown
+            - updating
+            - ready
           type: string
         timestamp:
+          description: time where the status was updated
           type: number
       required:
         - band_24
         - band_24_metric
         - band_5
         - band_5_metric
-        - status
-        - timestamp
         - rftemplate
         - rftemplate_id
         - rftemplate_name
+        - status
+        - timestamp
       type: object
       x-examples:
         example-1:
@@ -45658,6 +45942,86 @@ components:
           rftemplate_name: Lab
           status: ready
           timestamp: 1604281725
+    rrm_band:
+      description: ''
+      properties:
+        bandwidth:
+          description: proposed bandwidth
+          enum:
+            - 20
+            - 40
+            - 80
+            - 160
+          type: integer
+        channel:
+          description: proposed channel
+          type: integer
+        curr_bandwidht:
+          description: current bandwidth
+          enum:
+            - 20
+            - 40
+            - 80
+            - 160
+          type: integer
+        curr_channel:
+          description: current channel
+          type: integer
+        curr_power:
+          description: current tx power
+          type: integer
+        curr_usage:
+          description: current radio band
+          minLength: 1
+          type: string
+        power:
+          description: proposed tx power
+          type: integer
+        usage:
+          description: proposed radio band
+          minLength: 1
+          type: string
+      type: object
+      x-examples:
+        example-1:
+          bandwidth: 20
+          channel: 1
+          curr_bandwidht: 20
+          curr_channel: 6
+          curr_power: 18
+          curr_usage: '24'
+          power: 19
+          usage: '24'
+    rrm_band_metric:
+      description: ''
+      properties:
+        cochannel_neighbors:
+          description: average number of co-channel neighbors
+          type: number
+        density:
+          description: defined by how APs can hear from one and another, 0 - 1 (everyone
+            can hear everyone)
+          maximum: 1
+          minimum: 0
+          type: number
+        neighbors:
+          description: average number of neighbors
+          type: number
+        noise:
+          description: average noise in dBm
+          type: number
+      required:
+        - noise
+        - cochannel_neighbors
+        - neighbors
+        - density
+      type: object
+      x-examples:
+        example-1:
+          cochannel_neighbors: 1
+          density: 1
+          neighbors: 3
+          noise: -82.7
     rssizone:
       description: RSSI Zone
       properties:
@@ -46082,37 +46446,15 @@ components:
               wxtunnel_id: string
               wxtunnel_remote_id: string
     service:
-      description: ''
+      description: WIP
       properties:
         addresses:
-          description: "optional\n* if `network`==`\xECnternet`, `any` would be used\
-            \ to match destination by default\n* if `network`!=`internet`, the `addresses`\
-            \ defined in the tenant or the subnet of the network will be used by default"
+          description: if `dst_type`==`addresses`, the subnets where is the service
           items:
             type: string
           type: array
-        apps:
-          description: if `type`==`app`, comes from `/api/v1/const/apps`
-          items:
-            type: string
-          type: array
-        dscp_class:
-          type: string
-        max_jitter:
-          description: for uplink selection
-          type: integer
-        max_latency:
-          type: string
-        max_loss:
-          description: for uplink selection
-          type: integer
-        name:
-          type: string
-        network:
-          description: if `type`==`network`
-          format: uuid
-          type: string
-        specs:
+        app_specs:
+          description: optional when `dst_type`!=`apps`
           items:
             properties:
               port_range:
@@ -46126,6 +46468,37 @@ components:
             type: object
           type: array
           uniqueItems: true
+        apps:
+          description: if `dst_type`==`app`, comes from `/api/v1/const/apps`
+          items:
+            type: string
+          type: array
+        dscp_class:
+          type: string
+        dst_type:
+          type: string
+        hostnames:
+          items:
+            type: string
+          type: array
+        location:
+          type: string
+        max_jitter:
+          description: for uplink selection
+          type: integer
+        max_latency:
+          type: string
+        max_loss:
+          description: for uplink selection
+          type: integer
+        name:
+          type: string
+        network:
+          description: which network the resource resides
+          format: uuid
+          items:
+            type: string
+          type: array
         traffic_class:
           default: best_effort
           enum:
@@ -46136,11 +46509,22 @@ components:
           type: string
         traffic_type:
           default: default
-          description: 'when `type`=`app`, we''ll choose traffic_type automatically
-
-            when `type`=`custom`, you can provide your own settings, also optionally'
+          description: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+            \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n    // when type=app, we'll\
+            \ choose traffic_type automatically\n    // when type=custom, you can\
+            \ provide your own settings, also optionally,default / web / voip-audio\
+            \ / remote-desktop / gaming / video-streaming / ...  "
+          type: string
+        trazffic_type:
           type: string
         type:
+          type: string
+        vpn_name:
+          enum:
+            - addresses
+            - apps
+            - local
+            - hostname
           type: string
       type: object
       x-examples:
@@ -46680,6 +47064,8 @@ components:
               description: the property name is the AP model (e.g "AP32")
               type: object
           type: object
+        auto_preemption:
+          $ref: '#/components/schemas/auto_preemption'
         auto_upgrade:
           $ref: '#/components/schemas/site_auto_upgrade'
         bgp_groups:
@@ -46847,6 +47233,8 @@ components:
           items:
             type: string
           type: array
+        ssr:
+          $ref: '#/components/schemas/site_ssr'
         status_portal:
           properties:
             enabled:
@@ -46869,6 +47257,8 @@ components:
           items:
             $ref: '#/components/schemas/site_tunterm_monitoring'
           type: array
+        tunterm_monitoring_disabled:
+          type: boolean
         vars:
           additionalProperties:
             description: the property name is the var name
@@ -46919,108 +47309,16 @@ components:
       type: object
       x-examples:
         example-1:
-          value:
-            additional_config_cmds:
-              - string
-            analytic:
-              enabled: false
-            ap_matching:
-              enabled: true
-              rules:
-                - match_model: string
-                  name: string
-                  port_config:
-                    property1:
-                      disabled: true
-                      dynamic_vlan:
-                        default_vlan_id: 0
-                        enabled: true
-                        type: string
-                        vlans:
-                          property1: string
-                          property2: string
-                      enable_mac_auth: true
-                      forwarding: all
-                      mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
-                      mxtunnel_name: string
-                      port_auth: none
-                      port_vlan_id: 0
-                      radius_config:
-                        acct_interim_interval: 0
-                        acct_servers:
-                          - host: string
-                            port: 1813
-                            secret: string
-                        auth_servers:
-                          - host: string
-                            port: 1812
-                            secret: string
-                        auth_servers_retries: 3
-                        auth_servers_timeout: 5
-                        coa_enabled: false
-                        coa_port: 3799
-                        network: string
-                        source_ip: string
-                      radsec:
-                        enabled: true
-                        idle_timeout: 0
-                        server_name: string
-                        servers:
-                          - host: string
-                            port: 0
-                        use_mxedge: true
-                      vlan_id: 0
-                      vland_ids:
-                        - 0
-                      wxtunnel_id: string
-                      wxtunnel_remote_id: string
-                    property2:
-                      disabled: true
-                      dynamic_vlan:
-                        default_vlan_id: 0
-                        enabled: true
-                        type: string
-                        vlans:
-                          property1: string
-                          property2: string
-                      enable_mac_auth: true
-                      forwarding: all
-                      mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
-                      mxtunnel_name: string
-                      port_auth: none
-                      port_vlan_id: 0
-                      radius_config:
-                        acct_interim_interval: 0
-                        acct_servers:
-                          - host: string
-                            port: 1813
-                            secret: string
-                        auth_servers:
-                          - host: string
-                            port: 1812
-                            secret: string
-                        auth_servers_retries: 3
-                        auth_servers_timeout: 5
-                        coa_enabled: false
-                        coa_port: 3799
-                        network: string
-                        source_ip: string
-                      radsec:
-                        enabled: true
-                        idle_timeout: 0
-                        server_name: string
-                        servers:
-                          - host: string
-                            port: 0
-                        use_mxedge: true
-                      vlan_id: 0
-                      vland_ids:
-                        - 0
-                      wxtunnel_id: string
-                      wxtunnel_remote_id: string
-            ap_port_config:
-              model_specific:
-                property1:
+          additional_config_cmds:
+            - string
+          analytic:
+            enabled: false
+          ap_matching:
+            enabled: true
+            rules:
+              - match_model: string
+                name: string
+                port_config:
                   property1:
                     disabled: true
                     dynamic_vlan:
@@ -47109,438 +47407,310 @@ components:
                       - 0
                     wxtunnel_id: string
                     wxtunnel_remote_id: string
-                property2:
-                  property1:
-                    disabled: true
-                    dynamic_vlan:
-                      default_vlan_id: 0
-                      enabled: true
-                      type: string
-                      vlans:
-                        property1: string
-                        property2: string
-                    enable_mac_auth: true
-                    forwarding: all
-                    mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
-                    mxtunnel_name: string
-                    port_auth: none
-                    port_vlan_id: 0
-                    radius_config:
-                      acct_interim_interval: 0
-                      acct_servers:
-                        - host: string
-                          port: 1813
-                          secret: string
-                      auth_servers:
-                        - host: string
-                          port: 1812
-                          secret: string
-                      auth_servers_retries: 3
-                      auth_servers_timeout: 5
-                      coa_enabled: false
-                      coa_port: 3799
-                      network: string
-                      source_ip: string
-                    radsec:
-                      enabled: true
-                      idle_timeout: 0
-                      server_name: string
-                      servers:
-                        - host: string
-                          port: 0
-                      use_mxedge: true
-                    vlan_id: 0
-                    vland_ids:
-                      - 0
-                    wxtunnel_id: string
-                    wxtunnel_remote_id: string
-                  property2:
-                    disabled: true
-                    dynamic_vlan:
-                      default_vlan_id: 0
-                      enabled: true
-                      type: string
-                      vlans:
-                        property1: string
-                        property2: string
-                    enable_mac_auth: true
-                    forwarding: all
-                    mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
-                    mxtunnel_name: string
-                    port_auth: none
-                    port_vlan_id: 0
-                    radius_config:
-                      acct_interim_interval: 0
-                      acct_servers:
-                        - host: string
-                          port: 1813
-                          secret: string
-                      auth_servers:
-                        - host: string
-                          port: 1812
-                          secret: string
-                      auth_servers_retries: 3
-                      auth_servers_timeout: 5
-                      coa_enabled: false
-                      coa_port: 3799
-                      network: string
-                      source_ip: string
-                    radsec:
-                      enabled: true
-                      idle_timeout: 0
-                      server_name: string
-                      servers:
-                        - host: string
-                          port: 0
-                      use_mxedge: true
-                    vlan_id: 0
-                    vland_ids:
-                      - 0
-                    wxtunnel_id: string
-                    wxtunnel_remote_id: string
-            auto_upgrade:
-              custom_versions:
-                property1: string
-                property2: string
-              day_of_week: any
-              enabled: false
-              time_of_day: string
-              version: stable
-            bgp_groups:
+          ap_port_config:
+            model_specific:
               property1:
-                type: external
+                property1:
+                  disabled: true
+                  dynamic_vlan:
+                    default_vlan_id: 0
+                    enabled: true
+                    type: string
+                    vlans:
+                      property1: string
+                      property2: string
+                  enable_mac_auth: true
+                  forwarding: all
+                  mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
+                  mxtunnel_name: string
+                  port_auth: none
+                  port_vlan_id: 0
+                  radius_config:
+                    acct_interim_interval: 0
+                    acct_servers:
+                      - host: string
+                        port: 1813
+                        secret: string
+                    auth_servers:
+                      - host: string
+                        port: 1812
+                        secret: string
+                    auth_servers_retries: 3
+                    auth_servers_timeout: 5
+                    coa_enabled: false
+                    coa_port: 3799
+                    network: string
+                    source_ip: string
+                  radsec:
+                    enabled: true
+                    idle_timeout: 0
+                    server_name: string
+                    servers:
+                      - host: string
+                        port: 0
+                    use_mxedge: true
+                  vlan_id: 0
+                  vland_ids:
+                    - 0
+                  wxtunnel_id: string
+                  wxtunnel_remote_id: string
+                property2:
+                  disabled: true
+                  dynamic_vlan:
+                    default_vlan_id: 0
+                    enabled: true
+                    type: string
+                    vlans:
+                      property1: string
+                      property2: string
+                  enable_mac_auth: true
+                  forwarding: all
+                  mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
+                  mxtunnel_name: string
+                  port_auth: none
+                  port_vlan_id: 0
+                  radius_config:
+                    acct_interim_interval: 0
+                    acct_servers:
+                      - host: string
+                        port: 1813
+                        secret: string
+                    auth_servers:
+                      - host: string
+                        port: 1812
+                        secret: string
+                    auth_servers_retries: 3
+                    auth_servers_timeout: 5
+                    coa_enabled: false
+                    coa_port: 3799
+                    network: string
+                    source_ip: string
+                  radsec:
+                    enabled: true
+                    idle_timeout: 0
+                    server_name: string
+                    servers:
+                      - host: string
+                        port: 0
+                    use_mxedge: true
+                  vlan_id: 0
+                  vland_ids:
+                    - 0
+                  wxtunnel_id: string
+                  wxtunnel_remote_id: string
               property2:
-                type: external
-            blacklist_url: string
-            ble_config:
-              beacon_enabled: true
-              beacon_rate: 0
-              beacon_rate_mode: default
-              beam_disabled:
-                - 0
-              eddystone_uid_adv_power: -100
-              eddystone_uid_beams: string
-              eddystone_uid_enabled: true
-              eddystone_uid_freq_msec: 0
-              eddystone_uid_instance: string
-              eddystone_uid_namespace: string
-              eddystone_url_adv_power: 0
-              eddystone_url_beams: string
-              eddystone_url_enabled: true
-              eddystone_url_freq_msec: 0
-              eddystone_url_url: string
-              ibeacon_adv_power: -100
-              ibeacon_beams: string
-              ibeacon_enabled: false
-              ibeacon_freq_msec: 0
-              ibeacon_major: 0
-              ibeacon_minor: 0
-              ibeacon_uuid: 1f89bc00-d0af-481b-82fe-a6629259a39f
-              power: 9
-              power_mode: string
-            config_auto_revert: false
-            created_time: 0
-            device_updown_threshold: 0
-            dns_servers:
-              - string
-            dns_suffix:
-              - string
-            enable_channel_144: false
-            engagement:
-              dwell_tag_names:
-                bounce: string
-                engaged: string
-                passerby: string
-                stationed: string
-              dwell_tags:
-                bounce: string
-                engaged: string
-                passerby: string
-                stationed: string
-              hours:
-                fri: string
-                mon: string
-                sta: string
-                sun: string
-                thu: string
-                tue: string
-                wed: string
-              max_dwell: 43200
-              min_dwell: 0
-            evpn_options:
-              overlay:
-                as: 65000
-              underlay:
-                as_base: 65001
-                routed_id_prefix: /24
-                subnet: 10.255.240.0/20
-            flags:
+                property1:
+                  disabled: true
+                  dynamic_vlan:
+                    default_vlan_id: 0
+                    enabled: true
+                    type: string
+                    vlans:
+                      property1: string
+                      property2: string
+                  enable_mac_auth: true
+                  forwarding: all
+                  mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
+                  mxtunnel_name: string
+                  port_auth: none
+                  port_vlan_id: 0
+                  radius_config:
+                    acct_interim_interval: 0
+                    acct_servers:
+                      - host: string
+                        port: 1813
+                        secret: string
+                    auth_servers:
+                      - host: string
+                        port: 1812
+                        secret: string
+                    auth_servers_retries: 3
+                    auth_servers_timeout: 5
+                    coa_enabled: false
+                    coa_port: 3799
+                    network: string
+                    source_ip: string
+                  radsec:
+                    enabled: true
+                    idle_timeout: 0
+                    server_name: string
+                    servers:
+                      - host: string
+                        port: 0
+                    use_mxedge: true
+                  vlan_id: 0
+                  vland_ids:
+                    - 0
+                  wxtunnel_id: string
+                  wxtunnel_remote_id: string
+                property2:
+                  disabled: true
+                  dynamic_vlan:
+                    default_vlan_id: 0
+                    enabled: true
+                    type: string
+                    vlans:
+                      property1: string
+                      property2: string
+                  enable_mac_auth: true
+                  forwarding: all
+                  mx_tunnel_id: 5f5cac07-0805-46ea-aafd-5c5729042729
+                  mxtunnel_name: string
+                  port_auth: none
+                  port_vlan_id: 0
+                  radius_config:
+                    acct_interim_interval: 0
+                    acct_servers:
+                      - host: string
+                        port: 1813
+                        secret: string
+                    auth_servers:
+                      - host: string
+                        port: 1812
+                        secret: string
+                    auth_servers_retries: 3
+                    auth_servers_timeout: 5
+                    coa_enabled: false
+                    coa_port: 3799
+                    network: string
+                    source_ip: string
+                  radsec:
+                    enabled: true
+                    idle_timeout: 0
+                    server_name: string
+                    servers:
+                      - host: string
+                        port: 0
+                    use_mxedge: true
+                  vlan_id: 0
+                  vland_ids:
+                    - 0
+                  wxtunnel_id: string
+                  wxtunnel_remote_id: string
+          auto_upgrade:
+            custom_versions:
               property1: string
               property2: string
-            for_site: true
-            gateway_mgmt:
-              app_probing:
-                apps:
-                  - string
-                custom_apps:
-                  - app_type: string
-                    hostname:
-                      - string
-                    name: string
-                    protocol: http
-                enabled: true
-              app_usage: true
-              config_revert_timer: 10
-              security_log_source_address: string
-              security_log_source_interface: string
-            id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-            led:
-              brightness: 0
-              enabled: true
-            modified_time: 0
-            mxedge_mgmt:
-              ? ''
-              : string
-              mist_password: string
-              root_password: string
-            mxtunnels:
-              ap_subnets:
+            day_of_week: any
+            enabled: false
+            time_of_day: string
+            version: stable
+          bgp_groups:
+            property1:
+              type: external
+            property2:
+              type: external
+          blacklist_url: string
+          ble_config:
+            beacon_enabled: true
+            beacon_rate: 0
+            beacon_rate_mode: default
+            beam_disabled:
+              - 0
+            eddystone_uid_adv_power: -100
+            eddystone_uid_beams: string
+            eddystone_uid_enabled: true
+            eddystone_uid_freq_msec: 0
+            eddystone_uid_instance: string
+            eddystone_uid_namespace: string
+            eddystone_url_adv_power: 0
+            eddystone_url_beams: string
+            eddystone_url_enabled: true
+            eddystone_url_freq_msec: 0
+            eddystone_url_url: string
+            ibeacon_adv_power: -100
+            ibeacon_beams: string
+            ibeacon_enabled: false
+            ibeacon_freq_msec: 0
+            ibeacon_major: 0
+            ibeacon_minor: 0
+            ibeacon_uuid: 1f89bc00-d0af-481b-82fe-a6629259a39f
+            power: 9
+            power_mode: string
+          config_auto_revert: false
+          created_time: 0
+          device_updown_threshold: 0
+          dns_servers:
+            - string
+          dns_suffix:
+            - string
+          enable_channel_144: false
+          engagement:
+            dwell_tag_names:
+              bounce: string
+              engaged: string
+              passerby: string
+              stationed: string
+            dwell_tags:
+              bounce: string
+              engaged: string
+              passerby: string
+              stationed: string
+            hours:
+              fri: string
+              mon: string
+              sta: string
+              sun: string
+              thu: string
+              tue: string
+              wed: string
+            max_dwell: 43200
+            min_dwell: 0
+          evpn_options:
+            overlay:
+              as: 65000
+            underlay:
+              as_base: 65001
+              routed_id_prefix: /24
+              subnet: 10.255.240.0/20
+          flags:
+            property1: string
+            property2: string
+          for_site: true
+          gateway_mgmt:
+            app_probing:
+              apps:
                 - string
-              clusters:
-                - name: string
-                  tunterm_hosts:
+              custom_apps:
+                - app_type: string
+                  hostname:
                     - string
-              created_time: 0
-              for_site: true
-              hello_interval: 60
-              hello_retries: 7
-              hosts:
-                - string
-              id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-              modified_time: 0
-              mtu: 0
-              org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-              protocol: udp
-              radsec:
-                acct_servers:
-                  - host: string
-                    port: 1813
-                    secret: string
-                auth_servers:
-                  - host: string
-                    port: 1812
-                    secret: string
-                enabled: true
-                use_mxedge: true
-              site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
-              vlan_ids:
-                - 0
-            networks:
-              property1:
-                dns:
-                  - string
-                dns_suffix:
-                  - string
-                gateway: string
-                ospf_interface_type: string
-                subnet: string
-                vlan_id: 0
-                zone: string
-              property2:
-                dns:
-                  - string
-                dns_suffix:
-                  - string
-                gateway: string
-                ospf_interface_type: string
-                subnet: string
-                vlan_id: 0
-                zone: string
-            ntp_servers:
+                  name: string
+                  protocol: http
+              enabled: true
+            app_usage: true
+            config_revert_timer: 10
+            security_log_source_address: string
+            security_log_source_interface: string
+          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          led:
+            brightness: 0
+            enabled: true
+          modified_time: 0
+          mxedge_mgmt:
+            ? ''
+            : string
+            mist_password: string
+            root_password: string
+          mxtunnels:
+            ap_subnets:
               - string
-            occupancy:
-              assets_enabled: false
-              clients_enabled: true
-              min_duration: 3000
-              sdkclients_enabled: false
-              unconnected_clients_enabled: false
+            clusters:
+              - name: string
+                tunterm_hosts:
+                  - string
+            created_time: 0
+            for_site: true
+            hello_interval: 60
+            hello_retries: 7
+            hosts:
+              - string
+            id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+            modified_time: 0
+            mtu: 0
             org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-            ospf_areas:
-              property1:
-                networks:
-                  property1:
-                    auth_keys:
-                      property1: string
-                      property2: string
-                    auth_password: string
-                    auth_type: none
-                    interface_type: nbma
-                    passive: false
-                  property2:
-                    auth_keys:
-                      property1: string
-                      property2: string
-                    auth_password: string
-                    auth_type: none
-                    interface_type: nbma
-                    passive: false
-                type: default
-              property2:
-                networks:
-                  property1:
-                    auth_keys:
-                      property1: string
-                      property2: string
-                    auth_password: string
-                    auth_type: none
-                    interface_type: nbma
-                    passive: false
-                  property2:
-                    auth_keys:
-                      property1: string
-                      property2: string
-                    auth_password: string
-                    auth_type: none
-                    interface_type: nbma
-                    passive: false
-                type: default
-            persist_config_on_device: false
-            port_usages:
-              dynamic:
-                mode: dynamic
-                reset_default_when: link_down
-                rules:
-                  - equals: string
-                    expression: string
-                    src: lldp_chassis_id
-                    usage: string
-              property1:
-                all_networks: false
-                allow_dhcpd: true
-                bypass_auth_when_server_down: true
-                description: string
-                disable_autoneg: false
-                disabled: false
-                duplex: auto
-                dynamic_vlan:
-                  default_network: 0
-                  enabled: true
-                  networks:
-                    property1: 0
-                    property2: 0
-                  type: standard
-                enable_mac_auth: true
-                enable_qos: true
-                guest_network: string
-                mac_auth_only: true
-                mac_limit: 0
-                mode: access
-                mtu: 0
-                networks:
-                  - string
-                persist_mac: false
-                poe_disabled: false
-                port_auth: string
-                port_network: string
-                rejected_network: true
-                speed: string
-                storm_control:
-                  no_broadcast: false
-                  no_multicast: false
-                  no_registered_multicast: false
-                  no_unknown_unicast: false
-                  percentage: 80
-                stp_edge: true
-                voip_network: string
-              property2:
-                all_networks: false
-                allow_dhcpd: true
-                bypass_auth_when_server_down: true
-                description: string
-                disable_autoneg: false
-                disabled: false
-                duplex: auto
-                dynamic_vlan:
-                  default_network: 0
-                  enabled: true
-                  networks:
-                    property1: 0
-                    property2: 0
-                  type: standard
-                enable_mac_auth: true
-                enable_qos: true
-                guest_network: string
-                mac_auth_only: true
-                mac_limit: 0
-                mode: access
-                mtu: 0
-                networks:
-                  - string
-                persist_mac: false
-                poe_disabled: false
-                port_auth: string
-                port_network: string
-                rejected_network: true
-                speed: string
-                storm_control:
-                  no_broadcast: false
-                  no_multicast: false
-                  no_registered_multicast: false
-                  no_unknown_unicast: false
-                  percentage: 80
-                stp_edge: true
-                voip_network: string
-            proxy:
-              url: string
-            radio_config:
-              ant_gain_24: 0
-              ant_gain_5: 0
-              band_24:
-                allow_rrm_disable: true
-                ant_gain: 0
-                antenna_mode: default
-                bandwidth: 20
-                channel: 0
-                channels:
-                  - 0
-                disabled: true
-                power: 0
-                power_max: 0
-                power_min: 0
-                preamble: short
-                usage: '24'
-              band_24_usage: '24'
-              band_5:
-                allow_rrm_disable: true
-                ant_gain: 0
-                antenna_mode: default
-                bandwidth: 20
-                channel: 0
-                channels:
-                  - 0
-                disabled: true
-                power: 0
-                power_max: 0
-                power_min: 0
-                preamble: short
-                usage: '24'
-              band_5_on_24_radio:
-                allow_rrm_disable: true
-                ant_gain: 0
-                antenna_mode: default
-                bandwidth: 20
-                channel: 0
-                channels:
-                  - 0
-                disabled: true
-                power: 0
-                power_max: 0
-                power_min: 0
-                preamble: short
-                usage: '24'
-              scanning_enabled: true
-            radius_config:
-              acct_interim_interval: 0
+            protocol: udp
+            radsec:
               acct_servers:
                 - host: string
                   port: 1813
@@ -47549,165 +47719,418 @@ components:
                 - host: string
                   port: 1812
                   secret: string
-              auth_servers_retries: 3
-              auth_servers_timeout: 5
-              coa_enabled: false
-              coa_port: 3799
-              network: string
-              source_ip: string
-            remote_syslog:
               enabled: true
-              send_to_all_servers: true
-              servers:
-                - facility: config
-                  host: string
-                  port: 0
-                  protocol: udp
-                  severity: emerg
-                  tag: string
-            report_gatt: false
-            rogue:
-              enabled: true
-              honeypot_enabled: true
-              min_duration: 10
-              min_rssi: -80
-              whitelisted_bssids:
-                - string
-              whitelisted_ssids:
-                - string
-            rtsa:
-              app_waking: false
-              disable_dead_reckoning: true
-              disable_pressure_sensor: true
-              enabled: true
-              track_asset: true
+              use_mxedge: true
             site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
-            skyatp:
-              enabled: true
-              send_ip_mac_mapping: true
-            srx_app:
-              enabled: false
-            ssh_keys:
-              - string
-            status_portal:
-              enabled: true
-              hostnames:
+            vlan_ids:
+              - 0
+          networks:
+            property1:
+              dns:
                 - string
-            switch_matching:
-              enable: true
+              dns_suffix:
+                - string
+              gateway: string
+              ospf_interface_type: string
+              subnet: string
+              vlan_id: 0
+              zone: string
+            property2:
+              dns:
+                - string
+              dns_suffix:
+                - string
+              gateway: string
+              ospf_interface_type: string
+              subnet: string
+              vlan_id: 0
+              zone: string
+          ntp_servers:
+            - string
+          occupancy:
+            assets_enabled: false
+            clients_enabled: true
+            min_duration: 3000
+            sdkclients_enabled: false
+            unconnected_clients_enabled: false
+          org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+          ospf_areas:
+            property1:
+              networks:
+                property1:
+                  auth_keys:
+                    property1: string
+                    property2: string
+                  auth_password: string
+                  auth_type: none
+                  interface_type: nbma
+                  passive: false
+                property2:
+                  auth_keys:
+                    property1: string
+                    property2: string
+                  auth_password: string
+                  auth_type: none
+                  interface_type: nbma
+                  passive: false
+              type: default
+            property2:
+              networks:
+                property1:
+                  auth_keys:
+                    property1: string
+                    property2: string
+                  auth_password: string
+                  auth_type: none
+                  interface_type: nbma
+                  passive: false
+                property2:
+                  auth_keys:
+                    property1: string
+                    property2: string
+                  auth_password: string
+                  auth_type: none
+                  interface_type: nbma
+                  passive: false
+              type: default
+          persist_config_on_device: false
+          port_usages:
+            dynamic:
+              mode: dynamic
+              reset_default_when: link_down
               rules:
-                - additional_config_cmds:
+                - equals: string
+                  equals_any:
                     - string
-                  name: string
-                  port_config:
-                    property1:
-                      ae_disable_lacp: true
-                      ae_idx: 0
-                      aggregated: false
-                      description: string
-                      disable_autoneg: true
-                      duplex: auto
-                      dynamic_usage: string
-                      esilag: true
-                      poe_disabled: true
-                      speed: auto
-                      usage: string
-                    property2:
-                      ae_disable_lacp: true
-                      ae_idx: 0
-                      aggregated: false
-                      description: string
-                      disable_autoneg: true
-                      duplex: auto
-                      dynamic_usage: string
-                      esilag: true
-                      poe_disabled: true
-                      speed: auto
-                      usage: string
-                  property1: string
-                  property2: string
-            switch_mgmt:
-              config_revert_timer: 10
-              mxedge_proxy_host: string
-              mxedge_proxy_port: 2222
-              root_password: string
-              use_mxedge_proxy: true
-            track_anonymous_devices: false
-            tunterm_monitoring:
-              - host: string
-                port: 0
-                protocol: arp
-                timeout: 300
-            vars:
-              property1: string
-              property2: string
-            vna:
-              enabled: false
-            vrf_instances:
-              property1:
-                extra_routes:
-                  property1:
-                    via: 192.168.0.1
-                  property2:
-                    via: 192.168.0.1
+                  expression: string
+                  src: lldp_chassis_id
+                  usage: string
+            property1:
+              all_networks: false
+              allow_dhcpd: true
+              bypass_auth_when_server_down: true
+              description: string
+              disable_autoneg: false
+              disabled: false
+              duplex: auto
+              dynamic_vlan:
+                default_network: 0
+                enabled: true
                 networks:
-                  - string
-              property2:
-                extra_routes:
-                  property1:
-                    via: 192.168.0.1
-                  property2:
-                    via: 192.168.0.1
-                networks:
-                  - string
-            vrrp_groups:
-              property1:
-                auth_key: string
-                auth_password: string
-                auth_type: md5
-                networks:
-                  property1:
-                    ip: string
-                  property2:
-                    ip: string
-              property2:
-                auth_key: string
-                auth_password: string
-                auth_type: md5
-                networks:
-                  property1:
-                    ip: string
-                  property2:
-                    ip: string
-            wan_vna:
-              enabled: false
-            watched_station_url: string
-            whitelist_url: string
-            wids:
-              repeated_auth_failures:
-                duration: 0
-                threshold: 0
-            wifi:
-              cisco_enabled: true
-              disable_11k: false
-              disable_radios_when_power_constrained: true
-              enable_arp_spoof_check: false
-              enable_channel_144: false
-              enable_shared_radio_scanning: true
-              enable_vna: false
-              enabled: true
-              locate_connected: false
-              locate_unconnected: false
-              mesh_allow_dfs: false
-              mesh_enabled: false
-              proxy_arp: default
-            wired_vna:
-              enabled: false
-            zone_occupancy_alert:
-              email_notifiers:
+                  property1: 0
+                  property2: 0
+                type: standard
+              enable_mac_auth: true
+              enable_qos: true
+              guest_network: string
+              mac_auth_only: true
+              mac_limit: 0
+              mode: access
+              mtu: 0
+              networks:
                 - string
-              enabled: false
-              threshold: 5
+              persist_mac: false
+              poe_disabled: false
+              port_auth: string
+              port_network: string
+              rejected_network: true
+              speed: string
+              storm_control:
+                no_broadcast: false
+                no_multicast: false
+                no_registered_multicast: false
+                no_unknown_unicast: false
+                percentage: 80
+              stp_edge: true
+              voip_network: string
+            property2:
+              all_networks: false
+              allow_dhcpd: true
+              bypass_auth_when_server_down: true
+              description: string
+              disable_autoneg: false
+              disabled: false
+              duplex: auto
+              dynamic_vlan:
+                default_network: 0
+                enabled: true
+                networks:
+                  property1: 0
+                  property2: 0
+                type: standard
+              enable_mac_auth: true
+              enable_qos: true
+              guest_network: string
+              mac_auth_only: true
+              mac_limit: 0
+              mode: access
+              mtu: 0
+              networks:
+                - string
+              persist_mac: false
+              poe_disabled: false
+              port_auth: string
+              port_network: string
+              rejected_network: true
+              speed: string
+              storm_control:
+                no_broadcast: false
+                no_multicast: false
+                no_registered_multicast: false
+                no_unknown_unicast: false
+                percentage: 80
+              stp_edge: true
+              voip_network: string
+          proxy:
+            url: string
+          radio_config:
+            ant_gain_24: 0
+            ant_gain_5: 0
+            ant_gain_6: 0
+            band_24:
+              allow_rrm_disable: true
+              ant_gain: 0
+              antenna_mode: default
+              bandwidth: 20
+              channel: 0
+              channels:
+                - 0
+              disabled: true
+              power: 0
+              power_max: 0
+              power_min: 0
+              preamble: short
+              usage: '24'
+            band_24_usage: '24'
+            band_5:
+              allow_rrm_disable: true
+              ant_gain: 0
+              antenna_mode: default
+              bandwidth: 20
+              channel: 0
+              channels:
+                - 0
+              disabled: true
+              power: 0
+              power_max: 0
+              power_min: 0
+              preamble: short
+              usage: '24'
+            band_5_on_24_radio:
+              allow_rrm_disable: true
+              ant_gain: 0
+              antenna_mode: default
+              bandwidth: 20
+              channel: 0
+              channels:
+                - 0
+              disabled: true
+              power: 0
+              power_max: 0
+              power_min: 0
+              preamble: short
+              usage: '24'
+            band_6:
+              allow_rrm_disable: true
+              ant_gain: 0
+              antenna_mode: default
+              bandwidth: 20
+              channel: 0
+              channels:
+                - 0
+              disabled: true
+              power: 0
+              power_max: 0
+              power_min: 0
+              preamble: short
+              usage: '24'
+            scanning_enabled: true
+          radius_config:
+            acct_interim_interval: 0
+            acct_servers:
+              - host: string
+                port: 1813
+                secret: string
+            auth_servers:
+              - host: string
+                port: 1812
+                secret: string
+            auth_servers_retries: 3
+            auth_servers_timeout: 5
+            coa_enabled: false
+            coa_port: 3799
+            network: string
+            source_ip: string
+          remote_syslog:
+            enabled: true
+            send_to_all_servers: true
+            servers:
+              - facility: config
+                host: string
+                port: 0
+                protocol: udp
+                severity: emerg
+                tag: string
+          report_gatt: false
+          rogue:
+            enabled: true
+            honeypot_enabled: true
+            min_duration: 10
+            min_rssi: -80
+            whitelisted_bssids:
+              - string
+            whitelisted_ssids:
+              - string
+          rtsa:
+            app_waking: false
+            disable_dead_reckoning: true
+            disable_pressure_sensor: true
+            enabled: true
+            track_asset: true
+          site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+          skyatp:
+            enabled: true
+            send_ip_mac_mapping: true
+          srx_app:
+            enabled: false
+          ssh_keys:
+            - string
+          status_portal:
+            enabled: true
+            hostnames:
+              - string
+          switch_matching:
+            enable: true
+            rules:
+              - additional_config_cmds:
+                  - string
+                name: string
+                port_config:
+                  property1:
+                    ae_disable_lacp: true
+                    ae_idx: 0
+                    aggregated: false
+                    description: string
+                    disable_autoneg: true
+                    duplex: auto
+                    dynamic_usage: string
+                    esilag: true
+                    poe_disabled: true
+                    speed: auto
+                    usage: string
+                  property2:
+                    ae_disable_lacp: true
+                    ae_idx: 0
+                    aggregated: false
+                    description: string
+                    disable_autoneg: true
+                    duplex: auto
+                    dynamic_usage: string
+                    esilag: true
+                    poe_disabled: true
+                    speed: auto
+                    usage: string
+                property1: string
+                property2: string
+          switch_mgmt:
+            config_revert_timer: 10
+            mxedge_proxy_host: string
+            mxedge_proxy_port: 2222
+            root_password: string
+            use_mxedge_proxy: true
+          track_anonymous_devices: false
+          tunterm_monitoring:
+            - host: string
+              port: 0
+              protocol: arp
+              timeout: 300
+          vars:
+            property1: string
+            property2: string
+          vna:
+            enabled: false
+          vrf_instances:
+            property1:
+              extra_routes:
+                property1:
+                  via: 192.168.0.1
+                property2:
+                  via: 192.168.0.1
+              networks:
+                - string
+            property2:
+              extra_routes:
+                property1:
+                  via: 192.168.0.1
+                property2:
+                  via: 192.168.0.1
+              networks:
+                - string
+          vrrp_groups:
+            property1:
+              auth_key: string
+              auth_password: string
+              auth_type: md5
+              networks:
+                property1:
+                  ip: string
+                property2:
+                  ip: string
+            property2:
+              auth_key: string
+              auth_password: string
+              auth_type: md5
+              networks:
+                property1:
+                  ip: string
+                property2:
+                  ip: string
+          wan_vna:
+            enabled: false
+          watched_station_url: string
+          whitelist_url: string
+          wids:
+            repeated_auth_failures:
+              duration: 0
+              threshold: 0
+          wifi:
+            cisco_enabled: true
+            disable_11k: false
+            disable_radios_when_power_constrained: true
+            enable_arp_spoof_check: false
+            enable_channel_144: false
+            enable_shared_radio_scanning: true
+            enable_vna: false
+            enabled: true
+            locate_connected: false
+            locate_unconnected: false
+            mesh_allow_dfs: false
+            mesh_enabled: false
+            proxy_arp: default
+          wired_vna:
+            enabled: false
+          zone_occupancy_alert:
+            email_notifiers:
+              - string
+            enabled: false
+            threshold: 5
+    site_ssr:
+      description: ''
+      properties:
+        conductor_hosts:
+          items:
+            example: '"1.1.1.1", "2.2.2.2"'
+            type: string
+          type: array
+        disable_stats:
+          type: boolean
+      type: object
+      x-examples:
+        example-1:
+          conductor_hosts:
+            - 1.1.1.1
+            - 2.2.2.2
+          disable_stats: false
     site_switch:
       description: Switch site settings
       properties:
@@ -51170,13 +51593,21 @@ components:
                   type: integer
                 tx_chain:
                   type: integer
-              required:
-                - channel
-                - bandwidth
-                - power
-                - dynamic_chaining_enabled
-                - tx_chain
-                - rx_chain
+              type: object
+            band_6:
+              properties:
+                bandwidth:
+                  type: number
+                channel:
+                  type: integer
+                dynamic_chaining_enabled:
+                  type: boolean
+                power:
+                  type: number
+                rx_chain:
+                  type: integer
+                tx_chain:
+                  type: integer
               type: object
             scanning_enabled:
               type: boolean
@@ -51188,7 +51619,10 @@ components:
               description: radio stat of 2.4G radio
               properties:
                 bandwidth:
-                  description: current channel bandwidth, 20 / 40 / 80
+                  description: current channel bandwidth
+                  enum:
+                    - 20
+                    - 40
                   type: integer
                 channel:
                   description: current channel the radio is running on
@@ -51215,7 +51649,42 @@ components:
               description: radio stat of 5G radio
               properties:
                 bandwidth:
-                  description: current channel bandwidth, 20 / 40 / 80
+                  description: current channel bandwidth
+                  enum:
+                    - 20
+                    - 40
+                    - 80
+                  type: integer
+                channel:
+                  description: current channel the radio is running on
+                  type: integer
+                mac:
+                  description: radio (base) mac, it can have 16 bssids (e.g. 5c5b350001a0-5c5b350001af)
+                  type: string
+                num_clients:
+                  type: number
+                power:
+                  description: transmit power (in dBm)
+                  type: integer
+                rx_bytes:
+                  type: number
+                rx_pkts:
+                  type: number
+                tx_bytes:
+                  type: number
+                tx_pkts:
+                  type: number
+              type: object
+            band_6:
+              description: radio stat of 6G radio
+              properties:
+                bandwidth:
+                  description: current channel bandwidth
+                  enum:
+                    - 20
+                    - 40
+                    - 80
+                    - 160
                   type: integer
                 channel:
                   description: current channel the radio is running on
@@ -51466,6 +51935,12 @@ components:
               power: 0
               rx_chain: 4
               tx_chain: 1
+            band_6:
+              bandwidth: 40
+              channel: 0
+              power: 0
+              rx_chain: 4
+              tx_chain: 1
             scanning_enabled: true
           radio_stat:
             band_24:
@@ -51479,6 +51954,16 @@ components:
               tx_bytes: 211166512114
               tx_pkts: 812058566
             band_5:
+              bandwidth: 80
+              channel: 44
+              mac: 5c5b350004b0
+              num_clients: 4
+              power: 15
+              rx_bytes: 10366616
+              rx_pkts: 38603
+              tx_bytes: 50877568
+              tx_pkts: 145496
+            band_6:
               bandwidth: 80
               channel: 44
               mac: 5c5b350004b0
@@ -52108,8 +52593,14 @@ components:
           type: object
         model:
           type: string
+        mxagent_last_seen:
+          type: integer
         mxagent_registered:
           type: boolean
+        mxagent_uptime:
+          type: integer
+        mxagent_version:
+          type: string
         mxcluster_id:
           format: uuid
           type: string
@@ -52157,8 +52648,44 @@ components:
                 type: boolean
             type: object
           type: object
+        service_stat:
+          properties:
+            mxagent:
+              properties:
+                package_state:
+                  type: string
+                package_version:
+                  type: string
+                running_state:
+                  type: string
+                uptime:
+                  type: integer
+              type: object
+            radsecproxy:
+              properties:
+                package_state:
+                  type: string
+              type: object
+            tunterm:
+              properties:
+                package_state:
+                  type: string
+                package_version:
+                  type: string
+                running_state:
+                  type: string
+                uptime:
+                  type: integer
+              type: object
+          type: object
+        stats_last_seen:
+          type: integer
         status:
           type: string
+        system_uptime:
+          type: integer
+        tunterm_last_seen:
+          type: integer
         tunterm_registered:
           type: boolean
         tunterm_stat:
@@ -52179,6 +52706,10 @@ components:
                   type: string
               type: object
           type: object
+        tunterm_uptime:
+          type: integer
+        tunterm_version:
+          type: string
         uptime:
           type: number
         version:
@@ -52188,8 +52719,8 @@ components:
           type: string
       required:
         - id
-        - name
         - magic
+        - name
       type: object
       x-examples:
         example-1:
@@ -52218,14 +52749,12 @@ components:
             ip: 172.16.5.3
             ips:
               ens192: 172.16.5.3/24,fe81::20c:29ff:fef8:d18e/64
-            tunterm_stat:
-              monitoring_failed: false
           lag_stat:
             lag0:
               active_ports:
                 - '0'
                 - '1'
-          last_seen: 1547437078
+          last_seen: 1547437070
           magic: ExNpT5gi-ADR8WTFd4EiQPY3cP5WdSoD
           memory_stats:
             active: 1061085184
@@ -52240,7 +52769,10 @@ components:
             total: 7947616256
             usage: 65
           model: ME-S2019
+          mxagent_last_seen: 1547437078
           mxagent_registered: false
+          mxagent_uptime: 884220
+          mxagent_version: 3.1.1575
           mxcluster_id: 572586b7-f97b-a22b-526c-8b97a3f609c4
           name: Guest
           num_tunnels: 31
@@ -52264,102 +52796,31 @@ components:
               up: false
             module:
               up: false
+          service_stat:
+            mxagent:
+              package_state: Installed
+              package_version: 3.1.1575-1
+              running_state: Running
+              uptime: 60
+            radsecproxy:
+              package_state: NotInstalled
+            tunterm:
+              package_state: Installed
+              package_version: 0.1.2451+deb10
+              running_state: Running
+              uptime: 300
+          stats_last_seen: 1547437078
           status: connected
+          system_uptime: 884223
+          tunterm_last_seen: 1547437070
           tunterm_registered: false
-          uptime: 884221
-          version: 0.1.2
-          virtualization_type: VirtualizationVMware
-        example-2:
-          cpu_stat:
-            cpus:
-              property1:
-                idle: 0
-                interrupt: 0
-                system: 0
-                usage: 0
-                user: 0
-              property2:
-                idle: 0
-                interrupt: 0
-                system: 0
-                usage: 0
-                user: 0
-            idle: 0
-            interrupt: 0
-            system: 0
-            usage: 0
-            user: 0
-          ext_ip: string
-          id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-          ip_stat:
-            ip: string
-            ips:
-              property1: string
-              property2: string
-          lag_stat:
-            property1:
-              active_ports:
-                - {}
-            property2:
-              active_ports:
-                - {}
-          last_seen: 0
-          magic: string
-          memory_stats:
-            active: 0
-            available: 0
-            buffers: 0
-            cached: 0
-            free: 0
-            inactive: 0
-            swap_cached: 0
-            swap_free: 0
-            swap_total: 0
-            total: 0
-            usage: 0
-          model: string
-          mxagent_registered: true
-          mxcluster_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-          name: string
-          num_tunnels: 0
-          port_stat:
-            property1:
-              full_duplex: true
-              lldp_stats:
-                mgmt_addr: string
-                port_desc: string
-                port_id: string
-                system_desc: string
-                system_name: string
-              rx_bytes: 0
-              rx_errors: 0
-              rx_pkts: 0
-              speed: 0
-              tx_bytes: 0
-              tx_pkts: 0
-              up: true
-            property2:
-              full_duplex: true
-              lldp_stats:
-                mgmt_addr: string
-                port_desc: string
-                port_id: string
-                system_desc: string
-                system_name: string
-              rx_bytes: 0
-              rx_errors: 0
-              rx_pkts: 0
-              speed: 0
-              tx_bytes: 0
-              tx_pkts: 0
-              up: true
-          status: string
-          tunterm_registered: true
           tunterm_stat:
-            monitoring_failed: true
-          uptime: 0
-          version: string
-          virtualization_type: string
+            monitoring_failed: false
+          tunterm_uptime: 884221
+          tunterm_version: 0.1.2451
+          uptime: 884221
+          version: 0.1.2451
+          virtualization_type: VirtualizationVMware
     stats_mxtunnel:
       description: 'MxTunnels statistics '
       properties:
@@ -53726,6 +54187,9 @@ components:
           readOnly: true
           type: string
         splunk_token:
+          description: splunk token (If splunk_token is not defined for a type Splunk
+            webhook, it will not send, regardless if the webhook receiver is configured
+            to accept it.)
           nullable: true
           type: string
         topics:
@@ -56251,6 +56715,12 @@ components:
         portal_sso_url:
           description: for SAML, this is used as the ACS URL
           type: string
+        predefined_sponsors_enabled:
+          default: true
+          description: whether to show list of sponsor emails mentioned in `sponsors`
+            object as a dropdown. If both `sponsor_notify_all` and `predefined_sponsors_enabled`
+            are false, behaviour is acc to `sponsor_email_domains\
+          type: boolean
         privacy:
           type: boolean
         puzzel_password:
@@ -56287,16 +56757,9 @@ components:
           type: string
         sponsor_notify_all:
           default: false
-          description: whether to notify all sponsors that are mentioned in sponsors
-            object. Only one among `sponsor_notify_all` and `sponsor_show_emails`
-            will be applicable.
-          type: boolean
-        sponsor_show_emails:
-          default: true
-          description: whether to show list of sponsor emails mentioned in sponsors
-            object as a dropdown. This is the default option if both `sponsor_notify_all`
-            and `sponsor_show_emails` are true. If both false, behaviour is acc to
-            `sponsor_email_domains`.
+          description: whether to notify all sponsors that are mentioned in `sponsors`
+            object. Both `sponsor_notify_all` and `predefined_sponsors_enabled` should
+            be true in order to notify all sponsors.
           type: boolean
         sponsors:
           additionalProperties:
@@ -56352,26 +56815,34 @@ components:
           amazon_email_domains:
             - string
           amazon_enabled: true
-          auth: string
+          auth: none
           azure_client_id: string
           azure_client_secret: string
           azure_enabled: true
           azure_tenant_id: string
-          bypass_when_cloud_down: true
+          broadnet_password: string
+          broadnet_sid: string
+          broadnet_user_id: string
+          bypass_when_cloud_down: false
+          clickatell_api_key: string
           email_enabled: true
-          enabled: true
-          expire: 0
+          enabled: false
+          expire: 1440
           external_portal_url: string
           facebook_client_id: string
           facebook_client_secret: string
           facebook_email_domains:
             - string
           facebook_enabled: true
-          forward: true
+          forward: false
           forward_url: string
+          google_client_id: string
+          google_client_secret: string
           google_email_domains:
             - string
           google_enabled: true
+          gupshup_password: string
+          gupshup_userid: string
           microsoft_client_id: string
           microsoft_client_secret: string
           microsoft_email_domains:
@@ -56380,26 +56851,34 @@ components:
           passphrase_enabled: true
           password: string
           portal_allowed_hostnames: string
-          "portal_allowed_subnets\t": string
+          portal_allowed_subnets: string
           portal_api_secret: string
-          "portal_denied_hostnames\t": string
+          portal_denied_hostnames: string
           portal_image: string
           portal_sso_url: string
+          predefined_sponsors_enabled: true
           privacy: true
+          puzzel_password: string
+          puzzel_service_id: string
+          puzzel_username: string
+          smsMessageFormat: string
           sms_enabled: true
-          sms_provider: string
+          sms_provider: manual
           sponsor_email_domains:
             - string
           sponsor_enabled: true
-          sponsor_link_validity_duration: '60'
+          sponsor_link_validity_duration: string
+          sponsor_notify_all: false
           sponsors:
-            sponsor1@company.com: FirstName1 LastName1
-            sponsor2@company.com: FirstName2 LastName2
-          "sso_default_role\t": string
-          "sso_idp_cert\t": string
+            property1: string
+            property2: string
+          sso_default_role: string
+          sso_forced_role: string
+          sso_idp_cert: string
           sso_idp_sign_algo: string
           sso_idp_sso_url: string
           sso_issuer: string
+          sso_nameid_format: email
           thumbnail: string
           twilio_auth_token: string
           twilio_phone_number: string
@@ -56710,7 +57189,7 @@ components:
           description: "\u201CPlease wait for them to acknowledge.\u201D"
           type: string
         sponsorSelectEmail:
-          description: "\u201CSelect sponsor email\u201D"
+          description: "\u201CSelect Sponsor\u201D"
           type: string
         sponsorStatusApproved:
           description: text to display if sponsor approves request
@@ -57487,6 +57966,7 @@ x-tagGroups:
       - Sites Licenses
       - Sites Location
       - Sites Maps
+      - Sites MxTunnels
       - Sites Pcaps
       - Sites Psks
       - Sites Rfdiags
