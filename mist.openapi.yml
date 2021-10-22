@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> *Version 0.16.2*
+  description: '> *Version 0.17.0*
 
     >
 
-    > Date: October 8th, 2021
+    > Date: October 22th, 2021
 
     >
 
@@ -42,7 +42,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.16.2
+  version: 0.17.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -158,6 +158,7 @@ tags:
 
       In our implementation, following the steps to deploy EVPN topologies in a Site'
     name: Sites Devices EVPN
+  - name: Sites Devices HA
   - name: Sites Devices Virtual Chassis
   - name: Sites Devices Utilities
   - name: Sites Events
@@ -5868,6 +5869,10 @@ paths:
           name: vc
           schema:
             type: string
+        - in: query
+          name: unassigned
+          schema:
+            type: boolean
       responses:
         '200':
           $ref: '#/components/responses/OrgInventory'
@@ -8147,7 +8152,7 @@ paths:
                       port: 0
                       protocol: any
                   subnet: string
-                  type: string
+                  type: addresses
             schema:
               $ref: '#/components/schemas/service'
       responses:
@@ -8940,6 +8945,67 @@ paths:
       summary: getOrgAssetsStats
       tags:
         - Orgs Stats
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/stats/assets/count:
+    get:
+      description: Count Org Assets
+      operationId: countOrgAssetsByDistanceField
+      parameters:
+        - in: query
+          name: distinct
+          schema:
+            enum:
+              - site_id
+              - mac
+              - map_id
+              - ibeacon_uuid
+              - ibeacon_major
+              - ibeacon_minor
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+      summary: countOrgAssetsByDistanceField
+      tags:
+        - Orgs Assets
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/stats/assets/search:
+    get:
+      description: Search for Org Assets
+      operationId: searchOrgAssets
+      parameters:
+        - in: query
+          name: site_id
+          schema:
+            type: string
+        - in: query
+          name: mac
+          schema:
+            type: string
+        - in: query
+          name: map_id
+          schema:
+            type: string
+        - in: query
+          name: ibeacon_uuid
+          schema:
+            type: string
+        - in: query
+          name: ibeacon_major
+          schema:
+            type: string
+        - in: query
+          name: ibeacon_minor
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/AssetsArrayStatsSearch'
+      summary: searchOrgAssets
+      tags:
+        - Orgs Assets
     parameters:
       - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/stats/devices:
@@ -14152,6 +14218,86 @@ paths:
     parameters:
       - $ref: '#/components/parameters/site_id'
       - $ref: '#/components/parameters/device_id'
+  /api/v1/sites/{site_id}/devices/{device_id}/ha:
+    delete:
+      description: Delete HA Cluster
+      operationId: deleteSiteDeviceHaCluster
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: deleteSiteDeviceHaCluster
+      tags:
+        - Sites Devices HA
+    parameters:
+      - $ref: '#/components/parameters/site_id'
+      - $ref: '#/components/parameters/device_id'
+    post:
+      description: Create HA Cluster
+      operationId: createSiteDeviceHaCluster
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  nodes:
+                    - mac: aff827549235
+                    - mac: 8396cd006c8c
+            schema:
+              description: ''
+              properties:
+                nodes:
+                  items:
+                    properties:
+                      mac:
+                        minLength: 1
+                        type: string
+                    required:
+                      - mac
+                  minItems: 1
+                  type: array
+                  uniqueItems: true
+              required:
+                - nodes
+              type: object
+              x-examples:
+                example-1:
+                  nodes:
+                    - mac: aff827549235
+                    - mac: 8396cd006c8c
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: createSiteDeviceHaCluster
+      tags:
+        - Sites Devices HA
+    put:
+      description: Swap nodes on the HA Cluster
+      operationId: swapSiteDeviceHaClusterNode
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              properties:
+                op:
+                  default: swap
+                  enum:
+                    - swap
+                  minLength: 1
+                  type: string
+              required:
+                - op
+              type: object
+              x-examples:
+                example-1:
+                  op: swap
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: swapSiteDeviceHaClusterNode
+      tags:
+        - Sites Devices HA
   /api/v1/sites/{site_id}/devices/{device_id}/iot:
     get:
       description: Returns the current state of each enabled IoT pin configured as
@@ -18566,14 +18712,14 @@ paths:
                       airespace_ifname: string
                       airwatch:
                         authorized: true
-                      ap_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                      ap_id: 325b588d-147b-4fa4-bb40-83383f83c77e
                       ap_mac: string
                       band: '24'
                       channel: 0
                       dual_band: true
                       family: string
                       guest:
-                        authorized: true
+                        authorized: false
                         authorized_expiring_time: 0
                         authorized_time: 0
                         company: string
@@ -18581,23 +18727,24 @@ paths:
                         field1: string
                         name: string
                       hostname: string
-                      id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                       idle_time: 0
                       ip: string
-                      is_guest: true
+                      is_guest: false
                       key_mgmt: string
                       last_seen: 0
                       mac: string
                       manufacture: string
-                      map_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                      map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
                       model: string
-                      name: string
                       num_locating_aps: 0
                       os: string
                       power_saving: true
-                      proto: ac
-                      psk_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+                      proto: a
+                      psk_id: 4cb94c10-4e99-46b0-8261-4c71d0b2cb9d
                       rssi: 0
+                      rssizones:
+                        - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                          since: 0
                       rx_bps: 0
                       rx_bytes: 0
                       rx_packets: 0
@@ -18613,12 +18760,22 @@ paths:
                       type: string
                       uptime: 0
                       username: string
-                      vlan_id: 1
-                      wlan_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                      vbeacons:
+                        - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                          since: 0
+                      vlan_id: 0
+                      wlan_id: 5028e92b-fc59-4056-91d1-ea4b4ca1617a
+                      wxrule_id: 722ef429-6c3a-422c-83d1-2c18f12bd5d4
+                      wxrule_usage:
+                        - tag_id: 39c8a0b3-fbe8-4801-95bf-e8a0792edf1d
+                          usage: 0
                       x: 0
                       y: 0
+                      zones:
+                        - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                          since: 0
               schema:
-                $ref: '#/components/schemas/stats_client'
+                $ref: '#/components/schemas/stats_client_detail'
           description: OK
       summary: getSiteClientStats
       tags:
@@ -20441,30 +20598,116 @@ paths:
               examples:
                 example-1:
                   value:
-                    - created_time: 1574114372
+                    - cpu_stat:
+                        cpus:
+                          property1:
+                            idle: 0
+                            interrupt: 0
+                            system: 0
+                            usage: 0
+                            user: 0
+                          property2:
+                            idle: 0
+                            interrupt: 0
+                            system: 0
+                            usage: 0
+                            user: 0
+                        idle: 0
+                        interrupt: 0
+                        system: 0
+                        usage: 0
+                        user: 0
+                      created_time: 0
                       for_site: true
-                      id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
-                      magic: S2ZD-srTcoOp9GGttZpq1ISQEq4iPY3EhWpAKB9pb9JdWjeP12bjIbFYsDy5jP3a
-                      model: ME-100
-                      modified_time: 1574117211
-                      mxagent_registered: false
-                      name: staging_edge
-                      org_id: 5a5ed2f4-632f-41f3-b8ed-d3afa4b27f96
+                      id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                      ip_stat:
+                        ip: string
+                        ips:
+                          property1: string
+                          property2: string
+                      lag_stat: {}
+                      last_seen: 0
+                      mac: string
+                      memory_stat:
+                        active: 0
+                        available: 0
+                        buffers: 0
+                        cached: 0
+                        free: 0
+                        inactive: 0
+                        swap_cached: 0
+                        swap_free: 0
+                        swap_total: 0
+                        total: 0
+                        usage: 0
+                      model: string
+                      modified_time: 0
+                      mxagent_registered: true
+                      mxcluster_id: de779d5f-583c-4a9c-b212-6105ad1a78b6
+                      name: string
+                      num_tunnels: 0
+                      org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                      port_stat:
+                        property1:
+                          full_duplex: true
+                          mac: string
+                          rx_bytes: 0
+                          rx_errors: 0
+                          rx_pkts: 0
+                          speed: 0
+                          state: string
+                          tx_bytes: 0
+                          tx_errors: 0
+                          tx_pkts: 0
+                          up: true
+                        property2:
+                          full_duplex: true
+                          mac: string
+                          rx_bytes: 0
+                          rx_errors: 0
+                          rx_pkts: 0
+                          speed: 0
+                          state: string
+                          tx_bytes: 0
+                          tx_errors: 0
+                          tx_pkts: 0
+                          up: true
+                      sensor_stat: {}
+                      service_stat:
+                        mxagent:
+                          ext_ip: string
+                          last_seen: 0
+                          package_state: string
+                          package_version: string
+                          running_state: string
+                          uptime: 0
+                        tunterm:
+                          ext_ip: string
+                          last_seen: 0
+                          package_state: string
+                          package_version: string
+                          running_state: string
+                          uptime: 0
                       services:
-                        - tunterm
-                      site_id: c88aa7a2-ac27-7d87-b633-1ac3a7837928
-                      status: disconnected
+                        - {}
+                      site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                      status: string
+                      tunterm_id: 811edbcf-b497-4977-b6d1-40d54cf871a5
                       tunterm_ip_config:
-                        gateway: ''
-                        ip: ''
-                        netmask: ''
+                        gateway: string
+                        ip: string
+                        netmask: string
                       tunterm_port_config:
                         downstream_ports:
-                          - '0'
-                        separate_upstream_downstream: false
+                          - {}
+                        separate_upstream_downstream: true
                         upstream_ports:
-                          - '0'
-                      tunterm_registered: false
+                          - {}
+                      tunterm_registered: true
+                      tunterm_stat:
+                        monitoring_failed: true
+                      uptime: 0
+                      virtualization_type: string
               schema:
                 items:
                   $ref: '#/components/schemas/stats_mxedge'
@@ -20486,30 +20729,116 @@ paths:
               examples:
                 example-1:
                   value:
-                    created_time: 1574114372
+                    cpu_stat:
+                      cpus:
+                        property1:
+                          idle: 0
+                          interrupt: 0
+                          system: 0
+                          usage: 0
+                          user: 0
+                        property2:
+                          idle: 0
+                          interrupt: 0
+                          system: 0
+                          usage: 0
+                          user: 0
+                      idle: 0
+                      interrupt: 0
+                      system: 0
+                      usage: 0
+                      user: 0
+                    created_time: 0
                     for_site: true
-                    id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
-                    magic: S2ZD-srTcoOp9GGttZpq1ISQEq4iPY3EhWpAKB9pb9JdWjeP12bjIbFYsDy5jP3a
-                    model: ME-100
-                    modified_time: 1574117211
-                    mxagent_registered: false
-                    name: staging_edge
-                    org_id: 5a5ed2f4-632f-41f3-b8ed-d3afa4b27f96
+                    id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                    ip_stat:
+                      ip: string
+                      ips:
+                        property1: string
+                        property2: string
+                    lag_stat: {}
+                    last_seen: 0
+                    mac: string
+                    memory_stat:
+                      active: 0
+                      available: 0
+                      buffers: 0
+                      cached: 0
+                      free: 0
+                      inactive: 0
+                      swap_cached: 0
+                      swap_free: 0
+                      swap_total: 0
+                      total: 0
+                      usage: 0
+                    model: string
+                    modified_time: 0
+                    mxagent_registered: true
+                    mxcluster_id: de779d5f-583c-4a9c-b212-6105ad1a78b6
+                    name: string
+                    num_tunnels: 0
+                    org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                    port_stat:
+                      property1:
+                        full_duplex: true
+                        mac: string
+                        rx_bytes: 0
+                        rx_errors: 0
+                        rx_pkts: 0
+                        speed: 0
+                        state: string
+                        tx_bytes: 0
+                        tx_errors: 0
+                        tx_pkts: 0
+                        up: true
+                      property2:
+                        full_duplex: true
+                        mac: string
+                        rx_bytes: 0
+                        rx_errors: 0
+                        rx_pkts: 0
+                        speed: 0
+                        state: string
+                        tx_bytes: 0
+                        tx_errors: 0
+                        tx_pkts: 0
+                        up: true
+                    sensor_stat: {}
+                    service_stat:
+                      mxagent:
+                        ext_ip: string
+                        last_seen: 0
+                        package_state: string
+                        package_version: string
+                        running_state: string
+                        uptime: 0
+                      tunterm:
+                        ext_ip: string
+                        last_seen: 0
+                        package_state: string
+                        package_version: string
+                        running_state: string
+                        uptime: 0
                     services:
-                      - tunterm
-                    site_id: c88aa7a2-ac27-7d87-b633-1ac3a7837928
-                    status: disconnected
+                      - {}
+                    site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                    status: string
+                    tunterm_id: 811edbcf-b497-4977-b6d1-40d54cf871a5
                     tunterm_ip_config:
-                      gateway: ''
-                      ip: ''
-                      netmask: ''
+                      gateway: string
+                      ip: string
+                      netmask: string
                     tunterm_port_config:
                       downstream_ports:
-                        - '0'
-                      separate_upstream_downstream: false
+                        - {}
+                      separate_upstream_downstream: true
                       upstream_ports:
-                        - '0'
-                    tunterm_registered: false
+                        - {}
+                    tunterm_registered: true
+                    tunterm_stat:
+                      monitoring_failed: true
+                    uptime: 0
+                    virtualization_type: string
               schema:
                 $ref: '#/components/schemas/stats_mxedge'
           description: OK
@@ -24592,7 +24921,6 @@ components:
     rogue_type:
       in: query
       name: type
-      required: true
       schema:
         enum:
           - honeypot
@@ -26009,6 +26337,63 @@ components:
               $ref: '#/components/schemas/stats_asset'
             type: array
       description: OK
+    AssetsArrayStatsSearch:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                end: 0
+                limit: 0
+                next: string
+                results:
+                  - battery_voltage: 0
+                    eddystone_uid_instance: string
+                    eddystone_uid_namespace: string
+                    eddystone_url_url: string
+                    ibeacon_major: 0
+                    ibeacon_minor: 0
+                    ibeacon_uuid: 1f89bc00-d0af-481b-82fe-a6629259a39f
+                    last_seen: 0
+                    mac: string
+                    map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
+                    name: string
+                    rssizones:
+                      - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                        since: 0
+                    x: 0
+                    y: 0
+                    zones:
+                      - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                        since: 0
+                start: 0
+                total: 0
+          schema:
+            properties:
+              end:
+                type: integer
+              limit:
+                type: integer
+              next:
+                type: string
+              results:
+                items:
+                  $ref: '#/components/schemas/stats_asset'
+                minItems: 1
+                type: array
+                uniqueItems: true
+              start:
+                type: integer
+              total:
+                type: integer
+            required:
+              - start
+              - end
+              - limit
+              - total
+              - results
+            type: object
+      description: OK
     Beacon:
       content:
         application/json:
@@ -27245,10 +27630,12 @@ components:
             example-1:
               value:
                 - counts:
+                    download_requested: 0
                     downloaded: 0
                     failed: 0
                     reboot_in_progress: 0
                     rebooted: 0
+                    skipped: 0
                     total: 0
                   enable_p2p: true
                   force: true
@@ -31191,6 +31578,8 @@ components:
                       start_time: 0
                       status: created
                       targets:
+                        download_requested:
+                          - 497f6eca-6276-4993-bfeb-53cbbbba6f08
                         downloaded:
                           - 497f6eca-6276-4993-bfeb-53cbbbba6f08
                         failed:
@@ -33344,30 +33733,26 @@ components:
       content:
         application/json:
           examples:
-            App:
+            example-1:
               value:
-                app_key: zoom
-                name: Zoom
+                addresses:
+                  - string
+                apps:
+                  - string
+                dscp_class: string
+                hostnames:
+                  - string
+                max_jitter: 0
+                max_latency: string
+                max_loss: 0
+                name: string
                 specs:
-                  - port: 80
-                    protocol: https
-                type: app
-            Network:
-              value:
-                name: Zoom
-                network_id: e23dcb68-e60c-cf51-e7a0-823fa3820dca
-                specs:
-                  - port: 80
-                    protocol: https
-                type: network
-            Subnet:
-              value:
-                name: Zoom
-                specs:
-                  - port: 80
-                    protocol: https
-                subnet: 63.3.1.2/24
-                type: subnet
+                  - port_range: 0
+                    protocol: any
+                traffic_class: best_effort
+                traffic_type: string
+                type: addresses
+                vpn_name: addresses
           schema:
             $ref: '#/components/schemas/service'
       description: OK
@@ -33377,21 +33762,24 @@ components:
           examples:
             example-1:
               value:
-                - app_key: zoom
-                  name: App1
-                  type: app
-                - name: App2
+                - addresses:
+                    - string
+                  apps:
+                    - string
+                  dscp_class: string
+                  hostnames:
+                    - string
+                  max_jitter: 0
+                  max_latency: string
+                  max_loss: 0
+                  name: string
                   specs:
-                    - port: 80
-                      protocol: https
-                  subnet: 63.3.1.2/24
-                  type: subnet
-                - name: App3
-                  network_id: e23dcb68-e60c-cf51-e7a0-823fa3820dca
-                  specs:
-                    - port: 80
-                      protocol: https
-                  type: network
+                    - port_range: 0
+                      protocol: any
+                  traffic_class: best_effort
+                  traffic_type: string
+                  type: addresses
+                  vpn_name: addresses
           schema:
             items:
               $ref: '#/components/schemas/service'
@@ -39233,6 +39621,9 @@ components:
           $ref: '#/components/schemas/ap_ip'
         led:
           $ref: '#/components/schemas/ap_led'
+        locked:
+          description: whether this map is considered locked down
+          type: boolean
         map_id:
           description: map where the device belongs to
           format: uuid
@@ -39404,6 +39795,7 @@ components:
           led:
             brightness: 0
             enabled: true
+          locked: false
           map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
           mesh:
             enabled: false
@@ -40134,9 +40526,14 @@ components:
             strategy: big_bang
             version: stable
     device_upgrade_response:
+      description: ''
       properties:
         counts:
           properties:
+            download_requested:
+              description: "count of ap\u2019s which cloud has requested to download\
+                \ firmware"
+              type: integer
             downloaded:
               description: "count of ap\u2019s which have the firmware downloaded"
               type: number
@@ -40199,18 +40596,21 @@ components:
       type: object
       x-examples:
         example-1:
-          value:
-            counts:
-              downloaded: 0
-              failed: 0
-              reboot_in_progress: 0
-              rebooted: 0
-              total: 1
-            enable_p2p: false
-            id: 57bf9d30-bd30-48e6-bb76-43c2efa375dc
-            start_time: 1624499588
-            strategy: big_bang
-            target_version: apfw-0.7.20216-gilly-d4fc
+          counts:
+            download_requested: 0
+            downloaded: 0
+            failed: 0
+            reboot_in_progress: 0
+            rebooted: 0
+            skipped: 0
+            total: 0
+          enable_p2p: true
+          force: true
+          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          start_time: 0
+          status: created
+          strategy: big_bang
+          target_version: string
     deviceprofile:
       description: Device Profile
       minItems: 1
@@ -41434,15 +41834,17 @@ components:
           type: string
         local_as:
           type: integer
+        neighbor_as:
+          type: integer
         neighbors:
           additionalProperties:
             properties:
               neighbor_as:
                 type: integer
             type: object
+          description: if per-neighbor as is desired. Property name is the neighbor
+            address
           type: object
-        remote_as:
-          type: integer
         type:
           minLength: 1
           type: string
@@ -41454,12 +41856,12 @@ components:
             export: string
             import: string
             local_as: 0
+            neighbor_as: 0
             neighbors:
               property1:
                 neighbor_as: 0
               property2:
                 neighbor_as: 0
-            remote_as: 0
             type: string
     junos_dhcp_snooping:
       description: ''
@@ -44248,6 +44650,13 @@ components:
                     type: string
                   targets:
                     properties:
+                      download_requested:
+                        description: devices which cloud has requested to download
+                          firmware
+                        items:
+                          format: uuid
+                          type: string
+                        type: array
                       downloaded:
                         description: devices which have the firmware downloaded
                         items:
@@ -44290,31 +44699,32 @@ components:
       type: object
       x-examples:
         example-1:
-          value:
-            enable_p2p: true
-            force: true
-            id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-            start_time: 0
-            status: created
-            strategy: big_bang
-            target_version: string
-            upgrades:
-              - site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
-                upgrade:
-                  id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-                  start_time: 0
-                  status: created
-                  targets:
-                    downloaded:
-                      - 497f6eca-6276-4993-bfeb-53cbbbba6f08
-                    failed:
-                      - 497f6eca-6276-4993-bfeb-53cbbbba6f08
-                    reboot_in_progress:
-                      - 497f6eca-6276-4993-bfeb-53cbbbba6f08
-                    rebooted:
-                      - 497f6eca-6276-4993-bfeb-53cbbbba6f08
-                    skipped:
-                      - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          enable_p2p: true
+          force: true
+          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          start_time: 0
+          status: created
+          strategy: big_bang
+          target_version: string
+          upgrades:
+            - site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+              upgrade:
+                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                start_time: 0
+                status: created
+                targets:
+                  download_requested:
+                    - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  downloaded:
+                    - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  failed:
+                    - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  reboot_in_progress:
+                    - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  rebooted:
+                    - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  skipped:
+                    - 497f6eca-6276-4993-bfeb-53cbbbba6f08
     org_info:
       description: ''
       properties:
@@ -46451,12 +46861,35 @@ components:
       description: WIP
       properties:
         addresses:
-          description: if `dst_type`==`addresses`, the subnets where is the service
+          description: if `type`==`addresses`, the subnets where the service resides
+            (if more specific is required)
           items:
             type: string
           type: array
-        app_specs:
-          description: optional when `dst_type`!=`apps`
+        apps:
+          description: if `type`==`app`, comes from `/api/v1/const/apps`
+          items:
+            type: string
+          type: array
+        dscp_class:
+          type: string
+        hostnames:
+          description: if `type`==`hostnames`
+          items:
+            type: string
+          type: array
+        max_jitter:
+          description: for uplink selection
+          type: integer
+        max_latency:
+          type: string
+        max_loss:
+          description: for uplink selection
+          type: integer
+        name:
+          type: string
+        specs:
+          description: optional when `dst_type`!=`apps`, by default it's any
           items:
             properties:
               port_range:
@@ -46470,37 +46903,6 @@ components:
             type: object
           type: array
           uniqueItems: true
-        apps:
-          description: if `dst_type`==`app`, comes from `/api/v1/const/apps`
-          items:
-            type: string
-          type: array
-        dscp_class:
-          type: string
-        dst_type:
-          type: string
-        hostnames:
-          items:
-            type: string
-          type: array
-        location:
-          type: string
-        max_jitter:
-          description: for uplink selection
-          type: integer
-        max_latency:
-          type: string
-        max_loss:
-          description: for uplink selection
-          type: integer
-        name:
-          type: string
-        network:
-          description: which network the resource resides
-          format: uuid
-          items:
-            type: string
-          type: array
         traffic_class:
           default: best_effort
           enum:
@@ -46510,16 +46912,12 @@ components:
             - low
           type: string
         traffic_type:
-          default: default
-          description: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
-            \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n    // when type=app,\
-            \ we'll choose traffic_type automatically\n    // when type=custom, you\
-            \ can provide your own settings, also optionally,default / web / voip-audio\
-            \ / remote-desktop / gaming / video-streaming / ...  "
-          type: string
-        trazffic_type:
           type: string
         type:
+          enum:
+            - addresses
+            - hostnames
+            - app
           type: string
         vpn_name:
           enum:
@@ -46531,17 +46929,25 @@ components:
       type: object
       x-examples:
         example-1:
-          addresses:
-            - string
-          apps:
-            - string
-          name: string
-          network: d72f4655-059b-4c8a-bb9d-87f2df3b2fcf
-          specs:
-            - port_range: 0
-              protocol: any
-          subnet: string
-          type: string
+          value:
+            addresses:
+              - string
+            apps:
+              - string
+            dscp_class: string
+            hostnames:
+              - string
+            max_jitter: 0
+            max_latency: string
+            max_loss: 0
+            name: string
+            specs:
+              - port_range: 0
+                protocol: any
+            traffic_class: best_effort
+            traffic_type: string
+            type: addresses
+            vpn_name: addresses
     site:
       description: Site
       properties:
@@ -51192,6 +51598,346 @@ components:
             wlan_id: be22bba7-8e22-e1cf-5185-b880816fe2cf
             x: 53.5
             y: 173.1
+    stats_client_detail:
+      description: Client statistics
+      items:
+        properties:
+          _ttl:
+            description: TTL of the validity of the stat
+            type: number
+          accuracy:
+            description: estimated clinet location accuracy, in meter
+            type: integer
+          airespace_ifname:
+            type: string
+          airwatch:
+            description: information if airwatch enabled
+            properties:
+              authorized:
+                type: boolean
+            required:
+              - authorized
+            type: object
+          ap_id:
+            description: AP ID the client is connected to
+            format: uuid
+            type: string
+          ap_mac:
+            description: AP the client is connected to
+            type: string
+          band:
+            enum:
+              - '24'
+              - '5'
+            type: string
+          channel:
+            description: current channel
+            type: integer
+          dual_band:
+            description: "whether the client is dual-band capable (determined by whether\
+              \ we\u2019ve seen probe requests from both bands)"
+            type: boolean
+          family:
+            description: "device family, through fingerprinting. iPod / Nexus Galaxy\
+              \ / Windows Mobile or CE \u2026"
+            type: string
+          guest:
+            description: information about this portal
+            properties:
+              authorized:
+                default: false
+                description: whether this guest is authorized
+                type: boolean
+              authorized_expiring_time:
+                description: when the guest authorization will expire
+                type: number
+              authorized_time:
+                description: when the guest is authorized
+                type: number
+              company:
+                type: string
+              email:
+                type: string
+              field1:
+                type: string
+              name:
+                type: string
+            required:
+              - authorized
+              - authorized_expiring_time
+              - authorized_time
+              - company
+              - email
+              - field1
+              - name
+            type: object
+          hostname:
+            description: hostname that we learned from sniffing DHCP
+            type: string
+          idle_time:
+            description: how long, in seconds, has the client been idle (since the
+              last RX packet)
+            type: number
+          ip:
+            type: string
+          is_guest:
+            default: false
+            description: whether this is a guest
+            type: boolean
+          key_mgmt:
+            description: e.g. WPA2-PSK/CCMP
+            type: string
+          last_seen:
+            description: last seen timestamp
+            type: number
+          mac:
+            description: client mac
+            type: string
+          manufacture:
+            description: device manufacture, through fingerprinting or OUI
+            type: string
+          map_id:
+            description: estimated client location - map_id
+            format: uuid
+            type: string
+          model:
+            description: device model, may be available if we can identify them
+            type: string
+          num_locating_aps:
+            description: number of APs used to locate this client
+            type: integer
+          os:
+            description: device os, through fingerprinting
+            type: string
+          power_saving:
+            description: "if it\u2019s currently in power-save mode"
+            type: boolean
+          proto:
+            enum:
+              - a
+              - b
+              - g
+              - n
+              - ac
+              - ax
+            type: string
+          psk_id:
+            description: PSK id (if multi-psk is used)
+            format: uuid
+            type: string
+          rssi:
+            description: signal strength
+            type: number
+          rssizones:
+            description: "list of rssizone_id\u2019s where client is in and since\
+              \ when (if known)"
+            items:
+              properties:
+                id:
+                  format: uuid
+                  type: string
+                since:
+                  type: integer
+              type: object
+            type: array
+          rx_bps:
+            description: rate of receiving traffic from the clients, bits/seconds,
+              last known
+            type: number
+          rx_bytes:
+            description: amount of traffic received from client since client connects
+            type: number
+          rx_packets:
+            description: amount of traffic received from client since client connects
+            type: number
+          rx_rate:
+            description: RX Rate, Mbps
+            type: number
+          rx_retries:
+            description: amount of rx retries
+            type: number
+          snr:
+            description: signal over noise
+            type: number
+          ssid:
+            description: SSID the client is connected to
+            type: string
+          tx_bps:
+            description: rate of transmitting traffic to the clients, bits/seconds,
+              last known
+            type: number
+          tx_bytes:
+            description: amount of traffic sent to client since client connects
+            type: number
+          tx_packets:
+            description: amount of traffic sent to client since client connects
+            type: number
+          tx_rate:
+            description: TX Rate, Mbps
+            type: number
+          tx_retries:
+            description: amount of tx retries
+            type: number
+          type:
+            description: "client\u2019s type, regular / vip / resource / blocked (if\
+              \ client object is created)"
+            type: string
+          uptime:
+            description: how long, in seconds, has the client been connected
+            type: number
+          username:
+            description: username that we learned from 802.1X exchange or Per-user
+              PSK or User Portal
+            type: string
+          vbeacons:
+            description: "list of beacon_id\u2019s where the client is in and since\
+              \ when (if known)"
+            items:
+              properties:
+                id:
+                  format: uuid
+                  type: string
+                since:
+                  type: integer
+              type: object
+            type: array
+          vlan_id:
+            description: vlan id, could be empty (from older AP)
+            type: integer
+          wlan_id:
+            description: WLAN ID the client is connected to
+            format: uuid
+            type: string
+          wxrule_id:
+            description: current WxlanRule using for a Client or an authorized Guest
+              (portal user). null if default rule is matched.
+            format: uuid
+            type: string
+          wxrule_usage:
+            description: current WxlanRule usage per tag_id
+            items:
+              properties:
+                tag_id:
+                  format: uuid
+                  type: string
+                usage:
+                  type: integer
+              type: object
+            type: array
+          x:
+            description: estimated clinet location in pixels
+            type: number
+          y:
+            description: estimated clinet location in pixels
+            type: number
+          zones:
+            description: "list of zone_id\u2019s where client is in and since when\
+              \ (if known)"
+            items:
+              properties:
+                id:
+                  format: uuid
+                  type: string
+                since:
+                  type: integer
+              type: object
+            type: array
+        required:
+          - _ttl
+          - ap_id
+          - ap_mac
+          - band
+          - channel
+          - dual_band
+          - family
+          - hostname
+          - idle_time
+          - ip
+          - is_guest
+          - key_mgmt
+          - last_seen
+          - mac
+          - manufacture
+          - model
+          - os
+          - power_saving
+          - proto
+          - rssi
+          - rx_bps
+          - rx_bytes
+          - rx_packets
+          - rx_rate
+          - rx_retries
+          - snr
+          - ssid
+          - tx_bps
+          - tx_bytes
+          - tx_packets
+          - tx_rate
+          - tx_retries
+          - uptime
+          - username
+          - wlan_id
+        type: object
+      minItems: 1
+      type: array
+      uniqueItems: true
+      x-examples:
+        example-1:
+          - _ttl: 250
+            airespace_ifname: ''
+            airwatch:
+              authorized: true
+            ap_id: 0000000-0000-0000-1000-5c5b35000010
+            ap_mac: 5c5b35000010
+            band: '24'
+            channel: 7
+            dual_band: false
+            family: iPhone
+            guest:
+              authorized: true
+              authorized_expiring_time: 1429109300
+              authorized_time: 1428939300
+              company: ABC
+              email: john@abc.com
+              field1: whatever
+              name: John
+            hostname: David-Macbook
+            id: a7d39965-9b33-3e93-1046-e4959e635e32
+            idle_time: 3
+            ip: 192.168.1.8
+            is_guest: true
+            key_mgmt: WPA2-PSK/CCMP
+            last_seen: 1470417522
+            mac: 5684dae9ac8b
+            manufacture: Apple
+            map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
+            model: 6S
+            name: David's Laptop
+            num_locating_aps: 3
+            os: OS X 10.10.2
+            power_saving: true
+            proto: a
+            psk_id: 732daf4e-f51e-8bba-06f9-b25cd0e779ea
+            rssi: -65
+            rx_bps: 12
+            rx_bytes: 217416
+            rx_packets: 2337
+            rx_rate: 65
+            rx_retries: 5
+            snr: 31
+            ssid: corporate
+            tx_bps: 6
+            tx_bytes: 175132
+            tx_packets: 1566
+            tx_rate: 65
+            tx_retries: 500
+            uptime: 3568
+            username: david@mist.com
+            vlan_id: 1
+            wlan_id: be22bba7-8e22-e1cf-5185-b880816fe2cf
+            x: 53.5
+            y: 173.1
     stats_device_ap:
       description: AP statistics
       properties:
@@ -52344,6 +53090,20 @@ components:
                 uniqueItems: true
               model:
                 type: string
+              pics:
+                properties:
+                  idx:
+                    type: integer
+                  port_groups:
+                    items:
+                      properties:
+                        count:
+                          type: integer
+                        type:
+                          type: string
+                      type: object
+                    type: array
+                type: object
               poe:
                 properties:
                   max_power:
@@ -52471,13 +53231,18 @@ components:
                   port_id: vcp-255/1/0
               vc_role: master
           name: xg50b
+          pics:
+            - idx: 0
+              port_groups:
+                - count: 12
+                  type: sfp+
           serial: TC3714190003
           status: connected
           type: switch
           uptime: 13500
           version: 18.4R1.8
     stats_mxedge:
-      description: MxEdge statistics
+      description: ''
       properties:
         cpu_stat:
           description: CPU/core stats list
@@ -52486,41 +53251,43 @@ components:
               additionalProperties:
                 properties:
                   idle:
-                    type: number
+                    type: integer
                   interrupt:
-                    type: number
+                    type: integer
                   system:
-                    type: number
+                    type: integer
                   usage:
-                    type: number
+                    type: integer
                   user:
-                    type: number
+                    type: integer
                 type: object
               type: object
             idle:
               description: percentage of Idle, Idle/(Idle + Busy) since last sampling
-              type: number
+              type: integer
             interrupt:
               description: percentage of Interrupt, (Irq + SoftIrq)/(Idle + Busy)
                 since last sampling
-              type: number
+              type: integer
             system:
               description: percentage of System, System/(Idle + Busy) since last sampling
-              type: number
+              type: integer
             usage:
               description: percentage of load, Busy/(Idle + Busy) since last sampling
-              type: number
+              type: integer
             user:
               description: percentage of User, User/(Idle + Busy) since last sampling
-              type: number
+              type: integer
           type: object
-        ext_ip:
-          type: string
+        created_time:
+          type: integer
+        for_site:
+          type: boolean
         id:
           format: uuid
           type: string
         ip_stat:
-          description: IP stats
+          description: OOBM IP stats
           properties:
             ip:
               type: string
@@ -52529,26 +53296,14 @@ components:
                 type: string
               description: IPs for each net interface
               type: object
-          required:
-            - ip
-            - ips
           type: object
         lag_stat:
-          additionalProperties:
-            properties:
-              active_ports:
-                items:
-                  type: string
-                type: array
-            required:
-              - active_ports
-            type: object
           type: object
         last_seen:
-          type: number
-        magic:
+          type: integer
+        mac:
           type: string
-        memory_stats:
+        memory_stat:
           description: Memory usage
           properties:
             active:
@@ -52569,7 +53324,7 @@ components:
               type: integer
             free:
               description: The amount of physical RAM, in kibibytes, left unused by
-                the system.
+                the system
               type: integer
             inactive:
               description: The amount of memory, in kibibytes, that has been used
@@ -52588,241 +53343,267 @@ components:
               type: integer
             total:
               description: Total amount of usable RAM, in kibibytes, which is physical
-                RAM minus a number of reserved bits and the kernel binary code.
+                RAM minus a number of reserved bits and the kernel binary code
               type: integer
             usage:
               type: integer
           type: object
         model:
           type: string
-        mxagent_last_seen:
+        modified_time:
           type: integer
         mxagent_registered:
           type: boolean
-        mxagent_uptime:
-          type: integer
-        mxagent_version:
-          type: string
         mxcluster_id:
           format: uuid
           type: string
         name:
+          description: The name of the tunnel
           type: string
         num_tunnels:
           type: integer
+        org_id:
+          format: uuid
+          type: string
         port_stat:
           additionalProperties:
             properties:
               full_duplex:
                 type: boolean
-              lldp_stats:
-                properties:
-                  mgmt_addr:
-                    type: string
-                  port_desc:
-                    type: string
-                  port_id:
-                    type: string
-                  system_desc:
-                    type: string
-                  system_name:
-                    type: string
-                required:
-                  - system_name
-                  - mgmt_addr
-                  - port_id
-                  - system_desc
-                  - port_desc
-                type: object
+              mac:
+                type: string
               rx_bytes:
                 type: number
               rx_errors:
-                type: number
+                type: integer
               rx_pkts:
-                type: number
+                type: integer
               speed:
                 type: integer
+              state:
+                type: string
               tx_bytes:
-                type: number
+                type: integer
+              tx_errors:
+                type: integer
               tx_pkts:
-                type: number
+                type: integer
               up:
                 type: boolean
             type: object
           type: object
+        sensor_stat:
+          type: object
         service_stat:
+          description: stat for each services
           properties:
             mxagent:
               properties:
+                ext_ip:
+                  description: "external IP from ep-terminator\u2019s point of view.\
+                    \ valid only for service having its own cloud connection"
+                  type: string
+                last_seen:
+                  description: timestamp when the last stats is seen (cloud unix time,
+                    in second). valid only for service having its own stats or whole
+                    system (last among last_seen of all services)
+                  type: integer
                 package_state:
+                  description: package/service installation state.
                   type: string
                 package_version:
+                  description: package/service installation state.
                   type: string
                 running_state:
+                  description: service running state.
                   type: string
                 uptime:
+                  description: service uptime.
                   type: integer
-              type: object
-            radsecproxy:
-              properties:
-                package_state:
-                  type: string
               type: object
             tunterm:
               properties:
+                ext_ip:
+                  description: "external IP from ep-terminator\u2019s point of view.\
+                    \ valid only for service having its own cloud connection"
+                  type: string
+                last_seen:
+                  description: timestamp when the last stats is seen (cloud unix time,
+                    in second). valid only for service having its own stats or whole
+                    system (last among last_seen of all services)
+                  type: integer
                 package_state:
+                  description: package/service installation state.
                   type: string
                 package_version:
+                  description: package/service installation state.
                   type: string
                 running_state:
+                  description: service running state.
                   type: string
                 uptime:
+                  description: service uptime.
                   type: integer
               type: object
           type: object
-        stats_last_seen:
-          type: integer
+        services:
+          items:
+            type: object
+          type: array
+        site_id:
+          format: uuid
+          type: string
         status:
           type: string
-        system_uptime:
-          type: integer
-        tunterm_last_seen:
-          type: integer
+        tunterm_id:
+          format: uuid
+          type: string
+        tunterm_ip_config:
+          properties:
+            gateway:
+              type: string
+            ip:
+              type: string
+            netmask:
+              type: string
+          type: object
+        tunterm_port_config:
+          properties:
+            downstream_ports:
+              items:
+                type: object
+              type: array
+            separate_upstream_downstream:
+              type: boolean
+            upstream_ports:
+              items:
+                type: object
+              type: array
+          type: object
         tunterm_registered:
           type: boolean
         tunterm_stat:
           properties:
-            mxagent:
-              properties:
-                running_stat:
-                  type: string
-              type: object
-            radsecproxy:
-              properties:
-                running_stat:
-                  type: string
-              type: object
-            tunterm:
-              properties:
-                running_stat:
-                  type: string
-              type: object
+            monitoring_failed:
+              type: boolean
           type: object
-        tunterm_uptime:
-          type: integer
-        tunterm_version:
-          type: string
         uptime:
-          type: number
-        version:
-          type: string
+          type: integer
         virtualization_type:
           description: Virtualization environment
           type: string
-      required:
-        - id
-        - magic
-        - name
       type: object
       x-examples:
         example-1:
           cpu_stat:
             cpus:
-              cpu0:
-                idle: 79
+              property1:
+                idle: 0
                 interrupt: 0
-                system: 4
-                usage: 20
-                user: 16
-              cpu1:
-                idle: 93
+                system: 0
+                usage: 0
+                user: 0
+              property2:
+                idle: 0
                 interrupt: 0
-                system: 4
-                usage: 6
-                user: 1
-            idle: 87
+                system: 0
+                usage: 0
+                user: 0
+            idle: 0
             interrupt: 0
-            system: 5
-            usage: 12
-            user: 7
-          ext_ip: 116.187.144.16
-          id: 387804a7-3474-85ce-15a2-f9a9684c9c90
+            system: 0
+            usage: 0
+            user: 0
+          created_time: 0
+          for_site: true
+          id: string
           ip_stat:
-            ip: 172.16.5.3
+            ip: string
             ips:
-              ens192: 172.16.5.3/24,fe81::20c:29ff:fef8:d18e/64
-          lag_stat:
-            lag0:
-              active_ports:
-                - '0'
-                - '1'
-          last_seen: 1547437070
-          magic: ExNpT5gi-ADR8WTFd4EiQPY3cP5WdSoD
-          memory_stats:
-            active: 1061085184
-            available: 4124860416
-            buffers: 789495808
-            cached: 718016512
-            free: 2818838528
-            inactive: 458158080
+              ens18: string
+          lag_stat: {}
+          last_seen: 0
+          mac: string
+          memory_stat:
+            active: 0
+            available: 0
+            buffers: 0
+            cached: 0
+            free: 0
+            inactive: 0
             swap_cached: 0
-            swap_free: 8161062912
-            swap_total: 8161062912
-            total: 7947616256
-            usage: 65
-          model: ME-S2019
-          mxagent_last_seen: 1547437078
-          mxagent_registered: false
-          mxagent_uptime: 884220
-          mxagent_version: 3.1.1575
-          mxcluster_id: 572586b7-f97b-a22b-526c-8b97a3f609c4
-          name: Guest
-          num_tunnels: 31
+            swap_free: 0
+            swap_total: 0
+            total: 0
+            usage: 0
+          model: string
+          modified_time: 0
+          mxagent_registered: true
+          mxcluster_id: string
+          name: string
+          num_tunnels: 0
+          org_id: string
           port_stat:
-            eth0:
+            property1:
               full_duplex: true
-              lldp_stats:
-                mgmt_addr: 122.16.3.11
-                port_desc: GigabitEthernet4/0/16
-                port_id: "\x05Gi4/0/16"
-                system_desc: Cisco IOS Software
-                system_name: ME-DC2-DIS-SW
-              rx_bytes: 2056
+              mac: string
+              rx_bytes: 0
               rx_errors: 0
-              rx_pkts: 670
-              speed: 1000
-              tx_bytes: 2056
-              tx_pkts: 670
+              rx_pkts: 0
+              speed: 0
+              state: string
+              tx_bytes: 0
+              tx_errors: 0
+              tx_pkts: 0
               up: true
-            eth1:
-              up: false
-            module:
-              up: false
+            property2:
+              full_duplex: true
+              mac: string
+              rx_bytes: 0
+              rx_errors: 0
+              rx_pkts: 0
+              speed: 0
+              state: string
+              tx_bytes: 0
+              tx_errors: 0
+              tx_pkts: 0
+              up: true
+          sensor_stat: {}
           service_stat:
             mxagent:
-              package_state: Installed
-              package_version: 3.1.1575-1
-              running_state: Running
-              uptime: 60
-            radsecproxy:
-              package_state: NotInstalled
+              ext_ip: string
+              last_seen: 0
+              package_state: string
+              package_version: string
+              running_state: string
+              uptime: 0
             tunterm:
-              package_state: Installed
-              package_version: 0.1.2451+deb10
-              running_state: Running
-              uptime: 300
-          stats_last_seen: 1547437078
-          status: connected
-          system_uptime: 884223
-          tunterm_last_seen: 1547437070
-          tunterm_registered: false
+              ext_ip: string
+              last_seen: 0
+              package_state: string
+              package_version: string
+              running_state: string
+              uptime: 0
+          services:
+            - {}
+          site_id: string
+          status: string
+          tunterm_id: string
+          tunterm_ip_config:
+            gateway: string
+            ip: string
+            netmask: string
+          tunterm_port_config:
+            downstream_ports:
+              - {}
+            separate_upstream_downstream: true
+            upstream_ports:
+              - {}
+          tunterm_registered: true
           tunterm_stat:
-            monitoring_failed: false
-          tunterm_uptime: 884221
-          tunterm_version: 0.1.2451
-          uptime: 884221
-          version: 0.1.2451
-          virtualization_type: VirtualizationVMware
+            monitoring_failed: true
+          uptime: 0
+          virtualization_type: string
     stats_mxtunnel:
       description: 'MxTunnels statistics '
       properties:
@@ -57959,6 +58740,7 @@ x-tagGroups:
       - Sites Beacons
       - Sites Clients
       - Sites Devices
+      - Sites Devices HA
       - Sites Devices Utilities
       - Sites Devices Virtual Chassis
       - Sites Devices EVPN
