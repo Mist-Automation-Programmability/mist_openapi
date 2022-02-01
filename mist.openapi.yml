@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.18.3**
+  description: '> Version: **0.19.1**
 
     >
 
-    > Date: **January 19th, 2022**
+    > Date: **January 31th, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.18.3
+  version: 0.19.1
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -75,6 +75,7 @@ tags:
 - name: Msps Org Groups
 - name: Msps Orgs
 - name: Msps Search
+- name: Msps SLEs
 - name: Msps SSO Roles
 - name: Msps SSO
 - name: Msps Stats
@@ -2219,15 +2220,117 @@ paths:
       - Msps Admins
   /api/v1/msps/{msp_id}/insights/{metric}:
     get:
-      description: See getSiteAvailableInsightMetrics for metrics description of MSP
-        Scope
-      operationId: getMspsInsightMetrics
+      description: Get MSP SLEs (all/worst Orgs ...)
+      operationId: getMspSle
+      parameters:
+      - description: see /api/v1/const/insight_metrics for more details
+        in: query
+        name: sle
+        schema:
+          type: string
+      - description: see /api/v1/const/insight_metrics for more details
+        in: query
+        name: metric
+        schema:
+          type: string
+      - $ref: '#/components/parameters/duration'
+      - in: query
+        name: interval
+        schema:
+          enum:
+          - 10m
+          - 1h
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
       responses:
         '200':
-          $ref: '#/components/responses/InsightMetric'
-      summary: getMspsInsightMetrics
+          content:
+            application/json:
+              examples:
+                orgs-sle:
+                  value:
+                    end: 1643706000
+                    interval: 3600
+                    limit: 100
+                    results:
+                    - ap-availability: 0.9919400860511628
+                      ap-health: 0.967607512909879
+                      capacity: 0.7484652273070254
+                      coverage: 0.91217567374857
+                      num_aps: 13
+                      num_clients: 12
+                      org_id: 978c48e6-6ef6-11e6-8bbf-02e208b2d34f
+                      roaming: 0.991735537682683
+                      roaming-exp: 0.991735537682683
+                      successful-connect: 0.46052632135780236
+                      throughput: 0.6775702123846302
+                      time-to-connect: 0.9349112447196916
+                    - ap-availability: 0.9990384613092129
+                      ap-health: 0.48201754375507955
+                      capacity: 0.9702673450306101
+                      coverage: 0.8335392334930375
+                      num_aps: 1
+                      num_clients: 6
+                      org_id: 49ff76e0-a283-4e7d-b38d-041f1e9aff3c
+                      roaming: 1
+                      roaming-exp: 1
+                      successful-connect: 1
+                      throughput: 0
+                      time-to-connect: 1
+                    - ap-availability: 1
+                      ap-health: 0.982456140612301
+                      capacity: 1
+                      coverage: 0.9276041182442488
+                      num_aps: 2
+                      num_clients: 3
+                      org_id: 9b9b48f1-15a4-459e-86cc-9cbec9005983
+                      roaming: 1
+                      roaming-exp: 1
+                      successful-connect: 1
+                      throughput: 1
+                      time-to-connect: 0.8125
+                    - ap-availability: 0.9981132070973234
+                      ap-health: 0.9991228068084047
+                      capacity: 1
+                      coverage: 1
+                      num_aps: 1
+                      num_clients: 0
+                      org_id: eb0e1671-7a6b-472b-94c3-c187dafe5274
+                      roaming: 1
+                      roaming-exp: 1
+                      successful-connect: 1
+                      throughput: 0
+                      time-to-connect: 0.5
+                    start: 1643670000
+              schema:
+                description: ''
+                properties:
+                  end:
+                    type: number
+                  interval:
+                    type: number
+                  limit:
+                    type: number
+                  results:
+                    items:
+                      additionalProperties: {}
+                      type: object
+                    type: array
+                    uniqueItems: true
+                  start:
+                    type: number
+                required:
+                - start
+                - end
+                - interval
+                - limit
+                - results
+                type: object
+          description: OK
+      summary: getMspSle
       tags:
-      - Msps
+      - Msps SLEs
     parameters:
     - $ref: '#/components/parameters/msp_id'
     - $ref: '#/components/parameters/metric'
@@ -2812,7 +2915,7 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Licence'
-      summary: createMsp
+      summary: getMspOrgLicenses
       tags:
       - Msps Stats
     parameters:
@@ -3829,16 +3932,21 @@ paths:
             examples:
               example-1:
                 value:
-                  disabled: true
+                  created_time: 0
+                  disasbled: true
                   eddystone_uid_namespace: string
                   eddystone_url: string
-                  ibeacon_major: string
-                  ibeacon_uuid: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  for_site: true
+                  ibeacon_major: 0
+                  ibeacon_uuid: 1f89bc00-d0af-481b-82fe-a6629259a39f
+                  id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
                   mfg_company_id: 0
+                  modified_time: 0
                   name: string
+                  org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                  site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
             schema:
               $ref: '#/components/schemas/asset_filter'
-        description: Request Body
       responses:
         '200':
           $ref: '#/components/responses/Assetfilter'
@@ -3879,8 +3987,8 @@ paths:
                   disabled: true
                   eddystone_uid_namespace: string
                   eddystone_url: string
-                  ibeacon_major: string
-                  ibeacon_uuid: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  ibeacon_major: 0
+                  ibeacon_uuid: b069b358-4c97-5319-1f8c-7c5ca64d6ab2
                   mfg_company_id: 0
                   name: string
             schema:
@@ -4145,11 +4253,7 @@ paths:
         name: ssid
         schema:
           type: string
-      - description: ip address
-        in: query
-        name: ip
-        schema:
-          type: string
+      - $ref: '#/components/parameters/ip'
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
@@ -4274,7 +4378,6 @@ paths:
         name: ssid
         schema:
           type: string
-      - $ref: '#/components/parameters/ip'
       - description: full MAC address, hostname, username or ip
         in: query
         name: text
@@ -4914,11 +5017,7 @@ paths:
         name: version
         schema:
           type: string
-      - description: ip address
-        in: query
-        name: ip
-        schema:
-          type: string
+      - $ref: '#/components/parameters/ip'
       - description: MxTunnel status, up / down
         in: query
         name: mxtunnel_status
@@ -5146,11 +5245,7 @@ paths:
         name: version
         schema:
           type: string
-      - description: ip address
-        in: query
-        name: ip
-        schema:
-          type: string
+      - $ref: '#/components/parameters/ip'
       - description: MxTunnel status, up / down
         in: query
         name: mxtunnel_status
@@ -5914,6 +6009,130 @@ paths:
       summary: updateOrgGatewayTemplate
       tags:
       - Orgs Gateway Templates
+  /api/v1/orgs/{org_id}/insights/{metric}:
+    get:
+      description: Get Org SLEs (all/worst sites, Mx Edges, ...)
+      operationId: getOrgSle
+      parameters:
+      - description: see /api/v1/const/insight_metrics for more details
+        in: query
+        name: sle
+        schema:
+          type: string
+      - description: see /api/v1/const/insight_metrics for more details
+        in: query
+        name: metric
+        schema:
+          type: string
+      - $ref: '#/components/parameters/duration'
+      - in: query
+        name: interval
+        schema:
+          enum:
+          - 10m
+          - 1h
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                worst-sites-by-sle:
+                  value:
+                    end: 1643706000
+                    interval: 3600
+                    limit: 100
+                    results:
+                    - ap-availability: 0.9919400860511628
+                      ap-health: 0.967607512909879
+                      capacity: 0.7484652273070254
+                      coverage: 0.91217567374857
+                      num_aps: 13
+                      num_clients: 12
+                      roaming: 0.991735537682683
+                      roaming-exp: 0.991735537682683
+                      site_id: 978c48e6-6ef6-11e6-8bbf-02e208b2d34f
+                      successful-connect: 0.46052632135780236
+                      throughput: 0.6775702123846302
+                      time-to-connect: 0.9349112447196916
+                    - ap-availability: 0.9990384613092129
+                      ap-health: 0.48201754375507955
+                      capacity: 0.9702673450306101
+                      coverage: 0.8335392334930375
+                      num_aps: 1
+                      num_clients: 6
+                      roaming: 1
+                      roaming-exp: 1
+                      site_id: 49ff76e0-a283-4e7d-b38d-041f1e9aff3c
+                      successful-connect: 1
+                      throughput: 0
+                      time-to-connect: 1
+                    - ap-availability: 1
+                      ap-health: 0.982456140612301
+                      capacity: 1
+                      coverage: 0.9276041182442488
+                      num_aps: 2
+                      num_clients: 3
+                      roaming: 1
+                      roaming-exp: 1
+                      site_id: 9b9b48f1-15a4-459e-86cc-9cbec9005983
+                      successful-connect: 1
+                      throughput: 1
+                      time-to-connect: 0.8125
+                    - ap-availability: 0.9981132070973234
+                      ap-health: 0.9991228068084047
+                      capacity: 1
+                      coverage: 1
+                      num_aps: 1
+                      num_clients: 0
+                      roaming: 1
+                      roaming-exp: 1
+                      site_id: eb0e1671-7a6b-472b-94c3-c187dafe5274
+                      successful-connect: 1
+                      throughput: 0
+                      time-to-connect: 0.5
+                    start: 1643670000
+              schema:
+                description: ''
+                properties:
+                  end:
+                    type: number
+                  interval:
+                    type: number
+                  limit:
+                    type: number
+                  results:
+                    items:
+                      additionalProperties: {}
+                      type: object
+                    type: array
+                    uniqueItems: true
+                  start:
+                    type: number
+                required:
+                - start
+                - end
+                - interval
+                - limit
+                - results
+                type: object
+                x-examples:
+                  example-1:
+                    end: 1643706000
+                    interval: 3600
+                    limit: 100
+                    results:
+                    - {}
+                    start: 1643670000
+          description: OK
+      summary: getOrgSle
+      tags:
+      - Orgs SLEs
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/metric'
   /api/v1/orgs/{org_id}/inventory:
     get:
       description: "Get Org Inventory\n\n### VC (Virtual-Chassis) Management\nIdeally\
@@ -9488,7 +9707,8 @@ paths:
         '200':
           $ref: '#/components/responses/count'
       summary: countOrgPeerPathStats
-      tags: []
+      tags:
+      - Orgs VPNs
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/stats/vpn_peers/search:
@@ -12104,10 +12324,7 @@ paths:
         name: ap
         schema:
           type: string
-      - in: query
-        name: ip
-        schema:
-          type: string
+      - $ref: '#/components/parameters/ip'
       - in: query
         name: vlan
         schema:
@@ -14106,11 +14323,7 @@ paths:
         name: version
         schema:
           type: string
-      - description: ip address
-        in: query
-        name: ip
-        schema:
-          type: string
+      - $ref: '#/components/parameters/ip'
       - description: MxTunnel status, up / down
         in: query
         name: mxtunnel_status
@@ -14882,6 +15095,16 @@ paths:
         Once they feel comfortable about the config we generate, they can enable allow_mist_config
         where we will take full control of their config like a claimed switch'
       operationId: getSiteDeviceConfigCmd
+      parameters:
+      - description: Make output cmds sorted (for better readability) or not.
+        in: query
+        name: sort
+        schema:
+          default: 'false'
+          enum:
+          - 'true'
+          - 'false'
+          type: string
       responses:
         '200':
           $ref: '#/components/responses/DeviceConfigCmd'
@@ -14953,10 +15176,15 @@ paths:
             schema:
               description: ''
               properties:
+                mac:
+                  description: "when `op`\_==`replacement_nodeX`, new node1\n's MAC,\
+                    \ the device has to be standalone and assigned to the same site"
+                  type: string
                 op:
                   default: swap
                   enum:
                   - swap
+                  - replace_node1
                   minLength: 1
                   type: string
               required:
@@ -18649,11 +18877,7 @@ paths:
         name: threat_level
         schema:
           type: integer
-      - description: client ip
-        in: query
-        name: ip
-        schema:
-          type: string
+      - $ref: '#/components/parameters/ip'
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
@@ -18692,11 +18916,7 @@ paths:
         name: threat_level
         schema:
           type: integer
-      - description: client ip
-        in: query
-        name: ip
-        schema:
-          type: string
+      - $ref: '#/components/parameters/ip'
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
@@ -25565,10 +25785,11 @@ components:
         format: uuid
         type: string
     ip:
-      description: ip address
       in: query
-      name: ip
+      name: ip address
+      required: false
       schema:
+        example: 192.168.1.1
         format: ipv4
         type: string
     limit:
@@ -30745,9 +30966,11 @@ components:
                       description: channel over which ap_mac heard ssid/bssid pair
                       type: string
                     delta_x:
-                      type: integer
+                      description: X position relative to the reporting AP (`ap_mac`)
+                      type: number
                     delta_y:
-                      type: integer
+                      description: Y position relative to the reporting AP (`ap_mac`)
+                      type: number
                     num_aps:
                       description: num of aps that heard the ssid/bssid pair
                       type: integer
@@ -39616,6 +39839,11 @@ components:
     apitoken:
       description: API Token
       properties:
+        created_by:
+          description: for Org token only. email of the token creator / null if creator
+            is deleted
+          nullable: true
+          type: string
         created_time:
           readOnly: true
           type: integer
@@ -39777,7 +40005,7 @@ components:
           readOnly: true
           type: boolean
         ibeacon_major:
-          type: string
+          type: integer
         ibeacon_uuid:
           format: uuid
           type: string
@@ -40960,7 +41188,7 @@ components:
             type: string
           type: array
         oob_ip_config:
-          $ref: '#/components/schemas/junos_ip_config'
+          $ref: '#/components/schemas/junos_oob_ip_config'
         org_id:
           format: uuid
           readOnly: true
@@ -41139,7 +41367,7 @@ components:
             type: string
           type: array
         oob_ip_config:
-          $ref: '#/components/schemas/junos_ip_config'
+          $ref: '#/components/schemas/junos_oob_ip_config'
         org_id:
           format: uuid
           readOnly: true
@@ -42135,11 +42363,6 @@ components:
           type: object
         gateway_matching:
           $ref: '#/components/schemas/template_gateway.matching'
-        ha_config:
-          properties:
-            enabled:
-              type: boolean
-          type: object
         id:
           format: uuid
           readOnly: true
@@ -43241,6 +43464,63 @@ components:
             zone: trust
           wan:
             zone: untrust
+    junos_oob_ip_config:
+      description: Junos IP Config
+      properties:
+        additionalProperties:
+          description: for HA configuration.
+          properties:
+            ip:
+              type: string
+            netmask:
+              description: used only if `subnet` is not specified in `networks`
+              type: string
+            network:
+              description: optional, the network to be used for mgmt
+              type: string
+            type:
+              default: dynamic
+              enum:
+              - static
+              - dynamic
+              type: string
+          type: object
+        dns:
+          items:
+            type: string
+          type: array
+        dns_suffix:
+          items:
+            type: string
+          type: array
+        gateway:
+          type: string
+        ip:
+          type: string
+        netmask:
+          description: used only if `subnet` is not specified in `networks`
+          type: string
+        network:
+          description: optional, the network to be used for mgmt
+          type: string
+        type:
+          default: dynamic
+          enum:
+          - static
+          - dynamic
+          type: string
+      type: object
+      x-examples:
+        example-1:
+          dns:
+          - {}
+          dns_suffix:
+          - {}
+          gateway: string
+          ip: string
+          netmask: string
+          network: string
+          type: string
     junos_ospf_areas:
       description: Junos OSPF areas
       properties:
@@ -43835,6 +44115,8 @@ components:
       description: ''
       properties:
         terms:
+          description: zero or more criteria/filter can be specified to match the
+            term, all criteria have to be met
           items:
             properties:
               as_path:
@@ -43843,6 +44125,24 @@ components:
               community:
                 minLength: 1
                 type: string
+              export_communitites:
+                additionalProperties:
+                  description: per-neighbor
+                  items:
+                    type: string
+                  type: array
+                description: optional, when exporting, multiple communities can be
+                  added
+                properties:
+                  '*':
+                    description: 'all others '
+                    items:
+                      type: string
+                    type: array
+                type: object
+              local_preference:
+                description: optional, when importing, local_preference can be changed
+                type: integer
               network:
                 type: string
               prefix:
@@ -46796,7 +47096,8 @@ components:
           enum:
           - sso
           - sponsor
-          - passphrase
+          type: string
+        bg_image_url:
           type: string
         created_time:
           readOnly: true
@@ -46851,6 +47152,8 @@ components:
           type: string
         template_url:
           description: UI customization
+          type: string
+        thumbnail_url:
           type: string
         type:
           default: byod
@@ -58762,7 +59065,8 @@ components:
           default: false
           description: whether to notify all sponsors that are mentioned in `sponsors`
             object. Both `sponsor_notify_all` and `predefined_sponsors_enabled` should
-            be true in order to notify all sponsors.
+            be true in order to notify sponsors. If true, email sent to 10 sponsors
+            in no particular order.
           type: boolean
         sponsors:
           additionalProperties:
@@ -59934,7 +60238,6 @@ components:
             - x
             - y
             type: object
-          minItems: 1
           type: array
           uniqueItems: true
       required:
@@ -60086,6 +60389,7 @@ x-tagGroups:
   - Msps Org Groups
   - Msps Orgs
   - Msps Search
+  - Msps SLEs
   - Msps SSO Roles
   - Msps SSO
   - Msps Stats
