@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.19.1**
+  description: '> Version: **0.20.0**
 
     >
 
-    > Date: **January 31th, 2022**
+    > Date: **February 25th, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.19.1
+  version: 0.20.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -72,6 +72,7 @@ tags:
 - name: Msps Inventory
 - name: Msps Invites
 - name: Msps Logs
+- name: Msps Licenses
 - name: Msps Org Groups
 - name: Msps Orgs
 - name: Msps Search
@@ -2218,6 +2219,41 @@ paths:
       summary: updateMspAdmin
       tags:
       - Msps Admins
+  /api/v1/msps/{msp_id}/claim:
+    parameters:
+    - $ref: '#/components/parameters/msp_id'
+    post:
+      description: Claim an Order by Activation Code
+      operationId: claimMspLicence
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  code: ZHT3K-H36DT-MG85D-M61AC
+            schema:
+              description: ''
+              properties:
+                code:
+                  description: activation code
+                  minLength: 1
+                  type: string
+              required:
+              - code
+              type: object
+              x-examples:
+                example-1:
+                  code: ZHT3K-H36DT-MG85D-M61AC
+        description: ''
+      responses:
+        '200':
+          $ref: '#/components/responses/claimLicense'
+        '400':
+          description: Response when the key is invalid (or already used)
+      summary: claimMspLicence
+      tags:
+      - Msps Licenses
   /api/v1/msps/{msp_id}/insights/{metric}:
     get:
       description: Get MSP SLEs (all/worst Orgs ...)
@@ -2489,6 +2525,72 @@ paths:
       summary: updateMspAdminInvite
       tags:
       - Msps Invites
+  /api/v1/msps/{msp_id}/licenses:
+    get:
+      description: Get Msp Licenses
+      operationId: getMspLicenses
+      responses:
+        '200':
+          $ref: '#/components/responses/Licence'
+      summary: getMspLicenses
+      tags:
+      - Msps Licenses
+    parameters:
+    - $ref: '#/components/parameters/msp_id'
+    put:
+      description: Move or Delete MSP Licenses
+      operationId: moveOrDeleteMspLicenseToAnotherOrg
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Delete License:
+                value:
+                  op: delete
+                  subscription_id: SUB-0000144
+              Move License:
+                value:
+                  dst_org_id: 3eff35f7-c218-894e-bca2-24e5325601cc
+                  op: amend
+                  quantity: 10
+                  subscription_id: SUB-0000144
+              Undo the License Move:
+                value:
+                  amendment_id: 2b9116ab-cd1e-e897-6e08-31fccd88e792
+                  op: unamend
+            schema:
+              description: ''
+              properties:
+                dst_org_id:
+                  minLength: 1
+                  type: string
+                op:
+                  enum:
+                  - amend
+                  - unamend
+                  - delete
+                  minLength: 1
+                  type: string
+                quantity:
+                  type: number
+                subscription_id:
+                  minLength: 1
+                  type: string
+              required:
+              - op
+              type: object
+              x-examples:
+                example-1:
+                  dst_org_id: 3eff35f7-c218-894e-bca2-24e5325601cc
+                  op: amend
+                  quantity: 10
+                  subscription_id: SUB-0000144
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: moveOrDeleteMspLicenseToAnotherOrg
+      tags:
+      - Msps Licenses
   /api/v1/msps/{msp_id}/logs:
     get:
       description: Get a list of change logs for the current MSP
@@ -2958,6 +3060,27 @@ paths:
         '200':
           $ref: '#/components/responses/TicketsArray'
       summary: getMspTickets
+      tags:
+      - Msps Tickets
+    parameters:
+    - $ref: '#/components/parameters/msp_id'
+  /api/v1/msps/{msp_id}/tickets/count:
+    get:
+      description: Count tickets
+      operationId: countMspTickets
+      parameters:
+      - in: query
+        name: distinct
+        schema:
+          default: status
+          enum:
+          - status
+          - type
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+      summary: countMspTickets
       tags:
       - Msps Tickets
     parameters:
@@ -4043,7 +4166,7 @@ paths:
     - $ref: '#/components/parameters/org_id'
     post:
       description: "Impert Org Assets. \n\nIt can be done via a CSV file or a JSON\
-        \ payload.\n\n#### CSV File Format\n```\nname,mac\n\"asset_name\",5c5b53010101\n\
+        \ payload.\n\n#### CSV File Format\n```csv\nname,mac\n\"asset_name\",5c5b53010101\n\
         ``` "
       operationId: importOrgAssets
       requestBody:
@@ -6671,7 +6794,7 @@ paths:
 
         # CSV File Format
 
-        ```
+        ```csv
 
         Vendor AP name,Mist AP Mac
 
@@ -9544,6 +9667,18 @@ paths:
         name: ibeacon_minor
         schema:
           type: string
+      - in: query
+        name: ap_mac
+        schema:
+          type: string
+      - in: query
+        name: beam
+        schema:
+          type: string
+      - in: query
+        name: rssi
+        schema:
+          type: string
       responses:
         '200':
           $ref: '#/components/responses/AssetsArrayStatsSearch'
@@ -12120,7 +12255,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     post:
       description: "Impert Site Assets. \n\nIt can be done via a CSV file or a JSON\
-        \ payload.\n\n## CSV File Format\n```\nname,mac\n\"asset_name\",5c5b53010101\n\
+        \ payload.\n\n## CSV File Format\n```csv\nname,mac\n\"asset_name\",5c5b53010101\n\
         ``` "
       operationId: importSiteAssets
       parameters:
@@ -13746,7 +13881,7 @@ paths:
 
         CSV format:
 
-        ```
+        ```csv
 
         mac,name,map_id,x,y,height,orientation,labels,band_24.power,band_24.bandwidth,band_24.channel,band_24.disabled,band_5.power,band_5.bandwidth,band_5.channel,band_5.disabled,band_6.power,band_6.bandwidth,band_6.channel,band_6.disabled
 
@@ -15150,7 +15285,26 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: Create HA Cluster
+      description: "Create HA Cluster\n\n### SRX cabling\nsee [Chassis Cluster User\
+        \ Guide for SRX Series Devices](https://www.juniper.net/documentation/us/en/software/junos/chassis-cluster-security-devices/topics/concept/chassis-cluster-srx-series-node-interface-understanding.html)\
+        \ Here\u2019s the recommended cabling.\n\n#### SRX300 / SRX320 / SRX550\n\
+        1. connect ge-0/0/0 to reach Mist (after cluster is fully up, this port becomes\
+        \ OOB/fxp0)\n2. connect ge-0/0/1 back-to-back for ha_control\n3. connect ge-0/0/2\
+        \ back-to-back for ha_data (fabric)\n4. connect ge-0/0/3 to WAN (after cluster\
+        \ is up, intended to be used for reth0)\n5. connect ge-0/0/4- to LAN or additional\
+        \ WANs\n\n\n#### SRX340 / SRX345 / SRX380 / VSRX\nSRX340/SRX345 has dedicated\
+        \ OOB/fxp0 ports VSRX has fxp0 as first Network Adapter, then ge-0/0/0-N\n\
+        \n1. connect fxp0 to reach Mist\n2. connect ge-0/0/0 to WAN\n3. connect ge-0/0/1\
+        \ back-to-back for ha_control\n4. connect ge-0/0/2 back-to-back for ha_data\
+        \ (fabric); or for SRX380, xe-0/0/16 if 10G SFP+ is used\n5. connect ge-0/0/3-\
+        \ to LAN or additional WANs\n\n\n#### SRX1500\nSRX1500 has, additionally,\
+        \ dedicated HA Control port\n\n1. connect dedicated ha_control back-to-back\n\
+        2. connect fxp0 to reach Mist\n3. connect ge-0/0/0 to WAN\n4. connect ge-0/0/1\
+        \ back-to-back for ha_data\n5. connect ge-0/0/2- to LAN or additional WANs\n\
+        \n\n#### SRX4100\nSRX4100 has dedicated ha_control and ha_data (fabric) ports\n\
+        \n1. connect dedicated ha_control back-to-back\n2. connect dedicated ha_data\
+        \ back-to-back\n3. connect fxp0 to reach Mist\n4. connect ge-0/0/0 to WAN\n\
+        5. connect ge-0/0/1- to LAN or additional WANs"
       operationId: createSiteDeviceHaCluster
       requestBody:
         content:
@@ -15334,13 +15488,13 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Ping can be performed from the Device. The output will be available\
-        \ through websocket. As there can be multiple command issued against the same\
-        \ AP at the same time and the output all goes through the same websocket stream,\
-        \ session is introduced for demux.\n\n#### subscribe to Device Command outputs\n\
-        ```\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n\
-        }\n```\n##### The Actual Output Data\n```\n{\n    \"event\": \"data\",\n \
-        \   \"channel\": \"/sites/4ac1dcf4-9d8b-7211-65c4-057819f0862b/devices/00000000-0000-0000-1000-5c5b350e0060/cmd\"\
+      description: "Ping from AP, Switch and SSR\n\nPing can be performed from the\
+        \ Device. The output will be available through websocket. As there can be\
+        \ multiple command issued against the same AP at the same time and the output\
+        \ all goes through the same websocket stream, session is introduced for demux.\n\
+        \n#### subscribe to Device Command outputs\n```json\n{\n    \"subscribe\"\
+        : \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n##### The Actual Output\
+        \ Data\n```json\n{\n    \"event\": \"data\",\n    \"channel\": \"/sites/4ac1dcf4-9d8b-7211-65c4-057819f0862b/devices/00000000-0000-0000-1000-5c5b350e0060/cmd\"\
         ,\n    \"data\": {\n        \"session\": \"session_id\",\n        \"raw\"\
         : \"64 bytes from 23.211.0.110: seq=8 ttl=58 time=12.323 ms\\n\"\n    }\n\
         }\n```"
@@ -15356,13 +15510,21 @@ paths:
             schema:
               properties:
                 count:
+                  default: 10
                   type: integer
+                egress_interface:
+                  description: Interface through which packet needs to egress
+                  type: string
                 host:
                   format: ipv4
                   type: string
+                size:
+                  default: 56
+                  maximum: 65535
+                  minimum: 56
+                  type: integer
               required:
               - host
-              - count
               type: object
         description: Request Body
       responses:
@@ -15411,6 +15573,62 @@ paths:
       summary: restartSiteDevice
       tags:
       - Sites Devices
+  /api/v1/sites/{site_id}/devices/{device_id}/service_ping:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: "Ping from SSR\n\nService Ping can be performed from the Device.\
+        \ The output will be available through websocket. As there can be multiple\
+        \ command issued against the same device at the same time and the output all\
+        \ goes through the same websocket stream, session is introduced for demux.\n\
+        \n#### subscribe to Device Command outputs\n```json\n{\n    \"subscribe\"\
+        : \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n##### The Actual Output\
+        \ Data\n```json\n{\n    \"event\": \"data\",\n    \"channel\": \"/sites/4ac1dcf4-9d8b-7211-65c4-057819f0862b/devices/00000000-0000-0000-1000-5c5b350e0060/cmd\"\
+        ,\n    \"data\": {\n        \"session\": \"session_id\",\n        \"raw\"\
+        : \"64 bytes from 23.211.0.110: seq=8 ttl=58 time=12.323 ms\\n\"\n    }\n\
+        }\n```"
+      operationId: servicePingFromDevice
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  count: 10
+                  host: 1.1.1.1
+                  service: web-session
+            schema:
+              properties:
+                count:
+                  default: 10
+                  type: integer
+                host:
+                  format: ipv4
+                  type: string
+                service:
+                  description: ping packet takes the same path as the service
+                  type: string
+                size:
+                  default: 56
+                  maximum: 65535
+                  minimum: 56
+                  type: integer
+                tenant:
+                  description: tenant context in which the packet is sent
+                  type: string
+              required:
+              - host
+              - service
+              - tenant
+              type: object
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/Session'
+      summary: servicePingFromDevice
+      tags:
+      - Sites Devices Utilities
   /api/v1/sites/{site_id}/devices/{device_id}/snapshot:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -16673,7 +16891,7 @@ paths:
 
         # CSV File Format
 
-        ```
+        ```csv
 
         Vendor AP name,Mist AP Mac
 
@@ -17389,7 +17607,7 @@ paths:
 
         ## CSV File Format
 
-        ```
+        ```csv
 
         PSK Import CSV File Format:
 
@@ -19635,6 +19853,18 @@ paths:
         name: name
         schema:
           type: string
+      - in: query
+        name: ap_mac
+        schema:
+          type: string
+      - in: query
+        name: beam
+        schema:
+          type: string
+      - in: query
+        name: rssi
+        schema:
+          type: string
       responses:
         '200':
           $ref: '#/components/responses/AssetsArrayStatsSearch'
@@ -21454,6 +21684,24 @@ paths:
       summary: getSiteDiscoveredSwitches
       tags:
       - Sites Stats
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/stats/filtered_assets:
+    get:
+      description: Get a list of BLE beacons that matches Asset or AssetFilter
+      operationId: getSiteAssetsOfInterest
+      parameters:
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/AssetOfInterestArray'
+      summary: getSiteAssetsOfInterest
+      tags:
+      - Sites Assets
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/maps/{map_id}/clients:
@@ -27331,6 +27579,35 @@ components:
           schema:
             $ref: '#/components/schemas/asset'
       description: OK
+    AssetOfInterestArray:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+              - _checkpoint_prep: 0
+                _checkpoint_preparer: 0
+                _checkpoint_scan: 0
+                _id: string
+                _timestamp: 0
+                _ttl: 0
+                ap_mac: string
+                beam: 0
+                by: string
+                curr_site: string
+                device_name: string
+                id: string
+                last_seen: 0
+                mac: string
+                manufacture: string
+                map_id: string
+                name: string
+                rssi: 0
+          schema:
+            items:
+              $ref: '#/components/schemas/AssetOfInterest'
+            type: array
+      description: Example response
     AssetStats:
       content:
         application/json:
@@ -38222,6 +38499,75 @@ components:
             type: object
       description: OK
   schemas:
+    AssetOfInterest:
+      description: ''
+      properties:
+        _checkpoint_prep:
+          type: number
+        _checkpoint_preparer:
+          type: number
+        _checkpoint_scan:
+          type: number
+        _id:
+          minLength: 1
+          type: string
+        _timestamp:
+          type: number
+        _ttl:
+          type: number
+        ap_mac:
+          minLength: 1
+          type: string
+        beam:
+          type: number
+        by:
+          minLength: 1
+          type: string
+        curr_site:
+          minLength: 1
+          type: string
+        device_name:
+          type: string
+        id:
+          minLength: 1
+          type: string
+        last_seen:
+          type: number
+        mac:
+          minLength: 1
+          type: string
+        manufacture:
+          minLength: 1
+          type: string
+        map_id:
+          minLength: 1
+          type: string
+        name:
+          minLength: 1
+          type: string
+        rssi:
+          type: number
+      type: object
+      x-examples:
+        example-1:
+          _checkpoint_prep: 1636148467
+          _checkpoint_preparer: 1635888509
+          _checkpoint_scan: 1636148467
+          _id: 5c5b350eaaaa
+          _timestamp: 1643837316
+          _ttl: 86349
+          ap_mac: 5c5bbbbeaaaa
+          beam: 6
+          by: asset
+          curr_site: 67970e46-4e12-11e6-9188-0242ac11aaaa
+          device_name: ''
+          id: 3c0c8abc-aaaa-4070-9dd0-b9a18e7ec6fa
+          last_seen: 1643837316.760462
+          mac: 5c5b350eaaaa
+          manufacture: Mist Systems
+          map_id: f5d26c7f-1670-4921-a79d-09f887f4aaaa
+          name: asset4
+          rssi: -30
     Installer_devices:
       properties:
         deviceprofile_name:
@@ -40014,6 +40360,10 @@ components:
     asset_filter:
       description: Asset Filter
       properties:
+        ap_mac:
+          type: string
+        beam:
+          type: integer
         created_time:
           readOnly: true
           type: number
@@ -40046,6 +40396,8 @@ components:
           format: uuid
           readOnly: true
           type: string
+        rssi:
+          type: integer
         site_id:
           format: uuid
           readOnly: true
@@ -41633,6 +41985,15 @@ components:
           description: Reboot device immediately after upgrade is completed (Available
             on Junos OS devices)
           type: boolean
+        rrm_node_order:
+          default: fringe_to_center
+          enum:
+          - fringe_to_center
+          - center_to_fringe
+          type: string
+        rrm_slow_ramp:
+          description: true will make rrm batch sizes slowly ramp up
+          type: boolean
         snapshot:
           default: false
           description: Perform recovery snapshot after device is rebooted (Available
@@ -41643,9 +42004,13 @@ components:
           type: number
         strategy:
           default: big_bang
+          description: '`big_bang` (upgrade all at once), `serial` (one at a time),
+            `canary` or `rrm`'
           enum:
           - big_bang
           - canary
+          - serial
+          - rrm
           minLength: 1
           type: string
         version:
@@ -41677,6 +42042,11 @@ components:
     device_upgrade_response:
       description: ''
       properties:
+        canary_phases:
+          description: phases for canary deployment
+          items:
+            type: integer
+          type: array
         counts:
           properties:
             download_requested:
@@ -41708,6 +42078,9 @@ components:
               type: number
           readOnly: true
           type: object
+        current_phase:
+          description: current canary or rrm phase in progress
+          type: integer
         enable_p2p:
           description: whether to allow local AP-to-AP FW upgrade
           type: boolean
@@ -41721,9 +42094,21 @@ components:
           minLength: 1
           readOnly: true
           type: string
+        max_failure_percentage:
+          description: percentage of failures allowed
+          type: integer
+        max_failures:
+          description: number of failures allowed within a canary phase or serial
+            rollout
+          items:
+            type: integer
+          type: array
         reboot_at:
           description: reboot start time in epoch
           type: integer
+        rrm_phases:
+          description: a dictionary of rrm phase number to devices part of that phase
+          type: object
         start_time:
           description: firmware download start time in epoch
           type: number
@@ -43487,7 +43872,7 @@ components:
           wan:
             zone: untrust
     junos_oob_ip_config:
-      description: Junos IP Config
+      description: Junos out-of-band (vme/em0/fxp0) IP config
       properties:
         additionalProperties:
           description: for HA configuration.
@@ -44370,49 +44755,63 @@ components:
                 type: string
             readOnly: true
             required:
+            - end_time
             - id
+            - quantity
+            - start_time
             - subscription_id
             - type
-            - start_time
-            - end_time
-            - quantity
             type: object
           minItems: 1
           readOnly: true
           type: array
           uniqueItems: true
         entitled:
+          additionalProperties:
+            type: integer
+          description: currently entitled for each license type. Property key is license
+            type (e.g. SUB-MAN)
           readOnly: true
           type: object
         licenses:
+          description: list of licenses
           items:
             properties:
               end_time:
+                description: end date of the license term
                 readOnly: true
                 type: integer
               order_id:
                 readOnly: true
                 type: string
               quantity:
+                description: number of devices entitled for this license
                 readOnly: true
                 type: integer
               start_time:
+                description: start date of the license term
                 readOnly: true
                 type: integer
               subscription_id:
                 readOnly: true
                 type: string
               type:
+                enum:
+                - SUB-MAN
+                - SUB-LOC
+                - SUB-AST
+                - SUB-VNA
+                - SUB-DATA
                 readOnly: true
                 type: string
             readOnly: true
             required:
+            - end_time
             - order_id
+            - quantity
+            - start_time
             - subscription_id
             - type
-            - start_time
-            - end_time
-            - quantity
             type: object
           minItems: 1
           readOnly: true
@@ -44422,10 +44821,10 @@ components:
           readOnly: true
           type: object
       required:
-      - licenses
       - amendments
-      - summary
       - entitled
+      - licenses
+      - summary
       type: object
       x-examples:
         example-1:
@@ -47073,6 +47472,8 @@ components:
           type: number
         name:
           type: string
+        note:
+          type: string
         org_id:
           format: uuid
           readOnly: true
@@ -48665,6 +49066,11 @@ components:
     site_gateway:
       description: Gateway Site settings
       properties:
+        admin_sshkeys:
+          description: for SSR only, as direct root access is not allowed
+          items:
+            type: string
+          type: array
         app_probing:
           properties:
             apps:
@@ -48703,6 +49109,9 @@ components:
           maximum: 30
           minimum: 1
           type: number
+        root_password:
+          description: for SRX only
+          type: string
         security_log_source_address:
           type: string
         security_log_source_interface:
@@ -53010,10 +53419,10 @@ components:
             format: uuid
             type: string
           x:
-            description: estimated clinet location in pixels
+            description: estimated client location in pixels
             type: number
           y:
-            description: estimated clinet location in pixels
+            description: estimated client location in pixels
             type: number
         required:
         - _ttl
@@ -53120,7 +53529,7 @@ components:
             description: TTL of the validity of the stat
             type: number
           accuracy:
-            description: estimated clinet location accuracy, in meter
+            description: estimated client location accuracy, in meter
             type: integer
           airespace_ifname:
             type: string
@@ -60408,6 +60817,7 @@ x-tagGroups:
   - Msps Inventory
   - Msps Invites
   - Msps Logs
+  - Msps Licenses
   - Msps Org Groups
   - Msps Orgs
   - Msps Search
