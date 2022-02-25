@@ -3,7 +3,7 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.20.1**
+  description: '> Version: **0.20.2**
 
     >
 
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.20.1
+  version: 0.20.2
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -5349,6 +5349,68 @@ paths:
       - Orgs Devices
     parameters:
     - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/devices/radio_macs:
+    get:
+      description: Get Org AP Device Mac and Radio MACs
+      operationId: getOrgApsMacs
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                  - mac: 5c5b35000001
+                    radio_macs:
+                    - 5c5b35000040
+                    - 5c5b35000050
+                    - 5c5b35000060
+                  - mac: 5c5b45000001
+                    radio_macs:
+                    - 5c5b45000040
+                    - 5c5b45000050
+                    - 5c5b45000060
+              schema:
+                description: ''
+                items:
+                  properties:
+                    mac:
+                      minLength: 1
+                      type: string
+                    radio_macs:
+                      items:
+                        properties: {}
+                        required: []
+                      type: array
+                  required:
+                  - mac
+                  - radio_macs
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+                x-examples:
+                  example-1:
+                  - mac: 5c5b35000001
+                    radio_macs:
+                    - 5c5b35000040
+                    - 5c5b35000050
+                    - 5c5b35000060
+                  - mac: 5c5b45000001
+                    radio_macs:
+                    - 5c5b45000040
+                    - 5c5b45000050
+                    - 5c5b45000060
+          description: OK
+      summary: getOrgApsMacs
+      tags:
+      - Orgs Devices
+    parameters:
+    - in: path
+      name: org_id
+      required: true
+      schema:
+        type: string
   /api/v1/orgs/{org_id}/devices/search:
     get:
       description: Search Org Devices
@@ -10191,6 +10253,27 @@ paths:
       summary: createOrgTicket
       tags:
       - Orgs Tickets
+  /api/v1/orgs/{org_id}/tickets/count:
+    get:
+      description: Count Org Tickets
+      operationId: countOrgTickets
+      parameters:
+      - in: query
+        name: distinct
+        schema:
+          default: status
+          enum:
+          - status
+          - type
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+      summary: countOrgTickets
+      tags:
+      - Orgs Tickets
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/tickets/{ticket_id}:
     get:
       description: Get support ticket details
@@ -38716,8 +38799,10 @@ components:
           readOnly: true
           type: boolean
         first_name:
+          description: for an invite, this is the original first name used
           type: string
         last_name:
+          description: for an invite, this is the original last name used
           type: string
         oauth_google:
           readOnly: true
@@ -38742,25 +38827,25 @@ components:
           readOnly: true
           type: boolean
       required:
+      - email
       - first_name
       - last_name
       - privileges
-      - email
       type: object
       x-examples:
         example-1:
-          admin_id: 456b7016-a916-a4b1-78dd-72b947c152b7
-          first_name: Joe
-          last_name: Smith
           privileges:
-          - role: admin
-            scope: msp
-          - org_id: 2b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-            role: admin
+          - role: write
             scope: org
-          - orggroup_id: 507f1bab-13ba-73e2-f291-2bcb8d1362b0
-            role: read
-            scope: orggroup
+            view: reporting
+          - role: write
+            scope: site
+            site_id: d96e3952-53e8-4266-959a-45acd55f5114
+            view: reporting
+          - role: write
+            scope: sitegroup
+            sitegroup_id: 581328b6-e382-f54e-c9dc-999983183a34
+            view: reporting
     alarm:
       description: 'additional information per alarm type    '
       properties:
@@ -42774,8 +42859,6 @@ components:
           format: uuid
           readOnly: true
           type: string
-        idp_config:
-          $ref: '#/components/schemas/junos_idp_config'
         ip_configs:
           additionalProperties:
             properties:
@@ -42826,14 +42909,14 @@ components:
                     type: string
                 type: object
               strategy:
-                default: default
+                default: ordered
                 enum:
-                - default
-                - load_balance
                 - ordered
                 - weighted
+                - ecmp
                 type: string
             type: object
+          description: experimental
           type: object
         port_config:
           additionalProperties:
@@ -42846,29 +42929,40 @@ components:
           description: The property name is the routing policy name
           type: object
         service_policies:
-          properties:
-            action:
-              default: allow
-              enum:
-              - allow
-              - deny
-              type: string
-            name:
-              type: string
-            path_preferences:
-              description: 'by default, we derive all paths available and use them
+          items:
+            properties:
+              action:
+                default: allow
+                enum:
+                - allow
+                - deny
+                type: string
+              idp:
+                $ref: '#/components/schemas/junos_idp_config'
+              name:
+                type: string
+              path_preferences:
+                description: 'by default, we derive all paths available and use them
 
-                optionally, you can customize by using `path_preference`'
-              type: string
-            services:
-              items:
+                  optionally, you can customize by using `path_preference`'
                 type: string
-              type: array
-            tenants:
-              items:
-                type: string
-              type: array
-          type: object
+              services:
+                items:
+                  type: string
+                type: array
+              tenants:
+                items:
+                  type: string
+                type: array
+            type: object
+          type: array
+        type:
+          default: standalon
+          enum:
+          - standalone
+          - spoke
+          - hub
+          type: string
         urlfilter_config:
           $ref: '#/components/schemas/junos_urlfilter_config'
       required:
@@ -43389,7 +43483,6 @@ components:
       description: ''
       properties:
         auth_key:
-          minLength: 1
           type: string
         communities:
           items:
@@ -43403,14 +43496,12 @@ components:
             type: object
           type: array
         export:
-          minLength: 1
           type: string
         export_networks:
           items:
             type: string
           type: array
         import:
-          minLength: 1
           type: string
         import_networks:
           items:
@@ -43423,6 +43514,10 @@ components:
         neighbors:
           additionalProperties:
             properties:
+              export:
+                type: string
+              import:
+                type: string
               neighbor_as:
                 type: integer
             type: object
@@ -43705,29 +43800,17 @@ components:
     junos_idp_config:
       description: ''
       properties:
-        enabled:
-          type: boolean
-        networks:
-          additionalProperties:
-            properties:
-              profile:
-                enum:
-                - default
-                - enterprise
-                type: string
-            required:
-            - profile
-            type: object
-          description: if desired, it can be network-specific. The property name is
-            the network name
-          type: object
-        profile:
-          default: default
-          description: by default, this applies to all networks with Internet Access,
-            but can be restricted as below
+        action:
+          default: drop
           enum:
-          - default
-          - enterprise
+          - drop
+          - log
+          type: string
+        enabled:
+          default: false
+          type: boolean
+        profile:
+          default: strict
           type: string
       type: object
     junos_ip_config:
@@ -43773,14 +43856,17 @@ components:
       description: Junos IP Config
       properties:
         dns:
+          description: except for out-of-band interface (vme/em0/fxp0)
           items:
             type: string
           type: array
         dns_suffix:
+          description: except for out-of-band interface (vme/em0/fxp0)
           items:
             type: string
           type: array
         gateway:
+          description: except for out-of-band interface (vme/em0/fxp0)
           type: string
         ip:
           type: string
@@ -44169,8 +44255,8 @@ components:
           enum:
           - lan
           - wan
-          - ha_sync
           - ha_data
+          - ha_control
           type: string
         vlan_id:
           description: if WAN interface is on a VLAN
@@ -44532,33 +44618,36 @@ components:
               community:
                 minLength: 1
                 type: string
+              exclude_as_path:
+                description: 'when used as export policy, optional. To exclude certain
+                  AS '
+                type: string
               export_communitites:
-                additionalProperties:
-                  description: per-neighbor
-                  items:
-                    type: string
-                  type: array
-                description: optional, when exporting, multiple communities can be
-                  added
-                properties:
-                  '*':
-                    description: 'all others '
-                    items:
-                      type: string
-                    type: array
-                type: object
+                description: when used as export policy, optional
+                items:
+                  type: string
+                type: array
+              export_local_preference:
+                type: string
               local_preference:
                 description: optional, when importing, local_preference can be changed
                 type: integer
               network:
                 type: string
               prefix:
+                description: zero or more criteria/filter can be specified to match
+                  the term, all criteria have to be met
                 minLength: 1
+                type: string
+              prepend_as_path:
+                description: when used as export policy, optional. By default, the
+                  local AS will be prepended, to change it
                 type: string
               protocol:
                 minLength: 1
                 type: string
               then:
+                description: 'when used as import policy  '
                 minLength: 1
                 type: string
             type: object
@@ -45262,6 +45351,24 @@ components:
           items:
             type: string
           type: array
+        tunterm_hosts_order:
+          description: list of index of tunterm_hosts
+          items:
+            type: integer
+          type: array
+        tunterm_hosts_selection:
+          default: shuffle
+          description: "Ordering of tunterm_hosts for mxedge within the same mxcluster.\
+            \ \n* When `shuffle`, the ordering of tunterm_hosts is randomized by the\
+            \ device\u2019s MAC. \n* When `shuffle-by-site`, we shuffle by site_id+tunnel_id\
+            \ (so when client connects to a specific Tunnel, it will go to the same\
+            \ (order of) mxedge, and we load-balancing between tunnels). \n* When\
+            \ `ordered`, the order is decided by tunterm_hosts_order"
+          enum:
+          - shuffle
+          - shuffle-by-site
+          - ordered
+          type: string
         tunterm_monitoring:
           items:
             $ref: '#/components/schemas/site_tunterm_monitoring'
@@ -45903,6 +46010,10 @@ components:
               description: The property name may be an IP Address (i.e. "172.16.0.1"),
                 and IP Address and Port (i.e. "172.16.0.1:8443") or a CIDR (i.e. "172.16.0.12/20")
               type: object
+            disallow_mist_services:
+              default: false
+              description: when `restricted`==`true`
+              type: boolean
             enabled:
               type: boolean
             restricted:
@@ -46112,15 +46223,6 @@ components:
           $ref: '#/components/schemas/junos_radius_config'
         switch_matching:
           $ref: '#/components/schemas/template_switch.matching'
-        switch_mgmt:
-          properties:
-            config_revert_timer:
-              type: integer
-            dhcp_option_fqdn:
-              default: false
-              description: Enable to provide the FQDN with DHCP option 81
-              type: boolean
-          type: object
       type: object
       x-examples:
         example-1:
@@ -46686,11 +46788,6 @@ components:
           maximum: 480
           minimum: 0
           type: integer
-        vpn_options:
-          properties:
-            st_subnet:
-              type: string
-          type: object
       type: object
       x-examples:
         example-1:
@@ -47398,6 +47495,13 @@ components:
           type: array
         role:
           description: admin / write / read / helpdesk / installer
+          enum:
+          - admin
+          - write
+          - read
+          - helpdesk
+          - installer
+          - none
           type: string
         scope:
           description: currently org / site / msp
@@ -47414,7 +47518,45 @@ components:
             type: string
           type: array
         views:
-          description: list of UI views, see supported Org Custom Views
+          description: 'Custom roles restrict Org users to specific UI views. This
+            is useful for limiting UI access of Org users.
+
+
+            You can invite a new user or update existing users in your Org to this
+            custom role. For this, specify view along with role when assigning privileges.
+
+
+            Below are the list of supported UI views. Note that this is UI only feature
+
+            Custom roles restrict Org users to specific UI views. This is useful for
+            limiting UI access of Org users.
+
+
+            You can invite a new user or update existing users in your Org to this
+            custom role. For this, specify `view` along with `role` when assigning
+            privileges.
+
+
+            Below are the list of supported UI views. Note that this is UI only feature
+
+
+            | UI View | Description |
+
+            | --- | --- |
+
+            | `reporting` | full access to all analytics tools |
+
+            | `marketing` | can view analytics and location maps |
+
+            | `location` | can view and manage location maps |
+
+            | `security` | can view and manage WLAN, rogues and authentication |
+
+            | `switch_admin` | can view and manage Switch ports |
+
+            | `mxedge_admin` | can view and manage Mist edges and Mist tunnels |
+
+            | `lobby_admin` | full access to Org and Site Pre-shared keys |'
           items:
             type: string
           type: array
@@ -48709,6 +48851,12 @@ components:
         dscp_class:
           description: when `traffic_type`==`custom`
           type: string
+        failover_policy:
+          default: revertable
+          enum:
+          - revertable
+          - non-revertable
+          type: string
         hostnames:
           description: if `type`==`hostnames`
           items:
@@ -48725,6 +48873,10 @@ components:
           type: integer
         name:
           type: string
+        sle_enabled:
+          default: false
+          description: whether to enable measure SLE
+          type: boolean
         specs:
           description: when `type`==`addresses` or `type`==`hostnames`
           items:
