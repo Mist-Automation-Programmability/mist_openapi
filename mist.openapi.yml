@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.21.0**
+  description: '> Version: **0.22.0**
 
     >
 
-    > Date: **March 11th, 2022**
+    > Date: **March 25th, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.21.0
+  version: 0.22.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -174,6 +174,7 @@ tags:
   name: Sites Devices EVPN
 - name: Sites Devices HA
 - name: Sites Devices Virtual Chassis
+- name: Sites Devices SSR
 - name: Sites Devices Utilities
 - name: Sites Events
 - name: Sites Guests
@@ -209,7 +210,9 @@ tags:
 paths:
   /api/v1/const/alarm_defs:
     get:
-      description: Get Alarm Definitions
+      description: Get brief definitions of all the supported alarm types.  The example
+        field contains an example payload as you would recieve in the alarm webhook
+        output.
       operationId: getAlarmDefinitions
       responses:
         '200':
@@ -218,13 +221,27 @@ paths:
               examples:
                 example-1:
                   value:
-                  - display: string
+                  - display: Device offline
+                    example:
+                      aps:
+                      - d420b02000fa
+                      count: 1
+                      group: infrastructure
+                      hostnames:
+                      - Vendor_AP2
+                      id: f70c308f-7007-4866-9ecd-0d01842979ea
+                      last_seen: 1629753888
+                      org_id: 09dac91f-6e73-4100-89f7-698e0fafbb1b
+                      severity: warn
+                      site_id: dcfb31a1-d615-4361-8c95-b9dde05aa704
+                      timestamp: 1629753888
+                      type: device_down
                     fields:
-                    - string
-                    group: string
-                    key: string
-                    marvis_suggestion_category: string
-                    severity: string
+                    - aps
+                    - hostnames
+                    group: infrastructure
+                    key: device_down
+                    severity: warn
               schema:
                 items:
                   properties:
@@ -1106,6 +1123,55 @@ paths:
                 uniqueItems: true
           description: OK
       summary: getSystemEventsDefinitions
+      tags:
+      - Constants
+  /api/v1/const/traffic_types:
+    get:
+      description: Get List of identified traffic
+      operationId: get-api-v1-const-traffic_types
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                  - dscp: 0
+                    failover_policy: string
+                    name: string
+                    traffic_class: string
+              schema:
+                description: Get Traffic Types Constants
+                items:
+                  properties:
+                    dscp:
+                      type: number
+                    failover_policy:
+                      minLength: 1
+                      type: string
+                    name:
+                      minLength: 1
+                      type: string
+                    traffic_class:
+                      minLength: 1
+                      type: string
+                  required:
+                  - name
+                  - failover_policy
+                  - traffic_class
+                  - dscp
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+                x-examples:
+                  example-1:
+                  - dscp: 0
+                    failover_policy: non-revertible
+                    name: data_best_effort
+                    traffic_class: low
+          description: OK
+      summary: getTrafficTypes
       tags:
       - Constants
   /api/v1/installer/orgs/{org_id}/alarmtemplates:
@@ -8211,7 +8277,12 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/pskportals:
     get:
-      description: get Org Psk Portals
+      description: "get Org Psk Portals\n\nPSK Self-Service Portals are for \n1. **WIFI\
+        \ users** who want to connect to a WLAN with personal PSK, they\u2019re told\
+        \ to connect to a URL\nwhere they can login (likely through company\u2019\
+        s SSO) and get the WIFI Name / Passphrase - required input fields name, email\
+        \ so we can generate PSK \n2. **PSK Admins** (they don\u2019t have access\
+        \ to normal Network Admin Portal)"
       operationId: getOrgPskPortals
       responses:
         '200':
@@ -9959,6 +10030,67 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/sso_id'
+  /api/v1/orgs/{org_id}/ssr/versions:
+    get:
+      description: Get Org SSD Ugprade information
+      operationId: getOrgSsrUpgradeInfo
+      parameters:
+      - in: query
+        name: channel
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                  - _version: 128T-5.3.1-17.el7.x86_64
+                    default: true
+                    package: 128T
+                    version: 5.3.1-17
+                  - _version: 128T-wheeljack-0.1.0-1212.x86_64
+                    package: 128T-wheeljack
+                    version: 0.1.0-1212
+              schema:
+                description: ''
+                items:
+                  properties:
+                    _version:
+                      minLength: 1
+                      type: string
+                    default:
+                      type: boolean
+                    package:
+                      minLength: 1
+                      type: string
+                    version:
+                      minLength: 1
+                      type: string
+                  required:
+                  - package
+                  - version
+                  - _version
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+                x-examples:
+                  example-1:
+                  - _version: 128T-5.3.1-17.el7.x86_64
+                    default: true
+                    package: 128T
+                    version: 5.3.1-17
+                  - _version: 128T-wheeljack-0.1.0-1212.x86_64
+                    package: 128T-wheeljack
+                    version: 0.1.0-1212
+          description: OK
+      summary: getOrgSsrUpgradeInfo
+      tags:
+      - Orgs Devices
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/stats:
     get:
       description: Get Org Stats
@@ -15583,6 +15715,51 @@ paths:
       summary: cableTestFromSwitch
       tags:
       - Sites Devices Utilities
+  /api/v1/sites/{site_id}/devices/{device_id}/clear_bgp:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: Clear routes associated with one or all BGP neighbors
+      operationId: clearSiteSsrBgpRoutes
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  neighbor: all
+                  type: in
+                  vrf: TestVrf
+            schema:
+              description: ''
+              properties:
+                neighbor:
+                  description: neighbor ip-address or `all`
+                  minLength: 1
+                  type: string
+                type:
+                  minLength: 1
+                  type: string
+                vrf:
+                  minLength: 1
+                  type: string
+              required:
+              - neighbor
+              type: object
+              x-examples:
+                example-1:
+                  neighbor: all
+                  type: in
+                  vrf: TestVrf
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          description: Invalid Type or Parameter Naighbor Absent
+      summary: clearSiteSsrBgpRoutes
+      tags:
+      - Sites Devices SSR
   /api/v1/sites/{site_id}/devices/{device_id}/clear_bpdu_error:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -15950,6 +16127,74 @@ paths:
       summary: pollSiteSwitchStats
       tags:
       - Sites Devices
+  /api/v1/sites/{site_id}/devices/{device_id}/release_dhcp:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: Releases an active DHCP lease.
+      operationId: releaseSiteSsrDhcpLease
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              properties:
+                network_interface:
+                  description: The nework interface on which to release the current
+                    DHCP release
+                  minLength: 1
+                  type: string
+              required:
+              - network_interface
+              type: object
+              x-examples:
+                example-1:
+                  network_interface: wan-interface
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          description: Parameter `network_interface` absent
+      summary: releaseSiteSsrDhcpLease
+      tags:
+      - Sites Devices SSR
+  /api/v1/sites/{site_id}/devices/{device_id}/request_ztp_password:
+    get:
+      description: "In case any issue happens during/after ZTP, the root-password\
+        \ is modified by ZTP but the user-defined password config is not pushed successfully\
+        \ to the device, we could use this API to retrieve the password set by ZTP\
+        \ to unblock the device access.\n\nThe response will be empty if the manuf\
+        \ device does not exist or ztp status is not \u2018bootstrap-completed\u2019\
+        \ or ZTP completed more than 7 days ago."
+      operationId: getSiteDeviceZtpPassword
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    root_password: ef8070ef8f924edb592e1819ed64b31172ab8de9d5cde75d3f46acd9506202ab9b1cbb97e381c5aa11037f17e5ed7b4b609461cd813d944670549d410ef82f2e
+              schema:
+                description: ''
+                properties:
+                  root_password:
+                    minLength: 1
+                    type: string
+                required:
+                - root_password
+                type: object
+                x-examples:
+                  example-1:
+                    root_password: ef8070ef8f924edb592e1819ed64b31172ab8de9d5cde75d3f46acd9506202ab9b1cbb97e381c5aa11037f17e5ed7b4b609461cd813d944670549d410ef82f2e
+          description: OK
+      summary: getSiteDeviceZtpPassword
+      tags:
+      - Sites Devices
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
   /api/v1/sites/{site_id}/devices/{device_id}/restart:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -16589,11 +16834,11 @@ paths:
         \ can also be enabled only at the core switches (up to 4) by assigning all\
         \ participating switches with `collapsed-core role`. When there are more than\
         \ 2 switches, a ring-like topology will be formed.\n\n#### ESI-Lag\nIf the\
-        \ access switchess does not have EVPN support, you can still take advantage\
-        \ of EVPN by setting up ESI-Lag on distribution switches\n\n#### Leaf / Access\
-        \ / Collapsed-Core\nFor leaf nodes in a EVPN topology, you\u2019d have to\
-        \ configure the IPs for networks that would participate in EVPN. Optionally,\
-        \ VRFs to isolate traffic from one tenant verus another"
+        \ access switchess does not have EVPN support, you can take advantage of EVPN\
+        \ by setting up ESI-Lag on distribution switches\n\n#### Leaf / Access / Collapsed-Core\n\
+        For leaf nodes in a EVPN topology, you\u2019d have to configure the IPs for\
+        \ networks that would participate in EVPN. Optionally, VRFs to isolate traffic\
+        \ from one tenant verus another"
       operationId: createSiteEvpnTopology
       requestBody:
         content:
@@ -20297,99 +20542,38 @@ paths:
       - Sites Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/stats/clients:
-    get:
-      description: Get Site Clients Stats
-      operationId: getSiteClientsStats
-      parameters:
-      - $ref: '#/components/parameters/page'
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                  - - _ttl: 0
-                      accuracy: 0
-                      airespace_ifname: string
-                      airwatch:
-                        authorized: true
-                      ap_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                      ap_mac: string
-                      band: '24'
-                      channel: 0
-                      dual_band: true
-                      family: string
-                      guest:
-                        authorized: true
-                        authorized_expiring_time: 0
-                        authorized_time: 0
-                        company: string
-                        email: string
-                        field1: string
-                        name: string
-                      hostname: string
-                      id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                      idle_time: 0
-                      ip: 192.168.1.2
-                      is_guest: true
-                      key_mgmt: string
-                      last_seen: 0
-                      mac: string
-                      manufacture: string
-                      map_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                      model: string
-                      name: string
-                      num_locating_aps: 0
-                      os: string
-                      power_saving: true
-                      proto: ac
-                      psk_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
-                      rssi: 0
-                      rx_bps: 0
-                      rx_bytes: 0
-                      rx_packets: 0
-                      rx_rate: 0
-                      rx_retries: 0
-                      snr: 0
-                      ssid: string
-                      tx_bps: 0
-                      tx_bytes: 0
-                      tx_packets: 0
-                      tx_rate: 0
-                      tx_retries: 0
-                      type: string
-                      uptime: 0
-                      username: string
-                      vlan_id: 1
-                      wlan_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                      x: 0
-                      y: 0
-              schema:
-                items:
-                  $ref: '#/components/schemas/stats_client'
-                type: array
-          description: OK
-      summary: getSiteClientsStats
-      tags:
-      - Sites Stats
-    parameters:
-    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/clients/{client_mac}:
     get:
       description: Get Site Client Stats Details
       operationId: getSiteClientStats
+      parameters:
+      - in: query
+        name: wired
+        schema:
+          default: false
+          type: boolean
       responses:
         '200':
           content:
             application/json:
               examples:
-                example-1:
+                Wired Client:
+                  value:
+                    _id: 003ee1bec926
+                    _ttl: 277
+                    ap_id: 00000000-0000-0000-1000-d420b085fdff
+                    auth_state: authorizedForCompleteAccess
+                    eth_port: eth1
+                    last_seen: 1645060912.0751352
+                    mac: e45f01319a43
+                    rx_bytes: 0
+                    rx_pkts: 0
+                    site_id: 1916d52a-4a90-11e5-8b45-1258369c38a9
+                    tx_bytes: 0
+                    tx_pkts: 0
+                    uptime: 8723766
+                    vlan_id: 70
+                Wireless Client:
                   value:
                   - _ttl: 0
                     accuracy: 0
@@ -20459,7 +20643,9 @@ paths:
                     - id: 497f6eca-6276-4993-bfeb-73cbbbba6f08
                       since: 0
               schema:
-                $ref: '#/components/schemas/stats_client_detail'
+                oneOf:
+                - $ref: '#/components/schemas/stats_client_detail'
+                - $ref: '#/components/schemas/stats_client_wired'
           description: OK
       summary: getSiteClientStats
       tags:
@@ -21441,8 +21627,8 @@ paths:
     - $ref: '#/components/parameters/device_id'
   /api/v1/sites/{site_id}/stats/devices/{device_id}/clients:
     get:
-      description: Get wireless client stat per Device
-      operationId: getSiteAllClientsStatsOnDevice
+      description: Get wireless client stat by Device
+      operationId: getSiteAllClientsStatsByDevice
       responses:
         '200':
           content:
@@ -21450,68 +21636,68 @@ paths:
               examples:
                 example-1:
                   value:
-                  - - _ttl: 0
-                      accuracy: 0
-                      airespace_ifname: string
-                      airwatch:
-                        authorized: true
-                      ap_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                      ap_mac: string
-                      band: '24'
-                      channel: 0
-                      dual_band: true
-                      family: string
-                      guest:
-                        authorized: true
-                        authorized_expiring_time: 0
-                        authorized_time: 0
-                        company: string
-                        email: string
-                        field1: string
-                        name: string
-                      hostname: string
-                      id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                      idle_time: 0
-                      ip: 192.168.1.2
-                      is_guest: true
-                      key_mgmt: string
-                      last_seen: 0
-                      mac: string
-                      manufacture: string
-                      map_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                      model: string
+                  - _ttl: 0
+                    accuracy: 0
+                    airespace_ifname: string
+                    airwatch:
+                      authorized: true
+                    ap_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                    ap_mac: string
+                    band: '24'
+                    channel: 0
+                    dual_band: true
+                    family: string
+                    guest:
+                      authorized: true
+                      authorized_expiring_time: 0
+                      authorized_time: 0
+                      company: string
+                      email: string
+                      field1: string
                       name: string
-                      num_locating_aps: 0
-                      os: string
-                      power_saving: true
-                      proto: ac
-                      psk_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
-                      rssi: 0
-                      rx_bps: 0
-                      rx_bytes: 0
-                      rx_packets: 0
-                      rx_rate: 0
-                      rx_retries: 0
-                      snr: 0
-                      ssid: string
-                      tx_bps: 0
-                      tx_bytes: 0
-                      tx_packets: 0
-                      tx_rate: 0
-                      tx_retries: 0
-                      type: string
-                      uptime: 0
-                      username: string
-                      vlan_id: 1
-                      wlan_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                      x: 0
-                      y: 0
+                    hostname: string
+                    id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                    idle_time: 0
+                    ip: 192.168.1.2
+                    is_guest: true
+                    key_mgmt: string
+                    last_seen: 0
+                    mac: string
+                    manufacture: string
+                    map_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                    model: string
+                    name: string
+                    num_locating_aps: 0
+                    os: string
+                    power_saving: true
+                    proto: ac
+                    psk_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+                    rssi: 0
+                    rx_bps: 0
+                    rx_bytes: 0
+                    rx_packets: 0
+                    rx_rate: 0
+                    rx_retries: 0
+                    snr: 0
+                    ssid: string
+                    tx_bps: 0
+                    tx_bytes: 0
+                    tx_packets: 0
+                    tx_rate: 0
+                    tx_retries: 0
+                    type: string
+                    uptime: 0
+                    username: string
+                    vlan_id: 1
+                    wlan_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                    x: 0
+                    y: 0
               schema:
                 items:
                   $ref: '#/components/schemas/stats_client'
                 type: array
           description: OK
-      summary: getSiteAllClientsStatsOnDevice
+      summary: getSiteAllClientsStatsByDevice
       tags:
       - Sites Stats
     parameters:
@@ -22115,61 +22301,61 @@ paths:
               examples:
                 example-1:
                   value:
-                  - - _ttl: 0
-                      accuracy: 0
-                      airespace_ifname: string
-                      airwatch:
-                        authorized: true
-                      ap_id: 325b588d-147b-4fa4-bb40-83383f83c77e
-                      ap_mac: string
-                      band: '24'
-                      channel: 0
-                      dual_band: true
-                      family: string
-                      guest:
-                        authorized: false
-                        authorized_expiring_time: 0
-                        authorized_time: 0
-                        company: string
-                        email: string
-                        field1: string
-                        name: string
-                      hostname: string
-                      idle_time: 0
-                      ip: 192.168.0.1
-                      ip6: 2001:0db8:85a3:0000:0000:8a2e:0370:7334
-                      is_guest: false
-                      key_mgmt: string
-                      last_seen: 0
-                      mac: string
-                      manufacture: string
-                      map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
-                      model: string
-                      num_locating_aps: 0
-                      os: string
-                      power_saving: true
-                      proto: a
-                      psk_id: 4cb94c10-4e99-46b0-8261-4c71d0b2cb9d
-                      rssi: 0
-                      rx_bps: 0
-                      rx_bytes: 0
-                      rx_packets: 0
-                      rx_rate: 0
-                      rx_retries: 0
-                      snr: 0
-                      ssid: string
-                      tx_bps: 0
-                      tx_bytes: 0
-                      tx_packets: 0
-                      tx_rate: 0
-                      tx_retries: 0
-                      type: string
-                      uptime: 0
-                      username: string
-                      vlan_id: 0
-                      wlan_id: 5028e92b-fc59-4056-91d1-ea4b4ca1617a
-                      x: 0
-                      y: 0
+                  - _ttl: 0
+                    accuracy: 0
+                    airespace_ifname: string
+                    airwatch:
+                      authorized: true
+                    ap_id: 325b588d-147b-4fa4-bb40-83383f83c77e
+                    ap_mac: string
+                    band: '24'
+                    channel: 0
+                    dual_band: true
+                    family: string
+                    guest:
+                      authorized: false
+                      authorized_expiring_time: 0
+                      authorized_time: 0
+                      company: string
+                      email: string
+                      field1: string
+                      name: string
+                    hostname: string
+                    idle_time: 0
+                    ip: 192.168.0.1
+                    ip6: 2001:0db8:85a3:0000:0000:8a2e:0370:7334
+                    is_guest: false
+                    key_mgmt: string
+                    last_seen: 0
+                    mac: string
+                    manufacture: string
+                    map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
+                    model: string
+                    num_locating_aps: 0
+                    os: string
+                    power_saving: true
+                    proto: a
+                    psk_id: 4cb94c10-4e99-46b0-8261-4c71d0b2cb9d
+                    rssi: 0
+                    rx_bps: 0
+                    rx_bytes: 0
+                    rx_packets: 0
+                    rx_rate: 0
+                    rx_retries: 0
+                    snr: 0
+                    ssid: string
+                    tx_bps: 0
+                    tx_bytes: 0
+                    tx_packets: 0
+                    tx_rate: 0
+                    tx_retries: 0
+                    type: string
+                    uptime: 0
+                    username: string
+                    vlan_id: 0
+                    wlan_id: 5028e92b-fc59-4056-91d1-ea4b4ca1617a
+                    x: 0
+                    y: 0
               schema:
                 items:
                   $ref: '#/components/schemas/stats_client'
@@ -40138,6 +40324,41 @@ components:
           description: default / custom
           type: string
       type: object
+    ap_client_bridge:
+      description: ''
+      properties:
+        auth:
+          properties:
+            psk:
+              minLength: 1
+              type: string
+            type:
+              default: psk
+              description: wpa2-AES/CCMPp is assumed when `type`==`psk`
+              enum:
+              - open
+              - psk
+              minLength: 1
+              type: string
+          type: object
+        enabled:
+          description: 'when acted as client bridge:
+
+            * only 5G radio can be used
+
+            * will not serve as AP on any radios'
+          type: boolean
+        ssid:
+          minLength: 1
+          type: string
+      type: object
+      x-examples:
+        example-1:
+          auth:
+            psk: foryoureyesonly
+            type: psk
+          enabled: true
+          ssid: Uplink-SSID
     ap_iot:
       description: IoT AP settings
       properties:
@@ -41527,6 +41748,8 @@ components:
           $ref: '#/components/schemas/ap_aeroscout'
         ble_config:
           $ref: '#/components/schemas/ap_ble'
+        client_bridge:
+          $ref: '#/components/schemas/ap_client_bridge'
         created_time:
           readOnly: true
           type: number
@@ -43256,6 +43479,8 @@ components:
             $ref: '#/components/schemas/network'
           description: The property name is the network name
           type: object
+        oob_ip_config:
+          $ref: '#/components/schemas/junos_oob_ip_config'
         org_id:
           format: uuid
           readOnly: true
@@ -43906,30 +44131,50 @@ components:
           description: if per-neighbor as is desired. Property name is the neighbor
             address
           type: object
+        networks:
+          description: if `type`!=`external`or `via`==`wan`networks where we expect
+            BGP neighbor to connect to/from
+          items:
+            type: string
+          type: array
         type:
           enum:
           - internal
           - external
           minLength: 1
           type: string
-        via_network:
-          description: which network are BGP routes attached to
+        via:
+          description: network name
+          type: string
+        wan_name:
+          description: if `via`==`wan`
           type: string
       type: object
       x-examples:
         example-1:
-          value:
-            auth_key: string
-            export: string
-            import: string
-            local_as: 0
-            neighbor_as: 0
-            neighbors:
-              property1:
-                neighbor_as: 0
-              property2:
-                neighbor_as: 0
-            type: string
+          auth_key: string
+          communities:
+          - id: string
+            local_preference: 0
+            vpn_name: string
+          export: string
+          export_policy: string
+          import: string
+          import_policy: string
+          local_as: 0
+          neighbor_as: 0
+          neighbors:
+            property1:
+              export_policy: string
+              import_policy: string
+              neighbor_as: 0
+            property2:
+              export_policy: string
+              import_policy: string
+              neighbor_as: 0
+          networks:
+          - string
+          type: internal
     junos_dhcp_snooping:
       description: ''
       properties:
@@ -44139,6 +44384,10 @@ components:
                   type: string
                 readOnly: true
                 type: array
+              esilaglinks:
+                items:
+                  type: string
+                type: array
               evpn_id:
                 type: integer
               mac:
@@ -44152,6 +44401,7 @@ components:
                 - access
                 - collapsed-core
                 - none
+                - esilag-access
                 minLength: 1
                 type: string
               uplinks:
@@ -44661,6 +44911,19 @@ components:
         wan_ext_ip:
           description: optional, if spoke should reach this port by a different IP
           type: string
+        wan_source_nat:
+          description: optional, by default, source-NAT is performed on all WAN Ports
+            using the interface-ip
+          properties:
+            disabled:
+              default: false
+              description: or to disable the source-nat
+              type: boolean
+            nat_pool:
+              description: if alternative nat_pool is desired
+              example: 64.2.4.0/30
+              type: string
+          type: object
         wan_type:
           default: broadband
           description: if `usage`==`wan`
@@ -45001,46 +45264,77 @@ components:
             term, all criteria have to be met
           items:
             properties:
-              as_path:
-                minLength: 1
-                type: string
-              community:
-                minLength: 1
-                type: string
-              exclude_as_path:
-                description: 'when used as export policy, optional. To exclude certain
-                  AS '
-                type: string
-              export_communitites:
-                description: when used as export policy, optional
-                items:
-                  type: string
-                type: array
-              export_local_preference:
-                type: string
-              local_preference:
-                description: optional, when importing, local_preference can be changed
-                type: integer
-              network:
-                type: string
-              prefix:
+              action:
+                description: when used as import policy
+                properties:
+                  accept:
+                    type: boolean
+                  community:
+                    description: when used as export policy, optional
+                    items:
+                      type: string
+                    type: array
+                  exclude_as_path:
+                    description: 'when used as export policy, optional. To exclude
+                      certain AS '
+                    items:
+                      type: string
+                    type: array
+                  export_communitites:
+                    description: when used as export policy, optional
+                    items:
+                      type: string
+                    type: array
+                  local_preference:
+                    description: optional, local_preference can be changed
+                    type: string
+                  prepend_as_path:
+                    description: when used as export policy, optional. By default,
+                      the local AS will be prepended, to change it
+                    items:
+                      type: string
+                    type: array
+                type: object
+              matching:
                 description: zero or more criteria/filter can be specified to match
                   the term, all criteria have to be met
-                minLength: 1
-                type: string
-              prepend_as_path:
-                description: when used as export policy, optional. By default, the
-                  local AS will be prepended, to change it
-                type: string
-              protocol:
-                minLength: 1
-                type: string
-              then:
-                description: 'when used as import policy  '
-                minLength: 1
-                type: string
+                properties:
+                  as_path:
+                    description: takes regular expression
+                    oneOf:
+                    - type: string
+                    - items:
+                        type: string
+                      type: array
+                  community:
+                    oneOf:
+                    - type: string
+                    - items:
+                        type: string
+                      type: array
+                  network:
+                    oneOf:
+                    - type: string
+                    - items:
+                        type: string
+                      type: array
+                  prefix:
+                    description: zero or more criteria/filter can be specified to
+                      match the term, all criteria have to be met
+                    oneOf:
+                    - type: string
+                    - items:
+                        type: string
+                      type: array
+                  protocol:
+                    description: '`direct`, `bgp`, `osp`, ...'
+                    oneOf:
+                    - type: string
+                    - items:
+                        type: string
+                      type: array
+                type: object
             type: object
-          minItems: 1
           type: array
           uniqueItems: true
       type: object
@@ -45971,7 +46265,10 @@ components:
             vlan_ids:
               description: the list of vlans on which tunterm performs IGMP snooping
               items:
-                type: integer
+                anyOf:
+                - type: integer
+                - type: string
+                description: the list of vlans on which tunterm performs IGMP snooping
               type: array
           type: object
         tunterm_ip_config:
@@ -46050,7 +46347,9 @@ components:
                 type: integer
               vlan_ids:
                 items:
-                  type: integer
+                  anyOf:
+                  - type: integer
+                  - type: string
                 type: array
             type: object
           description: if custom vlan settings are desired
@@ -46673,6 +46972,16 @@ components:
               routed:
                 description: whether this network is routable
                 type: boolean
+              source_nat:
+                description: if `routed`==`false` (usually at Spoke), but some hosts
+                  needs to be reachable from Hub
+                properties:
+                  exteral_ip:
+                    description: when `nat_pool` is used with {{VARS}} in bigger deployments
+                      with lots of spokes for source_nat and static_nat to work, we
+                      need the summarized subnet to set up Hub's policy correctly
+                    type: string
+                type: object
               static_nat:
                 additionalProperties:
                   properties:
@@ -46684,6 +46993,8 @@ components:
                 description: if `routed` = `false` (usually at Spoke), but some hosts
                   needs to be reachable from Hub
                 type: object
+              summarized_nat_pool:
+                type: string
             type: object
           description: whether this network can be accessed from vpn
           type: object
@@ -47271,6 +47582,8 @@ components:
           type: string
         installer:
           properties:
+            allow_all_devices:
+              type: boolean
             allow_all_sites:
               type: boolean
             extra_site_ids:
@@ -48288,15 +48601,22 @@ components:
           type: string
         bg_image_url:
           type: string
+        cleanup_psk:
+          default: false
+          description: used to cleanup exited psk when portal delete or ssid changed
+          type: boolean
         created_time:
           readOnly: true
           type: integer
-        expire:
+        expire_time:
+          description: unit min
           type: integer
         id:
           readOnly: true
           type: string
         max_usage:
+          default: 0
+          description: '`max_usage`==`0` means unlimited'
           type: integer
         modified_time:
           readOnly: true
@@ -48306,6 +48626,25 @@ components:
         org_id:
           readOnly: true
           type: string
+        passphrase_rules:
+          properties:
+            alphaberts_enabled:
+              default: true
+              type: boolean
+            length:
+              maximum: 63
+              minimum: 8
+              type: integer
+            numerics_enabled:
+              default: true
+              type: boolean
+            symbols:
+              example: ()[]{}_%@#&$
+              type: string
+            symbols_enabled:
+              default: true
+              type: boolean
+          type: object
         required_fields:
           description: what information to ask for (email is required by default)
           items:
@@ -49525,18 +49864,13 @@ components:
           - low
           type: string
         traffic_type:
-          description: 'when `type`==`apps`, we''ll choose traffic_type automatically
+          default: default
+          description: 'values from `/api/v1/consts/traffic_types`
 
-            when `type`==`addresses` or `type`==`hostnames`, you can provide your
+            * when `type`==`apps`, we''ll choose traffic_type automatically
+
+            * when `type`==`addresses` or `type`==`hostnames`, you can provide your
             own settings (optional)'
-          enum:
-          - default
-          - web
-          - remote-desktop
-          - gaming
-          - voip-audio
-          - video-streaming
-          - custom
           type: string
         type:
           default: custom
@@ -50000,9 +50334,11 @@ components:
           readOnly: true
           type: string
         vlan_ids:
-          description: list of vlan_ids that will be used
+          description: list of vlan_ids that will be use
           items:
-            type: integer
+            anyOf:
+            - type: integer
+            - type: string
           type: array
       type: object
       x-examples:
@@ -50160,22 +50496,21 @@ components:
               description: the property name is the AP model (e.g "AP32")
               type: object
           type: object
+        auto_placement:
+          description: if we're able to determine its x/y/orientation, this will be
+            populated
+          properties:
+            orientation:
+              type: number
+            x:
+              type: number
+            y:
+              type: number
+          type: object
         auto_preemption:
           $ref: '#/components/schemas/auto_preemption'
         auto_upgrade:
           $ref: '#/components/schemas/site_auto_upgrade'
-        bgp_groups:
-          additionalProperties:
-            properties:
-              type:
-                default: external
-                enum:
-                - external
-                - internal
-                type: string
-            type: object
-          description: the property name is the bgp group
-          type: object
         blacklist_url:
           readOnly: true
           type: string
@@ -54049,239 +54384,237 @@ components:
       uniqueItems: true
     stats_client:
       description: Client statistics
-      items:
-        properties:
-          _ttl:
-            description: TTL of the validity of the stat
-            type: number
-          accuracy:
-            description: estimated clinet location accuracy, in meter
-            type: integer
-          airespace_ifname:
-            type: string
-          airwatch:
-            description: information if airwatch enabled
-            properties:
-              authorized:
-                type: boolean
-            required:
-            - authorized
-            type: object
-          ap_id:
-            description: AP ID the client is connected to
-            format: uuid
-            type: string
-          ap_mac:
-            description: AP the client is connected to
-            type: string
-          band:
-            enum:
-            - '24'
-            - '5'
-            type: string
-          channel:
-            description: current channel
-            type: integer
-          dual_band:
-            description: "whether the client is dual-band capable (determined by whether\
-              \ we\u2019ve seen probe requests from both bands)"
-            type: boolean
-          family:
-            description: "device family, through fingerprinting. iPod / Nexus Galaxy\
-              \ / Windows Mobile or CE \u2026"
-            type: string
-          guest:
-            description: information about this portal
-            properties:
-              authorized:
-                default: false
-                description: whether this guest is authorized
-                type: boolean
-              authorized_expiring_time:
-                description: when the guest authorization will expire
-                type: number
-              authorized_time:
-                description: when the guest is authorized
-                type: number
-              company:
-                type: string
-              email:
-                type: string
-              field1:
-                type: string
-              name:
-                type: string
-            required:
-            - authorized
-            - authorized_expiring_time
-            - authorized_time
-            - company
-            - email
-            - field1
-            - name
-            type: object
-          hostname:
-            description: hostname that we learned from sniffing DHCP
-            type: string
-          idle_time:
-            description: how long, in seconds, has the client been idle (since the
-              last RX packet)
-            type: number
-          ip:
-            format: ipv4
-            type: string
-          ip6:
-            format: ipv6
-            type: string
-          is_guest:
-            default: false
-            description: whether this is a guest
-            type: boolean
-          key_mgmt:
-            description: e.g. WPA2-PSK/CCMP
-            type: string
-          last_seen:
-            description: last seen timestamp
-            type: number
-          mac:
-            description: client mac
-            type: string
-          manufacture:
-            description: device manufacture, through fingerprinting or OUI
-            type: string
-          map_id:
-            description: estimated client location - map_id
-            format: uuid
-            type: string
-          model:
-            description: device model, may be available if we can identify them
-            type: string
-          num_locating_aps:
-            description: number of APs used to locate this client
-            type: integer
-          os:
-            description: device os, through fingerprinting
-            type: string
-          power_saving:
-            description: "if it\u2019s currently in power-save mode"
-            type: boolean
-          proto:
-            enum:
-            - a
-            - b
-            - g
-            - n
-            - ac
-            - ax
-            type: string
-          psk_id:
-            description: PSK id (if multi-psk is used)
-            format: uuid
-            type: string
-          rssi:
-            description: signal strength
-            type: number
-          rx_bps:
-            description: rate of receiving traffic from the clients, bits/seconds,
-              last known
-            type: number
-          rx_bytes:
-            description: amount of traffic received from client since client connects
-            type: number
-          rx_packets:
-            description: amount of traffic received from client since client connects
-            type: number
-          rx_rate:
-            description: RX Rate, Mbps
-            type: number
-          rx_retries:
-            description: amount of rx retries
-            type: number
-          snr:
-            description: signal over noise
-            type: number
-          ssid:
-            description: SSID the client is connected to
-            type: string
-          tx_bps:
-            description: rate of transmitting traffic to the clients, bits/seconds,
-              last known
-            type: number
-          tx_bytes:
-            description: amount of traffic sent to client since client connects
-            type: number
-          tx_packets:
-            description: amount of traffic sent to client since client connects
-            type: number
-          tx_rate:
-            description: TX Rate, Mbps
-            type: number
-          tx_retries:
-            description: amount of tx retries
-            type: number
-          type:
-            description: "client\u2019s type, regular / vip / resource / blocked (if\
-              \ client object is created)"
-            type: string
-          uptime:
-            description: how long, in seconds, has the client been connected
-            type: number
-          username:
-            description: username that we learned from 802.1X exchange or Per-user
-              PSK or User Portal
-            type: string
-          vlan_id:
-            description: vlan id, could be empty (from older AP)
-            type: integer
-          wlan_id:
-            description: WLAN ID the client is connected to
-            format: uuid
-            type: string
-          x:
-            description: estimated client location in pixels
-            type: number
-          y:
-            description: estimated client location in pixels
-            type: number
-        required:
-        - _ttl
-        - ap_id
-        - ap_mac
-        - band
-        - channel
-        - dual_band
-        - family
-        - hostname
-        - idle_time
-        - ip
-        - is_guest
-        - key_mgmt
-        - last_seen
-        - mac
-        - manufacture
-        - model
-        - os
-        - power_saving
-        - proto
-        - rssi
-        - rx_bps
-        - rx_bytes
-        - rx_packets
-        - rx_rate
-        - rx_retries
-        - snr
-        - ssid
-        - tx_bps
-        - tx_bytes
-        - tx_packets
-        - tx_rate
-        - tx_retries
-        - uptime
-        - username
-        - wlan_id
-        type: object
       minItems: 1
-      type: array
+      properties:
+        _ttl:
+          description: TTL of the validity of the stat
+          type: number
+        accuracy:
+          description: estimated clinet location accuracy, in meter
+          type: integer
+        airespace_ifname:
+          type: string
+        airwatch:
+          description: information if airwatch enabled
+          properties:
+            authorized:
+              type: boolean
+          required:
+          - authorized
+          type: object
+        ap_id:
+          description: AP ID the client is connected to
+          format: uuid
+          type: string
+        ap_mac:
+          description: AP the client is connected to
+          type: string
+        band:
+          enum:
+          - '24'
+          - '5'
+          type: string
+        channel:
+          description: current channel
+          type: integer
+        dual_band:
+          description: "whether the client is dual-band capable (determined by whether\
+            \ we\u2019ve seen probe requests from both bands)"
+          type: boolean
+        family:
+          description: "device family, through fingerprinting. iPod / Nexus Galaxy\
+            \ / Windows Mobile or CE \u2026"
+          type: string
+        guest:
+          description: information about this portal
+          properties:
+            authorized:
+              default: false
+              description: whether this guest is authorized
+              type: boolean
+            authorized_expiring_time:
+              description: when the guest authorization will expire
+              type: number
+            authorized_time:
+              description: when the guest is authorized
+              type: number
+            company:
+              type: string
+            email:
+              type: string
+            field1:
+              type: string
+            name:
+              type: string
+          required:
+          - authorized
+          - authorized_expiring_time
+          - authorized_time
+          - company
+          - email
+          - field1
+          - name
+          type: object
+        hostname:
+          description: hostname that we learned from sniffing DHCP
+          type: string
+        idle_time:
+          description: how long, in seconds, has the client been idle (since the last
+            RX packet)
+          type: number
+        ip:
+          format: ipv4
+          type: string
+        ip6:
+          format: ipv6
+          type: string
+        is_guest:
+          default: false
+          description: whether this is a guest
+          type: boolean
+        key_mgmt:
+          description: e.g. WPA2-PSK/CCMP
+          type: string
+        last_seen:
+          description: last seen timestamp
+          type: number
+        mac:
+          description: client mac
+          type: string
+        manufacture:
+          description: device manufacture, through fingerprinting or OUI
+          type: string
+        map_id:
+          description: estimated client location - map_id
+          format: uuid
+          type: string
+        model:
+          description: device model, may be available if we can identify them
+          type: string
+        num_locating_aps:
+          description: number of APs used to locate this client
+          type: integer
+        os:
+          description: device os, through fingerprinting
+          type: string
+        power_saving:
+          description: "if it\u2019s currently in power-save mode"
+          type: boolean
+        proto:
+          enum:
+          - a
+          - b
+          - g
+          - n
+          - ac
+          - ax
+          type: string
+        psk_id:
+          description: PSK id (if multi-psk is used)
+          format: uuid
+          type: string
+        rssi:
+          description: signal strength
+          type: number
+        rx_bps:
+          description: rate of receiving traffic from the clients, bits/seconds, last
+            known
+          type: number
+        rx_bytes:
+          description: amount of traffic received from client since client connects
+          type: number
+        rx_packets:
+          description: amount of traffic received from client since client connects
+          type: number
+        rx_rate:
+          description: RX Rate, Mbps
+          type: number
+        rx_retries:
+          description: amount of rx retries
+          type: number
+        snr:
+          description: signal over noise
+          type: number
+        ssid:
+          description: SSID the client is connected to
+          type: string
+        tx_bps:
+          description: rate of transmitting traffic to the clients, bits/seconds,
+            last known
+          type: number
+        tx_bytes:
+          description: amount of traffic sent to client since client connects
+          type: number
+        tx_packets:
+          description: amount of traffic sent to client since client connects
+          type: number
+        tx_rate:
+          description: TX Rate, Mbps
+          type: number
+        tx_retries:
+          description: amount of tx retries
+          type: number
+        type:
+          description: "client\u2019s type, regular / vip / resource / blocked (if\
+            \ client object is created)"
+          type: string
+        uptime:
+          description: how long, in seconds, has the client been connected
+          type: number
+        username:
+          description: username that we learned from 802.1X exchange or Per-user PSK
+            or User Portal
+          type: string
+        vlan_id:
+          description: vlan id, could be empty (from older AP)
+          type: integer
+        wlan_id:
+          description: WLAN ID the client is connected to
+          format: uuid
+          type: string
+        x:
+          description: estimated client location in pixels
+          type: number
+        y:
+          description: estimated client location in pixels
+          type: number
+      required:
+      - _ttl
+      - ap_id
+      - ap_mac
+      - band
+      - channel
+      - dual_band
+      - family
+      - hostname
+      - idle_time
+      - ip
+      - is_guest
+      - key_mgmt
+      - last_seen
+      - mac
+      - manufacture
+      - model
+      - os
+      - power_saving
+      - proto
+      - rssi
+      - rx_bps
+      - rx_bytes
+      - rx_packets
+      - rx_rate
+      - rx_retries
+      - snr
+      - ssid
+      - tx_bps
+      - tx_bytes
+      - tx_packets
+      - tx_rate
+      - tx_retries
+      - uptime
+      - username
+      - wlan_id
+      type: object
       uniqueItems: true
       x-examples:
         example-1:
@@ -54680,6 +55013,76 @@ components:
           wlan_id: be22bba7-8e22-e1cf-5185-b880816fe2cf
           x: 53.5
           y: 173.1
+    stats_client_wired:
+      description: ''
+      minItems: 1
+      properties:
+        _id:
+          minLength: 1
+          type: string
+        _ttl:
+          description: TTL of the validity of the stat
+          type: number
+        auth_state:
+          description: client authorization status
+          minLength: 1
+          type: string
+        device_id:
+          description: Device ID the client is connected to
+          minLength: 1
+          type: string
+        eth_port:
+          description: port on AP where the wired client is connected
+          minLength: 1
+          type: string
+        last_seen:
+          description: time when last Tx/Rx observed
+          type: number
+        mac:
+          description: client mac
+          minLength: 1
+          type: string
+        rx_bytes:
+          description: amount of traffic sent to client since client connects
+          type: number
+        rx_pkts:
+          description: amount of traffic sent to client since client connects
+          type: number
+        site_id:
+          minLength: 1
+          type: string
+        tx_bytes:
+          description: "\tamount of traffic received from client since client connects"
+          type: number
+        tx_pkts:
+          description: amount of traffic received from client since client connects
+          type: number
+        uptime:
+          description: how long, in seconds, has the client been connected
+          type: number
+        vlan_id:
+          description: vlan id, could be empty
+          type: number
+      required:
+      - mac
+      type: object
+      uniqueItems: true
+      x-examples:
+        example-1:
+          _id: 003ee1bec926
+          _ttl: 277
+          ap_id: 00000000-0000-0000-1000-d420b085fdff
+          auth_state: authorizedForCompleteAccess
+          eth_port: eth1
+          last_seen: 1645060912.0751352
+          mac: e45f01319a43
+          rx_bytes: 0
+          rx_pkts: 0
+          site_id: 1916d52a-4a90-11e5-8b45-1258369c38a9
+          tx_bytes: 0
+          tx_pkts: 0
+          uptime: 8723766
+          vlan_id: 70
     stats_device_ap:
       description: AP statistics
       properties:
@@ -54751,8 +55154,15 @@ components:
           type: number
         env_stat:
           description: device environment, including CPU temperature, Ambient temperature,
-            Humidity, Attitude, and Pressure
+            Humidity, Attitude, Pressure, Accelerometers, Magnetometers and vCore
+            Voltage
           properties:
+            accel_x:
+              type: number
+            accel_y:
+              type: number
+            accel_z:
+              type: number
             ambient_temp:
               type: integer
             attitude:
@@ -54761,8 +55171,16 @@ components:
               type: integer
             humidity:
               type: integer
+            magne_x:
+              type: number
+            magne_y:
+              type: number
+            magne_z:
+              type: number
             pressure:
               type: integer
+            vcore_voltage:
+              type: number
           type: object
         ext_ip:
           type: string
@@ -57454,6 +57872,14 @@ components:
                   dhcp_option_fqdn:
                     default: false
                     description: Enable to provide the FQDN with DHCP option 81
+                    type: boolean
+                  mxedge_proxy_host:
+                    type: string
+                  mxedge_proxy_port:
+                    default: 2222
+                    type: integer
+                  use_mxedge_proxy:
+                    default: false
                     type: boolean
                 type: object
             type: object
@@ -61569,6 +61995,7 @@ x-tagGroups:
   - Sites Devices Utilities
   - Sites Devices Virtual Chassis
   - Sites Devices EVPN
+  - Sites Devices SSR
   - Sites Events
   - Sites Guests
   - Sites Insights
