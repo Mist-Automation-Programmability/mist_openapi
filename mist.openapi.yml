@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.22.0**
+  description: '> Version: **0.23.0**
 
     >
 
-    > Date: **March 25th, 2022**
+    > Date: **April 8th, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.22.0
+  version: 0.23.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -102,6 +102,7 @@ tags:
 - name: Orgs CRL
 - name: Orgs Device Profiles
 - name: Orgs Devices
+- name: Orgs Devices SSR
 - name: Orgs Gateway Templates
 - name: Orgs Inventory
 - name: Orgs Invites
@@ -2250,6 +2251,15 @@ paths:
       summary: deleteMsp
       tags:
       - Msps
+    get:
+      description: Get MSP Detail
+      operationId: getMspDetails
+      responses:
+        '200':
+          $ref: '#/components/responses/Msp'
+      summary: getMspDetails
+      tags:
+      - Msps Admins
     parameters:
     - $ref: '#/components/parameters/msp_id'
     put:
@@ -10030,6 +10040,56 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/sso_id'
+  /api/v1/orgs/{org_id}/ssr/upgrade:
+    get:
+      description: Get Org SSR Upgrades
+      operationId: getOrgSsrUpgrades
+      responses:
+        '200':
+          $ref: '#/components/responses/SsrUpgradesArray'
+      summary: getOrgSsrUpgrades
+      tags:
+      - Orgs Devices SSR
+    parameters:
+    - in: path
+      name: org_id
+      required: true
+      schema:
+        type: string
+    post:
+      description: Upgrade Org SSRs
+      operationId: upgradeOrgSsrs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: ''
+              properties:
+                strategy:
+                  default: big_bang
+                  description: "* `big_bang` = upgrade all at once  \n* `serial` =\
+                    \ one at a time"
+                  enum:
+                  - big_bang
+                  - serial
+                  minLength: 1
+                  type: string
+                version:
+                  default: stable
+                  minLength: 1
+                  type: string
+              type: object
+              x-examples:
+                example-1:
+                  strategy: big_bang
+                  version: 5.3.1-17
+        description: ''
+      responses:
+        '200':
+          $ref: '#/components/responses/SsrUpgrade'
+      summary: upgradeOrgSsrs
+      tags:
+      - Orgs Devices SSR
   /api/v1/orgs/{org_id}/ssr/versions:
     get:
       description: Get Org SSD Ugprade information
@@ -15137,6 +15197,19 @@ paths:
       summary: multiUpgradeSiteDevices
       tags:
       - Sites Devices
+  /api/v1/sites/{site_id}/devices/upgrade/{upgrade_id}:
+    get:
+      description: Get Site Device Upgrade
+      operationId: getSiteUpgrade
+      responses:
+        '200':
+          $ref: '#/components/responses/DeviceUpgrade'
+      summary: getSiteUpgrade
+      tags:
+      - Sites Devices
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/upgrade_id'
   /api/v1/sites/{site_id}/devices/upgrade/{upgrade_id}/cancel:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -15739,9 +15812,15 @@ paths:
                   minLength: 1
                   type: string
                 type:
+                  default: both
+                  enum:
+                  - both
+                  - in
+                  - out
                   minLength: 1
                   type: string
                 vrf:
+                  description: vrf name
                   minLength: 1
                   type: string
               required:
@@ -15756,7 +15835,7 @@ paths:
         '200':
           $ref: '#/components/responses/OK'
         '400':
-          description: Invalid Type or Parameter Naighbor Absent
+          description: parameter neighbor absent
       summary: clearSiteSsrBgpRoutes
       tags:
       - Sites Devices SSR
@@ -16140,13 +16219,13 @@ paths:
             schema:
               description: ''
               properties:
-                network_interface:
+                port:
                   description: The nework interface on which to release the current
                     DHCP release
                   minLength: 1
                   type: string
               required:
-              - network_interface
+              - port
               type: object
               x-examples:
                 example-1:
@@ -16155,7 +16234,7 @@ paths:
         '200':
           $ref: '#/components/responses/OK'
         '400':
-          description: Parameter `network_interface` absent
+          description: Parameter `port ` absent
       summary: releaseSiteSsrDhcpLease
       tags:
       - Sites Devices SSR
@@ -16195,6 +16274,35 @@ paths:
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
+  /api/v1/sites/{site_id}/devices/{device_id}/resolve_dns:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: 'DNS resolutions are performed on the Device. The output will be
+        available through websocket. As there can be multiple command issued against
+        the same SSR at the same time and the output all goes through the same websocket
+        stream, `session` is used for demux.
+
+
+        ## Websocket Output Data
+
+
+        | Router | Hostname | Resolved | Last Resolved | Expiration |
+
+        | --- | --- | --- | --- | --- |
+
+        | test-device | xxx.yyy.net | Y | 2022-03-28T03:56:49Z | 2022-03-28T03:57:49Z
+        |
+
+        '
+      operationId: websocketSessionSiteSsrDns
+      responses:
+        '200':
+          $ref: '#/components/responses/WebsocketSession'
+      summary: websocketSessionSiteSsrDns
+      tags:
+      - Sites Devices SSR
   /api/v1/sites/{site_id}/devices/{device_id}/restart:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -20290,6 +20398,124 @@ paths:
       schema:
         format: uuid
         type: string
+  /api/v1/sites/{site_id}/ssr/upgrade/{upgrade_id}:
+    get:
+      description: Get Specific Site SSR Upgrade
+      operationId: getSiteSsrUpgrade
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    channel: stable
+                    id: 5cbcee0a-c620-4bb4-a25e-15000934e9d8
+                    status: upgrading
+                    targets:
+                      failed: []
+                      queued: []
+                      success: []
+                      upgrading:
+                      - 8e525f1d-4178-4ae1-a988-2b0176855e55
+                    versions: {}
+              schema:
+                description: ''
+                properties:
+                  channel:
+                    minLength: 1
+                    type: string
+                  id:
+                    minLength: 1
+                    type: string
+                  status:
+                    minLength: 1
+                    type: string
+                  targets:
+                    properties:
+                      failed:
+                        items:
+                          type: string
+                        type: array
+                      queued:
+                        items:
+                          type: string
+                        type: array
+                      success:
+                        items:
+                          type: string
+                        type: array
+                      upgrading:
+                        items:
+                          type: string
+                        type: array
+                    required:
+                    - queued
+                    - upgrading
+                    - success
+                    - failed
+                    type: object
+                  versions:
+                    type: object
+                required:
+                - status
+                - versions
+                - channel
+                - id
+                - targets
+                type: object
+                x-examples:
+                  example-1:
+                    channel: stable
+                    id: 5cbcee0a-c620-4bb4-a25e-15000934e9d8
+                    status: upgrading
+                    targets:
+                      failed: []
+                      queued: []
+                      success: []
+                      upgrading:
+                      - 8e525f1d-4178-4ae1-a988-2b0176855e55
+                    versions: {}
+          description: OK
+      summary: getSiteSsrUpgrade
+      tags:
+      - Sites Devices SSR
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/upgrade_id'
+  /api/v1/sites/{site_id}/ssr/{device_id}/upgrade:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: Upgrade Site SSR device
+      operationId: upgradeSiteSsr
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  version: 5.3.1-17
+            schema:
+              description: ''
+              properties:
+                version:
+                  default: stable
+                  minLength: 1
+                  type: string
+              required:
+              - version
+              type: object
+              x-examples:
+                example-1:
+                  version: 5.3.1-17
+      responses:
+        '200':
+          $ref: '#/components/responses/SsrUpgrade'
+      summary: upgradeSiteSsr
+      tags:
+      - Sites Devices SSR
   /api/v1/sites/{site_id}/stats:
     get:
       description: Get Site Stats
@@ -37501,6 +37727,46 @@ components:
               $ref: '#/components/schemas/sso'
             type: array
       description: OK
+    SsrUpgrade:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                channel: stable
+                counts:
+                  failed: 0
+                  queued: 1
+                  success: 0
+                  upgrading: 1
+                id: ceef2c8a-e2e6-447a-8b27-cb4f3ec1adae
+                status: upgrading
+                strategy: serial
+                versions: {}
+          schema:
+            $ref: '#/components/schemas/ssr_upgrade_response'
+      description: Example response
+    SsrUpgradesArray:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+              - channel: stable
+                counts:
+                  failed: 0
+                  queued: 1
+                  success: 0
+                  upgrading: 1
+                id: ceef2c8a-e2e6-447a-8b27-cb4f3ec1adae
+                status: upgrading
+                strategy: serial
+                versions: {}
+          schema:
+            items:
+              $ref: '#/components/schemas/ssr_upgrade_response'
+            type: array
+      description: Example response
     Template:
       content:
         application/json:
@@ -37853,6 +38119,26 @@ components:
               $ref: '#/components/schemas/webhook'
             type: array
       description: OK
+    WebsocketSession:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                session: string
+          schema:
+            description: ''
+            properties:
+              session:
+                minLength: 1
+                type: string
+            required:
+            - session
+            type: object
+            x-examples:
+              example-1:
+                session: session_id
+      description: Example response
     WiredClientsSearch:
       content:
         application/json:
@@ -42725,40 +43011,37 @@ components:
     device_upgrade_response:
       description: ''
       properties:
-        canary_phases:
-          description: phases for canary deployment
-          items:
-            type: integer
-          type: array
         counts:
           properties:
             download_requested:
-              description: "count of ap\u2019s which cloud has requested to download\
-                \ firmware"
+              description: count of devices which cloud has requested to download
+                firmware
               type: integer
             downloaded:
               description: "count of ap\u2019s which have the firmware downloaded"
-              type: number
+              type: integer
             failed:
-              description: "count of ap\u2019s which have failed to upgrade"
-              type: number
+              description: count of devices which have failed to upgrade
+              type: integer
             reboot_in_progress:
-              description: "count of ap\u2019s which are rebooting"
-              type: number
+              description: count of devices which are rebooting
+              type: integer
             rebooted:
-              description: "count of ap\u2019s which have rebooted successfully"
-              type: number
+              description: count of devices which have rebooted successfully
+              type: integer
             scheduled:
-              description: "count of ap\u2019s which cloud has scheduled an upgrade\
-                \ for"
+              description: count of devices which cloud has scheduled an upgrade for
               type: integer
             skipped:
-              description: "count of ap\u2019s which skipped upgrade since requested\
-                \ version was same as running version. Use force to always upgrade"
-              type: number
+              description: count of devices which skipped upgrade since requested
+                version was same as running version. Use force to always upgrade
+              type: integer
             total:
-              description: "count of ap\u2019s part of this upgrade"
-              type: number
+              description: count of devices part of this upgrade
+              type: integer
+            upgraded:
+              description: count of devices which have upgraded successfully
+              type: integer
           readOnly: true
           type: object
         current_phase:
@@ -42789,9 +43072,6 @@ components:
         reboot_at:
           description: reboot start time in epoch
           type: integer
-        rrm_phases:
-          description: a dictionary of rrm phase number to devices part of that phase
-          type: object
         start_time:
           description: firmware download start time in epoch
           type: number
@@ -42799,9 +43079,9 @@ components:
           description: status upgrade is in
           enum:
           - created
-          - in_progress
           - completed
           - canceled
+          - downloading
           type: string
         strategy:
           default: big_bang
@@ -42814,6 +43094,9 @@ components:
           description: version to upgrade to
           minLength: 1
           type: string
+        upgrade_plan:
+          description: a dictionary of rrm phase number to devices part of that phase
+          type: object
       required:
       - id
       title: device_upgrade_response
@@ -44125,6 +44408,11 @@ components:
                 type: string
               import_policy:
                 type: string
+              multihop_ttl:
+                description: assuming BGP neighbor is directly connected
+                maximum: 255
+                minimum: 0
+                type: integer
               neighbor_as:
                 type: integer
             type: object
@@ -46498,6 +46786,22 @@ components:
               host:
                 description: ip / hostname of RADIUS server
                 type: string
+              keywrap_enabled:
+                description: if used for Mist APs, enable keywrap algorithm. Default
+                  is false
+                type: boolean
+              keywrap_format:
+                description: if used for Mist APs
+                enum:
+                - hex
+                - ascii
+                type: string
+              keywrap_kek:
+                description: if used for Mist APs, encryption key
+                type: string
+              keywrap_mack:
+                description: if used for Mist APs, Message Authentication Code Key
+                type: string
               port:
                 default: 1812
                 description: Auth port of RADIUS server
@@ -46511,6 +46815,31 @@ components:
         enabled:
           description: whether to enable radsec
           type: boolean
+        mist_nac:
+          properties:
+            acct_server_port:
+              default: 1813
+              type: integer
+            auth_server_port:
+              default: 1812
+              type: integer
+            client_ips:
+              additionalProperties:
+                description: Property key is the RADIUS Client IP/Subnet.
+                properties:
+                  secrect:
+                    description: if different from above
+                    type: string
+                  vendor:
+                    description: if not specified, we'll try to determine it dynamically
+                    type: string
+                type: object
+              type: object
+            enabled:
+              type: boolean
+            secret:
+              type: string
+          type: object
         server_selection:
           default: ordered
           description: ordered (default) / unordered. When ordered, Mist Edge will
@@ -46893,6 +47222,9 @@ components:
         internet_access:
           description: whether this network has direct internet access
           properties:
+            create_simple_service_policy:
+              default: false
+              type: boolean
             destination_nat:
               additionalProperties:
                 properties:
@@ -46952,6 +47284,9 @@ components:
         vpn_access:
           additionalProperties:
             properties:
+              allow_ping:
+                description: whether to allow ping from vpn into this routed network
+                type: boolean
               destination_nat:
                 additionalProperties:
                   properties:
@@ -47370,13 +47705,6 @@ components:
                     type: string
                   targets:
                     properties:
-                      download_requested:
-                        description: devices which cloud has requested to download
-                          firmware
-                        items:
-                          format: uuid
-                          type: string
-                        type: array
                       downloaded:
                         description: devices which have the firmware downloaded
                         items:
@@ -47404,12 +47732,19 @@ components:
                       scheduled:
                         description: devices which cloud has scheduled an upgrade
                         items:
+                          format: uuid
                           type: string
                         type: array
                       skipped:
                         description: devices which have skipped upgrade since requested
                           version was same as running version. Use `force` to always
                           upgrade
+                        items:
+                          format: uuid
+                          type: string
+                        type: array
+                      upgraded:
+                        description: devices which have upgraded successfully
                         items:
                           format: uuid
                           type: string
@@ -47637,6 +47972,14 @@ components:
                     type: array
                 type: object
               type: array
+            server_cert:
+              description: radius server cert to be presented in EAP TLS
+              properties:
+                cert:
+                  type: string
+                key:
+                  type: string
+              type: object
           type: object
         modified_time:
           readOnly: true
@@ -47703,6 +48046,8 @@ components:
                 Site:Setting)
               type: boolean
           type: object
+        simple_alert:
+          $ref: '#/components/schemas/org_simple_alert'
         site_id:
           format: uuid
           readOnly: true
@@ -47787,6 +48132,42 @@ components:
           tags:
           - string
           ui_idle_timeout: 0
+    org_simple_alert:
+      description: 'Set of heuristic rules will be enabled when marvis subscription
+        is not available.
+
+        It triggers when, in a 10 minute window, there are more than X distinct client
+        encountring over Y failures'
+      properties:
+        arp_failure:
+          properties:
+            client_count:
+              default: 20
+              type: integer
+            incident_count:
+              default: 20
+              type: integer
+          type: object
+        dhcp_failure:
+          properties:
+            client_count:
+              default: 20
+              type: integer
+            incident_count:
+              default: 20
+              type: integer
+          type: object
+        dhs_failure:
+          properties:
+            client_count:
+              default: 30
+              type: integer
+            incident_count:
+              default: 30
+              type: integer
+          type: object
+      title: org_simple_alert
+      type: object
     orggroup:
       description: Organizations Group
       properties:
@@ -49864,7 +50245,7 @@ components:
           - low
           type: string
         traffic_type:
-          default: default
+          default: data_best_effort
           description: 'values from `/api/v1/consts/traffic_types`
 
             * when `type`==`apps`, we''ll choose traffic_type automatically
@@ -51589,6 +51970,20 @@ components:
         mxedge_proxy_port:
           default: 2222
           type: integer
+        protect_re:
+          description: restrict inbound-traffic to host  (draft)
+          properties:
+            enabled:
+              type: boolean
+            trusted_hosts:
+              description: when `enabled`==`true`, all traffic that is not essential
+                to our operation will be dropped (e.g. if dhcpd is enabled, we'll
+                make sure it works)
+              items:
+                example: '["10.242.3.0/24"]'
+                type: string
+              type: array
+          type: object
         root_password:
           type: string
         use_mxedge_proxy:
@@ -54249,6 +54644,59 @@ components:
             site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
             sitegroup_ids:
             - string
+    ssr_upgrade_response:
+      description: ''
+      properties:
+        channel:
+          minLength: 1
+          type: string
+        counts:
+          properties:
+            failed:
+              type: integer
+            queued:
+              type: integer
+            success:
+              type: integer
+            upgrading:
+              type: integer
+          required:
+          - queued
+          - upgrading
+          - success
+          - failed
+          type: object
+        id:
+          minLength: 1
+          type: string
+        status:
+          minLength: 1
+          type: string
+        strategy:
+          minLength: 1
+          type: string
+        versions:
+          type: object
+      required:
+      - status
+      - strategy
+      - versions
+      - channel
+      - id
+      - counts
+      type: object
+      x-examples:
+        example-1:
+          channel: stable
+          counts:
+            failed: 0
+            queued: 1
+            success: 0
+            upgrading: 1
+          id: ceef2c8a-e2e6-447a-8b27-cb4f3ec1adae
+          status: upgrading
+          strategy: serial
+          versions: {}
     stats_asset:
       description: Asset statistics
       properties:
@@ -59838,7 +60286,9 @@ components:
 
                 * `auth_servers_*` are ignored
 
-                * `coa_servers`is ignored'
+                * `coa_servers` is ignored
+
+                * `radsec` is ignored'
               type: boolean
           type: object
         modified_time:
@@ -62039,8 +62489,9 @@ x-tagGroups:
   - Orgs Clients
   - Orgs Clone
   - Orgs CRL
-  - Orgs Device Profiles
   - Orgs Devices
+  - Orgs Devices SSR
+  - Orgs Device Profiles
   - Orgs Gateway Templates
   - Orgs Inventory
   - Orgs Invites
