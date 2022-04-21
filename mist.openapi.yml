@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.23.0**
+  description: '> Version: **0.24.0**
 
     >
 
-    > Date: **April 8th, 2022**
+    > Date: **April 21th, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.23.0
+  version: 0.24.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -71,6 +71,7 @@ tags:
 - name: Msps Admins
 - name: Msps Inventory
 - name: Msps Invites
+- name: Msps Logo
 - name: Msps Logs
 - name: Msps Licenses
 - name: Msps Org Groups
@@ -2730,6 +2731,35 @@ paths:
       summary: moveOrDeleteMspLicenseToAnotherOrg
       tags:
       - Msps Licenses
+  /api/v1/msps/{msp_id}/logo:
+    delete:
+      description: Delete MSP Logo
+      operationId: deleteMspLogo
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: deleteMspLogo
+      tags:
+      - Msps Logo
+    parameters:
+    - $ref: '#/components/parameters/msp_id'
+    post:
+      description: Upload Logo (only for advanced msp users)
+      operationId: postMspLogo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                logo_url:
+                  type: string
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: postMspLogo
+      tags:
+      - Msps Logo
   /api/v1/msps/{msp_id}/logs:
     get:
       description: Get a list of change logs for the current MSP
@@ -7947,6 +7977,28 @@ paths:
       requestBody:
         content:
           application/json:
+            examples:
+              example-1:
+                value:
+                  action: allow
+                  apply_tags:
+                  - c049dfcd-0c73-5014-1c64-062e9903f1e5"
+                  matching:
+                    auth_type: cert
+                    nactags:
+                    - 041d5d36-716c-4cfb-4988-3857c6aa14a2
+                    - a809a97f-d599-f812-eb8c-c3f84aabf6ba
+                    port_types:
+                    - wired
+                    site_ids:
+                    - bb19fc3e-4124-4b57-80d9-c3f6edce47c4
+                    - bb19fc3e-6564-4b57-80d9-c3f6edce47c1
+                    sitegroup_ids:
+                    - bb19fc3e-4124-4b57-80d9-c3f6edce47c4
+                    - bb19fc3e-6564-4b57-80d9-c3f6edce47c1
+                  name: name1
+                  not_matching: {}
+                  order: 1
             schema:
               $ref: '#/components/schemas/nac_rule'
       responses:
@@ -8010,7 +8062,7 @@ paths:
         content:
           application/json:
             examples:
-              cert_cn:
+              matches_cert_cn:
                 value:
                   match: cert_cn
                   name: staff
@@ -8018,29 +8070,72 @@ paths:
                   values:
                   - john
                   - staff*
-              radius_group:
+              matches_cert_issuer:
                 value:
-                  name: RADIUS Group
+                  match: cert_issuer
+                  name: issuer1
+                  type: match
+                  values:
+                  - /C=CN/ST=defy/L=defy/O=defy/OU=defy/CN=defy
+              matches_cert_san:
+                value:
+                  match: cert_san
+                  name: san1
+                  type: match
+                  values:
+                  - henry1@defy.com
+              matches_cert_serial:
+                value:
+                  match: cert_serial
+                  name: serial1
+                  type: match
+                  values:
+                  - 6a524ab782fb468c00c59f51cff00268d95533b8
+              matches_cert_sub:
+                value:
+                  match: cert_sub
+                  name: subject1
+                  type: match
+                  values:
+                  - /C=CN/ST=defy/O=defy/OU=defy/CN=steve
+              matches_radius_group:
+                value:
+                  name: group
                   radius_group: VIP
                   type: radius_group
-              role:
+              matches_realm:
                 value:
-                  match: role
+                  match: realm
+                  name: defy
+                  type: match
+                  values:
+                  - defy.com
+              matches_role:
+                value:
+                  match: idp_role
                   name: VIP
                   type: match
                   values:
                   - vip
-              vendor:
+              matches_username:
+                value:
+                  match: user_name
+                  name: admins
+                  type: match
+                  values:
+                  - bob
+                  - steve
+              matches_vendor:
                 value:
                   match: vendor
                   name: guest-wlan
                   type: match
                   values:
                   - cisco
-              vlan:
+              matches_vlan:
                 value:
-                  name: VLAN
-                  type: user_vlan
+                  name: vlan
+                  type: vlan
                   vlan: '30'
             schema:
               $ref: '#/components/schemas/nac_tag'
@@ -10062,27 +10157,58 @@ paths:
       requestBody:
         content:
           application/json:
+            examples:
+              example-1:
+                value:
+                  channel: stable
+                  device_ids:
+                  - 00000000-0000-0000-1000-5c5b3500001f
+                  - 00000000-0000-0000-1000-5c5b35000020
+                  strategy: big_bang
+                  version: 5.3.0-93
             schema:
               description: ''
               properties:
+                channel:
+                  default: stable
+                  description: upgrade channel to follow
+                  enum:
+                  - stable
+                  - beta
+                  - alpha
+                  minLength: 1
+                  type: string
+                device_ids:
+                  description: list of 128T device IDs to upgrade
+                  items:
+                    format: uuid
+                    type: string
+                  type: array
                 strategy:
                   default: big_bang
-                  description: "* `big_bang` = upgrade all at once  \n* `serial` =\
-                    \ one at a time"
+                  description: '* `big_bang`: upgrade all at once
+
+                    * `serial`: one at a time'
                   enum:
                   - big_bang
                   - serial
                   minLength: 1
                   type: string
                 version:
-                  default: stable
+                  description: 128T firmware version to upgrade (e.g. 5.3.0-93)
                   minLength: 1
                   type: string
+              required:
+              - device_ids
               type: object
               x-examples:
                 example-1:
+                  channel: stable
+                  device_ids:
+                  - 00000000-0000-0000-1000-5c5b3500001f
+                  - 00000000-0000-0000-1000-5c5b35000020
                   strategy: big_bang
-                  version: 5.3.1-17
+                  version: 5.3.0-93
         description: ''
       responses:
         '200':
@@ -11011,20 +11137,19 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/wired_clients/search:
     get:
-      description: Search Wired Clients
-      operationId: searchOrgWiredClients
+      description: Search for Wired Clients in org
+      operationId: searchOrgClientsWired
       parameters:
-      - description: client mac
-        in: query
-        name: mac
-        schema:
-          type: string
       - description: device mac
         in: query
         name: device_mac
         schema:
           type: string
-      - $ref: '#/components/parameters/ip'
+      - description: client mac
+        in: query
+        name: mac
+        schema:
+          type: string
       - description: port id
         in: query
         name: port_id
@@ -11034,18 +11159,33 @@ paths:
         in: query
         name: vlan
         schema:
+          type: integer
+      - description: site id
+        in: query
+        name: site_id
+        schema:
           type: string
-      - $ref: '#/components/parameters/page'
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
+      - description: ip
+        in: query
+        name: ip
+        schema:
+          type: string
+      - description: client manufacture
+        in: query
+        name: manufacture
+        schema:
+          type: string
+      - description: single entry of hostname/mac
+        in: query
+        name: text
+        schema:
+          type: string
       responses:
         '200':
           $ref: '#/components/responses/WiredClientsSearch'
-      summary: searchOrgWiredClients
+      summary: searchOrgClientsWired
       tags:
-      - Orgs Wired Clients
+      - Orgs Clients
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/wlans:
@@ -15945,24 +16085,31 @@ paths:
     post:
       description: "Create HA Cluster\n\n### SRX cabling\nsee [Chassis Cluster User\
         \ Guide for SRX Series Devices](https://www.juniper.net/documentation/us/en/software/junos/chassis-cluster-security-devices/topics/concept/chassis-cluster-srx-series-node-interface-understanding.html)\
-        \ Here\u2019s the recommended cabling.\n\n#### SRX300 / SRX320 / SRX550\n\
-        1. connect ge-0/0/0 to reach Mist (after cluster is fully up, this port becomes\
-        \ OOB/fxp0)\n2. connect ge-0/0/1 back-to-back for ha_control\n3. connect ge-0/0/2\
+        \ Here\u2019s the recommended cabling.\n\n#### SRX300 / SRX320 \nge-0/0/0\
+        \ becomes OOB/fxp0 after cluster is enabled so we suggest to use ge-0/0/7\
+        \ or LTE module for ZTP connection\n\n1. connect ge-0/0/7 or cl-1/0/0 to reach\
+        \ Mist\n2. connect ge-0/0/1 back-to-back for ha_control\n3. connect ge-0/0/2\
         \ back-to-back for ha_data (fabric)\n4. connect ge-0/0/3 to WAN (after cluster\
         \ is up, intended to be used for reth0)\n5. connect ge-0/0/4- to LAN or additional\
         \ WANs\n\n\n#### SRX340 / SRX345 / SRX380 / VSRX\nSRX340/SRX345 has dedicated\
         \ OOB/fxp0 ports VSRX has fxp0 as first Network Adapter, then ge-0/0/0-N\n\
-        \n1. connect fxp0 to reach Mist\n2. connect ge-0/0/0 to WAN\n3. connect ge-0/0/1\
-        \ back-to-back for ha_control\n4. connect ge-0/0/2 back-to-back for ha_data\
-        \ (fabric); or for SRX380, xe-0/0/16 if 10G SFP+ is used\n5. connect ge-0/0/3-\
+        \n1. connect ge-0/0/0 to WAN to reach Mist\n2. connect ge-0/0/0 to WAN\n3.\
+        \ connect ge-0/0/1 back-to-back for ha_control\n4. connect ge-0/0/2 back-to-back\
+        \ for ha_data (fabric); or for SRX380, xe-0/0/16 if 10G SFP+ is used\n5. connect\
+        \ ge-0/0/3- to LAN or additional WANs\n\n#### SRX550\nge-0/0/0 becomes OOB/fxp0\
+        \ after cluster is enabled, make suenable oob_ip_config as dhcp to maintain\
+        \ cloud connectivity\n\nconnect ge-0/0/0 to reach Mist (after cluster is fully\
+        \ up, this port becomes OOB/fxp0)\nconnect ge-0/0/1 back-to-back for ha_control\n\
+        connect ge-0/0/2 back-to-back for ha_data (fabric)\nconnect ge-0/0/3 to WAN\
+        \ (after cluster is up, intended to be used for reth0)\nconnect ge-0/0/4-\
         \ to LAN or additional WANs\n\n\n#### SRX1500\nSRX1500 has, additionally,\
         \ dedicated HA Control port\n\n1. connect dedicated ha_control back-to-back\n\
-        2. connect fxp0 to reach Mist\n3. connect ge-0/0/0 to WAN\n4. connect ge-0/0/1\
-        \ back-to-back for ha_data\n5. connect ge-0/0/2- to LAN or additional WANs\n\
-        \n\n#### SRX4100\nSRX4100 has dedicated ha_control and ha_data (fabric) ports\n\
-        \n1. connect dedicated ha_control back-to-back\n2. connect dedicated ha_data\
-        \ back-to-back\n3. connect fxp0 to reach Mist\n4. connect xe-0/0/0 to WAN\n\
-        5. connect xe-0/0/1- to LAN or additional WANs"
+        2. connect ge-0/0/0 to WAN to reach mist\n3. connect ge-0/0/1 back-to-back\
+        \ for ha_data\n4. connect ge-0/0/2- to LAN or additional WANs\n\n\n#### SRX4100\n\
+        SRX4100 has dedicated ha_control and ha_data (fabric) ports\n\n1. connect\
+        \ dedicated ha_control back-to-back\n2. connect dedicated ha_data back-to-back\n\
+        3. connect xe-0/0/0 to WAN to reach Mist\n4. connect xe-0/0/1- to LAN or additional\
+        \ WANs"
       operationId: createSiteDeviceHaCluster
       requestBody:
         content:
@@ -20410,6 +20557,7 @@ paths:
                 example-1:
                   value:
                     channel: stable
+                    device_type: gateway
                     id: 5cbcee0a-c620-4bb4-a25e-15000934e9d8
                     status: upgrading
                     targets:
@@ -20424,6 +20572,8 @@ paths:
                 properties:
                   channel:
                     minLength: 1
+                    type: string
+                  device_type:
                     type: string
                   id:
                     minLength: 1
@@ -20496,12 +20646,22 @@ paths:
             examples:
               example-1:
                 value:
-                  version: 5.3.1-17
+                  channel: stable
+                  version: 5.3.1-170-93
             schema:
               description: ''
               properties:
+                channel:
+                  default: stable
+                  description: upgrade channel to follow
+                  enum:
+                  - stable
+                  - beta
+                  - alpha
+                  type: string
                 version:
                   default: stable
+                  description: 128T firmware version to upgrade (e.g. 5.3.0-93)
                   minLength: 1
                   type: string
               required:
@@ -32741,15 +32901,23 @@ components:
               id:
                 format: uuid
                 type: string
+              logo:
+                type: string
               modified_time:
                 type: number
               name:
                 type: string
+              tier:
+                enum:
+                - base
+                - advanced
+                readOnly: true
+                type: string
             required:
-            - name
-            - id
             - created_time
+            - id
             - modified_time
+            - name
             type: object
       description: OK
     MxEdgeUpgrade:
@@ -33417,6 +33585,38 @@ components:
     NacRulesArray:
       content:
         application/json:
+          examples:
+            example-1:
+              value:
+              - action: allow
+                apply_tags:
+                - string
+                created_time: 0
+                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                matching:
+                  auth_type: cert
+                  nactags:
+                  - string
+                  port_types:
+                  - wireless
+                  site_ids:
+                  - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  sitegroup_ids:
+                  - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                modified_time: 0
+                name: string
+                not_matching:
+                  auth_type: cert
+                  nactags:
+                  - string
+                  port_types:
+                  - wireless
+                  site_ids:
+                  - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  sitegroup_ids:
+                  - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                order: 0
+                org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
           schema:
             items:
               $ref: '#/components/schemas/nac_rule'
@@ -37739,6 +37939,7 @@ components:
                   queued: 1
                   success: 0
                   upgrading: 1
+                device_type: gateway
                 id: ceef2c8a-e2e6-447a-8b27-cb4f3ec1adae
                 status: upgrading
                 strategy: serial
@@ -37758,6 +37959,7 @@ components:
                   queued: 1
                   success: 0
                   upgrading: 1
+                device_type: gateway
                 id: ceef2c8a-e2e6-447a-8b27-cb4f3ec1adae
                 status: upgrading
                 strategy: serial
@@ -38145,26 +38347,36 @@ components:
           examples:
             example-1:
               value:
-                end: 0
-                limit: 0
-                next: string
+                end: 1648529800.8221116
+                limit: 1000
                 results:
                 - device_mac:
-                  - string
-                  mac: string
-                  org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  - '001122334455'
+                  device_mac_port:
+                  - device_mac: '001122334455'
+                    ip: ''
+                    port_id: et-0/0/1
+                    port_parent: ''
+                    start: 2020-12-10T00:07:36.262+0000
+                    vlan: 1
+                    when: 2022-03-29T04:56:05.172+0000
+                  ip:
+                  - 11.216.202.61
+                  mac: '112233445566'
+                  org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
                   port_id:
-                  - string
-                  site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  timestamp: 0
+                  - et-0/0/1
+                  site_id: c168ddee-c14c-11e5-8e81-1258369c38a9
+                  timestamp: 1571174567.807
                   vlan:
                   - 0
-                start: 0
-                total: 0
+                  - 1001
+                start: 1648443400.8221116
+                total: 1
           schema:
             properties:
               end:
-                type: integer
+                type: number
               limit:
                 type: integer
               next:
@@ -38176,15 +38388,15 @@ components:
                 type: array
                 uniqueItems: true
               start:
-                type: integer
+                type: number
               total:
                 type: integer
             required:
-            - start
             - end
             - limit
-            - total
             - results
+            - start
+            - total
             type: object
       description: OK
     WirelessClientSessionsSearch:
@@ -40806,6 +41018,11 @@ components:
     ap_port_config:
       description: ''
       properties:
+        additional_vlan_ids:
+          description: additional VLAN IDs, only valid in mesh base mode
+          items:
+            type: integer
+          type: array
         disabled:
           type: boolean
         dynamic_vlan:
@@ -41103,6 +41320,7 @@ components:
           preamble: short
           usage: '24'
     ap_switch:
+      deprecated: true
       description: for people who want to fully control the vlans (advanced)
       properties:
         enabled:
@@ -41123,6 +41341,11 @@ components:
       type: object
     ap_switch_setting:
       properties:
+        additional_vlan_ids:
+          description: additional VLAN IDs, only valid in mesh base mode
+          items:
+            type: integer
+          type: array
         enable_vlan:
           type: boolean
         port_vlan_id:
@@ -42122,7 +42345,9 @@ components:
         port_config:
           additionalProperties:
             $ref: '#/components/schemas/ap_port_config'
-          description: The property name is the interface(s) name (e.g. "eth1,eth2")
+          description: "eth0 is allowed in mesh relay mode, otherwise eth0 is not\
+            \ allowed here. \nThe property name is the interface(s) name (e.g. \"\
+            eth1\" or\"eth1,eth2\")"
           type: object
         pwr_config:
           description: power related configs
@@ -47035,6 +47260,11 @@ components:
     nac_rule:
       description: ''
       properties:
+        action:
+          enum:
+          - allow
+          - block
+          type: string
         apply_tags:
           description: all optional, this goes into Access-Accept
           items:
@@ -47044,6 +47274,7 @@ components:
           readOnly: true
           type: integer
         id:
+          format: uuid
           minLength: 1
           readOnly: true
           type: string
@@ -47052,14 +47283,20 @@ components:
         modified_time:
           readOnly: true
           type: integer
+        name:
+          type: string
         not_matching:
           $ref: '#/components/schemas/nac_rule_matching'
         order:
+          description: the priority of the rule, lower value implies higher priority
           type: number
         org_id:
           format: uuid
           readOnly: true
           type: string
+      required:
+      - name
+      - action
       type: object
       x-examples:
         example-1:
@@ -47103,6 +47340,18 @@ components:
             - wired
             type: string
           type: array
+        site_ids:
+          description: list of site ids to match
+          items:
+            format: uuid
+            type: string
+          type: array
+        sitegroup_ids:
+          description: list of sitegroup ids to match
+          items:
+            format: uuid
+            type: string
+          type: array
       title: nac_rule_matching
       type: object
     nac_tag:
@@ -47119,8 +47368,14 @@ components:
           description: iv `type`==`match`
           enum:
           - vendor
+          - idp_role
           - cert_cn
-          - role
+          - cert_sub
+          - cert_serial
+          - cert_issuer
+          - cert_san
+          - realm
+          - user_name
           minLength: 1
           type: string
         modified_time:
@@ -47140,9 +47395,7 @@ components:
           enum:
           - match
           - radius_group
-          - user_vlan
-          - quota
-          - duration
+          - vlan
           minLength: 1
           type: string
         values:
@@ -47156,6 +47409,7 @@ components:
       required:
       - type
       - name
+      title: ''
       type: object
       x-examples:
         matches_cert_cn:
@@ -47165,15 +47419,52 @@ components:
           values:
           - john
           - staff*
+        matches_cert_issuer:
+          match: cert_issuer
+          name: issuer1
+          type: match
+          values:
+          - /C=CN/ST=defy/L=defy/O=defy/OU=defy/CN=defy
+        matches_cert_san:
+          match: cert_san
+          name: san1
+          type: match
+          values:
+          - henry1@defy.com
+        matches_cert_serial:
+          match: cert_serial
+          name: serial1
+          type: match
+          values:
+          - 6a524ab782fb468c00c59f51cff00268d95533b8
+        matches_cert_sub:
+          match: cert_sub
+          name: subject1
+          type: match
+          values:
+          - /C=CN/ST=defy/O=defy/OU=defy/CN=steve
         matches_radius_group:
           radius_group: VIP
           type: radius_group
+        matches_realm:
+          match: realm
+          name: defy
+          type: match
+          values:
+          - defy.com
         matches_role:
-          match: role
+          match: idp_role
           name: VIP
           type: match
           values:
           - vip
+        matches_username:
+          match: user_name
+          name: admins
+          type: match
+          values:
+          - bob
+          - steve
         matches_vendor:
           match: vendor
           name: guest-wlan
@@ -47181,7 +47472,7 @@ components:
           values:
           - cisco
         matches_vlan:
-          type: user_vlan
+          type: vlan
           vlan: '30'
     network:
       description: Networks are usually subnets that have cross-site significance.
@@ -47952,6 +48243,10 @@ components:
           properties:
             cacerts:
               description: the CA certs we use to verify client certs
+              type: string
+            default_idp_id:
+              description: use this IDP when no explicit realm present in the incoming
+                username/CN OR when no IDP is explicitly mapped to the incoming realm.
               type: string
             idps:
               items:
@@ -49039,13 +49334,12 @@ components:
         sso:
           description: if `auth`==`sso`
           properties:
-            default_role:
-              description: use this role if Role attribute not returned (when `sso_forced_role`
-                is not defined)
-              type: string
-            forced_role:
-              description: ignore any Role attributes and use this instead
-              type: string
+            allowed_roles:
+              description: // allowed roles for accessing psk portal, if none, any
+                role is permitted
+              items:
+                type: string
+              type: array
             idp_cert:
               type: string
             idp_sign_algo:
@@ -49056,9 +49350,16 @@ components:
               type: string
             nameid_format:
               type: string
+            role_mapping:
+              additionalProperties:
+                type: string
+              description: Property key is the role name, property value is the SSO
+                Attribute
+              type: object
+            use_sso_role_for_psk_role:
+              description: if enabled, the `role` above will be ignored
+              type: boolean
           type: object
-        sso_required_role:
-          type: string
         template_url:
           description: UI customization
           type: string
@@ -50604,9 +50905,11 @@ components:
           maximum: 30
           minimum: 1
           type: number
-        probe_host:
+        probe_hosts:
           format: ipv4
-          type: string
+          items:
+            type: string
+          type: array
         root_password:
           description: for SRX only
           type: string
@@ -54666,6 +54969,8 @@ components:
           - success
           - failed
           type: object
+        device_type:
+          type: string
         id:
           minLength: 1
           type: string
@@ -54684,6 +54989,7 @@ components:
       - channel
       - id
       - counts
+      - device_type
       type: object
       x-examples:
         example-1:
@@ -54693,6 +54999,7 @@ components:
             queued: 1
             success: 0
             upgrading: 1
+          device_type: gateway
           id: ceef2c8a-e2e6-447a-8b27-cb4f3ec1adae
           status: upgrading
           strategy: serial
@@ -56906,11 +57213,22 @@ components:
               type: object
             macs:
               additionalProperties:
+                description: MAC addresses for each net interface
                 type: string
               description: Property key is the interface name. MAC for each net interface
               type: object
           type: object
         lag_stat:
+          additionalProperties:
+            properties:
+              active_ports:
+                description: list of ports active on the LAG defined by the LACP
+                items:
+                  type: string
+                type: array
+            type: object
+          description: Stat for LAG (Link Aggregation Group). Property key is the
+            LAG name
           type: object
         last_seen:
           type: integer
@@ -59879,30 +60197,64 @@ components:
             zone_id: 8ac84899-32db-6327-334c-9b6d58544cfe
           topic: zone
     wired_client.response:
-      description: Wired Client
+      description: ''
       properties:
         device_mac:
           items:
+            readOnly: true
             type: string
           readOnly: true
           type: array
-        for_site:
+        device_mac_port:
+          items:
+            properties:
+              device_mac:
+                minLength: 1
+                type: string
+              ip:
+                readOnly: true
+                type: string
+              port_id:
+                readOnly: true
+                type: string
+              port_parent:
+                type: string
+              start:
+                readOnly: true
+                type: string
+              vlan:
+                readOnly: true
+                type: integer
+              when:
+                readOnly: true
+                type: string
+            readOnly: true
+            type: object
+          minItems: 1
           readOnly: true
-          type: boolean
+          type: array
+          uniqueItems: true
+        ip:
+          items:
+            readOnly: true
+            type: string
+          readOnly: true
+          type: array
         mac:
           readOnly: true
           type: string
         org_id:
-          format: uuid
+          minLength: 1
           readOnly: true
           type: string
         port_id:
           items:
+            readOnly: true
             type: string
           readOnly: true
           type: array
         site_id:
-          format: uuid
+          minLength: 1
           readOnly: true
           type: string
         timestamp:
@@ -59910,20 +60262,25 @@ components:
           type: number
         vlan:
           items:
+            readOnly: true
             type: integer
           readOnly: true
           type: array
-      required:
-      - device_mac
-      - site_id
-      - mac
-      - timestamp
-      - port_id
       type: object
       x-examples:
         example-1:
           device_mac:
           - '001122334455'
+          device_mac_port:
+          - device_mac: '001122334455'
+            ip: ''
+            port_id: et-0/0/1
+            port_parent: ''
+            start: 2020-12-10T00:07:36.262+0000
+            vlan: 1
+            when: 2022-03-29T04:56:05.172+0000
+          ip:
+          - 11.216.202.61
           mac: '112233445566'
           org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
           port_id:
@@ -62535,6 +62892,7 @@ x-tagGroups:
   - Msps
   - Msps Admins
   - Msps Inventory
+  - Msps Logo
   - Msps Invites
   - Msps Logs
   - Msps Licenses
