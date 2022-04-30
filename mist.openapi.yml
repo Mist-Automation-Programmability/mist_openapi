@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.24.1**
+  description: '> Version: **0.24.2**
 
     >
 
-    > Date: **April 21th, 2022**
+    > Date: **April 30th, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.24.1
+  version: 0.24.2
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -6438,6 +6438,32 @@ paths:
       summary: updateOrgGatewayTemplate
       tags:
       - Orgs Gateway Templates
+  /api/v1/orgs/{org_id}/insights/sites-sle:
+    get:
+      description: Get Org Sites SLE
+      operationId: getOrgSitesSle
+      parameters:
+      - in: query
+        name: sle
+        schema:
+          enum:
+          - wan
+          - wired
+          - wifi
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          $ref: '#/components/responses/OrgSiteSle'
+      summary: getOrgSitesSle
+      tags:
+      - Orgs SLEs
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/insights/{metric}:
     get:
       description: Get Org SLEs (all/worst sites, Mx Edges, ...)
@@ -34328,6 +34354,66 @@ components:
           schema:
             $ref: '#/components/schemas/org_setting'
       description: OK
+    OrgSiteSle:
+      content:
+        application/json:
+          examples:
+            WAN SLE:
+              value:
+                end: 1651323600
+                interval: 3600
+                limit: 1
+                page: 2
+                results:
+                - application-health: 0.8250000047942866
+                  gateway-health: 1
+                  num_clients: 65
+                  num_gateways: 1
+                  site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                  wan-link-health: 0.9988471089272484
+                start: 1651269600
+                total: 4
+            Wifi SLE:
+              value:
+                end: 1651323600
+                interval: 3600
+                limit: 1
+                page: 2
+                results:
+                - ap-availability: 1
+                  ap-health: 0.6734082531393244
+                  capacity: 0.9805205859945426
+                  coverage: 0.8124033491124427
+                  num_aps: 3
+                  num_clients: 24
+                  roaming: 1
+                  site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                  successful-connect: 0.9504132238793964
+                  throughput: 1
+                  time-to-connect: 0.979381443298969
+                start: 1651269600
+                total: 4
+            Wired SLE:
+              value:
+                end: 1651323600
+                interval: 3600
+                limit: 1
+                page: 2
+                results:
+                - num_clients: 6
+                  num_switches: 1
+                  site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                  switch-health: 1
+                  switch-stc: 1
+                  switch-throughput: 0.9673089339439619
+                start: 1651269600
+                total: 4
+          schema:
+            oneOf:
+            - $ref: '#/components/schemas/OrgSiteSleWifiResponse'
+            - $ref: '#/components/schemas/OrgSiteSleWiredResponse'
+            - $ref: '#/components/schemas/OrgSiteSleWanResponse'
+      description: Example response
     OrgStats:
       content:
         application/json:
@@ -39818,6 +39904,207 @@ components:
       x-examples:
         example-1:
           name: string
+    OrgSiteSleWanResponse:
+      description: ''
+      properties:
+        end:
+          type: number
+        interval:
+          type: integer
+        limit:
+          type: integer
+        page:
+          type: integer
+        results:
+          items:
+            properties:
+              application-health:
+                type: number
+              gateway-health:
+                type: number
+              num_clients:
+                type: number
+              num_gateways:
+                type: number
+              site_id:
+                format: uuid
+                minLength: 1
+                type: string
+              wan-link-health:
+                type: number
+            required:
+            - site_id
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+        start:
+          type: number
+        total:
+          type: integer
+      required:
+      - start
+      - end
+      - interval
+      - limit
+      - page
+      - total
+      - results
+      type: object
+      x-examples:
+        example-1:
+          end: 1651323600
+          interval: 3600
+          limit: 1
+          page: 2
+          results:
+          - application-health: 0.8250000047942866
+            gateway-health: 1
+            num_clients: 65
+            num_gateways: 1
+            site_id: f5fcbee5-1234-5678-9101-1619ede87879
+            wan-link-health: 0.9988471089272484
+          start: 1651269600
+          total: 4
+    OrgSiteSleWifiResponse:
+      description: ''
+      properties:
+        end:
+          type: number
+        interval:
+          type: integer
+        limit:
+          type: integer
+        page:
+          type: integer
+        results:
+          items:
+            properties:
+              ap-availability:
+                type: number
+              ap-health:
+                type: number
+              capacity:
+                type: number
+              coverage:
+                type: number
+              num_aps:
+                type: number
+              num_clients:
+                type: number
+              roaming:
+                type: number
+              site_id:
+                format: uuid
+                minLength: 1
+                type: string
+              successful-connect:
+                type: number
+              throughput:
+                type: number
+              time-to-connect:
+                type: number
+            required:
+            - site_id
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+        start:
+          type: number
+        total:
+          type: integer
+      required:
+      - start
+      - end
+      - interval
+      - limit
+      - page
+      - total
+      - results
+      type: object
+      x-examples:
+        example-1:
+          end: 1651323600
+          interval: 3600
+          limit: 1
+          page: 2
+          results:
+          - ap-availability: 1
+            ap-health: 0.6735632316819553
+            capacity: 0.9802900770150502
+            coverage: 0.812181632387686
+            num_aps: 3
+            num_clients: 24
+            roaming: 1
+            site_id: f5fcbee5-1234-5678-9101-1619ede87879
+            successful-connect: 0.9535864983932881
+            throughput: 1
+            time-to-connect: 0.9791666666666666
+          start: 1651269600
+          total: 4
+    OrgSiteSleWiredResponse:
+      description: ''
+      properties:
+        end:
+          type: number
+        interval:
+          type: integer
+        limit:
+          type: integer
+        page:
+          type: integer
+        results:
+          items:
+            properties:
+              num_clients:
+                type: number
+              num_switches:
+                type: number
+              site_id:
+                format: uuid
+                minLength: 1
+                type: string
+              switch-health:
+                type: number
+              switch-stc:
+                type: number
+              switch-throughput:
+                type: number
+            required:
+            - site_id
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+        start:
+          type: number
+        total:
+          type: integer
+      required:
+      - start
+      - end
+      - interval
+      - limit
+      - page
+      - total
+      - results
+      type: object
+      x-examples:
+        example-1:
+          end: 1651323600
+          interval: 3600
+          limit: 1
+          page: 2
+          results:
+          - num_clients: 6
+            num_switches: 1
+            site_id: f5fcbee5-1234-5678-9101-1619ede87879
+            switch-health: 1
+            switch-stc: 1
+            switch-throughput: 0.9669529756744796
+          start: 1651269600
+          total: 4
     acct_server:
       description: Accounting Server
       properties:
