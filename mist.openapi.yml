@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.24.5**
+  description: '> Version: **0.25.0**
 
     >
 
-    > Date: **May 8th, 2022**
+    > Date: **June 9th, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.24.5
+  version: 0.25.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -102,6 +102,12 @@ tags:
 - name: Orgs CRL
 - name: Orgs Device Profiles
 - name: Orgs Devices
+- description: 'EVPN allows an alternative but more efficient LAN architecture utilizing
+    VxLAN / MP-BGP - separating control plane (MAC / IP Learning) from forwarding
+    plane.
+
+    In our implementation, following the steps to deploy EVPN topologies in a Site'
+  name: Orgs Devices EVPN
 - name: Orgs Devices SSR
 - name: Orgs Gateway Templates
 - name: Orgs Inventory
@@ -3244,6 +3250,7 @@ paths:
           enum:
           - status
           - type
+          - org_id
           type: string
       responses:
         '200':
@@ -3416,6 +3423,67 @@ paths:
       summary: updateOrgAdmin
       tags:
       - Orgs Admins
+  /api/v1/orgs/{org_id}/alarms/ack:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: Ack multiple Org Alarms
+      operationId: multiAckOrgAlarms
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  alarm_ids:
+                  - ccb8c94d-ca56-4075-932f-1f2ab444ff2c
+                  - 98ff4a3d-ec9b-4138-a42e-54fc3335179d
+                  note: maintenance window
+            schema:
+              properties:
+                alarm_ids:
+                  items:
+                    format: uuid
+                    type: string
+                  type: array
+                note:
+                  description: Some text note describing the intent
+                  type: string
+              required:
+              - alarm_ids
+              type: object
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: multiAckOrgAlarms
+      tags:
+      - Orgs Alarms
+  /api/v1/orgs/{org_id}/alarms/ack_all:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: 'Ack all Org Alarms
+
+
+        **N.B.**: Batch size for multiple alarm ack and unack has to be less or or
+        equal to 1000.'
+      operationId: ackOrgAllAlarms
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  note: string
+            schema:
+              $ref: '#/components/schemas/note'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: ackOrgAllAlarms
+      tags:
+      - Orgs Alarms
   /api/v1/orgs/{org_id}/alarms/count:
     get:
       description: Count Org Alarms
@@ -3460,6 +3528,91 @@ paths:
       - Orgs Alarms
     parameters:
     - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/alarms/unack:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: Unack multiple Org Alarms
+      operationId: multiUnackOrgAlarms
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  alarm_ids:
+                  - ccb8c94d-ca56-4075-932f-1f2ab444ff2c
+                  - 98ff4a3d-ec9b-4138-a42e-54fc3335179d
+                  note: maintenance window
+            schema:
+              properties:
+                alarm_ids:
+                  items:
+                    format: uuid
+                    type: string
+                  type: array
+                note:
+                  description: Some text note describing the intent
+                  type: string
+              required:
+              - alarm_ids
+              type: object
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: multiUnackOrgAlarms
+      tags:
+      - Orgs Alarms
+  /api/v1/orgs/{org_id}/alarms/unack_all:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: 'Unack all Org Alarms
+
+
+        **N.B.**: Batch size for multiple alarm ack and unack has to be less or or
+        equal to 1000.'
+      operationId: unackOrgAllArlarms
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  note: maintenance window
+            schema:
+              $ref: '#/components/schemas/note'
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: unackOrgAllArlarms
+      tags:
+      - Orgs Alarms
+  /api/v1/orgs/{org_id}/alarms/{alarm_id}/ack:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/alarm_id'
+    post:
+      description: Ack Org Alarm
+      operationId: ackOrgAlarm
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  note: maintenance window
+            schema:
+              $ref: '#/components/schemas/note'
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: ackOrgAlarm
+      tags:
+      - Orgs Alarms
   /api/v1/orgs/{org_id}/alarmtemplates:
     get:
       description: Get Org Alarm Templates
@@ -4156,7 +4309,7 @@ paths:
                           wxtunnel_remote_id: string
                   created_time: 0
                   for_site: true
-                  id: 497f6eca-6276-4993-bfeb-53cb4bba6f08
+                  id: 431f6eca-6276-4993-bfeb-53cb4bba6f08
                   modified_time: 0
                   org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
                   site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
@@ -4241,7 +4394,7 @@ paths:
                   for_site: true
                   ibeacon_major: 0
                   ibeacon_uuid: 1f89bc00-d0af-481b-82fe-a6629259a39f
-                  id: 497f6eca-6276-4993-bfeb-53cb5bba6f08
+                  id: 430f6eca-6276-4993-bfeb-53cb5bba6f08
                   mfg_company_id: 0
                   modified_time: 0
                   name: string
@@ -4680,7 +4833,7 @@ paths:
         name: ssid
         schema:
           type: string
-      - description: full MAC address, hostname, username or ip
+      - description: partial / full MAC address, hostname
         in: query
         name: text
         schema:
@@ -4879,6 +5032,33 @@ paths:
       - Orgs CRL
     parameters:
     - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/crl/truncate:
+    parameters:
+    - in: path
+      name: org_id
+      required: true
+      schema:
+        type: string
+    post:
+      description: By default, all certs used by recently unclaimed devices within
+        9 month will be included in CRL. If the list grows too big, you can truncate
+        it
+      operationId: truncateOrgCrlFile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                days:
+                  default: 30
+                  type: integer
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: truncateOrgCrlFile
+      tags:
+      - Orgs Cert
   /api/v1/orgs/{org_id}/deviceprofiles:
     get:
       description: Get Org Device Profiles
@@ -5642,6 +5822,26 @@ paths:
         name: lldp_mgmt_addr
         schema:
           type: string
+      - description: Channel of band_24
+        in: query
+        name: band_24_channel
+        schema:
+          type: integer
+      - description: Channel of band_5
+        in: query
+        name: band_5_channel
+        schema:
+          type: integer
+      - description: Channel of band_6
+        in: query
+        name: band_6_channel
+        schema:
+          type: integer
+      - description: Port speed of eth0
+        in: query
+        name: eth0_port_speed
+        schema:
+          type: integer
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
@@ -5746,6 +5946,110 @@ paths:
       schema:
         format: uuid
         type: string
+  /api/v1/orgs/{org_id}/evpn_topologies:
+    get:
+      description: Get the existing EVPN topology
+      operationId: getOrgEvpnTopologies
+      responses:
+        '200':
+          $ref: '#/components/responses/EvpnTopology'
+      summary: getOrgEvpnTopologies
+      tags:
+      - Orgs Devices EVPN
+    parameters:
+    - in: path
+      name: org_id
+      required: true
+      schema:
+        type: string
+    post:
+      description: "While all the `evpn_id` / `downlink_ips` can be specifidd by hand,\
+        \ the easiest way is to call the `build_vpn_topology` API, allowing you to\
+        \ examine the diff, and update it yourself. You can also simply call it with\
+        \ `overwrite=true` which will apply the updates for you.\n\n**Notes:**\n1.\
+        \ You can use `core` / `distribution` / `access` to create a CLOS topology\n\
+        2. You can also use `core` / `distribution` to form a 2-tier EVPN topology\
+        \ where ESI-Lag is configured distribution to connect to access switches\n\
+        3. In a small/medium campus, `collapsed-core` can be used where core switches\
+        \ are the inter-connected to do EVPN\n4. The API uses a few pre-defined parameters\
+        \ and best-practices to generate the configs. It can be customized by using\
+        \ `evpn_options` in Site Setting / Network Template. (e.g. a different subnet\
+        \ for the underlay)\n\n#### Collapsed Core\nIn a small-medium campus, EVPN\
+        \ can also be enabled only at the core switches (up to 4) by assigning all\
+        \ participating switches with `collapsed-core role`. When there are more than\
+        \ 2 switches, a ring-like topology will be formed.\n\n#### ESI-Lag\nIf the\
+        \ access switchess does not have EVPN support, you can take advantage of EVPN\
+        \ by setting up ESI-Lag on distribution switches\n\n#### Leaf / Access / Collapsed-Core\n\
+        For leaf nodes in a EVPN topology, you\u2019d have to configure the IPs for\
+        \ networks that would participate in EVPN. Optionally, VRFs to isolate traffic\
+        \ from one tenant verus another"
+      operationId: createOrgEvpnTopology
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  name: CC
+                  overwrite: true
+                  switches:
+                  - mac: 5c5b35000003
+                    role: collapsed-core
+                  - mac: 5c5b35000004
+                    role: collapsed-core
+            schema:
+              $ref: '#/components/schemas/junos_evpn_topology'
+      responses:
+        '200':
+          $ref: '#/components/responses/EvpnTopology'
+      summary: createOrgEvpnTopology
+      tags:
+      - Orgs Devices EVPN
+  /api/v1/orgs/{org_id}/evpn_topologies/{evpn_topology_id}:
+    delete:
+      description: Delete the Org EVPN Topology
+      operationId: deleteOrgEvpnTopology
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: deleteOrgEvpnTopology
+      tags:
+      - Orgs Devices EVPN
+    get:
+      description: Get One EVPN Topology Detail
+      operationId: getOrgEvpnTolopogy
+      responses:
+        '200':
+          description: OK
+      summary: getOrgEvpnTolopogy
+      tags:
+      - Orgs Devices EVPN
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/evpn_topology_id'
+    put:
+      description: Update the EVPN Topolgy
+      operationId: updateOrgEvpnTopology
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  overwrite: false
+                  switches:
+                  - mac: 5c5b35000003
+                    role: collapsed-core
+                  - mac: 5c5b35000004
+                    role: none
+            schema:
+              $ref: '#/components/schemas/junos_evpn_topology'
+      responses:
+        '200':
+          $ref: '#/components/responses/EvpnTopology'
+      summary: updateOrgEvpnTopology
+      tags:
+      - Orgs Devices EVPN
   /api/v1/orgs/{org_id}/gatewaytemplates:
     get:
       description: Get Organization Gateway Templates
@@ -5772,52 +6076,70 @@ paths:
                   bgp_config:
                     property1:
                       auth_key: string
+                      bfd_minimum_interval: 0
                       communities:
                       - id: string
                         local_preference: 0
                         vpn_name: string
                       export: string
-                      export_networks:
-                      - string
+                      export_policy: string
+                      graceful_restart_time: 0
+                      hold_time: 90
                       import: string
-                      import_networks:
-                      - string
+                      import_policy: string
                       local_as: 0
                       neighbor_as: 0
                       neighbors:
                         property1:
-                          export: string
-                          import: string
+                          export_policy: string
+                          hold_time: 90
+                          import_policy: string
+                          multihop_ttl: 0
                           neighbor_as: 0
                         property2:
-                          export: string
-                          import: string
+                          export_policy: string
+                          hold_time: 90
+                          import_policy: string
+                          multihop_ttl: 0
                           neighbor_as: 0
+                      networks:
+                      - string
                       type: internal
+                      via: string
+                      wan_name: string
                     property2:
                       auth_key: string
+                      bfd_minimum_interval: 0
                       communities:
                       - id: string
                         local_preference: 0
                         vpn_name: string
                       export: string
-                      export_networks:
-                      - string
+                      export_policy: string
+                      graceful_restart_time: 0
+                      hold_time: 90
                       import: string
-                      import_networks:
-                      - string
+                      import_policy: string
                       local_as: 0
                       neighbor_as: 0
                       neighbors:
                         property1:
-                          export: string
-                          import: string
+                          export_policy: string
+                          hold_time: 90
+                          import_policy: string
+                          multihop_ttl: 0
                           neighbor_as: 0
                         property2:
-                          export: string
-                          import: string
+                          export_policy: string
+                          hold_time: 90
+                          import_policy: string
+                          multihop_ttl: 0
                           neighbor_as: 0
+                      networks:
+                      - string
                       type: internal
+                      via: string
+                      wan_name: string
                   created_time: 0
                   dhcpd_config:
                     property1:
@@ -5909,6 +6231,7 @@ paths:
                   networks:
                     property1:
                       created_time: 0
+                      disallow_mist_services: false
                       gateway: 192.168.70.1
                       hosts:
                         property1:
@@ -5921,6 +6244,7 @@ paths:
                       internal_access:
                         enabled: true
                       internet_access:
+                        create_simple_service_policy: false
                         destination_nat:
                           property1:
                             internal_ip: string
@@ -5930,7 +6254,6 @@ paths:
                             internal_ip: string
                             name: string
                             port: string
-                        disallow_mist_services: false
                         enabled: true
                         restricted: false
                         static_nat:
@@ -5953,6 +6276,7 @@ paths:
                       vlan_id: 0
                       vpn_access:
                         property1:
+                          allow_ping: true
                           destination_nat:
                             property1:
                               name: string
@@ -5964,6 +6288,8 @@ paths:
                               to: string
                           nat_pool: string
                           routed: true
+                          source_nat:
+                            exteral_ip: string
                           static_nat:
                             property1:
                               name: string
@@ -5971,7 +6297,9 @@ paths:
                             property2:
                               name: string
                               to: string
+                          summarized_nat_pool: string
                         property2:
+                          allow_ping: true
                           destination_nat:
                             property1:
                               name: string
@@ -5983,6 +6311,8 @@ paths:
                               to: string
                           nat_pool: string
                           routed: true
+                          source_nat:
+                            exteral_ip: string
                           static_nat:
                             property1:
                               name: string
@@ -5990,8 +6320,10 @@ paths:
                             property2:
                               name: string
                               to: string
+                          summarized_nat_pool: string
                     property2:
                       created_time: 0
+                      disallow_mist_services: false
                       gateway: 192.168.70.1
                       hosts:
                         property1:
@@ -6004,6 +6336,7 @@ paths:
                       internal_access:
                         enabled: true
                       internet_access:
+                        create_simple_service_policy: false
                         destination_nat:
                           property1:
                             internal_ip: string
@@ -6013,7 +6346,6 @@ paths:
                             internal_ip: string
                             name: string
                             port: string
-                        disallow_mist_services: false
                         enabled: true
                         restricted: false
                         static_nat:
@@ -6036,6 +6368,7 @@ paths:
                       vlan_id: 0
                       vpn_access:
                         property1:
+                          allow_ping: true
                           destination_nat:
                             property1:
                               name: string
@@ -6047,6 +6380,8 @@ paths:
                               to: string
                           nat_pool: string
                           routed: true
+                          source_nat:
+                            exteral_ip: string
                           static_nat:
                             property1:
                               name: string
@@ -6054,7 +6389,9 @@ paths:
                             property2:
                               name: string
                               to: string
+                          summarized_nat_pool: string
                         property2:
+                          allow_ping: true
                           destination_nat:
                             property1:
                               name: string
@@ -6066,6 +6403,8 @@ paths:
                               to: string
                           nat_pool: string
                           routed: true
+                          source_nat:
+                            exteral_ip: string
                           static_nat:
                             property1:
                               name: string
@@ -6073,27 +6412,51 @@ paths:
                             property2:
                               name: string
                               to: string
+                          summarized_nat_pool: string
+                  oob_ip_config:
+                    additionalProperties:
+                      ip: string
+                      netmask: string
+                      network: string
+                      type: dynamic
+                    dns:
+                    - string
+                    dns_suffix:
+                    - string
+                    gateway: string
+                    ip: string
+                    netmask: string
+                    network: string
+                    type: dynamic
                   org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
                   path_preferences:
                     property1:
                       paths:
                         cost: 0
                         gateway_ip: string
+                        internet_access: false
                         name: string
-                        network: string
+                        networks:
+                        - string
                         target_ips:
                         - string
-                        type: string
+                        tunnel_name: string
+                        type: local
+                        wan_name: string
                       strategy: ordered
                     property2:
                       paths:
                         cost: 0
                         gateway_ip: string
+                        internet_access: false
                         name: string
-                        network: string
+                        networks:
+                        - string
                         target_ips:
                         - string
-                        type: string
+                        tunnel_name: string
+                        type: local
+                        wan_name: string
                       strategy: ordered
                   port_config:
                     property1:
@@ -6129,13 +6492,22 @@ paths:
                       redundant: true
                       reth_idx: 0
                       reth_node: string
+                      traffic_shaping:
+                        enabled: true
+                        max_tx_kbps: 0
                       usage: lan
                       vlan_id: 0
                       vpn_paths:
                         property1:
+                          bfd_profile: string
                           role: spoke
                         property2:
+                          bfd_profile: string
                           role: spoke
+                      wan_ext_ip: string
+                      wan_source_nat:
+                        disabled: false
+                        nat_pool: 64.2.4.0/30
                       wan_type: broadband
                     property2:
                       description: string
@@ -6170,55 +6542,170 @@ paths:
                       redundant: true
                       reth_idx: 0
                       reth_node: string
+                      traffic_shaping:
+                        enabled: true
+                        max_tx_kbps: 0
                       usage: lan
                       vlan_id: 0
                       vpn_paths:
                         property1:
+                          bfd_profile: string
                           role: spoke
                         property2:
+                          bfd_profile: string
                           role: spoke
+                      wan_ext_ip: string
+                      wan_source_nat:
+                        disabled: false
+                        nat_pool: 64.2.4.0/30
                       wan_type: broadband
                   routing_policies:
                     property1:
                       terms:
-                      - as_path: string
-                        community: string
-                        exclude_as_path: string
-                        export_communitites:
-                        - string
-                        export_local_preference: string
-                        local_preference: 0
-                        network: string
-                        prefix: string
-                        prepend_as_path: string
-                        protocol: string
-                        then: string
+                      - action:
+                          accept: true
+                          community:
+                          - '65003:10'
+                          exclude_as_path:
+                          - '65002'
+                          export_communitites:
+                          - string
+                          local_preference: string
+                          prepend_as_path:
+                          - '65003'
+                        matching:
+                          as_path:
+                          - '65001'
+                          community:
+                          - '65001:2'
+                          network:
+                          - string
+                          prefix:
+                          - 192.168.0.0/16-30
+                          protocol:
+                          - direct
+                          route_exists:
+                            route: 192.168.0.0/24
+                            vrf_name: default
                     property2:
                       terms:
-                      - as_path: string
-                        community: string
-                        exclude_as_path: string
-                        export_communitites:
-                        - string
-                        export_local_preference: string
-                        local_preference: 0
-                        network: string
-                        prefix: string
-                        prepend_as_path: string
-                        protocol: string
-                        then: string
+                      - action:
+                          accept: true
+                          community:
+                          - '65003:10'
+                          exclude_as_path:
+                          - '65002'
+                          export_communitites:
+                          - string
+                          local_preference: string
+                          prepend_as_path:
+                          - '65003'
+                        matching:
+                          as_path:
+                          - '65001'
+                          community:
+                          - '65001:2'
+                          network:
+                          - string
+                          prefix:
+                          - 192.168.0.0/16-30
+                          protocol:
+                          - direct
+                          route_exists:
+                            route: 192.168.0.0/24
+                            vrf_name: default
                   service_policies:
                   - action: allow
                     idp:
-                      action: drop
+                      alert_only: string
                       enabled: false
                       profile: strict
+                    local_routing: false
                     name: string
                     path_preferences: string
                     services:
                     - string
                     tenants:
                     - string
+                  tunnel_configs:
+                    property1:
+                      ike_lifetime: 0
+                      ike_proposals:
+                      - auth_algo: sha1
+                        dh_group: '14'
+                        enc_algo: aes256
+                      ipsec_lifetime: 0
+                      ipsec_proposals:
+                      - auth_algo: sha1
+                        dh_group: '14'
+                        enc_algo: aes256
+                      local_id: string
+                      primary:
+                        hosts:
+                        - string
+                        intern_ips:
+                        - string
+                        ips:
+                        - string
+                        probe_ips:
+                        - string
+                      probe:
+                        interval: 0
+                        threshold: 0
+                        timeout: 0
+                        type: icmp
+                      protocol: ipsec
+                      provider: zscaler-ipsec
+                      psk: string
+                      secondary:
+                        hosts:
+                        - string
+                        intern_ips:
+                        - string
+                        ips:
+                        - string
+                        probe_ips:
+                        - string
+                      version: '2'
+                    property2:
+                      ike_lifetime: 0
+                      ike_proposals:
+                      - auth_algo: sha1
+                        dh_group: '14'
+                        enc_algo: aes256
+                      ipsec_lifetime: 0
+                      ipsec_proposals:
+                      - auth_algo: sha1
+                        dh_group: '14'
+                        enc_algo: aes256
+                      local_id: string
+                      primary:
+                        hosts:
+                        - string
+                        intern_ips:
+                        - string
+                        ips:
+                        - string
+                        probe_ips:
+                        - string
+                      probe:
+                        interval: 0
+                        threshold: 0
+                        timeout: 0
+                        type: icmp
+                      protocol: ipsec
+                      provider: zscaler-ipsec
+                      psk: string
+                      secondary:
+                        hosts:
+                        - string
+                        intern_ips:
+                        - string
+                        ips:
+                        - string
+                        probe_ips:
+                        - string
+                      version: '2'
                   type: standalone
                   urlfilter_config:
                     blocked_categories:
@@ -6762,6 +7249,24 @@ paths:
         '200':
           $ref: '#/components/responses/OrgInventoryChanges'
       summary: updateOrgInventoryAssignment
+      tags:
+      - Orgs Inventory
+  /api/v1/orgs/{org_id}/inventory/reevaluate_auto_assignment:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: Reevaluate Auto Assignment
+      operationId: reevaluateOrgAutoAssignment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties: {}
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: reevaluateOrgAutoAssignment
       tags:
       - Orgs Inventory
   /api/v1/orgs/{org_id}/inventory/replace:
@@ -7595,6 +8100,11 @@ paths:
                   - beta
                   - alpha
                   type: string
+                distro:
+                  description: distro upgrade, optional, to specific codename (e.g.
+                    bullseye) with default service versions
+                  example: current
+                  type: string
                 mxedge_ids:
                   description: list of mxedge IDs to upgrade
                   items:
@@ -7613,8 +8123,9 @@ paths:
                   - serial
                   type: string
                 versions:
-                  description: version to upgrade for each service, optional, current
-                    (assumed) / latest / default / specific version (e.g. 2.5.100)
+                  description: version to upgrade for each service, optional (ignored
+                    if distro upgrade), current (assumed) / latest / default / specific
+                    version (e.g. 2.5.100)
                   properties:
                     mxagent:
                       type: string
@@ -8557,6 +9068,13 @@ paths:
     post:
       description: Create Org PSK
       operationId: createOrgPsk
+      parameters:
+      - description: if a key exists with the same `name`, replace it with the new
+          one
+        in: query
+        name: upsert
+        schema:
+          type: boolean
       requestBody:
         content:
           application/json:
@@ -8580,7 +9098,7 @@ paths:
                 value:
                 - created_time: 0
                   expire_time: 1614990263
-                  id: 497f6eca-6286-4993-bfeb-53cbbbba6f08
+                  id: 426f6eca-6286-4993-bfeb-53cbbbba6f07
                   mac: string
                   max_usage: 0
                   modified_time: 0
@@ -8606,8 +9124,10 @@ paths:
     - $ref: '#/components/parameters/org_id'
     post:
       description: "Import PSK from CSV file or JSON\n\n##\_CSV File Format\n```\n\
-        PSK Import CSV File Format:\nname,ssid,passphrase,usage,vlan_id,mac\nCommon,warehouse,foryoureyesonly,single,35,a31425f31278\n\
-        Justin,reception,visible,multi,1002\n```"
+        PSK Import CSV File Format:\nname,ssid,passphrase,usage,vlan_id,mac,max_usage,role,expire_time,notify_expiry,expiry_notification_time,notify_on_create_or_edit,email\n\
+        Common,warehouse,foryoureyesonly,single,35,a31425f31278,0,student,1618594236\n\
+        Justin,reception,visible,multi,1002,200,teacher,1618594236\nCommon2,ssid,1245678-xx,single,35,a31425f31278,0,student,1618594236,true,7,true,admin@test.com\n\
+        ```"
       operationId: importOrgPsk
       requestBody:
         content:
@@ -8617,7 +9137,7 @@ paths:
                 value:
                 - created_time: 0
                   expire_time: 1614990263
-                  id: 497f6eca-6376-4993-bfeb-53cbbbba6f08
+                  id: 425f6eca-6376-4993-bfeb-53cbbbba6f06
                   mac: string
                   max_usage: 0
                   modified_time: 0
@@ -9561,6 +10081,46 @@ paths:
       summary: createOrgClientsBlocklist
       tags:
       - Orgs Setting
+  /api/v1/orgs/{org_id}/setting/juniper/link:
+    delete:
+      description: Unlink Juniper Customer ID
+      operationId: unlinkOrgFromJuniperCustomerId
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: unlinkOrgFromJuniperCustomerId
+      tags:
+      - Orgs
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: Link Juniper Customer ID
+      operationId: linkOrgToJuniperCustomerId
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  password: string
+                  username: string
+            schema:
+              properties:
+                password:
+                  type: string
+                username:
+                  type: string
+              type: object
+              x-examples:
+                example-1:
+                  password: password
+                  username: john@nmo.com
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: linkOrgToJuniperCustomerId
+      tags:
+      - Orgs
   /api/v1/orgs/{org_id}/setting/pcap_bucket/setup:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -10209,6 +10769,14 @@ paths:
                     format: uuid
                     type: string
                   type: array
+                reboot_at:
+                  description: reboot start time in epoch seconds, default is start_time,
+                    -1 disables reboot
+                  type: integer
+                start_time:
+                  description: 128T firmware download start time in epoch seconds,
+                    default is now, -1 disables download
+                  type: integer
                 strategy:
                   default: big_bang
                   description: '* `big_bang`: upgrade all at once
@@ -10239,6 +10807,26 @@ paths:
         '200':
           $ref: '#/components/responses/SsrUpgrade'
       summary: upgradeOrgSsrs
+      tags:
+      - Orgs Devices SSR
+  /api/v1/orgs/{org_id}/ssr/upgrade/{upgrade_id}/cancel:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/upgrade_id'
+    post:
+      description: "Best effort to cancel an upgrade. Devices which are already upgraded\
+        \ wont be touched\u21B5\n"
+      operationId: cancelOrgSsrUpgrade
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties: {}
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: cancelOrgSsrUpgrade
       tags:
       - Orgs Devices SSR
   /api/v1/orgs/{org_id}/ssr/versions:
@@ -10484,6 +11072,486 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/mxedge_id'
+  /api/v1/orgs/{org_id}/stats/ports/search:
+    get:
+      description: Search Switch / Gateway Ports
+      operationId: searchOrgSwOrGwPorts
+      parameters:
+      - description: indicates full or half duplex
+        in: query
+        name: full_duplex
+        schema:
+          type: boolean
+      - description: device identifier
+        in: query
+        name: mac
+        schema:
+          type: string
+      - description: Chassis identifier of the chassis type listed
+        in: query
+        name: neighbor_mac
+        schema:
+          type: string
+      - description: "Description supplied by the system on the interface E.g. \u201C\
+          GigabitEthernet2/0/39\u201D"
+        in: query
+        name: neighbor_port_desc
+        schema:
+          type: string
+      - description: "Name supplied by the system on the interface E.g. neighbor system\
+          \ name E.g. \u201CKumar-Acc-SW.mist.local\u201D"
+        in: query
+        name: neighbor_system_name
+        schema:
+          type: string
+      - description: is the POE configured not be disabled.
+        in: query
+        name: poe_disabled
+        schema:
+          type: boolean
+      - description: "poe mode depending on class E.g. \u201C802.3at\u201D"
+        in: query
+        name: poe_mode
+        schema:
+          type: string
+      - description: is the device attached to POE
+        in: query
+        name: poe_on
+        schema:
+          type: boolean
+      - description: interface name
+        in: query
+        name: port_id
+        schema:
+          type: string
+      - description: interface mac address
+        in: query
+        name: port_mac
+        schema:
+          type: string
+      - description: Amount of power being used by the interface at the time the command
+          is executed. Unit in watts.
+        in: query
+        name: power_draw
+        schema:
+          type: number
+      - description: Output packets
+        in: query
+        name: tx_pkts
+        schema:
+          type: integer
+      - description: Input packets
+        in: query
+        name: rx_pkts
+        schema:
+          type: integer
+      - description: Input bytes
+        in: query
+        name: rx_bytes
+        schema:
+          type: integer
+      - description: Output rate
+        in: query
+        name: tx_bps
+        schema:
+          type: integer
+      - description: Input rate
+        in: query
+        name: rx_bps
+        schema:
+          type: integer
+      - description: Output errors
+        in: query
+        name: tx_errors
+        schema:
+          type: integer
+      - description: Input errors
+        in: query
+        name: rx_errors
+        schema:
+          type: integer
+      - description: Multicast output packets
+        in: query
+        name: tx_mcast_pkts
+        schema:
+          type: integer
+      - description: Broadcast output packets
+        in: query
+        name: tx_bcast_pkts
+        schema:
+          type: integer
+      - description: Multicast input packets
+        in: query
+        name: rx_mcast_pkts
+        schema:
+          type: integer
+      - description: Broadcast input packets
+        in: query
+        name: rx_bcast_pkts
+        schema:
+          type: integer
+      - description: port speed
+        in: query
+        name: speed
+        schema:
+          type: integer
+      - description: Limit on number of dynamically learned macs
+        in: query
+        name: mac_limit
+        schema:
+          type: integer
+      - description: Number of mac addresses in the forwarding table
+        in: query
+        name: mac_count
+        schema:
+          type: integer
+      - description: indicates if interface is up
+        in: query
+        name: up
+        schema:
+          type: boolean
+      - description: if `up`==`true`
+        in: query
+        name: stp_state
+        schema:
+          enum:
+          - forwarding
+          - blocking
+          - learning
+          - listening
+          - disabled
+          type: string
+      - description: if `up`==`true`
+        in: query
+        name: stp_role
+        schema:
+          enum:
+          - designated
+          - backup
+          - alternate
+          - root
+          - root-prevented
+          type: string
+      - description: if `up`==`true` && has Authenticator role
+        in: query
+        name: auth_state
+        schema:
+          enum:
+          - init
+          - authenticated
+          - authenticating
+          - held
+          type: string
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    end: 1513177200
+                    limit: 10
+                    results:
+                    - mac: 5c4527a96580
+                      neighbor_mac: 64d814353400
+                      neighbor_port_desc: GigabitEthernet1/0/21
+                      neighbor_system_name: CORP-D-SW-2
+                      org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
+                      poe_disabled: true
+                      port_id: me0
+                      port_mac: 5c4527a96580
+                      rx_bytes: 4563443626
+                      rx_pkts: 30360265
+                      site_id: c1698122-c14c-11e5-8e81-1258369c38a9
+                      speed: 1000
+                      tx_bytes: 11299516780
+                      tx_pkts: 14610886
+                      up: true
+                    - full_duplex: true
+                      mac: 0c8126c6ff6c
+                      neighbor_mac: 5c5b350eb361
+                      neighbor_port_desc: ETH0
+                      neighbor_system_name: kevinsap
+                      org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
+                      poe_mode: 802.3at
+                      poe_on: true
+                      port_id: ge-0/0/0
+                      port_mac: 0c8126c6ff6f
+                      power_draw: 5.4
+                      rx_bps: 1176
+                      rx_bytes: 2628451
+                      rx_pkts: 11829
+                      site_id: c1698122-c14c-11e5-8e81-1258369c38a9
+                      speed: 1000
+                      tx_bps: 14264
+                      tx_bytes: 96810192
+                      tx_pkts: 492176
+                      up: true
+                    start: 1511967600
+                    total: 100
+              schema:
+                properties:
+                  end:
+                    type: integer
+                  limit:
+                    type: integer
+                  results:
+                    items:
+                      $ref: '#/components/schemas/stats_switch_port'
+                    type: array
+                  start:
+                    type: integer
+                  total:
+                    type: integer
+                required:
+                - start
+                - end
+                - limit
+                - total
+                - results
+                type: object
+          description: OK
+      summary: searchOrgSwOrGwPorts
+      tags:
+      - Orgs Stats
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/stats/switch_ports/count:
+    get:
+      description: Count by Distinct Attributes of Switch/Gateway Ports
+      operationId: countOrgByDisctinctAttributesOfSwitchPorts
+      parameters:
+      - description: port_id, port_mac, full_duplex, mac, neighbor_macneighbor_port_desc,
+          neighbor_system_name, poe_disabled, poe_mode, poe_on, speed, up
+        in: query
+        name: distinct
+        schema:
+          default: mac
+          enum:
+          - port_id
+          - port_mac
+          - full_duplex
+          - mac
+          - neighbor_mac
+          - neighbor_port_desc
+          - neighbor_system_name
+          - poe_disabled
+          - poe_mode
+          - poe_on
+          - speed
+          - up
+          type: string
+      - description: indicates full or half duplex
+        in: query
+        name: full_duplex
+        schema:
+          type: boolean
+      - description: device identifier
+        in: query
+        name: mac
+        schema:
+          type: string
+      - description: Chassis identifier of the chassis type listed
+        in: query
+        name: neighbor_mac
+        schema:
+          type: string
+      - description: "Description supplied by the system on the interface E.g. \u201C\
+          GigabitEthernet2/0/39\u201D"
+        in: query
+        name: neighbor_port_desc
+        schema:
+          type: string
+      - description: "Name supplied by the system on the interface E.g. neighbor system\
+          \ name E.g. \u201CKumar-Acc-SW.mist.local\u201D"
+        in: query
+        name: neighbor_system_name
+        schema:
+          type: string
+      - description: is the POE configured not be disabled.
+        in: query
+        name: poe_disabled
+        schema:
+          type: boolean
+      - description: "poe mode depending on class E.g. \u201C802.3at\u201D"
+        in: query
+        name: poe_mode
+        schema:
+          type: string
+      - description: is the device attached to POE
+        in: query
+        name: poe_on
+        schema:
+          type: boolean
+      - description: interface name
+        in: query
+        name: port_id
+        schema:
+          type: string
+      - description: interface mac address
+        in: query
+        name: port_mac
+        schema:
+          type: string
+      - description: Amount of power being used by the interface at the time the command
+          is executed. Unit in watts.
+        in: query
+        name: power_draw
+        schema:
+          type: number
+      - description: Output packets
+        in: query
+        name: tx_pkts
+        schema:
+          type: integer
+      - description: Input packets
+        in: query
+        name: rx_pkts
+        schema:
+          type: integer
+      - description: Input bytes
+        in: query
+        name: rx_bytes
+        schema:
+          type: integer
+      - description: Output rate
+        in: query
+        name: tx_bps
+        schema:
+          type: integer
+      - description: Input rate
+        in: query
+        name: rx_bps
+        schema:
+          type: integer
+      - description: Multicast output packets
+        in: query
+        name: tx_mcast_pkts
+        schema:
+          type: integer
+      - description: Broadcast output packets
+        in: query
+        name: tx_bcast_pkts
+        schema:
+          type: integer
+      - description: Multicast input packets
+        in: query
+        name: rx_mcast_pkts
+        schema:
+          type: integer
+      - description: Broadcast input packets
+        in: query
+        name: rx_bcast_pkts
+        schema:
+          type: integer
+      - description: port speed
+        in: query
+        name: speed
+        schema:
+          type: integer
+      - description: if `up`==`true`
+        in: query
+        name: stp_state
+        schema:
+          enum:
+          - forwarding
+          - blocking
+          - learning
+          - listening
+          - disabled
+          type: string
+      - description: if `up`==`true`
+        in: query
+        name: stp_role
+        schema:
+          enum:
+          - designated
+          - backup
+          - alternate
+          - root
+          - root-prevented
+          type: string
+      - description: if `up`==`true`
+        in: query
+        name: auth_state
+        schema:
+          enum:
+          - init
+          - authenticated
+          - authenticating
+          - held
+          type: string
+      - description: indicates if interface is up
+        in: query
+        name: up
+        schema:
+          type: boolean
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    distinct: mac
+                    end: 1513177200
+                    limit: 100
+                    results:
+                    - count: 217
+                      mac: '112233445566'
+                    - count: 35
+                      mac: '001122334455'
+                    start: 1511967600
+                    total: 20
+              schema:
+                properties:
+                  distinct:
+                    type: string
+                  end:
+                    type: integer
+                  limit:
+                    type: integer
+                  results:
+                    items:
+                      properties:
+                        count:
+                          type: integer
+                        mac:
+                          type: string
+                      required:
+                      - count
+                      - mac
+                    minItems: 1
+                    type: array
+                    uniqueItems: true
+                  start:
+                    type: integer
+                  total:
+                    type: integer
+                required:
+                - start
+                - end
+                - limit
+                - distinct
+                - total
+                - results
+                type: object
+          description: OK
+      summary: countOrgByDisctinctAttributesOfSwitchPorts
+      tags:
+      - Orgs Stats
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/stats/tunnels/count:
     get:
       description: Count Org Mx Tunnels
@@ -12006,7 +13074,7 @@ paths:
                 if any of the org to be deleted still has inventory:
                   value:
                     detail: inventory not empty
-                    org_id: 497f6eca-7276-4993-bfeb-53cbbbba6f08
+                    org_id: 424f6eca-7276-4993-bfeb-53cbbbba6f05
               schema:
                 properties:
                   detail:
@@ -12155,7 +13223,7 @@ paths:
                           type: psk
                       id: c6f9347b-b0a4-4a23-b927-fa9249f2ffb2
                       message: Update WLAN "Corporate"
-                      org_id: 497f6eca-6276-4994-bfeb-53cbbbba6f08
+                      org_id: 423f6eca-6276-4994-bfeb-53cbbbba6f04
                       site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
                       timestamp: 1431382121
                     start: 1428939600
@@ -13441,7 +14509,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/clients/search:
     get:
-      description: "Search Wireless Clients\n\n**Note**: fuzzy logic can be used with\
+      description: "Search Wireless Clients\n\n**NOTE**: fuzzy logic can be used with\
         \ \u2018*\u2019, supported filters: mac, hostname, device, os, model. E.g.\
         \ /clients/search?device=Mac*&hostname=jerry"
       operationId: searchSiteClients
@@ -13481,7 +14549,7 @@ paths:
         name: ssid
         schema:
           type: string
-      - description: full MAC address, hostname, username or ip
+      - description: partial / full MAC address, hostname, username or ip
         in: query
         name: text
         schema:
@@ -13928,7 +14996,7 @@ paths:
                           property2: string
                       enable_mac_auth: true
                       forwarding: all
-                      mx_tunnel_id: 497f6eca-6276-4983-bfeb-53cbbbba6f08
+                      mx_tunnel_id: 422f6eca-6276-4983-bfeb-53cbbbba6f03
                       mxtunnel_name: string
                       port_auth: none
                       port_vlan_id: 1
@@ -14693,7 +15761,7 @@ paths:
                   disable_module: false
                   for_site: true
                   height: 0
-                  id: 497f6eca-6276-4993-bfeb-55cbbbba6f08
+                  id: 484f6eca-6276-4993-bfeb-55cbbbba6f08
                   image1_url: string
                   image2_url: string
                   image3_url: string
@@ -15179,7 +16247,7 @@ paths:
               example-2:
                 value:
                   device_ids:
-                  - 497f6eca-6276-4893-bfeb-53cbbbba6f08
+                  - 421f6eca-6276-4893-bfeb-53cbbbba6f02
                   node: node0
             schema:
               properties:
@@ -15274,6 +16342,26 @@ paths:
         name: lldp_mgmt_addr
         schema:
           type: string
+      - description: Channel of band_24
+        in: query
+        name: band_24_channel
+        schema:
+          type: integer
+      - description: Channel of band_5
+        in: query
+        name: band_5_channel
+        schema:
+          type: integer
+      - description: Channel of band_6
+        in: query
+        name: band_6_channel
+        schema:
+          type: integer
+      - description: Port speed of eth0
+        in: query
+        name: eth0_port_speed
+        schema:
+          type: integer
       - description: sort options
         in: query
         name: sort
@@ -15621,7 +16709,7 @@ paths:
                           property2: string
                       enable_mac_auth: true
                       forwarding: all
-                      mx_tunnel_id: 497f6eca-6276-5993-bfeb-53cbbbba6f08
+                      mx_tunnel_id: 420f6eca-6276-5993-bfeb-53cbbbba6f01
                       mxtunnel_name: string
                       port_auth: none
                       port_vlan_id: 1
@@ -15953,6 +17041,52 @@ paths:
       summary: cableTestFromSwitch
       tags:
       - Sites Devices Utilities
+  /api/v1/sites/{site_id}/devices/{device_id}/clear_arp:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: 'Clear the entire ARP cache or a subset if arguments are provided.
+
+
+        *Note*: port_id is optional if neither vlan nor ip is specified'
+      operationId: clearSiteSsrArpCache
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties: {}
+              type: object
+          application/xml:
+            schema:
+              properties:
+                ip:
+                  description: The IP address for which to clear an ARP entry. port_id
+                    must be specified. Both vlan and ip cannot be specified.
+                  type: string
+                port_id:
+                  description: The device interface on which to clear the ARP cache.
+                  type: string
+                vlan:
+                  description: The VLAN on which to clear the ARP cache. port_id must
+                    be specified. Both vlan and ip cannot be specified.
+                  type: integer
+              type: object
+              x-examples:
+                example-1:
+                  ip: 10.1.1.1
+                  port_id: wan
+                  vlan: 1000
+      responses:
+        '200':
+          $ref: '#/components/responses/Session'
+        '400':
+          description: 'port_id must be specified with vlan or ip
+
+            Both vlan and ip cannot be specified'
+      summary: clearSiteSsrArpCache
+      tags:
+      - Sites Devices SSR
   /api/v1/sites/{site_id}/devices/{device_id}/clear_bgp:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -15977,11 +17111,12 @@ paths:
                   minLength: 1
                   type: string
                 type:
-                  default: both
+                  default: hard
                   enum:
-                  - both
                   - in
                   - out
+                  - hard
+                  - soft
                   minLength: 1
                   type: string
                 vrf:
@@ -15998,7 +17133,7 @@ paths:
                   vrf: TestVrf
       responses:
         '200':
-          $ref: '#/components/responses/OK'
+          $ref: '#/components/responses/Session'
         '400':
           description: parameter neighbor absent
       summary: clearSiteSsrBgpRoutes
@@ -16108,33 +17243,76 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Create HA Cluster\n\n### SRX cabling\nsee [Chassis Cluster User\
-        \ Guide for SRX Series Devices](https://www.juniper.net/documentation/us/en/software/junos/chassis-cluster-security-devices/topics/concept/chassis-cluster-srx-series-node-interface-understanding.html)\
-        \ Here\u2019s the recommended cabling.\n\n#### SRX300 / SRX320 \nge-0/0/0\
-        \ becomes OOB/fxp0 after cluster is enabled so we suggest to use ge-0/0/7\
-        \ or LTE module for ZTP connection\n\n1. connect ge-0/0/7 or cl-1/0/0 to reach\
-        \ Mist\n2. connect ge-0/0/1 back-to-back for ha_control\n3. connect ge-0/0/2\
-        \ back-to-back for ha_data (fabric)\n4. connect ge-0/0/3 to WAN (after cluster\
-        \ is up, intended to be used for reth0)\n5. connect ge-0/0/4- to LAN or additional\
-        \ WANs\n\n\n#### SRX340 / SRX345 / SRX380 / VSRX\nSRX340/SRX345 has dedicated\
-        \ OOB/fxp0 ports VSRX has fxp0 as first Network Adapter, then ge-0/0/0-N\n\
-        \n1. connect ge-0/0/0 to WAN to reach Mist\n2. connect ge-0/0/0 to WAN\n3.\
-        \ connect ge-0/0/1 back-to-back for ha_control\n4. connect ge-0/0/2 back-to-back\
-        \ for ha_data (fabric); or for SRX380, xe-0/0/16 if 10G SFP+ is used\n5. connect\
-        \ ge-0/0/3- to LAN or additional WANs\n\n#### SRX550\nge-0/0/0 becomes OOB/fxp0\
-        \ after cluster is enabled, make suenable oob_ip_config as dhcp to maintain\
-        \ cloud connectivity\n\nconnect ge-0/0/0 to reach Mist (after cluster is fully\
-        \ up, this port becomes OOB/fxp0)\nconnect ge-0/0/1 back-to-back for ha_control\n\
-        connect ge-0/0/2 back-to-back for ha_data (fabric)\nconnect ge-0/0/3 to WAN\
-        \ (after cluster is up, intended to be used for reth0)\nconnect ge-0/0/4-\
-        \ to LAN or additional WANs\n\n\n#### SRX1500\nSRX1500 has, additionally,\
-        \ dedicated HA Control port\n\n1. connect dedicated ha_control back-to-back\n\
-        2. connect ge-0/0/0 to WAN to reach mist\n3. connect ge-0/0/1 back-to-back\
-        \ for ha_data\n4. connect ge-0/0/2- to LAN or additional WANs\n\n\n#### SRX4100\n\
-        SRX4100 has dedicated ha_control and ha_data (fabric) ports\n\n1. connect\
-        \ dedicated ha_control back-to-back\n2. connect dedicated ha_data back-to-back\n\
-        3. connect xe-0/0/0 to WAN to reach Mist\n4. connect xe-0/0/1- to LAN or additional\
-        \ WANs"
+      description: "Create HA Cluster\nBoth nodes has to be in the same site. We expect\
+        \ the user to configure ha_sync / ha_data port in port_configs already\n\n\
+        ### SRX cabling\n\nsee [Chassis Cluster User Guide for SRX Series Devices](https://www.juniper.net/documentation/us/en/software/junos/chassis-cluster-security-devices/topics/concept/chassis-cluster-srx-series-node-interface-understanding.html)\
+        \ Here\u2019s the recommended cabling.\n\n#### SRX300\n\nFrom ZTP / default\
+        \ state, ge-0/0/0 and ge-0/0/7 (SFP) are default WAN ports and will get DHCP\
+        \ IP. However, ge-0/0/0 becomes OOB/fxp0 after cluster is enabled (i.e. using\
+        \ it for reach Mist is not recommended)\n\n1.  form cluster in UI\n2.  configure\
+        \ ge-0/0/7,ge-1/0/7 for WAN (reth0)\n3.  configure ge-0/0/2,ge-1/0/2 for ha_data\n\
+        4.  configure ge-0/0/3- for LAN or additional WAN e.g.\n    \n\n``` json\n\
+        {\n    \"port_config\": {\n        \"ge-0/0/2,ge-1/0/2\": {\n            \"\
+        usage\": \"ha_data\"\n        },\n        \"ge-0/0/7,ge-1/0/7\": {\n     \
+        \       \"usage\": \"wan\",\n            \"redundant\": true,\n          \
+        \  \"reth_idx\": 0,\n            \"ip_config\": {\"type\": \"dhcp\"}\n   \
+        \     },\n    }\n}\n\n```\n\n1.  connect ge-0/0/1 back to back for ha_control\n\
+        2.  connect ge-0/0/2 back to back for ha_data\n3.  connect both ge-0/0/7 to\
+        \ uplink switch to WAN and to reach Mist\n4.  power up both devices\n5.  it\
+        \ takes about 30 minutes for the cluster to form\n    \n\n#### SRX320\n\n\
+        From ZTP / default state, ge-0/0/0, ge-0/0/7 (SFP) and cl-1/0/0 (LTE) are\
+        \ default WAN ports and will get DHCP IP. However, ge-0/0/0 becomes OOB/fxp0\
+        \ after cluster is enabled (i.e. using it for reach Mist is not recommended)\n\
+        \n##### ZTP via ge-0/0/7\n\nSimilar to SRX300\n\n##### ZTP via cl-1/0/0 (LTE)\n\
+        \n1.  form cluster in UI\n2.  configure cl-1/0/0, cl-3/0/0 as WAN (reth0)\n\
+        3.  configure ge-0/0/2,ge-3/0/2 for ha_data\n4.  same as above\n    \n\n####\
+        \ SRX340 / SRX345 / SRX380\n\nSRX340/SRX345 has dedicated OOB/fxp0 ports\n\
+        \n1.  form cluster in UI\n2.  configure ge-0/0/0,ge-5/0/0 for WAN (reth0)\n\
+        3.  configure ge-0/0/2,ge-5/0/2 for ha_data\n4.  configure ge-0/0/3- for LAN\
+        \ or additional WAN\n5.  connect ge-0/0/0 to uplink switch to WAN and to reach\
+        \ Mist\n6.  connect ge-0/0/1 back-to-back for ha_control\n7.  connect ge-0/0/2\
+        \ back-to-back for ha_data (fabric); or for SRX380, xe-0/0/16 if 10G SFP+\
+        \ is used\n8.  connect ge-0/0/3- to LAN or additional WANs\n    \n\n#### SRX550\n\
+        \nge-0/0/0 becomes OOB/fxp0 after cluster is enabled, make suenable oob_ip_config\
+        \ as dhcp to maintain cloud connectivity\n\n1.  connect ge-0/0/0 to reach\
+        \ Mist (after cluster is fully up, this port becomes OOB/fxp0)\n2.  connect\
+        \ ge-0/0/1 back-to-back for ha_control\n3.  connect ge-0/0/2 back-to-back\
+        \ for ha_data (fabric)\n4.  connect ge-0/0/3 to WAN (after cluster is up,\
+        \ intended to be used for reth0)\n5.  connect ge-0/0/4- to LAN or additional\
+        \ WANs\n    \n\n#### SRX1500\n\nSRX1500 has, additionally, dedicated HA Control\
+        \ port\n\n1.  form cluster in UI\n2.  configure ge-0/0/0,ge-5/0/0 for WAN\
+        \ (reth0)\n3.  configure ge-0/0/1,ge-5/0/1 for ha_data\n4.  configure ge-0/0/2-\
+        \ for LAN or additional WAN\n5.  connect dedicated ha_control back-to-back\n\
+        6.  connect ge-0/0/0 to uplink switch to WAN and to reach Mist\n7.  connect\
+        \ ge-0/0/1 back-to-back for ha_data\n8.  connect ge-0/0/2- to LAN or additional\
+        \ WANs\n    \n\n#### SRX4100\n\nSRX4100 has dedicated ha_control and ha_data\
+        \ (fabric) ports\n\n1.  connect dedicated ha_control back-to-back\n2.  connect\
+        \ dedicated ha_data back-to-back\n3.  connect xe-0/0/0 to WAN to reach Mist\n\
+        4.  connect xe-0/0/1- to LAN or additional WANs\n    \n\n#### VSRX\n\nWhen\
+        \ standalone, VSRX has fxp0 as first Network Adapter, then ge-0/0/0-N When\
+        \ clustered, VSRX has fxp0, em0, then ge-0/0/0-N\n\n1.  connect net0 (fxp0)\
+        \ to WAN to reach Mist\n2.  connect net1 back-to-back for ha_control\n3. \
+        \ connect net2 (ge-0/0/0) back-to-back for ha_data (fab0/fab1)\n4.  connect\
+        \ net3 (ge-0/0/1) to WAN, intended to be used for reth0\n5.  connect net4\
+        \ (ge-0/0/2) to LAN\n    \n\nSRX340/SRX345 has dedicated OOB/fxp0 ports VSRX\
+        \ has fxp0 as first Network Adapter, then ge-0/0/0-N\n\n1.  connect ge-0/0/0\
+        \ to WAN to reach Mist\n2.  connect ge-0/0/1 back-to-back for ha_control\n\
+        3.  connect ge-0/0/2 back-to-back for ha_data (fabric); or for SRX380, xe-0/0/16\
+        \ if 10G SFP+ is used\n4.  connect ge-0/0/3- to LAN or additional WANs\n \
+        \   \n\n#### SRX550\n\nge-0/0/0 becomes OOB/fxp0 after cluster is enabled,\
+        \ make suenable oob_ip_config as dhcp to maintain cloud connectivity\n\n1.\
+        \  connect ge-0/0/0 to reach Mist (after cluster is fully up, this port becomes\
+        \ OOB/fxp0)\n2.  connect ge-0/0/1 back-to-back for ha_control\n3.  connect\
+        \ ge-0/0/2 back-to-back for ha_data (fabric)\n4.  connect ge-0/0/3 to WAN\
+        \ (after cluster is up, intended to be used for reth0)\n5.  connect ge-0/0/4-\
+        \ to LAN or additional WANs\n    \n\n#### SRX1500\n\nSRX1500 has, additionally,\
+        \ dedicated HA Control port\n\n1.  connect dedicated ha_control back-to-back\n\
+        2.  connect ge-0/0/0 to WAN to reach mist\n3.  connect ge-0/0/1 back-to-back\
+        \ for ha_data\n4.  connect ge-0/0/2- to LAN or additional WANs\n    \n\n####\
+        \ SRX4100\n\nSRX4100 has dedicated ha_control and ha_data (fabric) ports\n\
+        \n1.  connect dedicated ha_control back-to-back\n2.  connect dedicated ha_data\
+        \ back-to-back\n3.  connect xe-0/0/0 to WAN to reach Mist\n4.  connect xe-0/0/1-\
+        \ to LAN or additional WANs"
       operationId: createSiteDeviceHaCluster
       requestBody:
         content:
@@ -18509,10 +19687,13 @@ paths:
                 value:
                 - id: 2f64a022-9422-4fa3-92aa-ff6559a9f7f9
                   name: common123
+                  passphrase: foryoureyesonly2
+                  ssid: warehouse
                 - id: 110c59ae-d7b2-40f9-9bf2-82367370e55a
                   name: common12
                   passphrase: foryoureyesonly1
                   role: teacher
+                  ssid: warehouse
                   usage: single
             schema:
               items:
@@ -18553,7 +19734,7 @@ paths:
                 value:
                 - created_time: 0
                   expire_time: 1614990263
-                  id: 497f6eca-6276-4993-cfeb-53cbbbba6f08
+                  id: 419f6eca-6276-4993-cfeb-53cbbbba6f00
                   mac: string
                   max_usage: 0
                   modified_time: 0
@@ -19473,7 +20654,7 @@ paths:
                     config_revert_timer: 10
                     security_log_source_address: string
                     security_log_source_interface: string
-                  id: 497f6eca-6276-4993-dfeb-53cbbbba6f08
+                  id: 498f6eca-6276-4993-dfeb-53cbbbba6f08
                   led:
                     brightness: 0
                     enabled: true
@@ -19496,7 +20677,7 @@ paths:
                     hello_retries: 7
                     hosts:
                     - string
-                    id: 497f6eca-6276-4993-efeb-53cbbbba6f08
+                    id: 499f6eca-6276-4993-efeb-53cbbbba6f08
                     modified_time: 0
                     mtu: 0
                     org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
@@ -20684,6 +21865,14 @@ paths:
                   - beta
                   - alpha
                   type: string
+                reboot_at:
+                  description: eboot start time in epoch seconds, default is start_time,
+                    -1 disables reboot
+                  type: integer
+                start_time:
+                  description: 128T firmware download start time in epoch seconds,
+                    default is now, -1 disables download
+                  type: integer
                 version:
                   default: stable
                   description: 128T firmware version to upgrade (e.g. 5.3.0-93)
@@ -21022,7 +22211,7 @@ paths:
                     psk_id: 4cb94c10-4e99-46b0-8261-4c71d0b2cb9d
                     rssi: 0
                     rssizones:
-                    - id: 497f6eca-6276-4993-ffeb-53cbbbba6f08
+                    - id: 500f6eca-6276-4993-ffeb-53cbbbba6f08
                       since: 0
                     rx_bps: 0
                     rx_bytes: 0
@@ -21040,7 +22229,7 @@ paths:
                     uptime: 0
                     username: string
                     vbeacons:
-                    - id: 497f6eca-6276-4993-bfeb-63cbbbba6f08
+                    - id: 496f6eca-6276-4993-bfeb-63cbbbba6f08
                       since: 0
                     vlan_id: 0
                     wlan_id: 5028e92b-fc59-4056-91d1-ea4b4ca1617a
@@ -21051,7 +22240,7 @@ paths:
                     x: 0
                     y: 0
                     zones:
-                    - id: 497f6eca-6276-4993-bfeb-73cbbbba6f08
+                    - id: 494f6eca-6276-4993-bfeb-73cbbbba6f08
                       since: 0
               schema:
                 oneOf:
@@ -22917,7 +24106,7 @@ paths:
                       user: 0
                     created_time: 0
                     for_site: true
-                    id: 497f6eca-6276-4993-bfeb-83cbbbba6f08
+                    id: 493f6eca-6276-4993-bfeb-83cbbbba6f08
                     ip_stat:
                       ip: string
                       ips:
@@ -23048,7 +24237,7 @@ paths:
                       user: 0
                     created_time: 0
                     for_site: true
-                    id: 497f6eca-6276-4993-bfeb-93cbbbba6f08
+                    id: 492f6eca-6276-4993-bfeb-93cbbbba6f08
                     ip_stat:
                       ip: string
                       ips:
@@ -23380,7 +24569,7 @@ paths:
   /api/v1/sites/{site_id}/stats/ports/search:
     get:
       description: Search Switch / Gateway Ports
-      operationId: searchSitePorts
+      operationId: searchSiteSwOrGwPorts
       parameters:
       - description: indicates full or half duplex
         in: query
@@ -23621,7 +24810,7 @@ paths:
                 - results
                 type: object
           description: OK
-      summary: searchSiteSwitchPorts
+      summary: searchSiteSwOrGwPorts
       tags:
       - Sites Stats
     parameters:
@@ -24583,7 +25772,7 @@ paths:
                     usePreset: true
                   description: string
                   for_site: true
-                  id: 497f6eca-6276-4993-bfeb-a3cbbbba6f08
+                  id: 491f6eca-6276-4993-bfeb-a3cbbbba6f08
                   isCustomDataboard: true
                   isScopeLinked: true
                   isTimeRangeLinked: true
@@ -24642,7 +25831,7 @@ paths:
                       usePreset: true
                     description: string
                     for_site: true
-                    id: 497f6eca-6276-4993-bfeb-b3cbbbba6f08
+                    id: 490f6eca-6276-4993-bfeb-b3cbbbba6f08
                     isCustomDataboard: true
                     isScopeLinked: true
                     isTimeRangeLinked: true
@@ -26429,7 +27618,7 @@ paths:
                     count: 0
                     event_id: a7a26ff2-e851-45b6-9634-d595f45458b7
                     for_site: true
-                    id: 497f6eca-6276-4993-bfeb-c3cbbbba6f08
+                    id: 489f6eca-6276-4993-bfeb-c3cbbbba6f08
                     last_seen: 0
                     org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
                     site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
@@ -26459,6 +27648,7 @@ paths:
     parameters: []
     post:
       description: 'Webhook sample for `asset_raw` topic
+
 
         **Note**: The server host will be your own server FQDN where the Mist Cloud
         is sending the webhook messages
@@ -26514,7 +27704,7 @@ paths:
                   events:
                   - admin_name: string
                     device_id: 3bafab7b-4400-4bcf-8e6e-09f954699940
-                    id: 497f6eca-6276-4993-bfeb-d3cbbbba6f08
+                    id: 488f6eca-6276-4993-bfeb-d3cbbbba6f08
                     message: string
                     org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
                     site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
@@ -26723,7 +27913,7 @@ paths:
                     ibeacon_major: 0
                     ibeacon_minor: 0
                     ibeacon_uuid: 1f89bc00-d0af-481b-82fe-a6629259a39f
-                    id: 497f6eca-6276-4993-bfeb-e3cbbbba6f08
+                    id: 487f6eca-6276-4993-bfeb-e3cbbbba6f08
                     mac: string
                     map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
                     mfg_company_id: 0
@@ -26800,7 +27990,7 @@ paths:
               example-1:
                 value:
                   events:
-                  - id: 497f6eca-6276-4993-bfeb-f3cbbbba6f08
+                  - id: 487f6eca-6276-4993-bfeb-f3cbbbba6f08
                     name: string
                     site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
                     timestamp: 0
@@ -26882,7 +28072,7 @@ paths:
                 value:
                   events:
                   - asset_id: b4695157-0d1d-4da0-8f9e-5c53149389e4
-                    id: 497f6eca-6276-4993-bfeb-54cbbbba6f08
+                    id: 485f6eca-6276-4993-bfeb-54cbbbba6f08
                     mac: string
                     map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
                     name: string
@@ -27572,7 +28762,7 @@ components:
                   group: string
                   hostnames:
                   - string
-                  id: 497f6eca-6276-4993-bfeb-56cbbbba6f08
+                  id: 483f6eca-6276-4993-bfeb-56cbbbba6f08
                   last_seen: 0
                   note: string
                   org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
@@ -28477,7 +29667,7 @@ components:
                         wxtunnel_remote_id: string
                 created_time: 0
                 for_site: true
-                id: 497f6eca-6276-4993-bfeb-57cbbbba6f08
+                id: 482f6eca-6276-4993-bfeb-57cbbbba6f08
                 modified_time: 0
                 org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
                 site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
@@ -28576,7 +29766,7 @@ components:
                         wxtunnel_remote_id: string
                 created_time: 0
                 for_site: true
-                id: 497f6eca-6276-4993-bfeb-58cbbbba6f08
+                id: 481f6eca-6276-4993-bfeb-58cbbbba6f08
                 modified_time: 0
                 org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
                 site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
@@ -28650,12 +29840,12 @@ components:
                 map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
                 name: string
                 rssizones:
-                - id: 497f6eca-6276-4993-bfeb-59cbbbba6f08
+                - id: 480f6eca-6276-4993-bfeb-59cbbbba6f08
                   since: 0
                 x: 0
                 y: 0
                 zones:
-                - id: 497f6eca-6276-4993-bfeb-5acbbbba6f08
+                - id: 479f6eca-6276-4993-bfeb-5acbbbba6f08
                   since: 0
           schema:
             $ref: '#/components/schemas/stats_asset'
@@ -28716,12 +29906,12 @@ components:
                 map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
                 name: string
                 rssizones:
-                - id: 497f6eca-6276-4993-bfeb-5bcbbbba6f08
+                - id: 478f6eca-6276-4993-bfeb-5bcbbbba6f08
                   since: 0
                 x: 0
                 y: 0
                 zones:
-                - id: 497f6eca-6276-4993-bfeb-5ccbbbba6f08
+                - id: 477f6eca-6276-4993-bfeb-5ccbbbba6f08
                   since: 0
           schema:
             items:
@@ -28750,12 +29940,12 @@ components:
                   map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
                   name: string
                   rssizones:
-                  - id: 497f6eca-6276-4993-bfeb-5dcbbbba6f08
+                  - id: 476f6eca-6276-4993-bfeb-5dcbbbba6f08
                     since: 0
                   x: 0
                   y: 0
                   zones:
-                  - id: 497f6eca-6276-4993-bfeb-5ecbbbba6f08
+                  - id: 475f6eca-6276-4993-bfeb-5ecbbbba6f08
                     since: 0
                 start: 0
                 total: 0
@@ -29254,7 +30444,7 @@ components:
                 disable_module: false
                 for_site: true
                 height: 0
-                id: 497f6eca-6276-4993-bfeb-5fcbbbba6f08
+                id: 474f6eca-6276-4993-bfeb-5fcbbbba6f08
                 image1_url: string
                 image2_url: string
                 image3_url: string
@@ -30006,7 +31196,7 @@ components:
                   total: 0
                 enable_p2p: true
                 force: true
-                id: 497f6eca-6276-4993-bfeb-53cbbbba6f18
+                id: 473f6eca-6276-4993-bfeb-53cbbbba6f18
                 start_time: 0
                 status: created
                 strategy: big_bang
@@ -30030,7 +31220,7 @@ components:
                   total: 0
                 enable_p2p: true
                 force: true
-                id: 497f6eca-6276-4993-bfeb-53cbbbba6f28
+                id: 472f6eca-6276-4993-bfeb-53cbbbba6f28
                 start_time: 0
                 status: created
                 strategy: big_bang
@@ -30253,7 +31443,7 @@ components:
                 disable_module: false
                 for_site: true
                 height: 0
-                id: 497f6eca-6276-4993-bfeb-53cbbbba6f38
+                id: 471f6eca-6276-4993-bfeb-53cbbbba6f38
                 iot_config:
                   A1:
                     enabled: false
@@ -31341,6 +32531,22 @@ components:
               results:
                 items:
                   properties:
+                    band_24_channel:
+                      type: integer
+                    band_24_power:
+                      type: integer
+                    band_5_channel:
+                      type: integer
+                    band_5_power:
+                      type: integer
+                    band_6_channel:
+                      type: integer
+                    band_6_power:
+                      type: integer
+                    eth0_port_speed:
+                      type: integer
+                    ext_ip:
+                      type: string
                     for_site:
                       readOnly: true
                       type: boolean
@@ -31366,6 +32572,12 @@ components:
                       nullable: true
                       readOnly: true
                       type: string
+                    lldp_power_allocated:
+                      nullable: true
+                      type: integer
+                    lldp_power_draw:
+                      nullable: true
+                      type: integer
                     lldp_system_desc:
                       nullable: true
                       readOnly: true
@@ -31435,10 +32647,10 @@ components:
               total:
                 type: integer
             required:
-            - results
-            - start
             - end
             - limit
+            - results
+            - start
             - total
             type: object
       description: OK
@@ -32201,7 +33413,7 @@ components:
           examples:
             example-1:
               value:
-                id: 497f6eca-6276-4993-bfeb-53cbbbba6f48
+                id: 470f6eca-6276-4993-bfeb-53cbbbba6f48
           schema:
             properties:
               id:
@@ -32621,7 +33833,7 @@ components:
                   admin_name: test@mistsys.com
                   id: c6f9347b-b0a4-4a23-b927-fa9249f2ffb2
                   message: TEST AUDIT
-                  org_id: 497f6eca-6276-4993-bfeb-53cbbbba6f58
+                  org_id: 469f6eca-6276-4993-bfeb-53cbbbba6f58
                   site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
                   timestamp: 1431382121
                 start: 1428939600
@@ -33119,7 +34331,7 @@ components:
               value:
                 created_time: 0
                 for_site: true
-                id: 497f6eca-6276-4993-bfeb-53cbbbba6f68
+                id: 468f6eca-6276-4993-bfeb-53cbbbba6f68
                 modified_time: 0
                 name: string
                 org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
@@ -33177,7 +34389,7 @@ components:
               value:
               - created_time: 0
                 for_site: true
-                id: 497f6eca-6276-4993-bfeb-53cbbbba6f78
+                id: 467f6eca-6276-4993-bfeb-53cbbbba6f78
                 modified_time: 0
                 name: string
                 org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
@@ -33769,7 +34981,7 @@ components:
                 apply_tags:
                 - string
                 created_time: 0
-                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                id: 455f6eca-6276-4993-bfeb-53cbbbba6f08
                 matching:
                   auth_type: cert
                   nactags:
@@ -33777,9 +34989,9 @@ components:
                   port_types:
                   - wireless
                   site_ids:
-                  - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  - 454f6eca-6276-4993-bfeb-53cbbbba6f08
                   sitegroup_ids:
-                  - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  - 453f6eca-6276-4993-bfeb-53cbbbba6f08
                 modified_time: 0
                 name: string
                 not_matching:
@@ -33789,9 +35001,9 @@ components:
                   port_types:
                   - wireless
                   site_ids:
-                  - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  - 452f6eca-6276-4993-bfeb-53cbbbba6f08
                   sitegroup_ids:
-                  - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  - 451f6eca-6276-4993-bfeb-53cbbbba6f08
                 order: 0
                 org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
           schema:
@@ -34186,7 +35398,7 @@ components:
               value:
                 enable_p2p: true
                 force: true
-                id: 497f6eca-6276-4993-bfeb-53cbbbba6f88
+                id: 466f6eca-6276-4993-bfeb-53cbbbba6f88
                 start_time: 0
                 status: created
                 strategy: big_bang
@@ -34194,22 +35406,22 @@ components:
                 upgrades:
                 - site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
                   upgrade:
-                    id: 497f6eca-6276-4993-bfeb-53cbbbba6f98
+                    id: 465f6eca-6276-4993-bfeb-53cbbbba6f98
                     start_time: 0
                     status: created
                     targets:
                       download_requested:
-                      - 497f6eca-6276-4993-bfeb-53cbbbba6fa8
+                      - 464f6eca-6276-4993-bfeb-53cbbbba6fa8
                       downloaded:
-                      - 497f6eca-6276-4993-bfeb-53cbbbba6fb8
+                      - 463f6eca-6276-4993-bfeb-53cbbbba6fb8
                       failed:
-                      - 497f6eca-6276-4993-bfeb-53cbbbba6fc8
+                      - 462f6eca-6276-4993-bfeb-53cbbbba6fc8
                       reboot_in_progress:
-                      - 497f6eca-6276-4993-bfeb-53cbbbba6fd8
+                      - 461f6eca-6276-4993-bfeb-53cbbbba6fd8
                       rebooted:
-                      - 497f6eca-6276-4993-bfeb-53cbbbba6fe8
+                      - 460f6eca-6276-4993-bfeb-53cbbbba6fe8
                       skipped:
-                      - 497f6eca-6276-4993-bfeb-53cbbbba6ff8
+                      - 459f6eca-6276-4993-bfeb-53cbbbba6ff8
           schema:
             $ref: '#/components/schemas/org_device_upgrade_response'
       description: OK
@@ -36626,7 +37838,7 @@ components:
                 gateway_mgmt:
                   app_usage: true
                   config_revert_timer: 10
-                id: 497f6ec2-6276-4993-bfeb-53abbbba6f08
+                id: 458f6ec2-6276-4993-bfeb-53abbbba6f08
                 led:
                   brightness: 0
                   enabled: true
@@ -36645,7 +37857,7 @@ components:
                     hello_retries: 7
                     hosts:
                     - string
-                    id: 497f6ec3-6276-4993-bfeb-53cbbbba6f08
+                    id: 457f6ec3-6276-4993-bfeb-53cbbbba6f08
                     modified_time: 0
                     mtu: 0
                     org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
@@ -36677,7 +37889,7 @@ components:
                     hello_retries: 7
                     hosts:
                     - string
-                    id: 497f6ec4-6276-4993-bfeb-53cbbbba6f08
+                    id: 456f6ec4-6276-4993-bfeb-53cbbbba6f08
                     modified_time: 0
                     mtu: 0
                     org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
@@ -42858,7 +44070,7 @@ components:
           disable_module: false
           for_site: true
           height: 0
-          id: 497f6eca-6276-4996-bfeb-53cbbbba6f08
+          id: 450f6eca-6276-4996-bfeb-53cbbbba6f08
           image1_url: string
           image2_url: string
           image3_url: string
@@ -43777,7 +44989,7 @@ components:
             total: 0
           enable_p2p: true
           force: true
-          id: 497f6eca-6276-4997-bfeb-53cbbbba6f08
+          id: 449f6eca-6276-4997-bfeb-53cbbbba6f08
           start_time: 0
           status: created
           strategy: big_bang
@@ -43887,6 +45099,11 @@ components:
           type: string
         switch_config:
           $ref: '#/components/schemas/ap_switch'
+        type:
+          default: ap
+          enum:
+          - ap
+          type: string
         usb_config:
           $ref: '#/components/schemas/ap_usb'
         vars:
@@ -44441,7 +45658,7 @@ components:
                   cost:
                     type: integer
                   gateway_ip:
-                    description: optional, if a different gateway is desired
+                    description: if `type`==`local`, if a different gateway is desired
                     type: string
                   internet_access:
                     default: false
@@ -44450,14 +45667,28 @@ components:
                     type: boolean
                   name:
                     type: string
-                  network:
-                    type: string
-                  target_ips:
-                    description: optional, if destination IP is to be replaced
+                  networks:
+                    description: if `type`==`local`
                     items:
                       type: string
                     type: array
+                  target_ips:
+                    description: if `type`==`local`, if destination IP is to be replaced
+                    items:
+                      type: string
+                    type: array
+                  tunnel_name:
+                    description: if `type`==`tunnel`
+                    type: string
                   type:
+                    enum:
+                    - local
+                    - wan
+                    - vpn
+                    - tunnel
+                    type: string
+                  wan_name:
+                    description: if `type`==`tunnel`
                     type: string
                 type: object
               strategy:
@@ -44512,6 +45743,11 @@ components:
                 type: array
             type: object
           type: array
+        tunnel_configs:
+          additionalProperties:
+            $ref: '#/components/schemas/gatewaytemplate_tunnel_configs'
+          description: Property name is the tunnel name
+          type: object
         type:
           default: standalone
           enum:
@@ -44526,31 +45762,75 @@ components:
       type: object
       x-examples:
         example-1:
+          additional_config_cmds:
+          - string
           bgp_config:
             property1:
               auth_key: string
+              bfd_minimum_interval: 0
+              communities:
+              - id: string
+                local_preference: 0
+                vpn_name: string
               export: string
+              export_policy: string
+              graceful_restart_time: 0
+              hold_time: 90
               import: string
+              import_policy: string
               local_as: 0
+              neighbor_as: 0
               neighbors:
                 property1:
+                  export_policy: string
+                  hold_time: 90
+                  import_policy: string
+                  multihop_ttl: 0
                   neighbor_as: 0
                 property2:
+                  export_policy: string
+                  hold_time: 90
+                  import_policy: string
+                  multihop_ttl: 0
                   neighbor_as: 0
-              remote_as: 0
-              type: string
+              networks:
+              - string
+              type: internal
+              via: string
+              wan_name: string
             property2:
               auth_key: string
+              bfd_minimum_interval: 0
+              communities:
+              - id: string
+                local_preference: 0
+                vpn_name: string
               export: string
+              export_policy: string
+              graceful_restart_time: 0
+              hold_time: 90
               import: string
+              import_policy: string
               local_as: 0
+              neighbor_as: 0
               neighbors:
                 property1:
+                  export_policy: string
+                  hold_time: 90
+                  import_policy: string
+                  multihop_ttl: 0
                   neighbor_as: 0
                 property2:
+                  export_policy: string
+                  hold_time: 90
+                  import_policy: string
+                  multihop_ttl: 0
                   neighbor_as: 0
-              remote_as: 0
-              type: string
+              networks:
+              - string
+              type: internal
+              via: string
+              wan_name: string
           created_time: 0
           dhcpd_config:
             property1:
@@ -44589,6 +45869,11 @@ components:
               servers:
               - 192.168.0.1
               type: local
+          extra_routes:
+            property1:
+              via: 192.168.0.1
+            property2:
+              via: 192.168.0.1
           gateway_matching:
             enable: true
             rules:
@@ -44605,6 +45890,7 @@ components:
                   duplex: auto
                   dynamic_usage: string
                   esilag: true
+                  no_local_overwrite: true
                   poe_disabled: true
                   speed: auto
                   usage: string
@@ -44617,20 +45903,13 @@ components:
                   duplex: auto
                   dynamic_usage: string
                   esilag: true
+                  no_local_overwrite: true
                   poe_disabled: true
                   speed: auto
                   usage: string
               property1: string
               property2: string
-          id: 497f6eca-6276-4993-bfeb-53c0bbba6f08
-          idp_config:
-            enabled: true
-            networks:
-              property1:
-                profile: default
-              property2:
-                profile: default
-            profile: default
+          id: 448f6eca-6276-4993-bfeb-53cbbbba6f08
           ip_configs:
             property1:
               ip: 192.168.0.1
@@ -44643,6 +45922,7 @@ components:
           networks:
             property1:
               created_time: 0
+              disallow_mist_services: false
               gateway: 192.168.70.1
               hosts:
                 property1:
@@ -44651,10 +45931,11 @@ components:
                 property2:
                   external_ips: 172.16.10.32-172.16.10.35
                   ips: 192.168.70.32-192.168.70.35
-              id: 497f6eca-6276-4993-bfeb-53c1bbba6f08
+              id: 447f6eca-6276-4993-bfeb-53cbbbba6f08
               internal_access:
                 enabled: true
               internet_access:
+                create_simple_service_policy: false
                 destination_nat:
                   property1:
                     internal_ip: string
@@ -44686,6 +45967,7 @@ components:
               vlan_id: 0
               vpn_access:
                 property1:
+                  allow_ping: true
                   destination_nat:
                     property1:
                       name: string
@@ -44697,6 +45979,8 @@ components:
                       to: string
                   nat_pool: string
                   routed: true
+                  source_nat:
+                    exteral_ip: string
                   static_nat:
                     property1:
                       name: string
@@ -44704,7 +45988,9 @@ components:
                     property2:
                       name: string
                       to: string
+                  summarized_nat_pool: string
                 property2:
+                  allow_ping: true
                   destination_nat:
                     property1:
                       name: string
@@ -44716,6 +46002,8 @@ components:
                       to: string
                   nat_pool: string
                   routed: true
+                  source_nat:
+                    exteral_ip: string
                   static_nat:
                     property1:
                       name: string
@@ -44723,8 +46011,10 @@ components:
                     property2:
                       name: string
                       to: string
+                  summarized_nat_pool: string
             property2:
               created_time: 0
+              disallow_mist_services: false
               gateway: 192.168.70.1
               hosts:
                 property1:
@@ -44733,10 +46023,11 @@ components:
                 property2:
                   external_ips: 172.16.10.32-172.16.10.35
                   ips: 192.168.70.32-192.168.70.35
-              id: 497f6eca-6276-4993-bfeb-53c2bbba6f08
+              id: 446f6eca-6276-4993-bfeb-53cbbbba6f08
               internal_access:
                 enabled: true
               internet_access:
+                create_simple_service_policy: false
                 destination_nat:
                   property1:
                     internal_ip: string
@@ -44768,6 +46059,7 @@ components:
               vlan_id: 0
               vpn_access:
                 property1:
+                  allow_ping: true
                   destination_nat:
                     property1:
                       name: string
@@ -44779,6 +46071,8 @@ components:
                       to: string
                   nat_pool: string
                   routed: true
+                  source_nat:
+                    exteral_ip: string
                   static_nat:
                     property1:
                       name: string
@@ -44786,7 +46080,9 @@ components:
                     property2:
                       name: string
                       to: string
+                  summarized_nat_pool: string
                 property2:
+                  allow_ping: true
                   destination_nat:
                     property1:
                       name: string
@@ -44798,6 +46094,8 @@ components:
                       to: string
                   nat_pool: string
                   routed: true
+                  source_nat:
+                    exteral_ip: string
                   static_nat:
                     property1:
                       name: string
@@ -44805,25 +46103,60 @@ components:
                     property2:
                       name: string
                       to: string
+                  summarized_nat_pool: string
+          oob_ip_config:
+            additionalProperties:
+              ip: string
+              netmask: string
+              network: string
+              type: dynamic
+            dns:
+            - string
+            dns_suffix:
+            - string
+            gateway: string
+            ip: string
+            netmask: string
+            network: string
+            type: dynamic
           org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
           path_preferences:
             property1:
               paths:
                 cost: 0
+                gateway_ip: string
+                internet_access: false
                 name: string
-                type: string
-              strategy: string
+                networks:
+                - string
+                target_ips:
+                - string
+                tunnel_name: string
+                type: local
+                wan_name: string
+              strategy: ordered
             property2:
               paths:
                 cost: 0
+                gateway_ip: string
+                internet_access: false
                 name: string
-                type: string
-              strategy: string
+                networks:
+                - string
+                target_ips:
+                - string
+                tunnel_name: string
+                type: local
+                wan_name: string
+              strategy: ordered
           port_config:
             property1:
               description: string
-              dsl_vci: 65535
-              dsl_vpi: 0
+              dsl_config:
+                ppoe_auth: none
+                ppoe_password: string
+                ppoe_username: string
+              dsl_type: string
               ip_config:
                 dns:
                 - string
@@ -44847,18 +46180,33 @@ components:
               - string
               pci_address: string
               port_network: string
-              usage: string
+              redundant: true
+              reth_idx: 0
+              reth_node: string
+              traffic_shaping:
+                enabled: true
+                max_tx_kbps: 0
+              usage: lan
               vlan_id: 0
               vpn_paths:
                 property1:
+                  bfd_profile: string
                   role: spoke
                 property2:
+                  bfd_profile: string
                   role: spoke
+              wan_ext_ip: string
+              wan_source_nat:
+                disabled: false
+                nat_pool: 64.2.4.0/30
               wan_type: broadband
             property2:
               description: string
-              dsl_vci: 65535
-              dsl_vpi: 0
+              dsl_config:
+                ppoe_auth: none
+                ppoe_password: string
+                ppoe_username: string
+              dsl_type: string
               ip_config:
                 dns:
                 - string
@@ -44882,38 +46230,126 @@ components:
               - string
               pci_address: string
               port_network: string
-              usage: string
+              redundant: true
+              reth_idx: 0
+              reth_node: string
+              traffic_shaping:
+                enabled: true
+                max_tx_kbps: 0
+              usage: lan
               vlan_id: 0
               vpn_paths:
                 property1:
+                  bfd_profile: string
                   role: spoke
                 property2:
+                  bfd_profile: string
                   role: spoke
+              wan_ext_ip: string
+              wan_source_nat:
+                disabled: false
+                nat_pool: 64.2.4.0/30
               wan_type: broadband
           routing_policies:
             property1:
               terms:
-              - as_path: string
-                community: string
-                network: string
-                prefix: string
-                protocol: string
-                then: string
+              - action:
+                  accept: true
+                  community:
+                  - '65003:10'
+                  exclude_as_path:
+                  - '65002'
+                  export_communitites:
+                  - string
+                  local_preference: string
+                  prepend_as_path:
+                  - '65003'
+                matching:
+                  as_path:
+                  - '65001'
+                  community:
+                  - '65001:2'
+                  network:
+                  - string
+                  prefix:
+                  - 192.168.0.0/16-30
+                  protocol:
+                  - direct
+                  route_exists:
+                    route: 192.168.0.0/24
+                    vrf_name: default
             property2:
               terms:
-              - as_path: string
-                community: string
-                network: string
-                prefix: string
-                protocol: string
-                then: string
+              - action:
+                  accept: true
+                  community:
+                  - '65003:10'
+                  exclude_as_path:
+                  - '65002'
+                  export_communitites:
+                  - string
+                  local_preference: string
+                  prepend_as_path:
+                  - '65003'
+                matching:
+                  as_path:
+                  - '65001'
+                  community:
+                  - '65001:2'
+                  network:
+                  - string
+                  prefix:
+                  - 192.168.0.0/16-30
+                  protocol:
+                  - direct
+                  route_exists:
+                    route: 192.168.0.0/24
+                    vrf_name: default
           service_policies:
+          - action: allow
+            idp:
+              alert_only: string
+              enabled: false
+              profile: strict
+            local_routing: false
             name: string
             path_preferences: string
             services:
             - string
             tenants:
             - string
+          tunnel_configs:
+            property1:
+              additionalProperties:
+                ip: string
+                netmask: string
+                network: string
+                type: dynamic
+              dns:
+              - string
+              dns_suffix:
+              - string
+              gateway: string
+              ip: string
+              netmask: string
+              network: string
+              type: dynamic
+            property2:
+              additionalProperties:
+                ip: string
+                netmask: string
+                network: string
+                type: dynamic
+              dns:
+              - string
+              dns_suffix:
+              - string
+              gateway: string
+              ip: string
+              netmask: string
+              network: string
+              type: dynamic
+          type: standalone
           urlfilter_config:
             blocked_categories:
             - '[ "adult", "gaming", "violance" ]'
@@ -44924,6 +46360,244 @@ components:
               property2:
                 profile: default
             profile: default
+    gatewaytemplate_tunnel_configs:
+      description: ''
+      properties:
+        ike_lifetime:
+          description: if `provider`== `custom`
+          type: integer
+        ike_proposals:
+          description: if `provider`== `custom`
+          items:
+            properties:
+              auth_algo:
+                enum:
+                - sha1
+                - sha2
+                - md5
+                type: string
+              dh_group:
+                default: '14'
+                description: "* 1 \n* 2 (1024-bit) \n* 5\n* 14 (default, 2048-bit)\n\
+                  * 15 (3072-bit) \n* 16 (4096-bit)\n* 19 (256-bit ECP)\n* 20 (384-bit\
+                  \ ECP)\n* 21 (521-bit ECP) \n* 24 (2048-bit ECP)"
+                enum:
+                - '1'
+                - '2'
+                - '5'
+                - '14'
+                - '15'
+                - '16'
+                - '19'
+                - '20'
+                - '21'
+                - '24'
+                type: string
+              enc_algo:
+                default: aes256
+                enum:
+                - aes256
+                - 3des
+                - aes128
+                - aes_gcm256
+                - 'null'
+                type: string
+            type: object
+          type: array
+        ipsec_lifetime:
+          description: if `provider`== `custom`
+          type: integer
+        ipsec_proposals:
+          description: if `provider`== `custom`
+          items:
+            properties:
+              auth_algo:
+                enum:
+                - sha1
+                - sha2
+                - md5
+                type: string
+              dh_group:
+                default: '14'
+                description: "* 1 \n* 2 (1024-bit) \n* 5\n* 14 (default, 2048-bit)\
+                  \ \n* 15 (3072-bit) \n* 16 (4096-bit)\n* 19 (256-bit ECP)\n* 20\
+                  \ (384-bit ECP)\n* 21 (521-bit ECP) \n* 24 (2048-bit ECP)"
+                enum:
+                - '1'
+                - '2'
+                - '5'
+                - '14'
+                - '15'
+                - '16'
+                - '19'
+                - '20'
+                - '21'
+                - '24'
+                type: string
+              enc_algo:
+                default: aes256
+                enum:
+                - aes256
+                - 3des
+                - aes128
+                - aes_gcm256
+                - 'null'
+                type: string
+            type: object
+          type: array
+        local_id:
+          description: if `provider`== `zscaler-ipsec` or `provider`== `custom`
+          type: string
+        primary:
+          properties:
+            hosts:
+              description: if `provider`== `zscaler-ipsec` or `provider`== `custom`
+              items:
+                description: IP Address of the remote host
+                type: string
+              type: array
+            intern_ips:
+              description: if `provider`== `zscaler-gre`
+              items:
+                type: string
+              type: array
+            ips:
+              description: if `provider`== `zscaler-gre`
+              items:
+                description: IP Address of the remote host
+                type: string
+              type: array
+            probe_ips:
+              description: if `provider`== `zscaler-gre`
+              items:
+                type: string
+              type: array
+          type: object
+        probe:
+          description: if `provider`== `custom`
+          properties:
+            interval:
+              description: how often to trigger the probe
+              type: integer
+            threshold:
+              description: number of consecutive misses before declaring the tunnel
+                down
+              type: integer
+            timeout:
+              description: time within which to complete the connectivity check
+              type: integer
+            type:
+              default: icmp
+              enum:
+              - icmp
+              - http
+              type: string
+          type: object
+        protocol:
+          description: if `provider`== `custom`
+          enum:
+          - ipsec
+          type: string
+        provider:
+          enum:
+          - zscaler-ipsec
+          - zscaler-gre
+          - amazon
+          - custom
+          type: string
+        psk:
+          description: if `provider`== `zscaler-ipsec` or `provider`== `custom`
+          type: string
+        secondary:
+          properties:
+            hosts:
+              description: if `provider`== `zscaler-ipsec` or `provider`== `custom`
+              items:
+                description: IP Address of the remote host
+                type: string
+              type: array
+            intern_ips:
+              description: if `provider`== `zscaler-gre`
+              items:
+                type: string
+              type: array
+            ips:
+              description: if `provider`== `zscaler-gre`
+              items:
+                description: IP Address of the remote host
+                type: string
+              type: array
+            probe_ips:
+              description: if `provider`== `zscaler-gre`
+              items:
+                type: string
+              type: array
+          type: object
+        version:
+          default: '2'
+          description: if `provider`== `custom`
+          enum:
+          - '1'
+          - '2'
+          type: string
+      title: gatewaytemplate_tunnel_configs
+      type: object
+      x-examples:
+        custom:
+          ike_lifetime: 3600
+          ike_proposals:
+          - auth_algo: sha2
+            dh_group: '2'
+            enc_algo: aes256
+          ipsec_lifetime: 1800
+          ipsec_proposals:
+          - auth_algo: sha2
+            dh_group: '2'
+            enc_algo: aes256
+          local_id: '{{ SITE_LOCAL_ID }}'
+          primary:
+            hosts:
+            - 63.1.5.3
+          probe:
+            interval: 120
+            threshold: 3
+            timeout: 20
+            type: icmp
+          protocol: ipsec
+          provider: custom
+          psk: '{{ SITE_PRESHARED_KEY }}'
+          secondary:
+            hosts:
+            - 63.1.5.3
+          version: '2'
+        zscaler-gre:
+          primary:
+            intern_ips:
+            - 172.18.58.121
+            ips:
+            - 216.66.5.49
+            probe_ips:
+            - 172.18.58.122
+          provider: zscaler-gre
+          secondary:
+            intern_ips:
+            - 172.18.58.125
+            ips:
+            - 199.168.149.179
+            probe_ips:
+            - 172.18.58.126
+        zscaler-ipsec:
+          local_id: '{{ SITE_LOCAL_ID }}'
+          primary:
+            hosts:
+            - 63.1.5.3
+          provider: zscaler-ipsec
+          psk: '{{ SITE_PRESHARED_KEY }}'
+          secondary:
+            hosts:
+            - 63.1.5.3
+      x-stoplight:
+        id: he1v15qwk4t9y
     guest:
       description: Guest
       properties:
@@ -45040,6 +46714,16 @@ components:
       properties:
         auth_key:
           type: string
+        bfd_minimum_interval:
+          default: 0
+          description: 'default:
+
+            * 1000 if `type`==`external``
+
+            * 350  `type`==`internal`'
+          maximum: 255000
+          minimum: 0
+          type: integer
         communities:
           items:
             properties:
@@ -45056,6 +46740,17 @@ components:
         export_policy:
           description: default export policies if no per-neighbor policies defined
           type: string
+        graceful_restart_time:
+          default: 0
+          description: '`0` means disable'
+          maximum: 4095
+          minimum: 0
+          type: integer
+        hold_time:
+          default: 90
+          maximum: 65535
+          minimum: 0
+          type: integer
         import:
           type: string
         import_policy:
@@ -45070,6 +46765,11 @@ components:
             properties:
               export_policy:
                 type: string
+              hold_time:
+                default: 90
+                maximum: 65535
+                minimum: 0
+                type: integer
               import_policy:
                 type: string
               multihop_ttl:
@@ -45105,12 +46805,15 @@ components:
       x-examples:
         example-1:
           auth_key: string
+          bfd_minimum_interval: 0
           communities:
           - id: string
             local_preference: 0
             vpn_name: string
           export: string
           export_policy: string
+          graceful_restart_time: 0
+          hold_time: 90
           import: string
           import_policy: string
           local_as: 0
@@ -45118,15 +46821,21 @@ components:
           neighbors:
             property1:
               export_policy: string
+              hold_time: 90
               import_policy: string
+              multihop_ttl: 0
               neighbor_as: 0
             property2:
               export_policy: string
+              hold_time: 90
               import_policy: string
+              multihop_ttl: 0
               neighbor_as: 0
           networks:
           - string
           type: internal
+          via: string
+          wan_name: string
     junos_dhcp_snooping:
       description: ''
       properties:
@@ -45189,6 +46898,21 @@ components:
           ip_start:
             description: if `type`==`local`
             type: string
+          options:
+            additionalProperties:
+              properties:
+                type:
+                  enum:
+                  - string
+                  - boolean
+                  - ip
+                  - hex
+                  type: string
+                value:
+                  type: string
+              type: object
+            description: Property key is the DHCP option number
+            type: object
           servers:
             description: if `type`==`relay`
             items:
@@ -45201,6 +46925,25 @@ components:
             - local
             - relay
             type: string
+          vendor_encapulated:
+            additionalProperties:
+              properties:
+                type:
+                  enum:
+                  - string
+                  - boolean
+                  - ip
+                  - hex
+                  type: string
+                value:
+                  type: string
+              type: object
+            description: 'Property key is <enterprise number>:<sub option code>, with
+
+              * enterprise number: 1-65535  (https://www.iana.org/assignments/enterprise-numbers/enterprise-numbers)
+
+              * sub option code: 1-255, sub-option code'
+            type: object
         type: object
       description: if DHCP Server/Relay is intended. The property name is the network
         name
@@ -45288,6 +47031,13 @@ components:
     junos_evpn_options:
       description: EVPN Options
       properties:
+        core_as_border:
+          default: false
+          description: 'optional, for ERB or CLOS, you can either use esilag to upstream
+            routers or to also be the virtual-gateway
+
+            when `routed_at` != `core`, whether to do virtual-gateway at core as well'
+          type: boolean
         overlay:
           properties:
             as:
@@ -45345,6 +47095,15 @@ components:
               mac:
                 minLength: 1
                 type: string
+              pod:
+                default: 1
+                description: "optionally, for distribution / access / esilag-access,\
+                  \ they can be placed into different pods.\ne.g. \n* for CLOS, to\
+                  \ group dist / access switches into pods\n* for ERB/CRB, to group\
+                  \ dist / esilag-access into pods"
+                maximum: 255
+                minimum: 1
+                type: integer
               role:
                 description: use `role`==`none` to remove a switch from the topology
                 enum:
@@ -45623,6 +47382,14 @@ components:
                 - md5
                 - password
                 type: string
+              dead_interval:
+                maximum: 65535
+                minimum: 1
+                type: integer
+              hello_interval:
+                maximum: 255
+                minimum: 1
+                type: integer
               interface_type:
                 default: nbma
                 description: interface type (nbma = non-broadcast multi-access)
@@ -45836,6 +47603,15 @@ components:
         reth_node:
           description: if HA mode
           type: string
+        traffic_shaping:
+          description: optionally, for WAN port, traffic_shaping can be performed
+          properties:
+            enabled:
+              type: boolean
+            max_tx_kbps:
+              description: Throughput, in Kbps
+              type: integer
+          type: object
         usage:
           description: port usage name
           enum:
@@ -46224,12 +48000,14 @@ components:
                   community:
                     description: when used as export policy, optional
                     items:
+                      example: '65003:10'
                       type: string
                     type: array
                   exclude_as_path:
                     description: 'when used as export policy, optional. To exclude
                       certain AS '
                     items:
+                      example: '65002'
                       type: string
                     type: array
                   export_communitites:
@@ -46244,6 +48022,7 @@ components:
                     description: when used as export policy, optional. By default,
                       the local AS will be prepended, to change it
                     items:
+                      example: '65003'
                       type: string
                     type: array
                 type: object
@@ -46253,38 +48032,44 @@ components:
                 properties:
                   as_path:
                     description: takes regular expression
-                    oneOf:
-                    - type: string
-                    - items:
-                        type: string
-                      type: array
+                    items:
+                      example: '65001'
+                      type: string
+                    type: array
                   community:
-                    oneOf:
-                    - type: string
-                    - items:
-                        type: string
-                      type: array
+                    items:
+                      example: '65001:2'
+                      type: string
+                    type: array
                   network:
-                    oneOf:
-                    - type: string
-                    - items:
-                        type: string
-                      type: array
+                    items:
+                      type: string
+                    type: array
                   prefix:
                     description: zero or more criteria/filter can be specified to
                       match the term, all criteria have to be met
-                    oneOf:
-                    - type: string
-                    - items:
-                        type: string
-                      type: array
+                    items:
+                      example: 192.168.0.0/16-30
+                      type: string
+                    type: array
                   protocol:
                     description: '`direct`, `bgp`, `osp`, ...'
-                    oneOf:
-                    - type: string
-                    - items:
+                    items:
+                      example: direct
+                      type: string
+                    type: array
+                  route_exists:
+                    properties:
+                      route:
+                        example: 192.168.0.0/24
                         type: string
-                      type: array
+                      vrf_name:
+                        default: default
+                        description: 'name of the vrf instance
+
+                          it can also be the name of the VPN or wan if they'
+                        type: string
+                    type: object
                 type: object
             type: object
           type: array
@@ -46292,14 +48077,32 @@ components:
       type: object
       x-examples:
         example-1:
-          value:
-            terms:
-            - as_path: string
-              community: string
-              prefix: string
-              prefix_match: string
-              protocol: string
-              then: string
+          terms:
+          - action:
+              accept: true
+              community:
+              - '65003:10'
+              exclude_as_path:
+              - '65002'
+              export_communitites:
+              - string
+              local_preference: string
+              prepend_as_path:
+              - '65003'
+            matching:
+              as_path:
+              - '65001'
+              community:
+              - '65001:2'
+              network:
+              - string
+              prefix:
+              - 192.168.0.0/16-30
+              protocol:
+              - direct
+              route_exists:
+                route: 192.168.0.0/24
+                vrf_name: default
     junos_storm_control:
       description: Switch storm control
       properties:
@@ -47183,7 +48986,7 @@ components:
           value:
             created_time: 0
             for_site: true
-            id: 497f6eca-6276-4993-bfeb-53c3bbba6f08
+            id: 445f6eca-6276-4993-bfeb-53c3bbba6f08
             modified_time: 0
             name: string
             org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
@@ -47492,7 +49295,7 @@ components:
           value:
             created_time: 0
             for_site: true
-            id: 497f6eca-6276-4993-bfeb-53c4bbba6f08
+            id: 444f6eca-6276-4993-bfeb-53c4bbba6f08
             magic: string
             model: string
             modified_time: 0
@@ -47752,7 +49555,26 @@ components:
       description: MxTunnel
       properties:
         auto_preemption:
-          $ref: '#/components/schemas/auto_preemption'
+          properties:
+            day_of_week:
+              enum:
+              - any
+              - mon
+              - tue
+              - wed
+              - thu
+              - fri
+              - sat
+              - sun
+              type: string
+            enabled:
+              description: whether auto preemption should happen
+              type: boolean
+            time_of_day:
+              description: any / HH:MM (24-hour format). Preemption will happen within
+                15 mins of this time
+              type: string
+          type: object
         created_time:
           readOnly: true
           type: number
@@ -47982,6 +49804,8 @@ components:
           - cert_san
           - realm
           - user_name
+          - ssid
+          - client_mac
           minLength: 1
           type: string
         modified_time:
@@ -48018,6 +49842,13 @@ components:
       title: ''
       type: object
       x-examples:
+        client_mac:
+          match: client_mac
+          name: cameras
+          type: match
+          values:
+          - '010203040506'
+          - abcdef*
         matches_cert_cn:
           match: cert_cn
           name: staff
@@ -48243,7 +50074,7 @@ components:
               property2:
                 external_ips: 172.16.10.32-172.16.10.35
                 ips: 192.168.70.32-192.168.70.35
-            id: 497f6eca-6276-4993-bfeb-53c5bbba6f08
+            id: 443f6eca-6276-4993-bfeb-53c5bbba6f08
             internal_access:
               enabled: true
             internet_access:
@@ -48658,7 +50489,7 @@ components:
         example-1:
           enable_p2p: true
           force: true
-          id: 497f6eca-6276-4993-bfeb-53c6bbba6f08
+          id: 442f6eca-6276-4993-bfeb-53c6bbba6f08
           start_time: 0
           status: created
           strategy: big_bang
@@ -48666,22 +50497,22 @@ components:
           upgrades:
           - site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
             upgrade:
-              id: 497f6eca-6276-4993-bfeb-53c7bbba6f08
+              id: 441f6eca-6276-4993-bfeb-53c7bbba6f08
               start_time: 0
               status: created
               targets:
                 download_requested:
-                - 497f6eca-6276-4993-bfeb-53c8bbba6f08
+                - 440f6eca-6276-4993-bfeb-53c8bbba6f08
                 downloaded:
-                - 497f6eca-6276-4993-bfeb-53c9bbba6f08
+                - 439f6eca-6276-4993-bfeb-53c9bbba6f08
                 failed:
-                - 497f6eca-6276-4993-bfeb-53cabbba6f08
+                - 438f6eca-6276-4993-bfeb-53cabbba6f08
                 reboot_in_progress:
-                - 497f6eca-6276-4993-bfeb-53ccbbba6f08
+                - 437f6eca-6276-4993-bfeb-53ccbbba6f08
                 rebooted:
-                - 497f6eca-6276-4993-bfeb-53cebbba6f08
+                - 436f6eca-6276-4993-bfeb-53cebbba6f08
                 skipped:
-                - 497f6eca-6276-4993-bfeb-53cfbbba6f08
+                - 435f6eca-6276-4993-bfeb-53cfbbba6f08
     org_info:
       description: ''
       properties:
@@ -48697,6 +50528,10 @@ components:
           format: uuid
           readOnly: true
           type: string
+        logo_url:
+          description: logo uploaded by the MSP with advanced tier, only present if
+            provided
+          type: string
         modified_time:
           readOnly: true
           type: number
@@ -48704,6 +50539,7 @@ components:
           format: uuid
           type: string
         msp_name:
+          description: name of the msp the org belongs to
           type: string
         name:
           type: string
@@ -48715,8 +50551,8 @@ components:
         session_expiry:
           type: number
       required:
-      - name
       - id
+      - name
       type: object
       x-examples:
         example-1:
@@ -48808,6 +50644,19 @@ components:
         for_site:
           readOnly: true
           type: boolean
+        gateway_mgmt:
+          properties:
+            app_probing:
+              properties:
+                apps:
+                  description: app-keys from /api/v1/const/applications
+                  items:
+                    type: string
+                  type: array
+              type: object
+            app_usage:
+              type: boolean
+          type: object
         id:
           format: uuid
           readOnly: true
@@ -48825,6 +50674,13 @@ components:
               type: array
             grace_period:
               type: number
+          type: object
+        juniper:
+          properties:
+            customer_name:
+              type: string
+            linked:
+              type: boolean
           type: object
         mgmt:
           description: management-related properties
@@ -49808,12 +51664,19 @@ components:
         created_time:
           readOnly: true
           type: number
+        email:
+          description: email to send psk expiring notifications to
+          type: string
         expire_time:
           default: null
           description: Expire time for this PSK key (epoch time in seconds). Default
             `null` (as no expiration)
           example: 1614990263
           nullable: true
+          type: integer
+        expiry_notification_time:
+          description: Number of days before psk is expired. Used as to when to start
+            sending reminder notification when the psk is about to expire
           type: integer
         id:
           format: uuid
@@ -49835,6 +51698,15 @@ components:
           type: string
         note:
           type: string
+        notify_expiry:
+          default: false
+          description: If set to true, reminder notification will be sent when psk
+            is about to expire
+          type: boolean
+        notify_on_create_or_edit:
+          description: If set to true, notification will be sent when psk is created
+            or edited
+          type: boolean
         org_id:
           format: uuid
           readOnly: true
@@ -49860,6 +51732,10 @@ components:
         vlan_id:
           description: VLAN for this PSK key
           type: integer
+      required:
+      - name
+      - passphrase
+      - ssid
       type: object
       x-examples:
         example-1:
@@ -49893,6 +51769,10 @@ components:
         expire_time:
           description: unit min
           type: integer
+        expiry_notification_time:
+          description: Number of days before psk is expired. Used as to when to start
+            sending reminder notification when the psk is about to expire
+          type: integer
         id:
           readOnly: true
           type: string
@@ -49905,6 +51785,10 @@ components:
           type: integer
         name:
           type: string
+        notify_expiry:
+          description: If set to true, reminder notification will be sent when psk
+            is about to expire
+          type: boolean
         org_id:
           readOnly: true
           type: string
@@ -52412,7 +54296,7 @@ components:
             config_revert_timer: 10
             security_log_source_address: string
             security_log_source_interface: string
-          id: 497f6eca-6276-4993-bfeb-53cb1bba6f08
+          id: 434f6eca-6276-4993-bfeb-53cb1bba6f08
           led:
             brightness: 0
             enabled: true
@@ -52435,7 +54319,7 @@ components:
             hello_retries: 7
             hosts:
             - string
-            id: 497f6eca-6276-4993-bfeb-53cb2bba6f08
+            id: 433f6eca-6276-4993-bfeb-53cb2bba6f08
             modified_time: 0
             mtu: 0
             org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
@@ -52882,7 +54766,17 @@ components:
         protect_re:
           description: restrict inbound-traffic to host  (draft)
           properties:
+            allowed_services:
+              description: optionally, services we'll allow
+              items:
+                example: '["snmp", "icmp"]'
+                type: string
+              type: array
             enabled:
+              description: 'when enabled, all traffic that is not essential to our
+                operation will be dropped
+
+                e.g. ntp / dns / traffic to mist will be allowed by default'
               type: boolean
             trusted_hosts:
               description: when `enabled`==`true`, all traffic that is not essential
@@ -52989,6 +54883,9 @@ components:
             Remote Mesh AP would have to do CAC when scanning for new Base AP, which
             is slow and will distrupt the connection. If roaming is desired, keep
             it disabled.
+          type: boolean
+        mesh_enable_crm:
+          description: used to enable/disable CRM
           type: boolean
         mesh_enabled:
           default: false
@@ -59725,7 +61622,7 @@ components:
               count: 0
               event_id: a7a26ff2-e851-45b6-9634-d595f45458b7
               for_site: true
-              id: 497f6eca-6276-4993-bfeb-53cb3bba6f08
+              id: 432f6eca-6276-4993-bfeb-53cb3bba6f08
               last_seen: 0
               org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
               site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
@@ -60930,6 +62827,10 @@ components:
           default: false
           description: only applicable when limit_bcast==true, which allows mDNS /
             Bonjour packets to go through
+          type: boolean
+        allow_ssdp:
+          default: false
+          description: only applicable when `limit_bcast`==`tru`e, which allows SSDP
           type: boolean
         ap_ids:
           description: list of device ids
@@ -63452,6 +65353,7 @@ x-tagGroups:
   - Orgs Clients
   - Orgs CRL
   - Orgs Devices
+  - Orgs Devices EVPN
   - Orgs Devices SSR
   - Orgs Device Profiles
   - Orgs Gateway Templates
