@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.25.2**
+  description: '> Version: **0.26.0**
 
     >
 
-    > Date: **June 10th, 2022**
+    > Date: **June 24th, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.25.2
+  version: 0.26.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -182,6 +182,7 @@ tags:
 - name: Sites Devices HA
 - name: Sites Devices Virtual Chassis
 - name: Sites Devices SSR
+- name: Sites Devices Stats
 - name: Sites Devices Utilities
 - name: Sites Events
 - name: Sites Guests
@@ -11379,7 +11380,7 @@ paths:
           description: OK
       summary: searchOrgSwOrGwPorts
       tags:
-      - Orgs Stats
+      - Sites Devices Stats
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/stats/switch_ports/count:
@@ -19687,7 +19688,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     post:
       description: Initiate a Packet Capture
-      operationId: startSiteRadiotapPacketCapture
+      operationId: startSitePacketCapture
       requestBody:
         content:
           application/json:
@@ -19714,6 +19715,30 @@ paths:
                   max_pkt_len: 68
                   num_packets: 100
                   type: wlan
+              SSR Packet Capture:
+                value:
+                  duration: 600
+                  format: stream
+                  gateways:
+                    '001122334455':
+                      ports:
+                        ge-0/0/0:
+                          tcpdump_expression: tcp
+                        ge-0/0/1:
+                          tcpdump_expression: port 443
+                        ge-1/0/0:
+                          tcpdump_expression: tcp
+                        ge-1/0/1:
+                          tcpdump_expression: port 443
+                    '001122334466':
+                      ports:
+                        ge-0/0/0:
+                          tcpdump_expression: udp
+                        ge-0/0/1:
+                          tcpdump_expression: port 32768
+                  max_pkt_len: 1500
+                  num_packets: 100
+                  type: gateway
               Wired Packet Capture:
                 value:
                   duration: 600
@@ -19733,7 +19758,7 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/PcapStart'
-      summary: startSiteRadiotapPacketCapture
+      summary: startSitePacketCapture
       tags:
       - Sites Pcaps
   /api/v1/sites/{site_id}/psks:
@@ -22935,7 +22960,7 @@ paths:
           description: OK
       summary: getSiteDevicesStats
       tags:
-      - Sites Stats
+      - Sites Devices Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/devices/{device_id}:
@@ -23329,7 +23354,7 @@ paths:
           description: OK
       summary: getSiteDeviceStats
       tags:
-      - Sites Stats
+      - Sites Devices Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
@@ -23407,7 +23432,7 @@ paths:
           description: OK
       summary: getSiteAllClientsStatsByDevice
       tags:
-      - Sites Stats
+      - Sites Devices Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
@@ -23998,6 +24023,56 @@ paths:
       - Sites Assets
     parameters:
     - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/stats/gateways/metrics:
+    get:
+      description: Get Site Gateway Metrics
+      operationId: getSiteGatwayMetrics
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    config_success: 99.9
+                    version_compliance:
+                      major_version: 19.4R2-S1.2
+                      score: 99.9
+                      type: gateway
+              schema:
+                properties:
+                  config_success:
+                    description: config success score
+                    example: 99.9
+                    type: number
+                  version_compliance:
+                    description: version compliance score, major version for gateway,
+                      type
+                    properties:
+                      major_version:
+                        example: 19.4R2-S1.2
+                        type: string
+                      score:
+                        example: 99.9
+                        type: number
+                      type:
+                        example: gateway
+                        type: string
+                    type: object
+                type: object
+                x-examples:
+                  example-1:
+                    config_success: 100
+                    version_compliance:
+                      major_version: 19.4R2-S1.2
+                      score: 100
+                      type: gateway
+          description: OK
+      summary: getSiteGatwayMetrics
+      tags:
+      - Sites Stats
+    parameters:
+    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/maps/{map_id}/clients:
     get:
       description: Get Site Clients Stats By Map
@@ -24310,7 +24385,7 @@ paths:
           description: OK
       summary: getSiteMxEdgesStats
       tags:
-      - Sites Stats
+      - Sites Devices Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/mxedges/{mxedge_id}:
@@ -24439,7 +24514,7 @@ paths:
           description: OK
       summary: getSiteMxEdgeStats
       tags:
-      - Sites Stats
+      - Sites Devices Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/mxedge_id'
@@ -24671,7 +24746,7 @@ paths:
           description: OK
       summary: countSiteByDisctinctAttributesOfSwitchPorts
       tags:
-      - Sites Stats
+      - Sites Devices Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/ports/search:
@@ -24920,7 +24995,7 @@ paths:
           description: OK
       summary: searchSiteSwOrGwPorts
       tags:
-      - Sites Stats
+      - Sites Devices Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/sdkclients/{sdkclient_id}:
@@ -25189,7 +25264,7 @@ paths:
           description: OK
       summary: countSiteByDisctinctAttributesOfSwitchPorts
       tags:
-      - Sites Stats
+      - Sites Devices Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/switch_ports/search:
@@ -25418,7 +25493,7 @@ paths:
           description: OK
       summary: searchSiteSwitchPorts
       tags:
-      - Sites Stats
+      - Sites Devices Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/wxrules:
@@ -36327,25 +36402,39 @@ components:
                 nullable: true
                 type: string
               aps:
+                description: List of target APs to capture packets
                 items:
                   type: string
                 type: array
               client_mac:
+                example: 60a10a773412
                 nullable: true
                 type: string
               duration:
+                example: 300
                 type: integer
               failed:
+                description: List of APs where configuration attempt failed
+                items:
+                  type: string
+                type: array
+              gateways:
+                description: List of target Gateways to capture packets if a gateway
+                  capture type is specified
                 items:
                   type: string
                 type: array
               includes_mcast:
                 type: boolean
               max_pkt_len:
+                example: 128
                 type: integer
               num_packets:
+                example: 1000
                 type: integer
               ok:
+                description: List of target APs successfully configured to capture
+                  packets
                 items:
                   type: string
                 type: array
@@ -36353,8 +36442,17 @@ components:
                 nullable: true
                 type: string
               started_time:
+                example: 1435080709
                 type: integer
               type:
+                enum:
+                - new_assoc
+                - client
+                - wired
+                - wireless
+                - radiotap
+                - gateway
+                example: client
                 type: string
             required:
             - type
@@ -43633,9 +43731,8 @@ components:
           max_pkt_len:
             type: integer
           num_packets:
-            default: 1024
-            description: number of packets to capture, 0 for unlimited, default is
-              100 for new association
+            default: 100
+            description: number of packets to capture, 0 for unlimited
             type: integer
           ssid:
             description: optional filter by ssid
@@ -43666,14 +43763,12 @@ components:
             type: string
           max_pkt_len:
             default: 128
-            description: max_len of each packet to capture, default is 128, maximum
-              is 2048
+            description: max_len of each packet to capture
             maximum: 2048
             type: integer
           num_packets:
             default: 1024
-            description: number of packets to capture, 0 for unlimited, default is
-              1024 for wired-capture
+            description: number of packets to capture, 0 for unlimited
             type: integer
           tcpdump_expression:
             description: tcpdump expression
@@ -43715,8 +43810,7 @@ components:
             type: integer
           num_packets:
             default: 1024
-            description: number of packets to capture, 0 for unlimited, default is
-              1024 for wlan-capture
+            description: number of packets to capture, 0 for unlimited
             type: integer
           type:
             default: wlan
@@ -43754,20 +43848,70 @@ components:
             type: string
           max_pkt_len:
             default: 128
-            description: max_len of each packet to capture, default is 128, maximum
-              is 2048
+            description: max_len of each packet to capture
             maximum: 2048
             type: integer
           num_packets:
             default: 1024
-            description: number of packets to capture, 0 for unlimited, default is
-              1024 for radiotap-capture
+            description: number of packets to capture, 0 for unlimited
+            minimum: 0
             type: integer
           type:
             default: radiotap
             description: radiotap
             enum:
             - radiotap
+            example: radiotap
+            type: string
+        required:
+        - type
+      - properties:
+          duration:
+            default: 600
+            description: duration of the cpture, in seconds
+            example: 600
+            maximum: 86400
+            minimum: 0
+            type: integer
+          format:
+            default: pcap
+            enum:
+            - stream
+            - pcap
+            example: stream
+            type: string
+          gateways:
+            additionalProperties:
+              properties:
+                ports:
+                  additionalProperties:
+                    properties:
+                      tcpdump_expression:
+                        description: tcpdump expression per port
+                        type: string
+                    type: object
+                  description: Property name is the port ID
+                  type: object
+              type: object
+            description: List of SSRs. Property name is the SSR MAC
+            type: object
+          max_pkt_len:
+            default: 128
+            description: max_len of each packet to capture
+            example: 1500
+            maximum: 2048
+            minimum: 0
+            type: integer
+          num_packets:
+            default: 1024
+            description: number of packets to capture, 0 for unlimited
+            minimum: 0
+            type: integer
+          type:
+            default: gateway
+            enum:
+            - gateway
+            example: gateway
             type: string
         required:
         - type
@@ -43795,6 +43939,29 @@ components:
             max_pkt_len: 68
             num_packets: 100
             type: wlan
+        SSR Packet Capture:
+          duration: 600
+          format: stream
+          gateways:
+            '001122334455':
+              ports:
+                ge-0/0/0:
+                  tcpdump_expression: tcp
+                ge-0/0/1:
+                  tcpdump_expression: port 443
+                ge-1/0/0:
+                  tcpdump_expression: tcp
+                ge-1/0/1:
+                  tcpdump_expression: port 443
+            '001122334466':
+              ports:
+                ge-0/0/0:
+                  tcpdump_expression: udp
+                ge-0/0/1:
+                  tcpdump_expression: port 32768
+          max_pkt_len: 1500
+          num_packets: 100
+          type: gateway
         Wired Packet Capture:
           value:
             duration: 600
@@ -58853,6 +59020,9 @@ components:
         model:
           description: device model
           type: string
+        mount:
+          example: faceup
+          type: string
         name:
           type: string
         num_clients:
@@ -61846,6 +62016,19 @@ components:
               rssi:
                 description: signal strength
                 type: number
+              service_data_data:
+                description: optional, data from service data
+                type: string
+              service_data_last_rx_time:
+                description: optional, last data transmit time from service data
+                type: integer
+              service_data_rx_cnt:
+                description: optional, data transmit count from service data
+                type: integer
+              service_data_uuid:
+                description: optional, UUID from service data
+                format: uuid
+                type: string
               site_id:
                 description: site id
                 format: uuid
@@ -65477,6 +65660,7 @@ x-tagGroups:
   - Sites Devices Utilities
   - Sites Devices Virtual Chassis
   - Sites Devices EVPN
+  - Sites Devices Stats
   - Sites Devices SSR
   - Sites Events
   - Sites Guests
