@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.26.0**
+  description: '> Version: **0.26.1**
 
     >
 
-    > Date: **June 24th, 2022**
+    > Date: **June 29th, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.26.0
+  version: 0.26.1
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -100,7 +100,13 @@ tags:
 - name: Orgs Claim
 - name: Orgs Clients
 - name: Orgs CRL
-- name: Orgs Device Profiles
+- description: "While Templates / RF Templates / Network Templates / Gateway Templates\
+    \ provides powerful ways to control how a Device\u2019s configuration is derived\
+    \ for a Site. There are cases where you\u2019d like another level of control at\
+    \ the Org Level.\nA Device Profile contains a subset of Device\u2019s configurations\
+    \ you\u2019d like a device to have. It will be merged at runtime when we\u2019\
+    re provisioning an AP."
+  name: Orgs Device Profiles
 - name: Orgs Devices
 - description: 'EVPN allows an alternative but more efficient LAN architecture utilizing
     VxLAN / MP-BGP - separating control plane (MAC / IP Learning) from forwarding
@@ -112,6 +118,7 @@ tags:
 - name: Orgs Gateway Templates
 - name: Orgs Inventory
 - name: Orgs Invites
+- name: Orgs JSI Inventory
 - name: Orgs Licenses
 - name: Orgs Logs
 - name: Orgs Maps
@@ -127,6 +134,7 @@ tags:
     Moreover, this can be further be overwriten by individual Site Setting'
   name: Orgs Network Templates
 - name: Orgs Networks
+- name: Orgs OAuth
 - name: Orgs Psks
 - description: "PSK Self-Service Portals are for \n  1. **WIFI users** who want to\
     \ connect to a WLAN with personal PSK, they\u2019re told to connect to a URL where\
@@ -152,6 +160,7 @@ tags:
 - name: Orgs Subscriptions
 - name: Orgs Templates
 - name: Orgs Tickets
+- name: Orgs Troubleshoot
 - name: Orgs VPNs
 - name: Orgs Webhooks
 - name: Orgs Wired Clients
@@ -1006,10 +1015,10 @@ paths:
       summary: getSiteLanguages
       tags:
       - Constants
-  /api/v1/const/mxedge_models:
+  /api/v1/const/mxedge_events:
     get:
-      description: Get Mist Edge Models
-      operationId: getMxEdgeModels
+      description: Get List of available MX Edge Events
+      operationId: getMxEdgeEventsDefinitions
       responses:
         '200':
           content:
@@ -1017,84 +1026,49 @@ paths:
               examples:
                 example-1:
                   value:
-                  - display: ME-Small
-                    model: ME-100
-                    ports:
-                      '0':
-                        display: Gigabit Ethernet 0
-                        speed: 1000
-                      '1':
-                        display: Gigabit Ethernet 1
-                        speed: 1000
-                      '2':
-                        display: Gigabit Ethernet 2
-                        speed: 1000
-                      '3':
-                        display: Gigabit Ethernet 3
-                        speed: 1000
+                  - description: Config change on ME was triggered as a result of
+                      change made by user
+                    display: ME Config changed by user
+                    example:
+                      audit_id: e9a88814-fa81-5bdc-34b0-84e8735420e5
+                      mxcluster_id: ed4665ed-c9ad-4835-8ca5-dda642765ad3
+                      mxedge_id: 387804a7-3474-85ce-15a2-f9a9684c9c90
+                      org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                      service: mxagent
+                      site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+                      timestamp: 1552408871
+                      type: ME_CONFIG_CHANGED_BY_USER
+                    key: ME_CONFIG_CHANGED_BY_USER
               schema:
                 items:
                   properties:
+                    description:
+                      type: string
                     display:
                       type: string
-                    model:
-                      type: string
-                    ports:
-                      properties:
-                        '0':
-                          properties:
-                            display:
-                              type: string
-                            speed:
-                              type: integer
-                          required:
-                          - display
-                          - speed
-                          type: object
-                        '1':
-                          properties:
-                            display:
-                              type: string
-                            speed:
-                              type: integer
-                          required:
-                          - display
-                          - speed
-                          type: object
-                        '2':
-                          properties:
-                            display:
-                              type: string
-                            speed:
-                              type: integer
-                          required:
-                          - display
-                          - speed
-                          type: object
-                        '3':
-                          properties:
-                            display:
-                              type: string
-                            speed:
-                              type: integer
-                          required:
-                          - display
-                          - speed
-                          type: object
-                      required:
-                      - '0'
-                      - '1'
+                    example:
+                      properties: {}
                       type: object
-                  required:
-                  - model
-                  - display
-                  - ports
+                    key:
+                      type: string
                   type: object
-                minItems: 1
                 type: array
-                uniqueItems: true
+                x-examples:
+                  example-1:
+                  - description: Config change on ME was triggered as a result of
+                      change made by user
+                    display: ME Config changed by user
+                    example: {}
+                    key: ME_CONFIG_CHANGED_BY_USER
           description: OK
-      summary: getMxEdgeModels
+      summary: getMxEdgeEventsDefinitions
+      tags:
+      - Constants
+  /api/v1/const/mxedge_models:
+    get:
+      operationId: get-api-v1-const-mxedge_models
+      responses: {}
+      summary: getMxEdgeEventsDefinitions
       tags:
       - Constants
   /api/v1/const/system_events:
@@ -1220,6 +1194,7 @@ paths:
     get:
       description: Get Device Profiles
       operationId: getInstallerDeviceProfiles_WIP_
+      parameters: []
       responses:
         '200':
           content:
@@ -5064,6 +5039,16 @@ paths:
     get:
       description: Get Org Device Profiles
       operationId: getOrgDeviceProfiles
+      parameters:
+      - in: query
+        name: type
+        schema:
+          default: ap
+          enum:
+          - ap
+          - switch
+          - gateway
+          type: string
       responses:
         '200':
           $ref: '#/components/responses/DeviceprofilesArray'
@@ -5823,6 +5808,21 @@ paths:
         name: lldp_mgmt_addr
         schema:
           type: string
+      - description: Bandwith of band_24
+        in: query
+        name: band_24_bandwith
+        schema:
+          type: integer
+      - description: Bandwith of band_5
+        in: query
+        name: band_5_bandwith
+        schema:
+          type: integer
+      - description: Bandwith of band_6
+        in: query
+        name: band_6_bandwith
+        schema:
+          type: integer
       - description: Channel of band_24
         in: query
         name: band_24_channel
@@ -7114,6 +7114,7 @@ paths:
       - in: query
         name: type
         schema:
+          default: ap
           enum:
           - ap
           - switch
@@ -7407,6 +7408,130 @@ paths:
       summary: updateOrgAdminInvite
       tags:
       - Orgs Invites
+  /api/v1/orgs/{org_id}/jsi/devices:
+    get:
+      description: Get all devices that connected to JSI
+      operationId: getOrgJsiDevices
+      parameters:
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      - in: query
+        name: model
+        schema:
+          type: string
+      - in: query
+        name: serial
+        schema:
+          type: string
+      - in: query
+        name: mac
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                  - ext_ip: 73.92.124.103
+                    last_seen: 1654636867
+                    mac: c15353123096
+                    model: EX2300-C-12P
+                    serial: DGCOO0015
+              schema:
+                items:
+                  properties:
+                    ext_ip:
+                      description: when available
+                      type: string
+                    last_seen:
+                      type: integer
+                    mac:
+                      type: string
+                    model:
+                      type: string
+                    serial:
+                      type: string
+                  type: object
+                type: array
+                x-examples:
+                  example-1:
+                  - ext_ip: 73.92.124.103
+                    last_seen: 1654636867
+                    mac: c15353123096
+                    model: EX2300-C-12P
+                    serial: DGCOO0015
+          description: OK
+      summary: getOrgJsiDevices
+      tags:
+      - Orgs JSI Inventory
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/jsi/inventory:
+    get:
+      description: This gets all devices purchased from the accounts associated with
+        the Org
+      operationId: getOrgJsiInventory
+      parameters:
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      - in: query
+        name: model
+        schema:
+          type: string
+      - in: query
+        name: serial
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                  - model: EX2300-C-12P
+                    serial: DGCOO0015
+              schema:
+                items:
+                  properties:
+                    model:
+                      type: string
+                    serial:
+                      type: string
+                  type: object
+                type: array
+                x-examples:
+                  example-1:
+                  - model: EX2300-C-12P
+                    serial: DGCOO0015
+          description: OK
+        '400':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    detail: no juniper account linked
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+                x-examples:
+                  example-1:
+                    detail: no juniper account linked
+          description: Bad Requeno Juniper Account Linkedst
+      summary: getOrgJsiInventory
+      tags:
+      - Orgs JSI Inventory
+    parameters:
+    - in: path
+      name: org_id
+      required: true
+      schema:
+        type: string
   /api/v1/orgs/{org_id}/junos/register_cmd:
     get:
       description: 'Junos devices running mist agents can be managed/adopted by Mist.
@@ -10147,6 +10272,21 @@ paths:
     delete:
       description: Unlink Juniper Customer ID
       operationId: unlinkOrgFromJuniperCustomerId
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  account_name: ABC Corp
+            schema:
+              properties:
+                account_name:
+                  type: string
+              type: object
+              x-examples:
+                example-1:
+                  account_name: ABC Corp
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -10154,10 +10294,25 @@ paths:
       tags:
       - Orgs
     parameters:
-    - $ref: '#/components/parameters/org_id'
+    - in: path
+      name: org_id
+      required: true
+      schema:
+        example: 000000ab-00ab-00ab-00ab-0000000000ab
+        format: uuid
+        type: string
+  /api/v1/orgs/{org_id}/setting/juniper/link_accounts:
+    parameters:
+    - in: path
+      name: org_id
+      required: true
+      schema:
+        example: 000000ab-00ab-00ab-00ab-0000000000ab
+        format: uuid
+        type: string
     post:
-      description: Link Juniper Customer ID
-      operationId: linkOrgToJuniperCustomerId
+      description: Link Juniper Accounts
+      operationId: linkOrgToJuniperJuniperAccount
       requestBody:
         content:
           application/json:
@@ -10179,8 +10334,47 @@ paths:
                   username: john@nmo.com
       responses:
         '200':
-          $ref: '#/components/responses/OK'
-      summary: linkOrgToJuniperCustomerId
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    account:
+                      linked_by: John Smith (john@abccorp.com)
+                      name: ABC Corp
+              schema:
+                properties:
+                  account:
+                    properties:
+                      linked_by:
+                        type: string
+                      name:
+                        type: string
+                    type: object
+                type: object
+                x-examples:
+                  example-1:
+                    account:
+                      linked_by: John Smith (john@abccorp.com)
+                      name: ABC Corp
+          description: account linked
+        '400':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    detail: Account[ABC Corp] already linked
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+                x-examples:
+                  example-1:
+                    detail: Account[ABC Corp] already linked
+          description: account already linked
+      summary: linkOrgToJuniperJuniperAccount
       tags:
       - Orgs
   /api/v1/orgs/{org_id}/setting/pcap_bucket/setup:
@@ -10261,6 +10455,65 @@ paths:
       summary: verifyOrgCustomBucket
       tags:
       - Orgs Setting
+  /api/v1/orgs/{org_id}/setting/{app_name}/link:
+    delete:
+      description: Delete Org Level OAuth Application Authorization With Mist Portal
+      operationId: deleteOrgOauthAppAuthorization
+      responses:
+        '200':
+          description: Successful
+        '400':
+          description: Unsuccessful
+      summary: deleteOrgOauthAppAuthorization
+      tags:
+      - Orgs OAuth
+    get:
+      description: Get Org Level OAuth Application Linked Status
+      operationId: getOrgOauthAppLinkedStatus
+      parameters:
+      - description: Mist portal url to which backend needs to redirect after succesful
+          OAuth authorization. **Required** to get the `authorization_url`
+        in: query
+        name: forward
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                with `forward`query param:
+                  value:
+                    authorization_url: https://zoom.us/oauth/authorize?response_type=code&client_id=YDyajBmJREjwkyb3TPAbA&redirect_uri=https%3A%2F%2Fapi.local%2Fapi%2Fv1%2Forg%2Fb4e16c72-d50e-4c03-a952-a3217e231e2c%2Foauth2%2Fapp%2Fzoom%2Fcallback&state=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2NDk3NjE0MDQsImZvcndhcmQiOiJodHRwczovL2NsaWVudGZvcndhcmR1cmwuY29tIn0.RIE4XTU5kpF4nKIy7_enJ0PpOCyTTp6DLm9PZsdncpI
+                    linked: false
+                without `forward`query param:
+                  value:
+                    linked: true
+              schema:
+                properties:
+                  authorization_url:
+                    description: OAuth application authorization url
+                    format: uri
+                    type: string
+                  linked:
+                    description: OAuth application linked status, is mist portal authorized
+                      with the OAuth appliation
+                    type: boolean
+                required:
+                - linked
+                type: object
+          description: OK
+      summary: getOrgOauthAppLinkedStatusAndUrl
+      tags:
+      - Orgs OAuth
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - description: 'OAuth application name (Example : zoom, teams, etc..)'
+      in: path
+      name: app_name
+      required: true
+      schema:
+        type: string
   /api/v1/orgs/{org_id}/sitegroups:
     get:
       description: Get Org Site Groups
@@ -12142,6 +12395,76 @@ paths:
       summary: addOrgTicketComment
       tags:
       - Orgs Tickets
+  /api/v1/orgs/{org_id}/troubleshoot:
+    get:
+      description: Troubleshoot Org Client
+      operationId: troubleshootOrgClient
+      parameters:
+      - in: query
+        name: mac
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: site_id
+        schema:
+          format: uuid
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    end: 1655151856
+                    results:
+                    - category: client
+                      reason: slow association
+                      recommendation: Ensure the IP helper-address is configured on
+                        the VLAN interface.
+                      text: Clients of the AP had slow association 8% of the time
+                        on Bhavabhi and 5 GHz. ...
+                    start: 1655065456
+              schema:
+                properties:
+                  end:
+                    type: integer
+                  results:
+                    items:
+                      properties:
+                        category:
+                          type: string
+                        reason:
+                          type: string
+                        recommendation:
+                          type: string
+                        text:
+                          type: string
+                      type: object
+                    type: array
+                  start:
+                    type: integer
+                type: object
+                x-examples:
+                  example-1:
+                    end: 1655151856
+                    results:
+                    - category: client
+                      reason: slow association
+                      recommendation: Ensure the IP helper-address is configured on
+                        the VLAN interface.
+                      text: Clients of the AP had slow association 8% of the time
+                        on Bhavabhi and 5 GHz. ...
+                    start: 1655065456
+          description: OK
+      summary: troubleshootOrgClient
+      tags:
+      - Orgs Troubleshoot
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/vpns:
     get:
       description: Get Org VPNs
@@ -45406,6 +45729,8 @@ components:
           default: ap
           enum:
           - ap
+          - switch
+          - gateway
           type: string
         usb_config:
           $ref: '#/components/schemas/ap_usb'
@@ -45980,9 +46305,6 @@ components:
                     items:
                       type: string
                     type: array
-                  tunnel_name:
-                    description: if `type`==`tunnel`
-                    type: string
                   type:
                     enum:
                     - local
@@ -46035,6 +46357,11 @@ components:
                 description: 'by default, we derive all paths available and use them
 
                   optionally, you can customize by using `path_preference`'
+                type: string
+              servicepolicy_id:
+                description: used to link servicepolicy defined at org level and overwrite
+                  some attributes
+                format: uuid
                 type: string
               services:
                 items:
@@ -49186,6 +49513,8 @@ components:
           format: uuid
           readOnly: true
           type: string
+        mist_nac:
+          $ref: '#/components/schemas/mxcluster_nac'
         modified_time:
           readOnly: true
           type: number
@@ -49196,7 +49525,7 @@ components:
           readOnly: true
           type: string
         radsec:
-          $ref: '#/components/schemas/mxedge_radsec'
+          $ref: '#/components/schemas/mxcluster_radsec'
         radsec_tls:
           properties:
             keypair:
@@ -49336,6 +49665,136 @@ components:
               port: 0
               protocol: arp
               timeout: 300
+    mxcluster_nac:
+      description: ''
+      properties:
+        acct_server_port:
+          default: 1813
+          type: integer
+        auth_server_port:
+          default: 1812
+          type: integer
+        client_ips:
+          additionalProperties:
+            description: Property key is the RADIUS Client IP/Subnet.
+            properties:
+              secrect:
+                description: if different from above
+                type: string
+              vendor:
+                description: if not specified, we'll try to determine it dynamically
+                type: string
+            type: object
+          type: object
+        enabled:
+          type: boolean
+        secret:
+          example: testing123
+          type: string
+      type: object
+      x-examples:
+        example-1:
+          acct_server_port: 1813
+          auth_server_port: 1812
+          client_ips:
+            property1:
+              secrect: string
+              vendor: string
+            property2:
+              secrect: string
+              vendor: string
+          enabled: true
+          secret: string
+    mxcluster_radsec:
+      description: MxEdge Radsec Configuration
+      properties:
+        acct_servers:
+          description: list of RADIUS accounting servers, optional, order matters
+            where the first one is treated as primary
+          items:
+            properties:
+              host:
+                description: ip / hostname of RADIUS server
+                type: string
+              port:
+                default: 1813
+                description: Acct port of RADIUS server
+                type: integer
+              secret:
+                description: secret of RADIUS server
+                type: string
+            type: object
+          type: array
+          uniqueItems: true
+        auth_servers:
+          description: list of RADIUS authentication servers, order matters where
+            the first one is treated as primary
+          items:
+            properties:
+              host:
+                description: ip / hostname of RADIUS server
+                type: string
+              keywrap_enabled:
+                description: if used for Mist APs, enable keywrap algorithm. Default
+                  is false
+                type: boolean
+              keywrap_format:
+                description: if used for Mist APs
+                enum:
+                - hex
+                - ascii
+                type: string
+              keywrap_kek:
+                description: if used for Mist APs, encryption key
+                type: string
+              keywrap_mack:
+                description: if used for Mist APs, Message Authentication Code Key
+                type: string
+              port:
+                default: 1812
+                description: Auth port of RADIUS server
+                type: integer
+              secret:
+                description: secret of RADIUS server
+                type: string
+            type: object
+          type: array
+          uniqueItems: true
+        enabled:
+          description: whether to enable radsec
+          type: boolean
+        server_selection:
+          default: ordered
+          description: ordered (default) / unordered. When ordered, Mist Edge will
+            prefer and go back to the first radius server if possible
+          enum:
+          - ordered
+          - unordered
+          type: string
+        source:
+          default: any
+          description: Specify source address to use when connecting to RADIUS servers
+          enum:
+          - tunnel
+          - oob
+          - any
+          type: string
+      type: object
+      x-examples:
+        example-1:
+          acct_servers:
+          - host: 1.2.3.4
+            port: 1812
+            secret: testing123
+          auth_servers:
+          - host: 1.2.3.4
+            port: 1812
+            secret: testing123
+          - host: radius.internal
+            port: 1812
+            secret: testing123
+          enabled: true
+          server_selection: ordered
     mxedge:
       description: MxEdge
       properties:
@@ -49694,113 +50153,6 @@ components:
           type: string
       title: mxedge_mgmt
       type: object
-    mxedge_radsec:
-      description: MxEdge Radsec Configuration
-      properties:
-        acct_servers:
-          description: list of RADIUS accounting servers, optional, order matters
-            where the first one is treated as primary
-          items:
-            properties:
-              host:
-                description: ip / hostname of RADIUS server
-                type: string
-              port:
-                default: 1813
-                description: Acct port of RADIUS server
-                type: integer
-              secret:
-                description: secret of RADIUS server
-                type: string
-            type: object
-          type: array
-          uniqueItems: true
-        auth_servers:
-          description: list of RADIUS authentication servers, order matters where
-            the first one is treated as primary
-          items:
-            properties:
-              host:
-                description: ip / hostname of RADIUS server
-                type: string
-              keywrap_enabled:
-                description: if used for Mist APs, enable keywrap algorithm. Default
-                  is false
-                type: boolean
-              keywrap_format:
-                description: if used for Mist APs
-                enum:
-                - hex
-                - ascii
-                type: string
-              keywrap_kek:
-                description: if used for Mist APs, encryption key
-                type: string
-              keywrap_mack:
-                description: if used for Mist APs, Message Authentication Code Key
-                type: string
-              port:
-                default: 1812
-                description: Auth port of RADIUS server
-                type: integer
-              secret:
-                description: secret of RADIUS server
-                type: string
-            type: object
-          type: array
-          uniqueItems: true
-        enabled:
-          description: whether to enable radsec
-          type: boolean
-        mist_nac:
-          properties:
-            acct_server_port:
-              default: 1813
-              type: integer
-            auth_server_port:
-              default: 1812
-              type: integer
-            client_ips:
-              additionalProperties:
-                description: Property key is the RADIUS Client IP/Subnet.
-                properties:
-                  secrect:
-                    description: if different from above
-                    type: string
-                  vendor:
-                    description: if not specified, we'll try to determine it dynamically
-                    type: string
-                type: object
-              type: object
-            enabled:
-              type: boolean
-            secret:
-              type: string
-          type: object
-        server_selection:
-          default: ordered
-          description: ordered (default) / unordered. When ordered, Mist Edge will
-            prefer and go back to the first radius server if possible
-          enum:
-          - ordered
-          - unordered
-          type: string
-      type: object
-      x-examples:
-        example-1:
-          acct_servers:
-          - host: 1.2.3.4
-            port: 1812
-            secret: testing123
-          auth_servers:
-          - host: 1.2.3.4
-            port: 1812
-            secret: testing123
-          - host: radius.internal
-            port: 1812
-            secret: testing123
-          enabled: true
-          server_selection: ordered
     mxedge_upgrade_response:
       description: ''
       properties:
@@ -49857,6 +50209,13 @@ components:
     mxtunnel:
       description: MxTunnel
       properties:
+        anchor_mxtunnel_ids:
+          description: list of anchor mxtunnels used for forming edge to edge tunnels
+          items:
+            example: 1e970fec-0a7a-4d73-a472-3ef3b6a456aa
+            format: uuid
+            type: string
+          type: array
         auto_preemption:
           properties:
             day_of_week:
@@ -50980,6 +51339,15 @@ components:
           type: object
         juniper:
           properties:
+            accounts:
+              items:
+                properties:
+                  linked_by:
+                    type: string
+                  name:
+                    type: string
+                type: object
+              type: array
             customer_name:
               type: string
             linked:
@@ -57641,11 +58009,35 @@ components:
         ldap_client_key:
           description: if `idp_type`==`ldap`
           type: string
+        ldap_group_attr:
+          description: if `idp_type`==`ldap`
+          type: string
+        ldap_group_dn:
+          description: if `ldap_type`==`custom`
+          type: string
+        ldap_group_filter:
+          description: if `ldap_type`==`custom`
+          type: string
         ldap_server_hosts:
           description: if `idp_type`==`ldap`
           items:
             type: string
           type: array
+        ldap_type:
+          default: ad
+          description: if `idp_type`==`ldap`
+          enum:
+          - ad
+          - okta
+          - custom
+          type: string
+        ldap_user_filter:
+          description: '* if `ldap_type`==`ad`: "(CN=%s)"
+
+            * if `ldap_type`==`okta`: "(uid=%s)"
+
+            * if `ldap_type`==`custom`'
+          type: string
         modified_time:
           readOnly: true
           type: number
@@ -57669,6 +58061,11 @@ components:
           description: if `idp_type`==`oauth`
           type: string
         oauth_secret:
+          type: string
+        oauth_type:
+          default: MSIdentity
+          enum:
+          - MSIdentity
           type: string
         org_id:
           format: uuid
@@ -65711,6 +66108,7 @@ x-tagGroups:
   - Orgs Gateway Templates
   - Orgs Inventory
   - Orgs Invites
+  - Orgs JSI Inventory
   - Orgs Licenses
   - Orgs Logs
   - Orgs Maps
@@ -65720,6 +66118,7 @@ x-tagGroups:
   - Orgs NAC
   - Orgs Network Templates
   - Orgs Networks
+  - Orgs OAuth
   - Orgs Psks
   - Orgs Psk Portals
   - Orgs RF Templates
@@ -65739,6 +66138,7 @@ x-tagGroups:
   - Orgs Subscriptions
   - Orgs Templates
   - Orgs Tickets
+  - Orgs Troubleshoot
   - Orgs VPNs
   - Orgs Webhooks
   - Orgs Wired Clients
