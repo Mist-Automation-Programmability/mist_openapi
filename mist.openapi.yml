@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.29.1**
+  description: '> Version: **0.30.0**
 
     >
 
-    > Date: **September 13th, 2022**
+    > Date: **September 30th, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.29.1
+  version: 0.30.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -109,6 +109,7 @@ tags:
     re provisioning an AP."
   name: Orgs Device Profiles
 - name: Orgs Devices
+- name: Orgs Devices Utilities
 - description: 'EVPN allows an alternative but more efficient LAN architecture utilizing
     VxLAN / MP-BGP - separating control plane (MAC / IP Learning) from forwarding
     plane.
@@ -155,6 +156,7 @@ tags:
 - name: Orgs Setting
 - name: Orgs Sitegroups
 - name: Orgs Sites
+- name: Orgs Site Templates
 - name: Orgs SLEs
 - name: Orgs SSO Roles
 - name: Orgs SSO
@@ -8532,6 +8534,7 @@ paths:
         type: string
   /api/v1/orgs/{org_id}/junos/register_cmd:
     get:
+      deprecated: true
       description: 'Junos devices running mist agents can be managed/adopted by Mist.
 
         '
@@ -8591,6 +8594,11 @@ paths:
         content:
           application/json:
             examples:
+              annotate:
+                value:
+                  notes: customer notes
+                  op: annotate
+                  subscription_id: SUB-000144
               delete:
                 value:
                   op: delete
@@ -8616,12 +8624,16 @@ paths:
                     is moved
                   format: uuid
                   type: string
+                notes:
+                  description: if `op`==`annotate`
+                  type: string
                 op:
                   description: to move a license, use the `amend` operation
                   enum:
                   - amend
                   - unamend
                   - delete
+                  - annotate
                   type: string
                 quantity:
                   description: if `op`==`amend`, the number of licences to mo
@@ -9023,6 +9035,13 @@ paths:
     get:
       description: Get Org MxEdges
       operationId: getOrgMxEdges
+      parameters:
+      - description: filter for site level mist edges
+        in: query
+        name: for_sites
+        schema:
+          default: fa
+          type: string
       responses:
         '200':
           $ref: '#/components/responses/MxedgesArray'
@@ -11845,8 +11864,9 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
-      description: "This imports cradlepoint devices into Mist. We\u2019ll also attempt\
-        \ to use the LLDP data to identify the linkage against Mist Site / Device"
+      description: "This syncs cradlepoint devices with Mist. We\u2019ll also attempt\
+        \ to use the LLDP data from cradlepoint to identify the linkage against Mist\
+        \ Site / Device"
       operationId: syncOrgCradlepointRouters
       responses:
         '200':
@@ -12434,6 +12454,68 @@ paths:
       summary: importOrgMapToSite
       tags:
       - Orgs Sites
+  /api/v1/orgs/{org_id}/sitetemplates:
+    get:
+      description: get Org Site Templates
+      operationId: getOrgSiteTemplates
+      responses:
+        '200':
+          $ref: '#/components/responses/SiteTemplatesArray'
+      summary: getOrgSiteTemplates
+      tags:
+      - Orgs Site Templates
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: Create Org Site Template
+      operationId: createOrgSiteTemplates
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sitetemplate'
+      responses:
+        '200':
+          $ref: '#/components/responses/SiteTemplate'
+      summary: createOrgSiteTemplates
+      tags:
+      - Orgs Site Templates
+  /api/v1/orgs/{org_id}/sitetemplates/{sitetemplate_id}:
+    delete:
+      description: Delete Org Site Template
+      operationId: deleteOrgSiteTemplate
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: deleteOrgSiteTemplate
+      tags:
+      - Orgs Site Templates
+    get:
+      description: Get Org Site Template
+      operationId: getOrgSiteTemplate
+      responses:
+        '200':
+          $ref: '#/components/responses/SiteTemplate'
+      summary: getOrgSiteTemplate
+      tags:
+      - Orgs Site Templates
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/sitetemplate_id'
+    put:
+      description: Update Org Site Template
+      operationId: updateOrgSiteTemplate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sitetemplate'
+      responses:
+        '200':
+          $ref: '#/components/responses/SiteTemplate'
+      summary: updateOrgSiteTemplate
+      tags:
+      - Orgs Site Templates
   /api/v1/orgs/{org_id}/ssoroles:
     get:
       description: Get Org SSO Roles
@@ -12950,6 +13032,164 @@ paths:
       - Orgs Assets
     parameters:
     - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/stats/bgp_peers/count:
+    get:
+      description: Count Org BGP Stats
+      operationId: get-api-v1-orgs-org_id-stats-bgp_peers-count
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    distinct: mac
+                    end: 1619519007.8000295
+                    limit: 10
+                    results:
+                    - count: 2
+                      mac: 02000111d2dc
+                    start: 1619518707.800029
+                    total: 1
+              schema:
+                properties:
+                  distinct:
+                    type: string
+                  end:
+                    type: number
+                  limit:
+                    type: integer
+                  results:
+                    items:
+                      properties:
+                        count:
+                          type: integer
+                        mac:
+                          type: string
+                      type: object
+                    type: array
+                  start:
+                    type: number
+                  total:
+                    type: integer
+                type: object
+                x-examples:
+                  example-1:
+                    distinct: mac
+                    end: 1619519007.8000295
+                    limit: 10
+                    results:
+                    - count: 2
+                      mac: 02000111d2dc
+                    start: 1619518707.800029
+                    total: 1
+          description: OK
+      summary: countOrgBgpStats
+      tags:
+      - Orgs Devices Utilities
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/stats/bgp_peers/search:
+    get:
+      description: Search Org BGP Stats
+      operationId: searchOrgBgpStats
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    end: 1619518989.4989712
+                    limit: 10
+                    results:
+                    - as: 65000
+                      mac: 020001c04668
+                      neighbor: 15.8.3.5
+                      neighbor_mac: 020001e53153
+                      org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
+                      rx_pkts: 63366
+                      rx_routes: 60
+                      site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
+                      state: established
+                      tx_pkts: 1735
+                      uptime: 31355
+                      vrf_name: default
+                    start: 1619518689.4989705
+                    total: 1
+              schema:
+                properties:
+                  end:
+                    type: number
+                  limit:
+                    type: integer
+                  results:
+                    items:
+                      properties:
+                        as:
+                          description: AS
+                          type: integer
+                        mac:
+                          description: router mac address
+                          type: string
+                        neighbor:
+                          type: string
+                        neighbor_mac:
+                          type: string
+                        org_id:
+                          description: router org ID
+                          type: string
+                        rx_pkts:
+                          type: integer
+                        rx_routes:
+                          description: number of received routes
+                          type: integer
+                        site_id:
+                          description: router site ID
+                          type: string
+                        state:
+                          enum:
+                          - disconnected
+                          - established
+                          type: string
+                        tx_pkts:
+                          type: integer
+                        uptime:
+                          type: integer
+                        vrf_name:
+                          type: string
+                      type: object
+                    type: array
+                  start:
+                    type: number
+                  total:
+                    type: integer
+                type: object
+                x-examples:
+                  example-1:
+                    end: 1619518989.4989712
+                    limit: 10
+                    results:
+                    - as: 65000
+                      mac: 020001c04668
+                      neighbor: 15.8.3.5
+                      neighbor_mac: .inf
+                      org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
+                      rx_pkts: 63366
+                      rx_routes: 60
+                      site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
+                      state: established
+                      tx_pkts: 1735
+                      uptime: 31355
+                      vrf_name: default
+                    start: 1619518689.4989705
+                    total: 1
+          description: OK
+      summary: searchOrgBgpStats
+      tags:
+      - Orgs Devices Utilities
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/stats/devices:
     get:
       description: 'Org Devices stats
@@ -13002,6 +13242,12 @@ paths:
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
+      - description: filter for site level mist edges
+        in: query
+        name: for_site
+        schema:
+          default: false
+          type: boolean
       responses:
         '200':
           $ref: '#/components/responses/MxedgesArrayStats'
@@ -19096,20 +19342,24 @@ paths:
         content:
           application/json:
             examples:
-              example-1:
+              multiple:
                 value:
                   ports:
                   - ge-0/0/0
                   - ge-0/0/1
+              single:
+                value:
+                  port: ge-0/0/0
             schema:
               properties:
+                port:
+                  description: the port to bounce
+                  type: string
                 ports:
                   description: list of ports to bounce
                   items:
                     type: string
                   type: array
-              required:
-              - ports
               type: object
         description: Request Body
       responses:
@@ -19751,12 +20001,10 @@ paths:
       - Sites Devices SSR
   /api/v1/sites/{site_id}/devices/{device_id}/request_ztp_password:
     get:
-      description: "In case any issue happens during/after ZTP, the root-password\
-        \ is modified by ZTP but the user-defined password config is not pushed successfully\
-        \ to the device, we could use this API to retrieve the password set by ZTP\
-        \ to unblock the device access.\n\nThe response will be empty if the manuf\
-        \ device does not exist or ztp status is not \u2018bootstrap-completed\u2019\
-        \ or ZTP completed more than 7 days ago."
+      description: In the case where soemthing happens during/after ZTP, the root-password
+        is modified (required for ZTP to set up outbound-ssh) but the user-defined
+        password config has not be configured. This API can be used to retrieve the
+        temporary password.
       operationId: getSiteDeviceZtpPassword
       responses:
         '200':
@@ -26323,7 +26571,10 @@ paths:
                   value:
                     config_success: 99.9
                     version_compliance:
-                      major_version: 19.4R2-S1.2
+                      major_version:
+                        SRX320:
+                          major_count: 0
+                          major_version: 19.4R2-S1.2
                       score: 99.9
                       type: gateway
               schema:
@@ -26337,8 +26588,15 @@ paths:
                       type
                     properties:
                       major_version:
-                        example: 19.4R2-S1.2
-                        type: string
+                        additionalProperties:
+                          properties:
+                            major_count:
+                              type: integer
+                            major_version:
+                              example: 19.4R2-S1.2
+                              type: string
+                          type: object
+                        type: object
                       score:
                         example: 99.9
                         type: number
@@ -28450,7 +28708,34 @@ paths:
     parameters:
     - $ref: '#/components/parameters/site_id'
     post:
-      description: Create Site Webhook
+      description: "Webhook defines a webhook, modeled after [github\u2019s model](https://developer.github.com/webhooks/).\n\
+        \nThere is two types of webhooks:\n* webhooks ([examples](https://www.postman.com/juniper-mist/workspace/mist-systems-s-public-workspace/folder/224925-be01e694-7253-4195-8563-78e2a745e114))\n\
+        * raw data webhooks ([examples](https://www.postman.com/juniper-mist/workspace/mist-systems-s-public-workspace/folder/224925-e2d5d5f8-4bdb-4efc-93e4-90f4b33d0b2b))\n\
+        \n##### Webhooks\nWebhooks can be configured at the org level (subset of topics\
+        \ only) and at the site level. It is possible to have multiple topics in the\
+        \ same webhook configuration and/or to have multiple webhooks configured at\
+        \ the same time.\n\n##### Client Raw Data Webhooks\nRaw data webhooks are\
+        \ a special subset of webhooks that provide insight into raw data packets\
+        \ emitted by a client, identified by their advertising MAC address (assets,\
+        \ discovered ble, connected wifi, unconnected wifi). The data that client\
+        \ raw data webhooks encompasses are reporting AP information, RSSI Data, and\
+        \ any special packets/telemetry packets that the client may emit. Note that\
+        \ client raw webhooks are the raw data coming from the client and do not contain\
+        \ the X,Y location data of the client. In order to get the location data for\
+        \ a client please see our location webhooks. Clients can be identified uniquely\
+        \ across these client raw data topics and location webhook topic using MAC\
+        \ address as the Unique identifier (client identifier).\n\n###### Client Raw\
+        \ Data Webhooks Topics\nTopics that correspond to client raw data for different\
+        \ client types. \n* `asset-raw-rssi` - Raw data from packets emitted by named\
+        \ and filtered assets \n* `discovered-raw-rssi` - Raw data from packets emitted\
+        \ by passive BLE devices \n* `wifi-conn-raw` - Raw data from packets emitted\
+        \ by connected devices \n* `wifi-unconn-raw` - Raw data from packets emitted\
+        \ by unconnected devices (passive)\n\n###### Rules for configuring client\
+        \ raw data webhooks\n1. Only one instance of a webhook object containing a\
+        \ client raw data webhook topic is allowed. (a site level entry will override\
+        \ an org level entry for the client raw data webhook topic in question)\n\
+        2. Only one client raw data webhook topic is allowed per `http-post` message\
+        \ to webhooks api\n"
       operationId: createSiteWebhook
       requestBody:
         content:
@@ -28474,6 +28759,29 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Webhook'
+        '400':
+          content:
+            application/json:
+              examples:
+                RawDataWebhook already created:
+                  value:
+                    detail: Webhook already configured for special location topic
+                    webhook_id: f1ff49e8-9f77-420a-9854-c7de46d7cf80
+                RawDataWebhook multiple topics:
+                  value:
+                    detail: Only one location topic can be configured per URL
+              schema:
+                properties:
+                  detail:
+                    type: string
+                  webhook_id:
+                    type: string
+                type: object
+                x-examples:
+                  example-1:
+                    detail: Webhook already configured for special location topic
+                    webhook_id: f1ff49e8-9f77-420a-9854-c7de46d7cf80
+          description: Bad request
       summary: createSiteWebhook
       tags:
       - Sites Webhooks
@@ -31013,6 +31321,14 @@ components:
     sitegroup_id:
       in: path
       name: sitegroup_id
+      required: true
+      schema:
+        example: 000000ab-00ab-00ab-00ab-0000000000ab
+        format: uuid
+        type: string
+    sitetemplate_id:
+      in: path
+      name: sitetemplate_id
       required: true
       schema:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
@@ -35059,115 +35375,9 @@ components:
                 type: string
               results:
                 items:
-                  properties:
-                    band_24_channel:
-                      type: integer
-                    band_24_power:
-                      type: integer
-                    band_5_channel:
-                      type: integer
-                    band_5_power:
-                      type: integer
-                    band_6_channel:
-                      type: integer
-                    band_6_power:
-                      type: integer
-                    eth0_port_speed:
-                      type: integer
-                    ext_ip:
-                      type: string
-                    for_site:
-                      readOnly: true
-                      type: boolean
-                    hostname:
-                      items:
-                        type: string
-                      nullable: true
-                      readOnly: true
-                      type: array
-                    ip:
-                      nullable: true
-                      readOnly: true
-                      type: string
-                    lldp_mgmt_addr:
-                      nullable: true
-                      readOnly: true
-                      type: string
-                    lldp_port_desc:
-                      nullable: true
-                      readOnly: true
-                      type: string
-                    lldp_port_id:
-                      nullable: true
-                      readOnly: true
-                      type: string
-                    lldp_power_allocated:
-                      nullable: true
-                      type: integer
-                    lldp_power_draw:
-                      nullable: true
-                      type: integer
-                    lldp_system_desc:
-                      nullable: true
-                      readOnly: true
-                      type: string
-                    lldp_system_name:
-                      nullable: true
-                      readOnly: true
-                      type: string
-                    mac:
-                      readOnly: true
-                      type: string
-                    model:
-                      readOnly: true
-                      type: string
-                    mxedge_id:
-                      format: uuid
-                      nullable: true
-                      readOnly: true
-                      type: string
-                    mxtunnel_status:
-                      nullable: true
-                      readOnly: true
-                      type: string
-                    org_id:
-                      format: uuid
-                      readOnly: true
-                      type: string
-                    site_id:
-                      format: uuid
-                      readOnly: true
-                      type: string
-                    sku:
-                      readOnly: true
-                      type: string
-                    timestamp:
-                      readOnly: true
-                      type: number
-                    uptime:
-                      readOnly: true
-                      type: number
-                    version:
-                      readOnly: true
-                      type: string
-                  required:
-                  - ip
-                  - lldp_mgmt_addr
-                  - lldp_port_desc
-                  - lldp_port_id
-                  - lldp_system_desc
-                  - lldp_system_name
-                  - mac
-                  - model
-                  - mxedge_id
-                  - mxtunnel_status
-                  - org_id
-                  - site_id
-                  - sku
-                  - timestamp
-                  - uptime
-                  - version
-                  type: object
+                  anyOf:
+                  - $ref: '#/components/schemas/device_search_ap'
+                  - $ref: '#/components/schemas/device_search_switch_gateway'
                 minItems: 1
                 type: array
                 uniqueItems: true
@@ -41954,6 +42164,44 @@ components:
           schema:
             $ref: '#/components/schemas/site_setting'
       description: OK
+    SiteTemplate:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                auto_upgrade:
+                  day_of_week: string
+                  enabled: true
+                  time_of_day: string
+                  version: string
+                name: string
+                vars:
+                  SSID_STR: string
+                  VLAN_ID: string
+          schema:
+            $ref: '#/components/schemas/sitetemplate'
+      description: Example response
+    SiteTemplatesArray:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+              - auto_upgrade:
+                  day_of_week: string
+                  enabled: true
+                  time_of_day: string
+                  version: string
+                name: string
+                vars:
+                  SSID_STR: string
+                  VLAN_ID: string
+          schema:
+            items:
+              $ref: '#/components/schemas/sitetemplate'
+            type: array
+      description: Example response
     Sitegroup:
       content:
         application/json:
@@ -47884,6 +48132,11 @@ components:
               description: additional power to request during negotiating with PSE
                 over PoE, in mW
               type: number
+            prefer_usb_over_wifi:
+              default: false
+              description: whether to enable power out to peripheral, meanwhile will
+                reduce power to wifi (only for AP45 at power mode)
+              type: boolean
           type: object
         radio_config:
           $ref: '#/components/schemas/ap_radio'
@@ -48376,6 +48629,177 @@ components:
           vars:
             RADIUS_IP1: 172.31.2.5
             RADIUS_SECRET: 11s64632d
+    device_search_ap:
+      description: ''
+      properties:
+        band_24_bandwith:
+          description: Bandwith of band_24
+          type: string
+        band_24_channel:
+          description: Channel of band_24
+          type: integer
+        band_24_power:
+          type: integer
+        band_5_bandwith:
+          description: Bandwith of band_5
+          type: string
+        band_5_channel:
+          description: Channel of band_5
+          type: integer
+        band_5_power:
+          type: integer
+        band_6_bandwith:
+          type: string
+        band_6_channel:
+          description: Channel of band_6
+          type: integer
+        band_6_power:
+          type: integer
+        eth0_port_speed:
+          description: Port speed of eth0
+          type: integer
+        ext_ip:
+          type: string
+        hostname:
+          description: partial / full hostname
+          items:
+            type: string
+          type: array
+        ip:
+          description: ip address
+          type: string
+        lldp_mgmt_addr:
+          description: LLDP management ip address
+          type: string
+        lldp_port_desc:
+          type: string
+        lldp_port_id:
+          description: LLDP port id
+          type: string
+        lldp_power_allocated:
+          type: integer
+        lldp_power_draw:
+          type: integer
+        lldp_system_desc:
+          description: LLDP system description
+          type: string
+        lldp_system_name:
+          description: LLDP system name
+          type: string
+        mac:
+          description: device model
+          type: string
+        model:
+          type: string
+        mxedge_id:
+          description: Mist Edge id, if AP is connecting to a Mist Edge
+          type: string
+        mxtunnel_status:
+          description: MxTunnel status
+          type: string
+        org_id:
+          type: string
+        site_id:
+          description: site id
+          type: string
+        sku:
+          type: string
+        timestamp:
+          type: number
+        uptime:
+          type: integer
+        version:
+          description: version
+          type: string
+      type: object
+      x-examples:
+        example-1:
+          band_24_channel: 6
+          band_24_power: 18
+          band_5_channel: 44
+          band_5_power: 17
+          band_6_channel: 5
+          band_6_power: 10
+          eth0_port_speed: 1000
+          ext_ip: 125.228.68.139
+          hostname:
+          - AP41-STB-3E5299-WH-2001
+          - AP41-STB-3E5299-WH-50
+          - AP41-STB-3E5299
+          - 5c5b353e5299
+          ip: 10.2.16.205
+          lldp_mgmt_addr: 10.2.10.139
+          lldp_port_desc: GigabitEthernet1/0/1
+          lldp_port_id: Gi1/0/1
+          lldp_power_allocated: 19500
+          lldp_power_draw: 19500
+          lldp_system_desc: 'Cisco IOS Software, C2960S Software (C2960S-UNIVERSALK9-M),
+            Version 15.2(1)E1, RELEASE SOFTWARE (fc2)
+
+            Technical Support: http://www.cisco.com/techsupport
+
+            Copyright (c) 1986-2013 by Cisco Systems, Inc.
+
+            Compiled Fri 22-Nov-13 07:10 by prod_rel_team'
+          lldp_system_name: ME-DC-1-ACC-SW
+          mac: 5c5b353e5299
+          model: AP41
+          mxedge_id: 00000000-0000-0000-1000-43a81f238391
+          mxtunnel_status: down
+          org_id: 6748cfa6-4e12-11e6-9188-0242ac110007
+          site_id: a8178443-ecb5-461c-b854-f16627619ab3
+          sku: AP41-US
+          timestamp: 1596588619.007
+          uptime: 85280
+          version: 0.7.20216
+    device_search_switch_gateway:
+      properties:
+        ext_ip:
+          type: string
+        hostname:
+          items:
+            type: string
+          type: array
+        ip:
+          type: string
+        last_hostname:
+          type: string
+        mac:
+          type: string
+        model:
+          type: string
+        num_members:
+          type: integer
+        org_id:
+          type: string
+        site_id:
+          type: string
+        timestamp:
+          type: number
+        type:
+          type: string
+        uptime:
+          type: integer
+        version:
+          type: string
+      type: object
+      x-examples:
+        example-1:
+          ext_ip: 0.0.0.0
+          hostname:
+          - 3c8c939485ad
+          - ludi-ex2300
+          ip: 192.168.86.22
+          last_hostname: 3c8c939485ad
+          mac: 3c8c939485ad
+          model: ex2300-c-12p
+          num_members: 1
+          org_id: 6748cfa6-4e12-11e6-9188-0242ac110007
+          site_id: 8721e817-96ee-4e34-b6b6-a80cc01642a6
+          timestamp: 1661273225.321
+          type: switch
+          uptime: 2380356
+          version: 21.4R1.12
     device_switch:
       description: 'Switch Configuration
 
@@ -48384,6 +48808,66 @@ components:
         and be able to re-use the same settings across switches entries defined here
         will "replace" those defined in Site Setting/Network Template'
       properties:
+        acl_groups:
+          additionalProperties:
+            properties:
+              matching:
+                properties:
+                  mac:
+                    items:
+                      type: string
+                    type: array
+                  network:
+                    default: any
+                    type: string
+                  radius_group:
+                    type: string
+                  subnets:
+                    items:
+                      type: string
+                    type: array
+                type: object
+            type: object
+          type: object
+        acl_policies:
+          items:
+            properties:
+              action:
+                enum:
+                - allow
+                - deny
+                type: string
+              dst_groups:
+                items:
+                  type: string
+                type: array
+              dst_specs:
+                properties:
+                  port_range:
+                    default: 0
+                    description: matched dst port, `0` means any
+                    maxLength: 65535
+                    minLength: 0
+                    type: integer
+                  protocol:
+                    default: any
+                    description: '`tcp` / `udp` / `icmp` / `gre` / `any` / `:protocol_number`
+                      (1-254)'
+                    type: string
+                  subnets:
+                    default:
+                    - 0.0.0.0/0
+                    description: matched dst subnet
+                    items:
+                      type: string
+                    type: array
+                type: object
+              src_groups:
+                items:
+                  type: string
+                type: array
+            type: object
+          type: array
         additional_config_cmds:
           items:
             type: string
@@ -48732,6 +49216,9 @@ components:
           default: 10
           example: 0
           minimum: 0
+          type: integer
+        p2p_parallelism:
+          description: number of parallel p2p download batches to creat
           type: integer
         reboot:
           default: false
@@ -50364,16 +50851,17 @@ components:
       description: ''
       properties:
         ike_lifetime:
-          description: if `provider`== `custom`
+          description: if `provider`== `custom-ipsec`
           type: integer
         ike_mode:
           default: main
+          description: if `provider`== `custom-ipsec`
           enum:
           - main
           - aggressive
           type: string
         ike_proposals:
-          description: if `provider`== `custom`
+          description: if `provider`== `custom-ipsec`
           items:
             properties:
               auth_algo:
@@ -50411,10 +50899,10 @@ components:
             type: object
           type: array
         ipsec_lifetime:
-          description: if `provider`== `custom`
+          description: if `provider`== `custom-ipsec`
           type: integer
         ipsec_proposals:
-          description: if `provider`== `custom`
+          description: if `provider`== `custom-ipsec`
           items:
             properties:
               auth_algo:
@@ -50452,23 +50940,24 @@ components:
             type: object
           type: array
         local_id:
-          description: if `provider`== `zscaler-ipsec` or `provider`== `custom`
+          description: if `provider`== `zscaler-ipsec` or `provider`== `custom-ipsec`
           type: string
         primary:
           properties:
             hosts:
-              description: if `provider`== `zscaler-ipsec` or `provider`== `custom`
+              description: if `provider`== `zscaler-ipsec`, `provider`== `custom-ipsec`
+                or `provider`== `custom-gre`
               items:
                 description: IP Address of the remote host
                 type: string
               type: array
             intern_ips:
-              description: if `provider`== `zscaler-gre`
+              description: if `provider`== `zscaler-gre` or `provider`== `custom-gre`
               items:
                 type: string
               type: array
             probe_ips:
-              description: if `provider`== `zscaler-gre`
+              description: if `provider`== `zscaler-gre` or `provider`== `custom-gre`
               items:
                 type: string
               type: array
@@ -50478,7 +50967,7 @@ components:
               type: array
           type: object
         probe:
-          description: if `provider`== `custom`
+          description: if `provider`== `custom-ipsec`
           properties:
             interval:
               description: how often to trigger the probe
@@ -50501,32 +50990,34 @@ components:
           description: if `provider`== `custom`
           enum:
           - ipsec
+          - gre
           type: string
         provider:
           enum:
           - zscaler-ipsec
           - zscaler-gre
-          - amazon
-          - custom
+          - custom-ipsec
+          - customer-gre
           type: string
         psk:
-          description: if `provider`== `zscaler-ipsec` or `provider`== `custom`
+          description: if `provider`== `zscaler-ipsec` or `provider`== `custom-ipsec`
           type: string
         secondary:
           properties:
             hosts:
-              description: if `provider`== `zscaler-ipsec` or `provider`== `custom`
+              description: if `provider`== `zscaler-ipsec`, `provider`== `custom-ipsec`
+                or `provider`== `custom-gre`
               items:
                 description: IP Address of the remote host
                 type: string
               type: array
             intern_ips:
-              description: if `provider`== `zscaler-gre`
+              description: if `provider`== `zscaler-gre` or `provider`== `custom-gre`
               items:
                 type: string
               type: array
             probe_ips:
-              description: if `provider`== `zscaler-gre`
+              description: if `provider`== `zscaler-gre` or `provider`== `custom-gre`
               items:
                 type: string
               type: array
@@ -50667,50 +51158,118 @@ components:
           json: string
     inventory:
       properties:
-        created_time:
-          readOnly: true
-          type: number
-        deviceprofile_id:
-          format: uuid
-          type: string
-        for_site:
-          readOnly: true
+        adopted:
+          description: 'only if `type`==`switch` or `type`==`gateway`
+
+            whether the switch/gateway is adopted'
           type: boolean
-        id:
-          format: uuid
-          readOnly: true
+        connected:
+          description: whether the device is connected
+          type: boolean
+        created_time:
+          description: inventory created time, in epoch
+          type: integer
+        deviceprofile_id:
+          description: deviceprofile id if assigned, null if not assigned
+          nullable: true
           type: string
+        hw_rev:
+          description: device hardware revision number
+          type: string
+        id:
+          description: device id
+          type: string
+        jsi:
+          type: boolean
         mac:
+          description: device MAC address
+          type: string
+        magic:
+          description: device claim code
           type: string
         model:
+          description: device model
           type: string
         modified_time:
-          readOnly: true
-          type: number
+          description: inventory last modified time, in epoch
+          type: integer
         name:
+          description: device name if assigned
+          type: string
+        org_id:
+          description: org id
           type: string
         serial:
-          readOnly: true
+          description: device serial
           type: string
         site_id:
-          format: uuid
-          readOnly: true
+          description: site id if assigned, null if not assigned
+          nullable: true
           type: string
-        status:
+        sku:
+          description: device stock keeping unit
           type: string
         type:
+          description: device type
+          enum:
+          - ap
+          - switch
+          - gateway
           type: string
-      required:
-      - created_time
-      - deviceprofile_id
-      - id
-      - mac
-      - model
-      - modified_time
-      - serial
-      - status
-      - type
       type: object
+      x-examples:
+        ap:
+          connected: true
+          created_time: 1585754725
+          deviceprofile_id: null
+          hw_rev: F11
+          id: 00000000-0000-0000-1000-d420b080516d
+          jsi: false
+          mac: d420b080516d
+          magic: XXXXXXXXXXXXXXX
+          model: AP41
+          modified_time: 1649358858
+          name: SaltLakeHQ-AP6d
+          org_id: 9777c1a0-6ef6-11e6-8bbf-02e208b2d34f
+          serial: A0052190206A2
+          site_id: 1505f5d6-5366-4ca2-a9e2-2c6b805e5a47
+          sku: AP41-US
+          type: ap
+        gateway:
+          adopted: true
+          connected: true
+          created_time: 1616108044
+          deviceprofile_id: null
+          hw_rev: C
+          id: 00000000-0000-0000-1000-fc334262af00
+          jsi: false
+          mac: fc334262af00
+          magic: XXXXXXXXXXXXXXX
+          model: SRX320
+          modified_time: 1616108293
+          name: LD_SRX
+          org_id: 9777c1a0-6ef6-11e6-8bbf-02e208b2d34f
+          serial: CW1419AN0651
+          site_id: 978c48e6-6ef6-11e6-8bbf-02e208b2d34f
+          sku: SRX320-SYS-JB
+          type: gateway
+        switch:
+          connected: true
+          created_time: 1623086870
+          deviceprofile_id: null
+          hw_rev: C
+          id: 00000000-0000-0000-1000-8403280bc0a0
+          jsi: false
+          mac: 8403280bc0a0
+          magic: XXXXXXXXXXXXXXX
+          model: EX2300-C-12P
+          modified_time: 1656353525
+          name: SaltLake-EX2300-C
+          org_id: 9777c1a0-6ef6-11e6-8bbf-02e208b2d34f
+          serial: HV3620270051
+          site_id: 1505f5d6-5366-4ca2-a9e2-2c6b805e5a47
+          sku: EX2300-C-12P
+          type: switch
     junos_bgp_config:
       description: ''
       properties:
@@ -51381,6 +51940,10 @@ components:
           - static
           - dynamic
           type: string
+        use_mgmt_vrf:
+          default: false
+          description: if supported on the platform
+          type: boolean
       type: object
       x-examples:
         example-1:
@@ -52166,6 +52729,9 @@ components:
         description:
           example: Juniper QFX Series Switch - 1K_5LA
           type: string
+        enabled:
+          default: true
+          type: boolean
         engine_id:
           enum:
           - local
@@ -52217,6 +52783,10 @@ components:
                 type: string
               community_name:
                 example: abc123
+                type: string
+              view:
+                description: view name here should be defined in views above
+                example: all
                 type: string
             type: object
           type: array
@@ -53509,13 +54079,16 @@ components:
           type: array
           uniqueItems: true
         enabled:
-          description: enable radsecproxy service on this cluster of mist edges
+          description: whether to enable service on Mist Edge i.e. RADIUS proxy over
+            TLS
           type: boolean
         match_ssid:
           description: whether to match ssid in request message to select from a subset
             of RADIUS servers
           type: boolean
         proxy_hosts:
+          description: hostnames or IPs for Mist AP to use as the TLS Server (i.e.
+            they are reachable from AP), optional, default to `tunterm_hosts`
           items:
             type: string
           type: array
@@ -53618,6 +54191,9 @@ components:
               - static
               - dhcp
               type: string
+            use_mgmt_vrf:
+              default: false
+              type: boolean
           type: object
         org_id:
           format: uuid
@@ -54119,6 +54695,10 @@ components:
         created_time:
           readOnly: true
           type: integer
+        enabled:
+          default: true
+          description: enabled or not
+          type: boolean
         id:
           format: uuid
           minLength: 1
@@ -54134,7 +54714,7 @@ components:
         not_matching:
           $ref: '#/components/schemas/nac_rule_matching'
         order:
-          description: the priority of the rule, lower value implies higher priority
+          description: the priority of the rule, higher value implies higher priority
           type: number
         org_id:
           format: uuid
@@ -55065,10 +55645,16 @@ components:
           type: object
         cradlepoint:
           properties:
-            api_id:
+            cp_api_id:
+              example: 84446d61-2206-4ea5-855a-0043f980be54
+              type: string
+            cp_api_key:
+              example: 79c329da9893e34099c7d8ad5cb9c941
+              type: string
+            ecm_api_id:
               example: 73446d61-2206-4ea5-855a-0043f980be62
               type: string
-            api_secret:
+            ecm_api_key:
               example: 68b329da9893e34099c7d8ad5cb9c940
               type: string
           type: object
@@ -55286,6 +55872,13 @@ components:
           maximum: 480
           minimum: 0
           type: integer
+        vpn_options:
+          properties:
+            as_base:
+              maximum: 4294967295
+              minimum: 1
+              type: integer
+          type: object
       type: object
       x-examples:
         example-1:
@@ -56840,8 +57433,8 @@ components:
                 - error
                 type: string
               source_address:
-                example: 192.168.1.1
-                format: ipv4
+                description: if source_address is configured, will use the vlan firstly
+                  otherwise use source_ip
                 type: string
               structured_data:
                 type: boolean
@@ -56850,8 +57443,8 @@ components:
             type: object
           type: array
         source_address:
-          example: 192.168.1.1
-          format: ipv4
+          description: if source_address is configured, will use the vlan firstly
+            otherwise use source_ip
           type: string
         time_format:
           enum:
@@ -58110,6 +58703,10 @@ components:
     site:
       description: Site
       properties:
+        ? ''
+        : description: Site Template ID
+          format: uuid
+          type: string
         address:
           description: full address of the site
           example: 1601 S. Deanza Blvd., Cupertino, CA, 95014
@@ -59792,6 +60389,28 @@ components:
                 example: '["snmp", "icmp"]'
                 type: string
               type: array
+            custom:
+              items:
+                properties:
+                  port_range:
+                    description: matched dst port, `0` means any
+                    maxLength: 6553
+                    minLength: 0
+                    type: string
+                  protocol:
+                    default: any
+                    enum:
+                    - tcp
+                    - udp
+                    - icmp
+                    - any
+                    type: string
+                  subnets:
+                    items:
+                      type: string
+                    type: array
+                type: object
+              type: array
             enabled:
               description: 'when enabled, all traffic that is not essential to our
                 operation will be dropped
@@ -60004,6 +60623,40 @@ components:
           org_id: 203d3d02-xxxx-xxxx-xxxx-76896a3330f4
           site_ids:
           - e7006522-xxxx-xxxx-xxxx-1b6568a9d98c
+    sitetemplate:
+      properties:
+        auto_upgrade:
+          properties:
+            day_of_week:
+              type: string
+            enabled:
+              type: boolean
+            time_of_day:
+              type: string
+            version:
+              type: string
+          type: object
+        name:
+          type: string
+        vars:
+          properties:
+            SSID_STR:
+              type: string
+            VLAN_ID:
+              type: string
+          type: object
+      type: object
+      x-examples:
+        example-1:
+          auto_upgrade:
+            day_of_week: mon
+            enabled: true
+            time_of_day: 01:00
+            version: stable
+          name: template_000
+          vars:
+            SSID_STR: mist
+            VLAN_ID: '2345'
     sle_classifier_summary:
       description: ''
       properties:
@@ -63680,6 +64333,10 @@ components:
           type: object
         locating:
           type: boolean
+        locked:
+          description: whether this AP is considered locked (placement / orientation
+            has been vetted)
+          type: boolean
         mac:
           description: device mac
           type: string
@@ -63712,6 +64369,9 @@ components:
                 type: integer
               rx_retries:
                 type: integer
+              site_id:
+                format: uuid
+                type: string
               snr:
                 type: integer
               tx_bps:
@@ -63763,6 +64423,9 @@ components:
             tx_retries:
               type: integer
             uplink_ap_id:
+              format: uuid
+              type: string
+            uplink_site_id:
               format: uuid
               type: string
           type: object
@@ -66548,6 +67211,10 @@ components:
             - sdkclient-scan-data
             - vbeacon
             - zone
+            - asset-raw-rssi
+            - discovered-raw-rssi
+            - wifi-conn-raw
+            - wifi-unconn-raw
             type: string
           type: array
         type:
@@ -68073,6 +68740,14 @@ components:
           default: false
           description: whether to disable U-APSD
           type: boolean
+        disable_v1_roam_notify:
+          default: true
+          description: disable sending v2 roam notification messages
+          type: boolean
+        disable_v2_roam_notify:
+          default: false
+          description: disable sending v2 roam notification messages
+          type: boolean
         disable_wmm:
           default: false
           description: whether to disable WMM
@@ -68227,6 +68902,11 @@ components:
         isolation:
           default: false
           description: whether to allow clients to talk to each other
+          type: boolean
+        l2_isolation:
+          default: false
+          description: if isolation is enabled, whether to deny clients to talk to
+            L2 on the LAN
           type: boolean
         legacy_overds:
           description: "legacy devices requires the Over-DS (for Fast BSS Transition)\
@@ -68934,7 +69614,10 @@ components:
           type: string
         legacy:
           description: "list of supported rates (IE=1) and extended supported rates\
-            \ (IE=50), append \u2018b\u2019 at the end to indicate it being basic/mandatory"
+            \ (IE=50) for custom template, append \u2018b\u2019 at the end to indicate\
+            \ a rate being basic/mandatory. If `template`==`custom` is configured\
+            \ and legacy does not define at least one basic rate, it will use `no-legacy`\
+            \ default values"
           items:
             type: string
           type: array
@@ -68942,9 +69625,10 @@ components:
           description: Minimum RSSI for client to connect, 0 means not enforcing
           type: integer
         template:
-          description: "* no-legacy: no 11b\n* compatible: all, like before, default\
-            \ setting that Broadcom/Atheros used\n* legacy-only: disable 802.11n and\
-            \ 802.11ac \n* high-density: no 11b, no low rates\n* custom: user defined"
+          description: "* `no-legacy`: no 11b\n* `compatible`: all, like before, default\
+            \ setting that Broadcom/Atheros used\n* `legacy-only`: disable 802.11n\
+            \ and 802.11ac \n* `high-density`: no 11b, no low rates\n* `custom`: user\
+            \ defined"
           nullable: true
           type: string
         vht:
@@ -70464,6 +71148,7 @@ x-tagGroups:
   - Orgs CradlePoint
   - Orgs CRL
   - Orgs Devices
+  - Orgs Devices Utilities
   - Orgs Devices EVPN
   - Orgs Devices SSR
   - Orgs Device Profiles
@@ -70494,6 +71179,7 @@ x-tagGroups:
   - Orgs Setting
   - Orgs Sitegroups
   - Orgs Sites
+  - Orgs Site Templates
   - Orgs SLEs
   - Orgs SSO Roles
   - Orgs SSO
