@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.30.0**
+  description: '> Version: **0.31.0**
 
     >
 
-    > Date: **September 30th, 2022**
+    > Date: **October 20th, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.30.0
+  version: 0.31.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -9040,7 +9040,11 @@ paths:
         in: query
         name: for_sites
         schema:
-          default: fa
+          default: any
+          enum:
+          - any
+          - 'true'
+          - 'false'
           type: string
       responses:
         '200':
@@ -13106,7 +13110,7 @@ paths:
                     - as: 65000
                       mac: 020001c04668
                       neighbor: 15.8.3.5
-                      neighbor_mac: 020001e53153
+                      neighbor_mac: c15353123096
                       org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
                       rx_pkts: 63366
                       rx_routes: 60
@@ -13246,8 +13250,12 @@ paths:
         in: query
         name: for_site
         schema:
-          default: false
-          type: boolean
+          default: 'false'
+          enum:
+          - 'true'
+          - 'false'
+          - any
+          type: string
       responses:
         '200':
           $ref: '#/components/responses/MxedgesArrayStats'
@@ -14275,18 +14283,28 @@ paths:
         **NOTE**: requires Marvis subscription license'
       operationId: troubleshootOrgClient
       parameters:
-      - in: query
+      - description: '**required** when troubleshooting device'
+        in: query
         name: mac
-        required: true
         schema:
           type: string
-      - in: query
+      - description: '**required** when troubleshooting site'
+        in: query
         name: site_id
         schema:
           format: uuid
           type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
+      - description: when troubleshooting site, type of network to troubleshoot
+        in: query
+        name: type
+        schema:
+          enum:
+          - wireless
+          - wired
+          - wan
+          type: string
       responses:
         '200':
           content:
@@ -14494,7 +14512,10 @@ paths:
       - Orgs Webhooks
   /api/v1/orgs/{org_id}/wired_clients/count:
     get:
-      description: Count by Distinct Attributes of Clients
+      description: 'Count by Distinct Attributes of Clients
+
+
+        Note: For list of avaialable `type` values, please refer to [getClientEventsDefinitions](''#getClientEventsDefinitions'')'
       operationId: countOrgClientsWired
       parameters:
       - in: query
@@ -14505,26 +14526,9 @@ paths:
           - port_id
           - vlan
           - mac
-          type: string
-      - description: client mac
-        in: query
-        name: mac
-        schema:
-          type: string
-      - description: device mac
-        in: query
-        name: device_mac
-        schema:
-          type: string
-      - description: port id
-        in: query
-        name: port_id
-        schema:
-          type: string
-      - description: vlan
-        in: query
-        name: vlan
-        schema:
+          - device_mac
+          - site_id
+          - type
           type: string
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
@@ -14541,7 +14545,10 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/wired_clients/search:
     get:
-      description: Search for Wired Clients in org
+      description: 'Search for Wired Clients in org
+
+
+        Note: For list of avaialable `type` values, please refer to [getClientEventsDefinitions](''#getClientEventsDefinitions'')'
       operationId: searchOrgClientsWired
       parameters:
       - description: device mac
@@ -14582,6 +14589,11 @@ paths:
       - description: single entry of hostname/mac
         in: query
         name: text
+        schema:
+          type: string
+      - description: E.g. CLIENT_DNS_OK
+        in: query
+        name: type
         schema:
           type: string
       responses:
@@ -20235,6 +20247,65 @@ paths:
       summary: uploadSiteDeviceSupportFile
       tags:
       - Sites Devices
+  /api/v1/sites/{site_id}/devices/{device_id}/synthetic_test:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: 'Device Synthetic Test
+
+        '
+      operationId: StartSiteDeviceSyntheticTest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                hostname:
+                  description: if `type`==`dns`
+                  type: string
+                ip:
+                  description: if `type`==`arp`
+                  type: string
+                password:
+                  description: if `type`==`radius`
+                  type: string
+                type:
+                  enum:
+                  - dns
+                  - arp
+                  - dhcp
+                  - curl
+                  - radius
+                  - speedtest
+                  - dhcp6
+                  type: string
+                url:
+                  description: if `type`==`curl`
+                  type: string
+                username:
+                  description: if `type`==`radius`
+                  type: string
+                vlan_id:
+                  type: integer
+              type: object
+              x-examples:
+                example-1:
+                  hostname: google.com
+                  ip: 192.168.3.5
+                  password: test123
+                  type: dns
+                  url: https://www.example.com
+                  username: user
+                  vlan_id: 30
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          description: Device not online / Device not supported / Already in progress
+      summary: StartSiteDeviceSyntheticTest
+      tags:
+      - Sites Devices Utilities
   /api/v1/sites/{site_id}/devices/{device_id}/traceroute:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -22199,30 +22270,29 @@ paths:
         \         \"frame_subtype\": \"Probe Response\", \n         \"proto\": \"\
         802.11\", \n             \"ap_mac\": \"d4:20:b0:81:99:2e\", \n           \
         \  \"direction\": \"tx\", \n             \"timestamp\": 1652246543, \n   \
-        \          \"length\": 416.0,\n             \"info\": \"1652246544.467733\
-        \ 1683216786us tsft 1.0 Mb/s 2412 MHz 11g -75dBm signal -82dBm noise antenna\
-        \ 0 Probe Response (ATTKmsWiVS) [1.0* \n                      2.0* 5.5* 11.0*\
-        \ 18.0 24.0 36.0 54.0 Mbit] CH: 2, PRIVACY\\\\n\",\n         }, \n       \
-        \ \"pcap_raw\": \"1MOyoQIABAAAAAAAAAAAAP//AAABAAAAEEh7Yh5VBwCgAQAAoAEAAAAAKwBvCADAAQAAAIw7reCS2VNkAAAAABACbAmABLWuAAEAEBgAAwACAABQADoBeL28ygsKGLgfTJHAGLgfTJHAcIZ2WDlBJQAAAGQAERUACkFUVEttc1dpVlMBCIKEi5YkMEhsAwECBwZVUyABCx4gAQAjAhkAKgEEMgQMEhhgMBQBAAAPrAQBAAAPrAQBAAAPrAIMAAsFAQAbAABGBTIIAQAALRqtCR////8AAAAAAAAAAAAAAAAAAAAAAAAAAD0WAggVAAAAAAAAAAAAAAAAAAAAAAAAAH8IBAAIAAAAAEDdkwBQ8gQQSgABEBBEAAECEDsAAQMQRwAQn2481frn3KT+uGod2ERx+RAhAAtBcnJpcywgSW5jLhAjAApCR1cyMTAtNzAwECQACkJHVzIxMC03MDAQQgAKQkdXMjEwLTcwMBBUAAgABgBQ8gQAARARAA5BcnJpcyBXaXJlbGVzcxAIAAIgCBA8AAEBEEkABgA3KgABIN0JABAYAgEQHAAA3RgAUPICAQGEAAOkAAAnpAAAQkNeAGIyLwAzjakr\\\
-        \"\n}\n```\n\n#### vResponse (Wired)\n```json\n{\n    \"event\": \"data\"\n\
+        \          \"length\": 416.0,\n             \"interface\": \"radiotap\",\n\
+        \             \"info\": \"1652246544.467733 1683216786us tsft 1.0 Mb/s 2412\
+        \ MHz 11g -75dBm signal -82dBm noise antenna 0 Probe Response (ATTKmsWiVS)\
+        \ [1.0* 2.0* 5.5* 11.0* 18.0 24.0 36.0 54.0 Mbit] CH: 2, PRIVACY\\\\n\",\n\
+        \         }, \n        \"pcap_raw\": \"1MOyoQIABAAAAAAAAAAAAP//AAABAAAAEEh7Yh5VBwCgAQAAoAEAAAAAKwBvCADAAQAAAIw7reCS2VNkAAAAABACbAmABLWuAAEAEBgAAwACAABQADoBeL28ygsKGLgfTJHAGLgfTJHAcIZ2WDlBJQAAAGQAERUACkFUVEttc1dpVlMBCIKEi5YkMEhsAwECBwZVUyABCx4gAQAjAhkAKgEEMgQMEhhgMBQBAAAPrAQBAAAPrAQBAAAPrAIMAAsFAQAbAABGBTIIAQAALRqtCR////8AAAAAAAAAAAAAAAAAAAAAAAAAAD0WAggVAAAAAAAAAAAAAAAAAAAAAAAAAH8IBAAIAAAAAEDdkwBQ8gQQSgABEBBEAAECEDsAAQMQRwAQn2481frn3KT+uGod2ERx+RAhAAtBcnJpcywgSW5jLhAjAApCR1cyMTAtNzAwECQACkJHVzIxMC03MDAQQgAKQkdXMjEwLTcwMBBUAAgABgBQ8gQAARARAA5BcnJpcyBXaXJlbGVzcxAIAAIgCBA8AAEBEEkABgA3KgABIN0JABAYAgEQHAAA3RgAUPICAQGEAAOkAAAnpAAAQkNeAGIyLwAzjakr\"\
+        \n}\n```\n\n#### vResponse (Wired)\n```json\n{\n    \"event\": \"data\"\n\
         \    \"channel\": \"/sites/67970e46-4e12-11e6-9188-0242ac110007/pcaps\"\n\
         \    \"data\": {\n        \"capture_id\": \"f039b1b4-a23e-48b2-906a-0da40524de73\"\
-        , \n        \"lost_messages\": 0,\n        \"pcap_dict\": {\n            \
-        \ \"dst_mac\": \"68:ec:c5:09:2e:87\",\n             \"src_mac\": \"8c:3b:ad:e0:47:40\"\
-        , \n             \"vlan\": 1, \n             \"src_ip\": \"34.224.147.117\"\
-        , \n             \"dst_ip\": \"192.168.1.55\",\n             \"dst_port\"\
-        : 51635, \n             \"src_port\": 443,\n             \"proto\": \"TCP\"\
-        , \n             \"ap_mac\": \"d4:20:b0:81:99:2e\",\n             \"direction\"\
-        : \"tx\", \n             \"timestamp\": 1652247615, \n             \"length\"\
-        : 159.0, \n             \"info\": \"1652247616.007409 IP ec2-34-224-147-117.compute-1.amazonaws.com.https\
-        \ > ip-192-168-1-55.ec2.internal.51635: Flags [P.], seq \n               \
-        \       2192123968:2192124057, ack 4035166782, win 12, options [nop,nop,TS\
-        \ val 597467050 ecr 740580660], length 89\\\\n\",\n             }, \n    \
-        \    \"pcap_raw\": \"1MOyoQIABAAAAAAAAAAAAP//AAABAAAAQEx7YhMzAACfAAAAnwAAAGjsxQkuh4w7reBHQIEAAAEIAEUAAI1bLEAAKAZ/CiLgk3XAqAE3AbvJs4KpKEDwg8I+gBgADFf9AAABAQgKI5yfqiwkXTQXAwMAVKY5JopoKQrVEn0/3ld4YntctGEH/rTZuwtCvzSncFw71QJveJi9uxHs57KC8w9Apph3YvXJrmWg7M37+o+YV0KH/xmr626s5Bkhb3QhKOu+NoNEmA==\\\
-        \"\n\n    }\n}\n```\n\n#### Stop Response (Wired/Wireless)\n```json\n{\n \
-        \   \"event\": \"data\"\n    \"channel\": \"/sites/67970e46-4e12-11e6-9188-0242ac110007/pcaps\"\
-        \n    \"data\": {\n      'capture_id': 'a2f7374d-6a70-41fd-8a3f-71e42573baaf',\
-        \ \n      \"lost_messages\": 0,\n      'pcap_dict': null\n    }\n}\n```"
+        , \n        \"pcap_dict\": {\n             \"dst_mac\": \"68:ec:c5:09:2e:87\"\
+        ,\n             \"src_mac\": \"8c:3b:ad:e0:47:40\", \n             \"vlan\"\
+        : 1, \n             \"src_ip\": \"34.224.147.117\", \n             \"dst_ip\"\
+        : \"192.168.1.55\",\n             \"dst_port\": 51635, \n             \"src_port\"\
+        : 443,\n             \"proto\": \"TCP\", \n             \"ap_mac\": \"d4:20:b0:81:99:2e\"\
+        ,\n             \"direction\": \"tx\", \n             \"timestamp\": 1652247615,\
+        \ \n             \"length\": 159.0, \n             \"interface\": \"wired\"\
+        ,\n             \"info\": \"1652247616.007409 IP ec2-34-224-147-117.compute-1.amazonaws.com.https\
+        \ > ip-192-168-1-55.ec2.internal.51635: Flags [P.], seq 2192123968:2192124057,\
+        \ ack 4035166782, win 12, options [nop,nop,TS val 597467050 ecr 740580660],\
+        \ length 89\\\\n\",\n             }, \n        \"pcap_raw\": \"1MOyoQIABAAAAAAAAAAAAP//AAABAAAAQEx7YhMzAACfAAAAnwAAAGjsxQkuh4w7reBHQIEAAAEIAEUAAI1bLEAAKAZ/CiLgk3XAqAE3AbvJs4KpKEDwg8I+gBgADFf9AAABAQgKI5yfqiwkXTQXAwMAVKY5JopoKQrVEn0/3ld4YntctGEH/rTZuwtCvzSncFw71QJveJi9uxHs57KC8w9Apph3YvXJrmWg7M37+o+YV0KH/xmr626s5Bkhb3QhKOu+NoNEmA==\"\
+        \n\n    }\n}\n```\n\n#### Stop Response (Wired/Wireless)\n```json\n{\n   \
+        \ \"event\": \"data\"\n    \"channel\": \"/sites/67970e46-4e12-11e6-9188-0242ac110007/pcaps\"\
+        \n    \"data\": {\n      \"capture_id\": \"a2f7374d-6a70-41fd-8a3f-71e42573baaf\"\
+        , \n      \"lost_messages\": 0,\n      \"pcap_dict\": null\n    }\n}\n```"
       operationId: startSitePacketCapture
       requestBody:
         content:
@@ -40073,6 +40143,7 @@ components:
                 client_mac: 60a10a773412
                 duration: 300
                 failed: []
+                id: a9a84e13-a714-b1eb-152f-a434416217d5
                 includes_mcast: false
                 max_pkt_len: 128
                 num_packets: 1000
@@ -40110,6 +40181,10 @@ components:
                 items:
                   type: string
                 type: array
+              id:
+                description: unique id for the capture
+                format: uuid
+                type: string
               includes_mcast:
                 type: boolean
               max_pkt_len:
@@ -40142,6 +40217,7 @@ components:
                 type: string
             required:
             - type
+            - id
             type: object
       description: OK
     PcapsSearch:
@@ -47513,6 +47589,8 @@ components:
           includes_mcast:
             type: boolean
           max_pkt_len:
+            default: 128
+            maximum: 2048
             type: integer
           num_packets:
             default: 1024
@@ -47545,6 +47623,8 @@ components:
           includes_mcast:
             type: boolean
           max_pkt_len:
+            default: 128
+            maximum: 2048
             type: integer
           num_packets:
             default: 100
@@ -47602,10 +47682,12 @@ components:
           ap_mac:
             type: string
           band:
-            default: '2.4'
+            default: '24'
             enum:
-            - '2.4'
+            - '24'
             - '5'
+            - '6'
+            - 24,5,6
             type: string
           duration:
             default: 600
@@ -47628,6 +47710,8 @@ components:
             default: 1024
             description: number of packets to capture, 0 for unlimited
             type: integer
+          ssid:
+            type: string
           type:
             default: wlan
             description: wlan
@@ -47640,15 +47724,20 @@ components:
             type: string
         required:
         - type
-      - description: Initiate a Radiotap Packet Capture
+      - description: Initiate a Radiotap Packet Capture and Wired Packet Capture
         properties:
           ap_mac:
             type: string
           band:
-            default: '2.4'
+            default: '24'
+            description: only used for radiotap
             enum:
-            - '2.4'
+            - '24'
             - '5'
+            - '6'
+            - 24,5,6
+            type: string
+          client_mac:
             type: string
           duration:
             default: 600
@@ -47657,7 +47746,6 @@ components:
             type: integer
           format:
             default: pcap
-            description: pcap format
             enum:
             - pcap
             - stream
@@ -47672,12 +47760,82 @@ components:
             description: number of packets to capture, 0 for unlimited
             minimum: 0
             type: integer
+          radiotap_tcpdump_expression:
+            description: tcpdump expression for radiotap interface (802.11 + radio
+              headers)
+            type: string
+          ssid:
+            type: string
+          tcpdump_expression:
+            description: tcpdump expression common for wired,radiotap
+            type: string
+          type:
+            default: radiotap,wired
+            description: radiotap,wired
+            enum:
+            - radiotap,wired
+            example: radiotap,wired
+            type: string
+          wired_tcpdump_expression:
+            description: tcpdump expression for wired
+            type: string
+          wireless_tcpdump_expression:
+            description: tcpdump expression for radiotap interface (802.11)
+            type: string
+          wlan_id:
+            description: wlan id associated with the respective ssid.
+            type: string
+        required:
+        - type
+      - description: Initiate a Radiotap Packet Capture
+        properties:
+          ap_mac:
+            type: string
+          band:
+            default: '24'
+            enum:
+            - '24'
+            - '5'
+            - '6'
+            - 24,5,6
+            type: string
+          client_mac:
+            type: string
+          duration:
+            default: 600
+            description: duration of the cpture, in seconds
+            maximum: 86400
+            type: integer
+          format:
+            default: pcap
+            enum:
+            - pcap
+            - stream
+            type: string
+          max_pkt_len:
+            default: 128
+            description: max_len of each packet to capture
+            maximum: 2048
+            type: integer
+          num_packets:
+            default: 1024
+            description: number of packets to capture, 0 for unlimited
+            minimum: 0
+            type: integer
+          ssid:
+            type: string
+          tcpdump_expression:
+            description: tcpdump expression specific to radiotap
+            type: string
           type:
             default: radiotap
             description: radiotap
             enum:
             - radiotap
             example: radiotap
+            type: string
+          wlan_id:
+            description: wlan id associated with the respective ssid.
             type: string
         required:
         - type
@@ -47755,6 +47913,21 @@ components:
             max_pkt_len: 68
             num_packets: 100
             type: wlan
+        Radiotap Packet Capture and Wired Packet Capture:
+          ap_mac: null
+          band: '24'
+          client_mac: 38f9d3972ff1
+          duration: 600
+          format: stream
+          max_pkt_len: 68
+          num_packets: 100
+          radiotap_tcpdump_expression: type data
+          ssid: atest
+          tcpdump_expression: <common>
+          type: radiotap,wired
+          wired_tcpdump_expression: tcp port 80
+          wireless_tcpdump_expression: ''
+          wlan_id: fac8e973-feb9-421a-b381-aabbc4b61f5a
         SSR Packet Capture:
           duration: 600
           format: stream
@@ -50851,11 +51024,15 @@ components:
       description: ''
       properties:
         ike_lifetime:
-          description: if `provider`== `custom-ipsec`
+          description: 'Only if:
+
+            * `provider`== `custom-ipsec`'
           type: integer
         ike_mode:
           default: main
-          description: if `provider`== `custom-ipsec`
+          description: 'Only if:
+
+            * `provider`== `custom-ipsec`'
           enum:
           - main
           - aggressive
@@ -50902,7 +51079,9 @@ components:
           description: if `provider`== `custom-ipsec`
           type: integer
         ipsec_proposals:
-          description: if `provider`== `custom-ipsec`
+          description: 'Only if:
+
+            * `provider`== `custom-ipsec`'
           items:
             properties:
               auth_algo:
@@ -50913,9 +51092,10 @@ components:
                 type: string
               dh_group:
                 default: '14'
-                description: "* 1 \n* 2 (1024-bit) \n* 5\n* 14 (default, 2048-bit)\
-                  \ \n* 15 (3072-bit) \n* 16 (4096-bit)\n* 19 (256-bit ECP)\n* 20\
-                  \ (384-bit ECP)\n* 21 (521-bit ECP) \n* 24 (2048-bit ECP)"
+                description: "Only if:\n* `provider`== `custom-ipsec`\nValues:\n*\
+                  \ 1 \n* 2 (1024-bit) \n* 5\n* 14 (default, 2048-bit) \n* 15 (3072-bit)\
+                  \ \n* 16 (4096-bit)\n* 19 (256-bit ECP)\n* 20 (384-bit ECP)\n* 21\
+                  \ (521-bit ECP) \n* 24 (2048-bit ECP)"
                 enum:
                 - '1'
                 - '2'
@@ -50940,24 +51120,41 @@ components:
             type: object
           type: array
         local_id:
-          description: if `provider`== `zscaler-ipsec` or `provider`== `custom-ipsec`
+          description: 'Only if:
+
+            * `provider`== `zscaler-ipsec`
+
+            * `provider`==`jse-ipsec`
+
+            * `provider`== `custom-ipsec`'
+          type: string
+        mode:
+          default: active-standby
+          enum:
+          - active-standby
+          - active-active
           type: string
         primary:
           properties:
             hosts:
-              description: if `provider`== `zscaler-ipsec`, `provider`== `custom-ipsec`
-                or `provider`== `custom-gre`
               items:
                 description: IP Address of the remote host
                 type: string
               type: array
-            intern_ips:
-              description: if `provider`== `zscaler-gre` or `provider`== `custom-gre`
+            internal_ips:
+              description: "Only if:\n* `provider`== `zscaler-gre` \n* `provider`==\
+                \ `custom-gre`"
               items:
                 type: string
               type: array
             probe_ips:
-              description: if `provider`== `zscaler-gre` or `provider`== `custom-gre`
+              items:
+                type: string
+              type: array
+            remote_ids:
+              description: 'Only if:
+
+                * `provider`== `custom-ipsec`'
               items:
                 type: string
               type: array
@@ -50967,7 +51164,9 @@ components:
               type: array
           type: object
         probe:
-          description: if `provider`== `custom-ipsec`
+          description: 'Only if:
+
+            * `provider`== `custom-ipsec`'
           properties:
             interval:
               description: how often to trigger the probe
@@ -50987,7 +51186,9 @@ components:
               type: string
           type: object
         protocol:
-          description: if `provider`== `custom`
+          description: 'Only if:
+
+            * `provider`== `custom-ipsec`'
           enum:
           - ipsec
           - gre
@@ -50996,28 +51197,39 @@ components:
           enum:
           - zscaler-ipsec
           - zscaler-gre
-          - custom-ipsec
           - customer-gre
+          - jse-ipsec
+          - custom-ipsec
           type: string
         psk:
-          description: if `provider`== `zscaler-ipsec` or `provider`== `custom-ipsec`
+          description: 'Only if:
+
+            * `provider`== `zscaler-ipsec`
+
+            * `provider`==`jse-ipsec`
+
+            * `provider`== `custom-ipsec`'
           type: string
         secondary:
           properties:
             hosts:
-              description: if `provider`== `zscaler-ipsec`, `provider`== `custom-ipsec`
-                or `provider`== `custom-gre`
               items:
                 description: IP Address of the remote host
                 type: string
               type: array
-            intern_ips:
-              description: if `provider`== `zscaler-gre` or `provider`== `custom-gre`
+            internal_ips:
+              description: 'Only if:
+
+                * `provider`== `custom-ipsec`'
               items:
                 type: string
               type: array
             probe_ips:
-              description: if `provider`== `zscaler-gre` or `provider`== `custom-gre`
+              items:
+                type: string
+              type: array
+            remote_ids:
+              description: "Only if: \n* `provider`== `custom-ipsec`"
               items:
                 type: string
               type: array
@@ -51028,7 +51240,7 @@ components:
           type: object
         version:
           default: '2'
-          description: if `provider`== `custom`
+          description: "Only if:\n* `provider`== `custom-gre` \n* `provider`== `custom-ipsec`"
           enum:
           - '1'
           - '2'
@@ -51762,6 +51974,10 @@ components:
           items:
             type: string
           type: array
+        evpn_anycast:
+          default: false
+          description: Only for switches with EVPN
+          type: boolean
         gateway:
           type: string
         ip:
@@ -52897,9 +53113,15 @@ components:
                         minLength: 7
                         type: string
                       authentication_type:
+                        description: sha224, sha256, sha384, sha512 are supported
+                          in 21.1 and newer release
                         enum:
                         - authentication-md5
                         - authentication-sha
+                        - authentication-sha224
+                        - authentication-sha256
+                        - authentication-sha384
+                        - authentication-sha512
                         - authentication-none
                         type: string
                       encryption_password:
@@ -53819,6 +54041,8 @@ components:
           format: uuid
           readOnly: true
           type: string
+        mist_das:
+          $ref: '#/components/schemas/mxedge_das'
         mist_nac:
           $ref: '#/components/schemas/mxcluster_nac'
         modified_time:
@@ -54475,6 +54699,44 @@ components:
             versions:
               mxagent: string
               tuntnerm: string
+    mxedge_das:
+      description: configure cloud-assisted dynamic authorization service on this
+        cluster of mist edges
+      properties:
+        coa_servers:
+          description: ' list of COA (change of authorization) servers'
+          items:
+            properties:
+              disable_event_timestamp_check:
+                default: false
+                description: whether to disable Event-Timestamp Check
+                type: boolean
+              enabled:
+                type: boolean
+              host:
+                description: this server configured to send CoA|DM to mist edges
+                type: string
+              port:
+                default: 3799
+                description: mist edges will allow this host on this port
+                type: integer
+              secret:
+                type: string
+            type: object
+          type: array
+        enabled:
+          default: false
+          type: boolean
+      type: object
+      x-examples:
+        example-1:
+          coa_servers:
+          - disable_event_timestamp_check: false
+            enabled: false
+            host: aaa.internal
+            port: 3799
+            secret: testing456
+          enabled: true
     mxedge_mgmt:
       properties:
         ? ''
@@ -57019,6 +57281,10 @@ components:
           maxLength: 64
           minLength: 8
           type: string
+        role:
+          maxLength: 32
+          minLength: 0
+          type: string
         site_id:
           format: uuid
           readOnly: true
@@ -57056,6 +57322,7 @@ components:
       properties:
         auth:
           default: sso
+          description: 'Note: `sponsor` not yet available'
           enum:
           - sso
           - sponsor
@@ -57162,7 +57429,6 @@ components:
         thumbnail_url:
           type: string
         type:
-          default: byod
           description: for personal psk portal
           enum:
           - byod
@@ -58534,6 +58800,8 @@ components:
         created_time:
           readOnly: true
           type: integer
+        description:
+          type: string
         dscp:
           description: when `traffic_type`==`custom`
           type: integer
@@ -59365,6 +59633,8 @@ components:
         mxedge:
           description: site mist edges form a cluster of radsecproxy servers
           properties:
+            mist_das:
+              $ref: '#/components/schemas/mxedge_das'
             radsec:
               $ref: '#/components/schemas/mxcluster_radsec'
           type: object
@@ -65169,20 +65439,47 @@ components:
         cpu_stat:
           properties:
             idle:
-              type: number
+              description: Percentage of CPU time that is idle
+              type: integer
             interrupt:
-              type: number
+              description: Percentage of CPU time being used by interrupts
+              type: integer
             load_avg:
+              description: Load averages for the last 1, 5, and 15 minutes
               items:
                 type: object
               type: array
             system:
-              type: number
+              description: Percentage of CPU time being used by system processes
+              type: integer
             user:
-              type: number
+              description: Percentage of CPU time being used by user processe
+              type: integer
           type: object
         hostname:
           type: string
+        if_stat:
+          additionalProperties:
+            properties:
+              ips:
+                items:
+                  type: string
+                type: array
+              port_id:
+                type: string
+              rx_bytes:
+                type: integer
+              rx_pkts:
+                type: integer
+              tx_bytes:
+                type: integer
+              tx_pkts:
+                type: integer
+              up:
+                type: boolean
+            type: object
+          description: Property key is the interface name
+          type: object
         ip:
           type: string
         ip_stat:
@@ -65222,6 +65519,8 @@ components:
         mac:
           type: string
         memory_stat:
+          description: memory usage stat (for virtual chassis, memory usage of master
+            RE)
           properties:
             usage:
               type: number
