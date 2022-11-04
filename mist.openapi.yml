@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.31.2**
+  description: '> Version: **0.32.0**
 
     >
 
-    > Date: **Novemeber 3rd, 2022**
+    > Date: **November 4rd, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.31.2
+  version: 0.32.
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -120,7 +120,11 @@ tags:
 - name: Orgs Gateway Templates
 - name: Orgs Inventory
 - name: Orgs Invites
-- name: Orgs JSI Inventory
+- description: "Juniper Support Insight is a free service provided to all Mist customers.\
+    \ You can adopt your devices via a few lines CLI comands. Allowing you to \n*\
+    \ get some basic information about the adopted devices \n* web shell into device\
+    \ (write privilege required) \n* upgrade (write privilege required)"
+  name: Orgs JSI
 - name: Orgs Licenses
 - name: Orgs Logs
 - name: Orgs Marvis
@@ -138,6 +142,7 @@ tags:
   name: Orgs Network Templates
 - name: Orgs Networks
 - name: Orgs OAuth
+- name: Orgs Premium Analytics
 - name: Orgs Psks
 - description: "PSK Self-Service Portals are for \n  1. **WIFI users** who want to\
     \ connect to a WLAN with personal PSK, they\u2019re told to connect to a URL where\
@@ -184,16 +189,25 @@ tags:
 - name: Sites Assets
 - name: Sites Beacons
 - name: Sites Clients
-- name: Sites Devices
+- description: 'Mist provides many ways (device-type specific template, site template,
+    device profile, per-device) to configure devices for different kind of scenarios.
+
+    The precedence goes from most specific to least specific
+
+    Device > Device Profile > RFTemplate (for AP only) > DeviceType-specific Template
+    > Site Template > Site Setting'
+  name: Sites Devices
+- name: Sites Devices APs
+- name: Sites Devices Switches
 - description: 'EVPN allows an alternative but more efficient LAN architecture utilizing
     VxLAN / MP-BGP - separating control plane (MAC / IP Learning) from forwarding
     plane.
 
-    In our implementation, following the steps to deploy EVPN topologies in a Site'
-  name: Sites Devices EVPN
-- name: Sites Devices HA
-- name: Sites Devices Virtual Chassis
-- name: Sites Devices SSR
+    In our implementation, following the steps to deploy EVPN topologies in a Site '
+  name: Sites Devices Switches EVPN
+- name: Sites Devices Switches Virtual Chassis
+- name: Sites Devices WAN Edges
+- name: Sites Devices WAN Edges HA
 - name: Sites Devices Stats
 - name: Sites Devices Utilities
 - name: Sites Events
@@ -1638,7 +1652,12 @@ paths:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/device_mac'
     put:
-      description: 'Provision device '
+      description: "Provision or Replace a device \n\nIf replacing_mac is in the request\
+        \ payload, other attributes are ignored, we attempt to replace existing device\
+        \ (with mac replacing_mac) with the inventory device being configured. The\
+        \ replacement device must be in the inventory but not assigned, and the replacing_mac\
+        \ device must be assigned to a site, and satisfy grace period requirements.\
+        \ The Device replaced will become unassigned."
       operationId: provisionInstallerDevices
       requestBody:
         content:
@@ -1666,9 +1685,21 @@ paths:
           content:
             application/json:
               examples:
-                example-outsite_of_grace_period:
+                invalid mac given for replacing_mac:
+                  value:
+                    detail: invalid replacing_mac
+                inventory device is already assigned:
+                  value:
+                    detail: device already assigned
+                outsite_of_grace_period:
                   value:
                     detail: outside of grace period
+                replacing_mac device is not assigned to a site:
+                  value:
+                    detail: replacing_mac device is unassigned
+                replacing_mac device last modified outside of grace period:
+                  value:
+                    detail: replacing_mac device outside of grace period
               schema:
                 properties:
                   detail:
@@ -1677,6 +1708,25 @@ paths:
                 - detail
                 type: object
           description: Bad Request
+        '404':
+          content:
+            application/json:
+              examples:
+                replacing_mac device is not in org inventory:
+                  value:
+                    detail: replacing_mac inventory not found
+                replacing_mac device not found:
+                  value:
+                    detail: replacing_mac device not found
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+                x-examples:
+                  example-1:
+                    detail: replacing_mac inventory not found
+          description: Not Found
       summary: provisionInstallerDevices
       tags:
       - Installer
@@ -6270,6 +6320,11 @@ paths:
         name: version
         schema:
           type: string
+      - description: power_constrained
+        in: query
+        name: power_constrained
+        schema:
+          type: boolean
       - $ref: '#/components/parameters/ip'
       - description: MxTunnel status, up / down
         in: query
@@ -8265,7 +8320,7 @@ paths:
         \ HW has problem and need a replacement, they would want to copy the existing\
         \ attributes (Device Config) of this old AP to the new one. It can be done\
         \ by providing the MAC of a device that\u2019s currently in the inventory\
-        \ but not assigned. The Device replaced will become unclaimed.\n\n**Note:**\
+        \ but not assigned. The Device replaced will become unassigned.\n\n**Note:**\
         \ For Gateway devices only like-for-like replacements (can only replace a\
         \ SRX320 with a SRX320 and not some otehr model) are allowed."
       operationId: replaceOrgDevices
@@ -8451,14 +8506,109 @@ paths:
           description: OK
       summary: getOrgJsiDevices
       tags:
-      - Orgs JSI Inventory
+      - Orgs JSI
     parameters:
     - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/jsi/devices/outbound_ssh_cmd:
+    get:
+      description: 'Adopt JSI devices
+
+        '
+      operationId: adoptOrgJsiDevice
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    cmd: 'set system services ssh...
+
+                      ...
+
+                      set system services outbound-ssh client mist ...'
+              schema:
+                properties:
+                  cmd:
+                    type: string
+                type: object
+                x-examples:
+                  example-1:
+                    cmd: 'set system services ssh...
+
+                      ...
+
+                      set system services outbound-ssh client mist ...'
+          description: OK
+      summary: adoptOrgJsiDevice
+      tags:
+      - Orgs JSI
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/jsi/devices/{device_mac}/shell:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/device_mac'
+    post:
+      description: Create Shell Session
+      operationId: createOrgJsiDeviceShellSession
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    session: 19e73828-937f-05e6-f709-e29efdb0a82b
+                    url: wss://api-ws.mist.com/ssh?jwt=xxxx
+              schema:
+                properties:
+                  session:
+                    type: string
+                  url:
+                    type: string
+                type: object
+                x-examples:
+                  example-1:
+                    session: 19e73828-937f-05e6-f709-e29efdb0a82b
+                    url: wss://api-ws.mist.com/ssh?jwt=xxxx
+          description: OK
+      summary: createOrgJsiDeviceShellSession
+      tags:
+      - Orgs JSI
+  /api/v1/orgs/{org_id}/jsi/devices/{device_mac}/upgrade:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/device_mac'
+    post:
+      description: Upgrade
+      operationId: upgradeOrgJsiDevice
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  version: 3.1.5
+            schema:
+              properties:
+                version:
+                  type: string
+              type: object
+              x-examples:
+                example-1:
+                  version: 3.1.5
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: upgradeOrgJsiDevice
+      tags:
+      - Orgs JSI
   /api/v1/orgs/{org_id}/jsi/inventory:
     get:
       description: This gets all devices purchased from the accounts associated with
         the Org
-      operationId: getOrgJsiInventory
+      operationId: getOrgJsiPastPurchases
       parameters:
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/page'
@@ -8477,27 +8627,72 @@ paths:
               examples:
                 example-1:
                   value:
-                  - model: EX2300-C-12P
-                    serial: DGCOO0015
+                  - contract_end_time: 1666036300
+                    contract_id: '60741935'
+                    contract_sku: PAR-ND-EX34-48TA
+                    contract_start_time: 1665036300
+                    eol_time: null
+                    eos_time: null
+                    installed_address: 1 First St, San Jose, CA 95112
+                    model: EX3400-48T
+                    serial: NX3622360326
+                    sku: EX3400-48T-AFI
               schema:
                 items:
                   properties:
+                    contract_end_time:
+                      description: contract end time
+                      type: integer
+                    contract_id:
+                      description: contract id
+                      type: string
+                    contract_sku:
+                      description: contract sku
+                      type: string
+                    contract_start_time:
+                      description: contract start time
+                      type: integer
+                    eol_time:
+                      description: end of life time
+                      nullable: true
+                      type: integer
+                    eos_time:
+                      description: end of support time
+                      nullable: true
+                      type: integer
+                    installed_address:
+                      description: address where the device is installed. It is a
+                        combination of address , region , country , zip
+                      type: string
                     model:
+                      description: model of the install base inventory
                       type: string
                     serial:
+                      description: serial Number of the inventory
+                      type: string
+                    sku:
+                      description: serviceable device stock
                       type: string
                   type: object
                 type: array
                 x-examples:
                   example-1:
-                  - model: EX2300-C-12P
-                    serial: DGCOO0015
+                  - contract_end_time: 1666036300
+                    contract_id: '60741935'
+                    contract_sku: PAR-ND-EX34-48TA
+                    contract_start_time: 1665036300
+                    eol_time: null
+                    eos_time: null
+                    installed_address: 1 First St, San Jose, CA 95112
+                    model: EX3400-48T
+                    serial: NX3622360326
+                    sku: EX3400-48T-AFI
           description: OK
         '400':
           content:
             application/json:
               examples:
-                example-1:
+                No Juniper Account Linked:
                   value:
                     detail: no juniper account linked
               schema:
@@ -8509,9 +8704,9 @@ paths:
                   example-1:
                     detail: no juniper account linked
           description: Bad Requeno Juniper Account Linkedst
-      summary: getOrgJsiInventory
+      summary: getOrgJsiPastPurchases
       tags:
-      - Orgs JSI Inventory
+      - Orgs JSI
     parameters:
     - in: path
       name: org_id
@@ -9239,7 +9434,8 @@ paths:
                   example: current
                   type: string
                 mxedge_ids:
-                  description: list of mxedge IDs to upgrade
+                  description: list of mxedge IDs to upgrade. If not specified, it
+                    means all the org mxedges.
                   items:
                     format: uuid
                     type: string
@@ -9442,8 +9638,7 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/mxedge_id'
-    - description: tunterm or radsecproxy or mxagent
-      in: path
+    - in: path
       name: name
       required: true
       schema:
@@ -9451,6 +9646,8 @@ paths:
         - tunterm
         - radsecproxy
         - mxagent
+        - mxocproxy
+        - mxdas
         type: string
     - description: restart or start or stop
       in: path
@@ -10609,6 +10806,38 @@ paths:
       summary: updateOrgCradlepointRouterData
       tags:
       - Orgs CradlePoint
+  /api/v1/orgs/{org_id}/pma/dashboards:
+    get:
+      description: This all the premium analytics dashboards for this Org
+      operationId: getOrgPmaDashboards
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                  - name: dashboard_1
+                    url: https://mist.looker.com/login/embed/%2Fembed%2Fdashboards%2F1?group_ids=%5B3%5D&last_name=%22%22&models=%5B%22generic%22%5D&.....
+              schema:
+                items:
+                  properties:
+                    name:
+                      type: string
+                    url:
+                      type: string
+                  type: object
+                type: array
+                x-examples:
+                  example-1:
+                  - name: dashboard_1
+                    url: https://mist.looker.com/login/embed/%2Fembed%2Fdashboards%2F1?group_ids=%5B3%5D&last_name=%22%22&models=%5B%22generic%22%5D&.....
+          description: OK
+      summary: getOrgPmaDashboards
+      tags:
+      - Orgs Premium Analytics
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/pskportals:
     get:
       description: "get Org Psk Portals\n\nPSK Self-Service Portals are for \n1. **WIFI\
@@ -13085,96 +13314,7 @@ paths:
       operationId: searchOrgBgpStats
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    end: 1619518989.4989712
-                    limit: 10
-                    results:
-                    - as: 65000
-                      mac: 020001c04668
-                      neighbor: 15.8.3.5
-                      neighbor_mac: c15353123096
-                      org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
-                      rx_pkts: 63366
-                      rx_routes: 60
-                      site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                      state: established
-                      tx_pkts: 1735
-                      uptime: 31355
-                      vrf_name: default
-                    start: 1619518689.4989705
-                    total: 1
-              schema:
-                properties:
-                  end:
-                    type: number
-                  limit:
-                    type: integer
-                  results:
-                    items:
-                      properties:
-                        as:
-                          description: AS
-                          type: integer
-                        mac:
-                          description: router mac address
-                          type: string
-                        neighbor:
-                          type: string
-                        neighbor_mac:
-                          type: string
-                        org_id:
-                          description: router org ID
-                          type: string
-                        rx_pkts:
-                          type: integer
-                        rx_routes:
-                          description: number of received routes
-                          type: integer
-                        site_id:
-                          description: router site ID
-                          type: string
-                        state:
-                          enum:
-                          - disconnected
-                          - established
-                          type: string
-                        tx_pkts:
-                          type: integer
-                        uptime:
-                          type: integer
-                        vrf_name:
-                          type: string
-                      type: object
-                    type: array
-                  start:
-                    type: number
-                  total:
-                    type: integer
-                type: object
-                x-examples:
-                  example-1:
-                    end: 1619518989.4989712
-                    limit: 10
-                    results:
-                    - as: 65000
-                      mac: 020001c04668
-                      neighbor: 15.8.3.5
-                      neighbor_mac: .inf
-                      org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
-                      rx_pkts: 63366
-                      rx_routes: 60
-                      site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                      state: established
-                      tx_pkts: 1735
-                      uptime: 31355
-                      vrf_name: default
-                    start: 1619518689.4989705
-                    total: 1
-          description: OK
+          $ref: '#/components/responses/BgpStatsArraySearch'
       summary: searchOrgBgpStats
       tags:
       - Orgs Devices Utilities
@@ -14256,8 +14396,8 @@ paths:
       - Orgs Tickets
   /api/v1/orgs/{org_id}/troubleshoot:
     get:
-      description: 'Troubleshoot devices, clients, and wired clients. See search APIs
-        for device information:
+      description: 'Troubleshoot sites, devices, clients, and wired clients. See search
+        APIs for device information:
 
         - [search Device](/#tag/Orgs-Devices/operation/searchOrgDevices)
 
@@ -17632,7 +17772,7 @@ paths:
       description: Get a list of allowed channels (per channel width)
       operationId: getSiteDeviceRadioChannels
       parameters:
-      - description: country code for the site (for AP config generation), in two-character
+      - description: country code for the site (for AP config generation), in [two-character](http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
         example: US
         in: query
         name: country_code
@@ -17643,7 +17783,7 @@ paths:
           $ref: '#/components/responses/DeviceRadioChannels'
       summary: getSiteDeviceRadioChannels
       tags:
-      - Sites Devices
+      - Sites Devices APs
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/devices/config_history/count:
@@ -18520,7 +18660,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: reprovisionSiteAllAps
       tags:
-      - Sites Devices
+      - Sites Devices APs
   /api/v1/sites/{site_id}/devices/reset_radio_config:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -18559,7 +18699,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: resetSiteAllApsToUseRrm
       tags:
-      - Sites Devices
+      - Sites Devices APs
   /api/v1/sites/{site_id}/devices/restart:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -18638,6 +18778,11 @@ paths:
         name: version
         schema:
           type: string
+      - description: power_constrained
+        in: query
+        name: power_constrained
+        schema:
+          type: boolean
       - $ref: '#/components/parameters/ip'
       - description: MxTunnel status, up / down
         in: query
@@ -18870,7 +19015,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: zeroizeSiteFipsAllAps
       tags:
-      - Sites Devices
+      - Sites Devices APs
   /api/v1/sites/{site_id}/devices/{device_id}:
     delete:
       description: Delete Site Device
@@ -19310,10 +19455,17 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: ARP can be performed on the Device. The output will be available
-        through websocket. As there can be multiple command issued against the same
-        AP at the same time and the output all goes through the same websocket stream,
-        session is introduced for demux.
+      description: "ARP can be performed on the Device. The output will be available\
+        \ through websocket. As there can be multiple command issued against the same\
+        \ AP at the same time and the output all goes through the same websocket stream,\
+        \ session is introduced for demux.\n\n\n#### Subscribe to Device Command outputs\n\
+        `WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+        \n}\n```\n##### Example output from ws stream\n```json\n{ \n \"event\": \"\
+        data\", \n \"channel\": \"/sites/4ac1dcf4-9d8b-7211-65c4-057819f0862b/devices/00000000-0000-0000-1000-5c5b350e0060/cmd\"\
+        , \n \"data\": { \n   \"session\": \"session_id\", \n   \"raw\": \n   \"Output\"\
+        : \"\\tMAC\\t\\tDEV\\tVLAN\\tRx Packets\\t\\t Rx Bytes\\t\\tTx Packets\\t\\\
+        t Tx Bytes\\tFlows\\tIdle sec\\n-----------------------------------------------------------------------------------------------------------------------\"\
+        \n  } \n}\n```"
       operationId: arpFromDevice
       responses:
         '200':
@@ -19331,8 +19483,8 @@ paths:
         \ the same AP at the same time and the output all goes through the same websocket\
         \ stream, session is introduced for demux.\n\n#### Subscribe to Device Command\
         \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
-        \n}\n```\n##### Response\n```json\n{\n    \"event\": \"data\",\n    \"channel\"\
-        : \"/sites/4ac1dcf4-9d8b-7211-65c4-057819f0862b/devices/00000000-0000-0000-1000-5c5b350e0060/cmd\"\
+        \n}\n```\n##### Example output from ws stream\n```json\n{\n    \"event\":\
+        \ \"data\",\n    \"channel\": \"/sites/4ac1dcf4-9d8b-7211-65c4-057819f0862b/devices/00000000-0000-0000-1000-5c5b350e0060/cmd\"\
         ,\n    \"data\": {\n        \"session\": \"session_id\",\n        \"raw\"\
         : \"Port bounce complete.\"\n    }\n}\n```"
       operationId: portsBounceFromSwitch
@@ -19365,7 +19517,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: portsBounceFromSwitch
       tags:
-      - Sites Devices Utilities
+      - Sites Devices Switches
   /api/v1/sites/{site_id}/devices/{device_id}/cable_test:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -19376,8 +19528,8 @@ paths:
         \ Switch at the same time and the output all goes through the same websocket\
         \ stream, session is introduced for demux.\n\n#### Subscribe to Device Command\
         \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
-        \n}\n```\n##### Response\n```json\n{\n    \"event\": \"data\",\n    \"channel\"\
-        : \"/sites/4ac1dcf4-9d8b-7211-65c4-057819f0862b/devices/00000000-0000-0000-1000-5c5b350e0060/cmd\"\
+        \n}\n```\n##### Example output from ws stream\n```json\n{\n    \"event\":\
+        \ \"data\",\n    \"channel\": \"/sites/4ac1dcf4-9d8b-7211-65c4-057819f0862b/devices/00000000-0000-0000-1000-5c5b350e0060/cmd\"\
         ,\n    \"data\": {\n        \"session\": \"session_id\",\n        \"raw\"\
         : \"Interface TDR detail:\\nTest status : Test successfully executed  ge-0/0/0\\\
         n\"\n    }\n}\n```"
@@ -19402,7 +19554,7 @@ paths:
           $ref: '#/components/responses/Session'
       summary: cableTestFromSwitch
       tags:
-      - Sites Devices Utilities
+      - Sites Devices Switches
   /api/v1/sites/{site_id}/devices/{device_id}/check_radius_server:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -19448,7 +19600,7 @@ paths:
           $ref: '#/components/responses/Session'
       summary: startSiteSwitchRadiusSyntheticTest
       tags:
-      - Sites Devices Utilities
+      - Sites Devices Switches
   /api/v1/sites/{site_id}/devices/{device_id}/clear_arp:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -19494,7 +19646,7 @@ paths:
             Both vlan and ip cannot be specified'
       summary: clearSiteSsrArpCache
       tags:
-      - Sites Devices SSR
+      - Sites Devices WAN Edges
   /api/v1/sites/{site_id}/devices/{device_id}/clear_bgp:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -19546,7 +19698,7 @@ paths:
           description: parameter neighbor absent
       summary: clearSiteSsrBgpRoutes
       tags:
-      - Sites Devices SSR
+      - Sites Devices WAN Edges
   /api/v1/sites/{site_id}/devices/{device_id}/clear_bpdu_error:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -19573,7 +19725,7 @@ paths:
           description: Port not specified
       summary: clearBpduErrosFromPortsOnSwitch
       tags:
-      - Sites Devices Utilities
+      - Sites Devices Switches
   /api/v1/sites/{site_id}/devices/{device_id}/clear_macs:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -19604,7 +19756,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: clearAllLearnedMacsFromPortOnSwitch
       tags:
-      - Sites Devices Utilities
+      - Sites Devices Switches
   /api/v1/sites/{site_id}/devices/{device_id}/config_cmd:
     get:
       description: 'Get Config CLI Commands
@@ -19646,7 +19798,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: deleteSiteDeviceHaCluster
       tags:
-      - Sites Devices HA
+      - Sites Devices WAN Edges HA
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
@@ -19758,7 +19910,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: createSiteDeviceHaCluster
       tags:
-      - Sites Devices HA
+      - Sites Devices WAN Edges HA
     put:
       description: Swap nodes on the HA Cluster
       operationId: swapSiteDeviceHaClusterNode
@@ -19790,7 +19942,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: swapSiteDeviceHaClusterNode
       tags:
-      - Sites Devices HA
+      - Sites Devices WAN Edges HA
   /api/v1/sites/{site_id}/devices/{device_id}/iot:
     get:
       description: Returns the current state of each enabled IoT pin configured as
@@ -19801,7 +19953,7 @@ paths:
           $ref: '#/components/responses/DeviceIot'
       summary: getSiteDeviceIotPort
       tags:
-      - Sites Devices
+      - Sites Devices APs
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
@@ -19831,7 +19983,7 @@ paths:
           $ref: '#/components/responses/DeviceIot'
       summary: setSiteDeviceIotPort
       tags:
-      - Sites Devices
+      - Sites Devices APs
   /api/v1/sites/{site_id}/devices/{device_id}/local_port_config:
     delete:
       description: Sometimes HelpDesk Admin needs to change port configs
@@ -19841,7 +19993,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: deleteSiteLocalSwitchPortConfig
       tags:
-      - Sites Devices
+      - Sites Devices Switches
     parameters:
     - in: path
       name: site_id
@@ -19884,7 +20036,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: updateSiteLocalSwitchPortConfig
       tags:
-      - Sites Devices
+      - Sites Devices Switches
   /api/v1/sites/{site_id}/devices/{device_id}/locate:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -19898,7 +20050,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: startSiteLocateDevice
       tags:
-      - Sites Devices
+      - Sites Devices APs
   /api/v1/sites/{site_id}/devices/{device_id}/ping:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -19910,8 +20062,8 @@ paths:
         \ all goes through the same websocket stream, session is introduced for demux.\n\
         \n#### Subscribe to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n\
         {\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n\
-        ##### Response\n```json\n{\n    \"event\": \"data\",\n    \"channel\": \"\
-        /sites/4ac1dcf4-9d8b-7211-65c4-057819f0862b/devices/00000000-0000-0000-1000-5c5b350e0060/cmd\"\
+        ##### Example output from ws stream\n```json\n{\n    \"event\": \"data\",\n\
+        \    \"channel\": \"/sites/4ac1dcf4-9d8b-7211-65c4-057819f0862b/devices/00000000-0000-0000-1000-5c5b350e0060/cmd\"\
         ,\n    \"data\": {\n        \"session\": \"session_id\",\n        \"raw\"\
         : \"64 bytes from 23.211.0.110: seq=8 ttl=58 time=12.323 ms\\n\"\n    }\n\
         }\n```"
@@ -19964,7 +20116,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: pollSiteSwitchStats
       tags:
-      - Sites Devices
+      - Sites Devices Switches
   /api/v1/sites/{site_id}/devices/{device_id}/release_dhcp:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -19996,7 +20148,7 @@ paths:
           description: Parameter `port ` absent
       summary: releaseSiteSsrDhcpLease
       tags:
-      - Sites Devices SSR
+      - Sites Devices WAN Edges
   /api/v1/sites/{site_id}/devices/{device_id}/request_ztp_password:
     get:
       description: In the case where soemthing happens during/after ZTP, the root-password
@@ -20036,21 +20188,26 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "DNS resolutions are performed on the Device. The output will be\
-        \ available through websocket. As there can be multiple command issued against\
-        \ the same SSR at the same time and the output all goes through the same websocket\
-        \ stream, `session` is used for demux.\n\n#### Subscribe to Device Command\
-        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
-        \n}\n```\n\n## Response\n\n| Router | Hostname | Resolved | Last Resolved\
-        \ | Expiration |\n| --- | --- | --- | --- | --- |\n| test-device | xxx.yyy.net\
-        \ | Y | 2022-03-28T03:56:49Z | 2022-03-28T03:57:49Z |\n"
-      operationId: websocketSessionSiteSsrDns
+      description: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n DNS resolutions are\
+        \ performed on the Device. The output will be available through websocket.\
+        \ As there can be multiple command issued against the same SSR at the same\
+        \ time and the output all goes through the same websocket stream, `session`\
+        \ is used for demux.\n \n #### Subscribe to Device Command outputs\n`WS /api-ws/v1/stream`\n\
+        \n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+        \n}\n```\n##### Example output from ws stream\n```\n Router      | Hostname\
+        \               | Resolved | Last Resolved        | Expiration\n-------------|------------------------|----------|----------------------|---------------------\n\
+        \ test-device | xxx.yyy.net            | Y        | 2022-03-28T03:56:49Z |\
+        \ 2022-03-28T03:57:49Z\n```"
+      operationId: testSiteSsrDnsResolution
       responses:
         '200':
-          $ref: '#/components/responses/WebsocketSession'
-      summary: websocketSessionSiteSsrDns
+          $ref: '#/components/responses/Session'
+      summary: testSiteSsrDnsResolution
       tags:
-      - Sites Devices SSR
+      - Sites Devices WAN Edges
   /api/v1/sites/{site_id}/devices/{device_id}/restart:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -20087,12 +20244,12 @@ paths:
         \ goes through the same websocket stream, session is introduced for demux.\n\
         \n#### Subscribe to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n\
         {\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n\
-        ##### Response\n```json\n{\n    \"event\": \"data\",\n    \"channel\": \"\
-        /sites/4ac1dcf4-9d8b-7211-65c4-057819f0862b/devices/00000000-0000-0000-1000-5c5b350e0060/cmd\"\
+        ##### Example output from ws stream\n```json\n{\n    \"event\": \"data\",\n\
+        \    \"channel\": \"/sites/4ac1dcf4-9d8b-7211-65c4-057819f0862b/devices/00000000-0000-0000-1000-5c5b350e0060/cmd\"\
         ,\n    \"data\": {\n        \"session\": \"session_id\",\n        \"raw\"\
         : \"64 bytes from 23.211.0.110: seq=8 ttl=58 time=12.323 ms\\n\"\n    }\n\
         }\n```"
-      operationId: servicePingFromDevice
+      operationId: servicePingFromSsr
       requestBody:
         content:
           application/json:
@@ -20129,9 +20286,143 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Session'
-      summary: servicePingFromDevice
+      summary: servicePingFromSsr
       tags:
-      - Sites Devices Utilities
+      - Sites Devices WAN Edges
+  /api/v1/sites/{site_id}/devices/{device_id}/show_route:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: "Get routes from the Device. The output will be available through\
+        \ websocket. As there can be multiple command issued against the same device\
+        \ at the same time and the output all goes through the same websocket stream,\
+        \ `session` is introduced for demux.\n\n#### Subscribe to Device Command outputs\n\
+        `WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+        \n}\n```\n##### Example output from ws stream\n```\nshow service-path\n\n\
+        Service    Service-route     Type              Destination  Next-Hop  Interface\
+        \  Vector  Cost  Rate  Capacity        State\n\nWeb        web-route1    \
+        \    service-agent     4.4.4.4      1.1.1.2     lan        red     10    1\
+        \    200/3000       Up*\nWeb        web-route1        service-agent     4.4.4.4\
+        \      1.1.1.3     lan        red     10    1    200/3000       Up\nWeb  \
+        \      web-route2        service-agent     5.5.5.5      2.2.2.2     lan  \
+        \     blue     20    2    50/unlimited   Down\nLogin      <None>         \
+        \   BgpOverSVR        10.1.1.1     1.2.3.4     wan        red     10    3\
+        \        -          Up\nLogin      <None>            BgpOverSVR        11.1.1.1\
+        \     1.2.3.4     wan        red     10    1        -          Up\nApp1  \
+        \     <None>            Routed                -           -         -    \
+        \      -      -     -        -          -\nApp1       learned-routed    Routed\
+        \                -           -         -          -      -     -        -\
+        \          -\n```"
+      operationId: getSiteSsrAndSrxRoutes
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  neighbor: 192.168.4.1
+                  prefix: 192.168.0.5/30
+                  protocol: bgp
+                  route: advertised
+                  vrf_name: default
+            schema:
+              properties:
+                neighbor:
+                  type: string
+                prefix:
+                  description: route prefix
+                  type: string
+                protocol:
+                  description: only bgp is supported
+                  type: string
+                route:
+                  description: 'if specified, dump both received and advertised
+
+                    * for SSR, show bgp neighbors 10.250.18.202 received-routes/advertised-routes
+
+                    * for SRX, show route receive-protocol/advertise-protocol bgp
+                    192.168.255.12'
+                  enum:
+                  - received
+                  - advertised
+                  type: string
+                vrf_name:
+                  type: string
+              type: object
+              x-examples:
+                example-1:
+                  neighbor: 192.168.4.1
+                  prefix: 192.168.0.5/30
+                  protocol: bgp
+                  route: advertised
+                  vrf_name: default
+        description: all attributes are optional
+      responses:
+        '200':
+          $ref: '#/components/responses/Session'
+      summary: getSiteSsrAndSrxRoutes
+      tags:
+      - Sites Devices WAN Edges
+  /api/v1/sites/{site_id}/devices/{device_id}/show_session:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - in: path
+      name: device_id
+      required: true
+      schema:
+        type: string
+    post:
+      description: "Get active sessions passing through the Device. The output will\
+        \ be available through websocket. As there can be multiple command issued\
+        \ against the same device at the same time and the output all goes through\
+        \ the same websocket stream, session is introduced for demux.\n\n#### Subscribe\
+        \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
+        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n##### Example\
+        \ output from ws stream\n```\nadmin@ssr.node# show sessions\nFri 2020-04-17\
+        \ 16:55:34 UTC\n\nNode: node1\n\n====================================== =====\
+        \ ============= =========== ========== ====== ======= ================= ==========\
+        \ ================= =========== ================= ========== ===================\
+        \ ========= =================\n Session Id                             Dir\
+        \   Service       Tenant      Dev Name   VLAN   Proto   Src IP           \
+        \ Src Port   Dest IP           Dest Port   NAT IP            NAT Port   Payload\
+        \ Encrypted   Timeout   Uptime\n====================================== =====\
+        \ ============= =========== ========== ====== ======= ================= ==========\
+        \ ================= =========== ================= ========== ===================\
+        \ ========= =================\n 01187fb8-765a-45e5-ae90-37d77f15e292   fwd\
+        \   Internet      lanSubnet   lan           0   udp     192.168.0.28     \
+        \    44674   35.166.173.18          9930   96.230.191.130       19569   false\
+        \                   154   0 days  0:00:28\n 01187fb8-765a-45e5-ae90-37d77f15e292\
+        \   rev   Internet      lanSubnet   wan           0   udp     35.166.173.18\
+        \         9930   96.230.191.130        19569   0.0.0.0                  0\
+        \   false                   154   0 days  0:00:28\n 0859a4ae-bcff-4aa6-b812-79a5236a6c13\
+        \   fwd   Internet      lanSubnet   lan           0   tcp     192.168.0.41\
+        \         60843   17.249.171.246          443   96.230.191.130       51941\
+        \   false                     2   0 days  0:00:10\n\n```"
+      operationId: getSiteSsrAndSrxSessions
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  service_name: any
+            schema:
+              properties:
+                service_name:
+                  description: The exact service name for which to display the active
+                    sessions
+                  type: string
+              type: object
+              x-examples:
+                example-1:
+                  service_name: any
+      responses:
+        '200':
+          $ref: '#/components/responses/Session'
+      summary: getSiteSsrAndSrxSessions
+      tags:
+      - Sites Devices WAN Edges
   /api/v1/sites/{site_id}/devices/{device_id}/snapshot:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -20297,10 +20588,12 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: Traceroute can be performed from the Device. The output will be
-        available through websocket. As there can be multiple command issued against
-        the same AP at the same time and the output all goes through the same websocket
-        stream, session is introduced for demux.
+      description: "Traceroute can be performed from the Device. The output will be\
+        \ available through websocket. As there can be multiple command issued against\
+        \ the same AP at the same time and the output all goes through the same websocket\
+        \ stream, session is introduced for demux.\n\n#### Subscribe to Device Command\
+        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+        \n}\n```"
       operationId: tracerouteFromDevice
       requestBody:
         content:
@@ -20351,7 +20644,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: stopSiteLocateDevice
       tags:
-      - Sites Devices
+      - Sites Devices APs
   /api/v1/sites/{site_id}/devices/{device_id}/upgrade:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -20394,7 +20687,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: deleteSiteVirtualChassis
       tags:
-      - Sites Devices Virtual Chassis
+      - Sites Devices Switches Virtual Chassis
     get:
       description: 'Get VC Status
 
@@ -20407,7 +20700,7 @@ paths:
           $ref: '#/components/responses/Vc'
       summary: getSiteVirtualChassis
       tags:
-      - Sites Devices Virtual Chassis
+      - Sites Devices Switches Virtual Chassis
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
@@ -20451,7 +20744,7 @@ paths:
           $ref: '#/components/responses/Vc'
       summary: createSiteVirtualChassis
       tags:
-      - Sites Devices Virtual Chassis
+      - Sites Devices Switches Virtual Chassis
     put:
       description: "## Add new members\nFor models (e.g. EX4300 and up) having dedicated\
         \ VC ports, it is easier to add new member switches into a VC by just connecting\
@@ -20525,7 +20818,7 @@ paths:
           $ref: '#/components/responses/Vc'
       summary: updateSiteVirtualChassisMember
       tags:
-      - Sites Devices Virtual Chassis
+      - Sites Devices Switches Virtual Chassis
   /api/v1/sites/{site_id}/devices/{device_id}/vc/vc_port:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -20600,7 +20893,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: setSiteVcPort
       tags:
-      - Sites Devices Virtual Chassis
+      - Sites Devices Switches Virtual Chassis
   /api/v1/sites/{site_id}/devices/{device_id}/{image_name}:
     delete:
       description: Delete image from a device
@@ -20731,7 +21024,7 @@ paths:
           $ref: '#/components/responses/EvpnTopology'
       summary: getSiteEvpnTopologies
       tags:
-      - Sites Devices EVPN
+      - Sites Devices Switches EVPN
     parameters:
     - in: path
       name: site_id
@@ -20784,7 +21077,7 @@ paths:
           $ref: '#/components/responses/EvpnTopology'
       summary: createSiteEvpnTopology
       tags:
-      - Sites Devices EVPN
+      - Sites Devices Switches EVPN
   /api/v1/sites/{site_id}/evpn_topologies/{evpn_topology_id}:
     delete:
       description: Delete the site EVPN Topology
@@ -20794,7 +21087,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: deleteSiteEvpnTopology
       tags:
-      - Sites Devices EVPN
+      - Sites Devices Switches EVPN
     get:
       description: Get One EVPN Topology Detail
       operationId: getSiteEvpnTolopogy
@@ -20803,7 +21096,7 @@ paths:
           description: OK
       summary: getSiteEvpnTolopogy
       tags:
-      - Sites Devices EVPN
+      - Sites Devices Switches EVPN
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/evpn_topology_id'
@@ -20829,7 +21122,7 @@ paths:
           $ref: '#/components/responses/EvpnTopology'
       summary: updateSiteEvpnTopology
       tags:
-      - Sites Devices EVPN
+      - Sites Devices Switches EVPN
   /api/v1/sites/{site_id}/guests:
     get:
       description: Get Guest Authorizations
@@ -21753,6 +22046,90 @@ paths:
       summary: updateSiteMap
       tags:
       - Sites Maps
+  /api/v1/sites/{site_id}/maps/{map_id}/auto_orient:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: This API is used to trigger a map for Auto orientation
+      operationId: setSiteMapAutoOrientation
+      responses:
+        '200':
+          description: OK
+      summary: setSiteMapAutoOrientation
+      tags:
+      - Sites Maps
+  /api/v1/sites/{site_id}/maps/{map_id}/auto_placement:
+    delete:
+      description: This API is called to force stop auto placement for a given map
+      operationId: delete-api-v1-sites-site_id-maps-map_id-auto_placement
+      responses:
+        '200':
+          description: Autoplacement Process has stopped for this map
+        '400':
+          description: Autoplacement was not triggered
+      summary: deleteSiteApAutoplacement
+      tags:
+      - Sites Devices APs
+    get:
+      description: This API is called to trigger a map for auto placement. For auto
+        placement feature to work, RTT-FTM data need to be collected from the APs
+        on the map. This scan is disruptive and therefore the user must be notified
+        of service disrution during the functioning of auto placement Repeated POST
+        to this endpoint while a map is still running will be rejected.
+      operationId: getSiteApAutoplacement
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                in progress:
+                  value:
+                    estimated_seconds_left: 32
+                    in_progress: true
+                    start_time: 1667552980
+                not in progress:
+                  value:
+                    in_progress: false
+              schema:
+                properties:
+                  estimated_seconds_left:
+                    description: if `in_progress`==`true`, estimate of the time to
+                      completion
+                    type: integer
+                  in_progress:
+                    type: boolean
+                  start_time:
+                    description: if `in_progress`==`true`, time when autoplacement
+                      process began for this map
+                    type: integer
+                type: object
+          description: OK
+        '400':
+          description: Map has less than 3 APs associated with it to perform auto
+            placement or Auto AP Placement is already in progress for this Map
+      summary: getSiteApAutoplacement
+      tags:
+      - Sites Devices APs
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: This API is called to trigger a map for auto placement. For auto
+        placement feature to work, RTT-FTM data need to be collected from the APs
+        on the map. This scan is disruptive and therefore the user must be notified
+        of service disrution during the functioning of auto placement Repeated POST
+        to this endpoint while a map is still running will be rejected.
+      operationId: runSiteApAutoplacement
+      responses:
+        '200':
+          description: Autoplacement Process has begun for this map
+        '400':
+          description: Map has less than 3 APs associated with it to perform auto
+            placement or Auto AP Placement is already in progress for this Map
+      summary: runSiteApAutoplacement
+      tags:
+      - Sites Devices APs
   /api/v1/sites/{site_id}/maps/{map_id}/image:
     delete:
       description: Delete Site Map Image
@@ -21854,6 +22231,52 @@ paths:
       summary: replaceSiteMapImage
       tags:
       - Sites Maps
+  /api/v1/sites/{site_id}/maps/{map_id}/set_map_autoplacement:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: This API is called to associate a list of access points (by mac
+        address) to a particular map. APs that are associated with a map will be considered
+        for auto-placement for that map
+      operationId: setSiteApAutoplacement
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  devices:
+                  - '112233445566'
+            schema:
+              properties:
+                devices:
+                  description: list of device macs
+                  items:
+                    type: string
+                  type: array
+              type: object
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  failed_aps:
+                    description: 'list of device macs that failed.
+
+                      Empty list implies all Input APs pass
+
+                      '
+                    items:
+                      type: string
+                    type: array
+                type: object
+          description: OK
+      summary: setSiteApAutoplacement
+      tags:
+      - Sites Devices APs
   /api/v1/sites/{site_id}/maps/{map_id}/wayfinding/import:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -24559,7 +24982,7 @@ paths:
           description: OK
       summary: getSiteSsrUpgrade
       tags:
-      - Sites Devices SSR
+      - Sites Devices WAN Edges
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/upgrade_id'
@@ -24613,7 +25036,7 @@ paths:
           $ref: '#/components/responses/SsrUpgrade'
       summary: upgradeSiteSsr
       tags:
-      - Sites Devices SSR
+      - Sites Devices WAN Edges
   /api/v1/sites/{site_id}/stats:
     get:
       description: Get Site Stats
@@ -24862,6 +25285,107 @@ paths:
                 type: array
           description: OK
       summary: getSiteBeaconsStats
+      tags:
+      - Sites Stats
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/stats/bgp_peers/count:
+    get:
+      description: Count BGP Stats
+      operationId: countSiteBgpStats
+      parameters:
+      - in: query
+        name: state
+        schema:
+          type: string
+      - in: query
+        name: distinct
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+      summary: countSiteBgpStats
+      tags:
+      - Sites Devices Utilities
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/stats/bgp_peers/search:
+    get:
+      description: Search BGP Stats
+      operationId: get-api-v1-sites-site_id-stats-bgp_peers-search
+      responses:
+        '200':
+          $ref: '#/components/responses/BgpStatsArraySearch'
+      summary: searchSiteBgpStats
+      tags:
+      - Sites Devices Utilities
+    parameters:
+    - in: path
+      name: site_id
+      required: true
+      schema:
+        type: string
+  /api/v1/sites/{site_id}/stats/calls/count:
+    get:
+      description: Count by Distinct Attributes of Calls
+      operationId: countSiteCalls
+      parameters:
+      - in: query
+        name: distrinct
+        schema:
+          default: mac
+          enum:
+          - mac
+          type: string
+      - in: query
+        name: app
+        schema:
+          type: string
+      - in: query
+        name: start
+        schema:
+          type: string
+      - in: query
+        name: end
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+      summary: countSiteCalls
+      tags:
+      - Sites Stats
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/stats/calls/search:
+    get:
+      description: Search Calls
+      operationId: searchSiteCalls
+      parameters:
+      - description: device identifier
+        in: query
+        name: mac
+        schema:
+          type: string
+      - description: Third party app name
+        in: query
+        name: app
+        schema:
+          example: zoom
+          type: string
+      - in: query
+        name: start
+        schema:
+          type: string
+      - in: query
+        name: end
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/CallStatsArray'
+      summary: searchSiteCalls
       tags:
       - Sites Stats
     parameters:
@@ -32933,6 +33457,65 @@ components:
             minItems: 0
             type: array
       description: OK
+    BgpStatsArraySearch:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                end: 1619518989.4989712
+                limit: 10
+                results:
+                - as: 65000
+                  mac: 020001c04668
+                  neighbor: 15.8.3.5
+                  neighbor_mac: c15353123096
+                  org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
+                  rx_pkts: 63366
+                  rx_routes: 60
+                  site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
+                  state: established
+                  tx_pkts: 1735
+                  uptime: 31355
+                  vrf_name: default
+                start: 1619518689.4989705
+                total: 1
+          schema:
+            properties:
+              end:
+                type: number
+              limit:
+                type: integer
+              results:
+                items:
+                  $ref: '#/components/schemas/stats_bgp'
+                type: array
+              start:
+                type: number
+              total:
+                type: integer
+            type: object
+      description: Example response
+    CallStatsArray:
+      content:
+        application/json:
+          examples: {}
+          schema:
+            properties:
+              end:
+                type: number
+              limit:
+                type: integer
+              results:
+                items:
+                  $ref: '#/components/schemas/stats_call'
+                type: array
+              start:
+                type: number
+              total:
+                type: integer
+            type: object
+      description: Example response
     Certificate:
       content:
         application/json:
@@ -41689,7 +42272,7 @@ components:
           examples:
             example-1:
               value:
-                session: string
+                session: session_id
           schema:
             properties:
               session:
@@ -43813,26 +44396,6 @@ components:
               $ref: '#/components/schemas/webhook'
             type: array
       description: OK
-    WebsocketSession:
-      content:
-        application/json:
-          examples:
-            example-1:
-              value:
-                session: string
-          schema:
-            description: ''
-            properties:
-              session:
-                minLength: 1
-                type: string
-            required:
-            - session
-            type: object
-            x-examples:
-              example-1:
-                session: session_id
-      description: Example response
     WiredClientsSearch:
       content:
         application/json:
@@ -45218,6 +45781,9 @@ components:
           type: string
         orientation:
           type: number
+        replacing_mac:
+          description: Onlif this is to replace an existing device
+          type: string
         site_id:
           format: uuid
           readOnly: true
@@ -48858,6 +49424,8 @@ components:
           type: string
         org_id:
           type: string
+        power_constrained:
+          type: boolean
         site_id:
           description: site id
           type: string
@@ -48972,7 +49540,7 @@ components:
             properties:
               matching:
                 properties:
-                  mac:
+                  macs:
                     items:
                       type: string
                     type: array
@@ -57460,7 +58028,10 @@ components:
         idle_timeout:
           type: integer
         mxcluster_ids:
-          description: org mxedge(s) identified by mxcluster_ids or use site mxedge(s)
+          description: 'To use org mxedges when this WLAN does not use mxtunnel, specify
+            their mxcluster_ids.
+
+            Org mxedge(s) identified by mxcluster_ids or use site mxedge(s)'
           items:
             type: string
           type: array
@@ -59297,6 +59868,7 @@ components:
             type: string
           type: array
         clusters:
+          description: for AP, how to connect to tunterm or radsecproxy
           items:
             properties:
               name:
@@ -63609,6 +64181,114 @@ components:
       minItems: 1
       type: array
       uniqueItems: true
+    stats_bgp:
+      properties:
+        for_overlay:
+          description: if this is created for overlay
+          type: boolean
+        local_as:
+          description: AS
+          type: integer
+        mac:
+          description: router mac address
+          type: string
+        neighbor:
+          type: string
+        neighbor_as:
+          type: integer
+        neighbor_mac:
+          description: if it's another device in the same org
+          type: string
+        org_id:
+          description: router org ID
+          type: string
+        rx_pkts:
+          type: integer
+        rx_routes:
+          description: number of received routes
+          type: integer
+        site_id:
+          description: router site ID
+          type: string
+        state:
+          enum:
+          - idle
+          - connect
+          - active
+          - open_sent
+          - open_config
+          - established
+          type: string
+        timestamp:
+          type: number
+        tx_pkts:
+          type: integer
+        tx_routes:
+          type: integer
+        up:
+          type: boolean
+        uptime:
+          type: integer
+        vrf_name:
+          type: string
+      title: stats_bgp
+      type: object
+      x-examples:
+        example-1:
+          for_overlay: true
+          local_as: 0
+          mac: string
+          neighbor: string
+          neighbor_as: 0
+          neighbor_mac: string
+          org_id: string
+          rx_pkts: 0
+          rx_routes: 0
+          site_id: string
+          state: idle
+          timestamp: 0
+          tx_pkts: 0
+          tx_routes: 0
+          up: true
+          uptime: 0
+          vrf_name: string
+      x-stoplight:
+        id: 4aivo7hi8lh77
+    stats_call:
+      properties:
+        app:
+          type: string
+        audio_quality:
+          type: integer
+        end_time:
+          type: integer
+        mac:
+          type: string
+        org_id:
+          type: string
+        rating:
+          type: integer
+        screen_share_quality:
+          type: integer
+        site_id:
+          type: string
+        start_time:
+          type: integer
+        video_quality:
+          type: integer
+      type: object
+      x-examples:
+        example-1:
+          app: zoom
+          audio_quality: 1
+          end_time: 1665465341
+          mac: adf1c481b989
+          org_id: 85e1d87d-6541-4ebd-941a-272cac140948
+          rating: 5
+          screen_share_quality: 3
+          site_id: a16fdfc0-8540-47ab-be59-9dd2d00e7c84
+          start_time: 1665460836
+          video_quality: 2
     stats_client:
       description: Client statistics
       minItems: 1
@@ -68289,6 +68969,22 @@ components:
                 type: integer
               type:
                 type: string
+              wifi_beacon_extended_info:
+                description: optional, list of extended beacon info packets heard
+                  from the client, frame and sequence control included with the payload
+                items:
+                  properties:
+                    frame_ctrl:
+                      description: frame control field of 802.11 header
+                      type: integer
+                    payload:
+                      description: Extended Info Payload associated with frame
+                      type: string
+                    seq_ctrl:
+                      description: sequence control field of 802.11 header
+                      type: integer
+                  type: object
+                type: array
               x:
                 description: x, in meter
                 type: integer
@@ -71382,12 +72078,14 @@ x-tagGroups:
   - Sites Beacons
   - Sites Clients
   - Sites Devices
-  - Sites Devices HA
+  - Sites Devices APs
+  - Sites Devices Switches
+  - Sites Devices Switches EVPN
+  - Sites Devices Switches Virtual Chassis
+  - Sites Devices WAN Edges
+  - Sites Devices WAN Edges HA
   - Sites Devices Utilities
-  - Sites Devices Virtual Chassis
-  - Sites Devices EVPN
   - Sites Devices Stats
-  - Sites Devices SSR
   - Sites Events
   - Sites Guests
   - Sites Insights
@@ -71440,7 +72138,7 @@ x-tagGroups:
   - Orgs Gateway Templates
   - Orgs Inventory
   - Orgs Invites
-  - Orgs JSI Inventory
+  - Orgs JSI
   - Orgs Licenses
   - Orgs Logs
   - Orgs Maps
@@ -71452,6 +72150,7 @@ x-tagGroups:
   - Orgs Network Templates
   - Orgs Networks
   - Orgs OAuth
+  - Orgs Premium Analytics
   - Orgs Psks
   - Orgs Psk Portals
   - Orgs RF Templates
@@ -71506,12 +72205,12 @@ x-tagGroups:
     s what they see)\n2. they can only touch configurations of the devices they\u2019\
     re installing\n3. allow the following configurations: * name * site assignment\
     \ * device  profile assignment * map and location (x/y) assignment * claim (if\
-    \ not already in the inventory)\n\n* Grace Period *\nGrace period provides a dynamic\
-    \ way to limit what devices / sites   installer can work on. Generally installers\
-    \ work on recent deployments -  bringing up new sites, add newly claimed devices\
-    \ to new / existing sites. They  make mistakes, too, and may need to further tweak\
-    \ some of the parameters.   Default grace period is 7 days and can be set from\
-    \ 1 day to 365 days."
+    \ not already in the inventory) * replace existing device with the device being\
+    \ installed\n\n* Grace Period *\nGrace period provides a dynamic way to limit\
+    \ what devices / sites   installer can work on. Generally installers work on recent\
+    \ deployments -  bringing up new sites, add newly claimed devices to new / existing\
+    \ sites. They  make mistakes, too, and may need to further tweak some of the parameters.\
+    \   Default grace period is 7 days and can be set from 1 day to 365 days."
   name: Installer
   tags:
   - Installer
