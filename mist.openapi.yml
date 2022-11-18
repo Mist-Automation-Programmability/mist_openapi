@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.32.3**
+  description: '> Version: **0.32.4**
 
     >
 
-    > Date: **November 16th, 2022**
+    > Date: **November 17th, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.32.3
+  version: 0.32.4
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -253,6 +253,58 @@ tags:
 - name: Account
 - name: Webhook Samples
 paths:
+  /api.mist.com/api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/classifiers:
+    get:
+      description: Get the list of classifiers for a specific metric
+      operationId: getSiteSleMetricClassifiers
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example:
+                  value:
+                  - asymmetry-uplink
+                  - weak-signal
+                  - asymmetry-downlink
+              schema:
+                items:
+                  type: string
+                type: array
+                x-examples:
+                  example-1:
+                  - asymmetry-uplink
+                  - weak-signal
+                  - asymmetry-downlink
+          description: OK
+      summary: getSiteSleMetricClassifiers
+      tags:
+      - Sites SLEs
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - in: path
+      name: scope
+      required: true
+      schema:
+        enum:
+        - site
+        - ap
+        - client
+        - switch
+        - gateway
+        type: string
+    - in: path
+      name: scope_id
+      required: true
+      schema:
+        format: uuid
+        type: string
+    - description: ' values from /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metrics'
+      in: path
+      name: metric
+      required: true
+      schema:
+        type: string
   /api/v1/const/alarm_defs:
     get:
       description: Get brief definitions of all the supported alarm types.  The example
@@ -20201,11 +20253,13 @@ paths:
       description: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
         \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
         \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
-        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n DNS resolutions\
-        \ are performed on the Device. The output will be available through websocket.\
-        \ As there can be multiple command issued against the same SSR at the same\
-        \ time and the output all goes through the same websocket stream, `session`\
-        \ is used for demux.\n \n #### Subscribe to Device Command outputs\n`WS /api-ws/v1/stream`\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n DNS resolutions are performed on\
+        \ the Device. The output will be available through websocket. As there can\
+        \ be multiple command issued against the same SSR at the same time and the\
+        \ output all goes through the same websocket stream, `session` is used for\
+        \ demux.\n \n #### Subscribe to Device Command outputs\n`WS /api-ws/v1/stream`\n\
         \n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
         \n}\n```\n##### Example output from ws stream\n```\n Router      | Hostname\
         \               | Resolved | Last Resolved        | Expiration\n-------------|------------------------|----------|----------------------|---------------------\n\
@@ -24475,33 +24529,6 @@ paths:
       - Sites Skyatp
     parameters:
     - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/sle/site/{site_id}/metric/{metric}/impacted-aps:
-    get:
-      description: Get impacted APs optionally filtered by classifier and failure
-        type
-      operationId: getSiteSleImpactedAps
-      parameters:
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      - in: query
-        name: classifier
-        schema:
-          type: string
-      responses:
-        '200':
-          $ref: '#/components/responses/SleImpactedAps'
-      summary: getSiteSleImpactedAps
-      tags:
-      - Sites SLEs
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - description: values from /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metrics
-      in: path
-      name: metric
-      required: true
-      schema:
-        type: string
   /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/classifier/{classifier}/summary:
     get:
       description: Get SLE classifier details
@@ -24531,6 +24558,9 @@ paths:
         enum:
         - site
         - ap
+        - client
+        - switch
+        - gateway
         type: string
     - in: path
       name: scope_id
@@ -24573,6 +24603,8 @@ paths:
         - site
         - ap
         - client
+        - switch
+        - gateway
         type: string
     - in: path
       name: scope_id
@@ -24622,6 +24654,306 @@ paths:
         enum:
         - site
         - ap
+        - client
+        - switch
+        - gateway
+        type: string
+    - in: path
+      name: scope_id
+      required: true
+      schema:
+        format: uuid
+        type: string
+    - description: values from /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metrics
+      in: path
+      name: metric
+      required: true
+      schema:
+        type: string
+  /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/impacted-applications:
+    get:
+      description: For WAN SLEs. Get list of impacted interfaces optionally filtered
+        by classifier and failure type
+      operationId: getSiteSleImpactedApplications
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - in: query
+        name: classifier
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/SleImpactedApplications'
+      summary: getSiteSleImpactedApplications
+      tags:
+      - Sites SLEs
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - in: path
+      name: scope
+      required: true
+      schema:
+        enum:
+        - site
+        - switch
+        - gateway
+        type: string
+    - in: path
+      name: scope_id
+      required: true
+      schema:
+        format: uuid
+        type: string
+    - description: values from /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metrics
+      in: path
+      name: metric
+      required: true
+      schema:
+        type: string
+  /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/impacted-aps:
+    get:
+      description: For Wireless SLEs. Get list of impacted APs optionally filtered
+        by classifier and failure type
+      operationId: getSiteSleImpactedAps
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - in: query
+        name: classifier
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/SleImpactedAps'
+      summary: getSiteSleImpactedAps
+      tags:
+      - Sites SLEs
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - in: path
+      name: scope
+      required: true
+      schema:
+        enum:
+        - site
+        type: string
+    - in: path
+      name: scope_id
+      required: true
+      schema:
+        format: uuid
+        type: string
+    - description: values from /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metrics
+      in: path
+      name: metric
+      required: true
+      schema:
+        type: string
+  /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/impacted-chassis:
+    get:
+      description: For Wired and WAN SLEs. Get list of impacted interfaces optionally
+        filtered by classifier and failure type
+      operationId: getSiteSleImpactedChassis
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - in: query
+        name: classifier
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/SleImpactedChassis'
+      summary: getSiteSleImpactedChassis
+      tags:
+      - Sites SLEs
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - in: path
+      name: scope
+      required: true
+      schema:
+        enum:
+        - site
+        - switch
+        - gateway
+        type: string
+    - in: path
+      name: scope_id
+      required: true
+      schema:
+        format: uuid
+        type: string
+    - description: values from /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metrics
+      in: path
+      name: metric
+      required: true
+      schema:
+        type: string
+  /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/impacted-clients:
+    get:
+      description: For Wired SLEs. Get list of impacted interfaces optionally filtered
+        by classifier and failure type
+      operationId: getSiteSleImpactedWiredClients
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - in: query
+        name: classifier
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/SleImpactedClients'
+      summary: getSiteSleImpactedWiredClients
+      tags:
+      - Sites SLEs
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - in: path
+      name: scope
+      required: true
+      schema:
+        enum:
+        - site
+        - switch
+        - gateway
+        type: string
+    - in: path
+      name: scope_id
+      required: true
+      schema:
+        format: uuid
+        type: string
+    - description: values from /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metrics
+      in: path
+      name: metric
+      required: true
+      schema:
+        type: string
+  /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/impacted-gateways:
+    get:
+      description: For WAN SLEs. Get list of impacted interfaces optionally filtered
+        by classifier and failure type
+      operationId: getSiteSleImpactedGateways
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - in: query
+        name: classifier
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/SleImpactedGateways'
+      summary: getSiteSleImpactedGateways
+      tags:
+      - Sites SLEs
+    parameters:
+    - in: path
+      name: site_id
+      required: true
+      schema:
+        example: 000000ab-00ab-00ab-00ab-0000000000ab
+        format: uuid
+        type: string
+    - in: path
+      name: scope
+      required: true
+      schema:
+        enum:
+        - site
+        - switch
+        - gateway
+        type: string
+    - in: path
+      name: scope_id
+      required: true
+      schema:
+        format: uuid
+        type: string
+    - description: values from /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metrics
+      in: path
+      name: metric
+      required: true
+      schema:
+        type: string
+  /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/impacted-interfaces:
+    get:
+      description: For Wired and WAN SLEs. Get list of impacted interfaces optionally
+        filtered by classifier and failure type
+      operationId: getSiteSleImpactedInterfaces
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - in: query
+        name: classifier
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/SleImpactedInterfaces'
+      summary: getSiteSleImpactedInterfaces
+      tags:
+      - Sites SLEs
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - in: path
+      name: scope
+      required: true
+      schema:
+        enum:
+        - site
+        - switch
+        - gateway
+        type: string
+    - in: path
+      name: scope_id
+      required: true
+      schema:
+        format: uuid
+        type: string
+    - description: values from /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metrics
+      in: path
+      name: metric
+      required: true
+      schema:
+        type: string
+  /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/impacted-switches:
+    get:
+      description: For Wired SLEs. Get list of impacted switches optionally filtered
+        by classifier and failure type
+      operationId: getSiteSleImpactedSwitches
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - in: query
+        name: classifier
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/SleImpactedSwitches'
+      summary: getSiteSleImpactedSwitches
+      tags:
+      - Sites SLEs
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - in: path
+      name: scope
+      required: true
+      schema:
+        enum:
+        - site
+        - switch
         type: string
     - in: path
       name: scope_id
@@ -24637,9 +24969,9 @@ paths:
         type: string
   /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/impacted-users:
     get:
-      description: Get impacted users optionally filtered by classifier and failure
-        type
-      operationId: getSiteSleImpactedClients
+      description: For Wireless SLEs. Get list of impacted wireless users optionally
+        filtered by classifier and failure type
+      operationId: getSiteSleImpactedWirelessClients
       parameters:
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -24651,7 +24983,7 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/SleImpactedUsers'
-      summary: getSiteSleImpactedClients
+      summary: getSiteSleImpactedWirelessClients
       tags:
       - Sites SLEs
     parameters:
@@ -24662,6 +24994,7 @@ paths:
       schema:
         enum:
         - site
+        - ap
         type: string
     - in: path
       name: scope_id
@@ -24699,6 +25032,8 @@ paths:
         - site
         - ap
         - client
+        - switch
+        - gateway
         type: string
     - in: path
       name: scope_id
@@ -24732,6 +25067,8 @@ paths:
         - site
         - ap
         - client
+        - switch
+        - gateway
         type: string
     - in: path
       name: scope_id
@@ -24901,6 +25238,8 @@ paths:
         - site
         - ap
         - client
+        - switch
+        - gateway
         type: string
     - in: path
       name: scope_id
@@ -26795,7 +27134,7 @@ paths:
                     percentage: 100
                     results:
                     - count: 1
-                      system_name: sw-jn-02
+                      system_name: test-ex
                     - count: 1
                       system_name: sw-jn-01
                     start: 1604409802.3555677
@@ -43295,6 +43634,30 @@ components:
           schema:
             $ref: '#/components/schemas/sle_impact_summary'
       description: Example response
+    SleImpactedApplications:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                apps:
+                - app: ZOOM
+                  degraded: 371103
+                  duration: 0
+                  name: ZOOM
+                  threshold: 173
+                  total: 1771274
+                classifier: ''
+                end: 1668760746
+                failure: ''
+                limit: '1000'
+                metric: application-health
+                page: 1
+                start: 1668121200
+                total_count: 1
+          schema:
+            $ref: '#/components/schemas/sle_impacted_applications'
+      description: Example response
     SleImpactedAps:
       content:
         application/json:
@@ -43322,6 +43685,142 @@ components:
                 total_count: 2
           schema:
             $ref: '#/components/schemas/sle_impacted_aps'
+      description: Example response
+    SleImpactedChassis:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                chassis:
+                - chassis: '1'
+                  degraded: 12.283334
+                  duration: 13655.167
+                  role: master
+                  switch_mac: d0dd49012345
+                  switch_name: test-chassis
+                  total: 13655.167
+                classifier: ''
+                end: 1668760643
+                failure: ''
+                limit: 1000
+                metric: switch-health
+                page: 1
+                start: 1668121200
+                total_count: 1
+          schema:
+            $ref: '#/components/schemas/sle_impacted_chassis'
+      description: Example response
+    SleImpactedClients:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                classifier: ''
+                clients:
+                - degraded: 40
+                  duration: 11014
+                  mac: '001122334455'
+                  name: test-device
+                  switches:
+                  - interfaces:
+                    - ge-0/0/6
+                    switch_mac: 2c2131001122
+                    switch_name: test-ex
+                  total: 11014
+                end: 1668760198
+                failure: ''
+                limit: 1000
+                metric: switch-throughput
+                page: 1
+                start: 1668726000
+                total_count: 1
+          schema:
+            $ref: '#/components/schemas/sle_impacted_clients'
+      description: Example response
+    SleImpactedGateways:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                classifier: ''
+                end: 1668760746
+                failure: ''
+                gateways:
+                - degraded: 758573.1
+                  duration: 2770997
+                  gateway_mac: fc3342001122
+                  gateway_model: SRX320
+                  gateway_version: 20.4R1.12
+                  name: test-SRX
+                  total: 2770997
+                limit: 1000
+                metric: application-health
+                page: 1
+                start: 1668121200
+                total_count: 1
+          schema:
+            $ref: '#/components/schemas/sle_impacted_gateways'
+      description: Example response
+    SleImpactedInterfaces:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                classifier: ''
+                end: 1668760198
+                failure: ''
+                interfaces:
+                - degraded: 11.583333
+                  duration: 765.4667
+                  interface_name: ge-0/0/10
+                  switch_mac: 2c2131001122
+                  switch_name: test-ex
+                  total: 765.4667
+                - degraded: 191.08333
+                  duration: 13775.35
+                  interface_name: xe-0/1/0
+                  switch_mac: 2c2131001122
+                  switch_name: test-ex
+                  total: 13775.35
+                limit: 1000
+                metric: switch-throughput
+                page: 1
+                start: 1668726000
+                total_count: 5
+          schema:
+            $ref: '#/components/schemas/sle_impacted_interfaces'
+      description: Example response
+    SleImpactedSwitches:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                classifier: ''
+                end: 1668760198
+                failure: ''
+                limit: 1000
+                metric: switch-throughput
+                page: 1
+                start: 1668726000
+                switches:
+                - degraded: 109.88333
+                  duration: 5753.75
+                  interface:
+                  - ge-0/0/11
+                  - xe-0/1/0
+                  name: test-ex
+                  switch_mac: 2c2131001122
+                  switch_model: EX2300-C-12P
+                  switch_version: 20.4R3-S3.4
+                  total: 5753.75
+                total_count: 1
+          schema:
+            $ref: '#/components/schemas/sle_impacted_switches'
       description: Example response
     SleImpactedUsers:
       content:
@@ -62260,6 +62759,59 @@ components:
             name: MlN.1X
             total: 3462
             wlan_id: a937da77-fe3c-4784-86c4-f2134d7b1483
+    sle_impacted_applications:
+      properties:
+        apps:
+          items:
+            properties:
+              app:
+                type: string
+              degraded:
+                type: integer
+              duration:
+                type: integer
+              name:
+                type: string
+              threshold:
+                type: integer
+              total:
+                type: integer
+            type: object
+          type: array
+        classifier:
+          type: string
+        end:
+          type: integer
+        failure:
+          type: string
+        limit:
+          type: string
+        metric:
+          type: string
+        page:
+          type: integer
+        start:
+          type: integer
+        total_count:
+          type: integer
+      type: object
+      x-examples:
+        example-1:
+          apps:
+          - app: ZOOM
+            degraded: 371103
+            duration: 0
+            name: ZOOM
+            threshold: 173
+            total: 1771274
+          classifier: ''
+          end: 1668760746
+          failure: ''
+          limit: '1000'
+          metric: application-health
+          page: 1
+          start: 1668121200
+          total_count: 1
     sle_impacted_aps:
       description: ''
       properties:
@@ -62356,6 +62908,308 @@ components:
             page: 1
             start: 1627226616
             total_count: 2
+    sle_impacted_chassis:
+      properties:
+        chassis:
+          items:
+            properties:
+              chassis:
+                type: string
+              degraded:
+                type: number
+              duration:
+                type: number
+              role:
+                type: string
+              switch_mac:
+                type: string
+              switch_name:
+                type: string
+              total:
+                type: number
+            type: object
+          type: array
+        classifier:
+          type: string
+        end:
+          type: integer
+        failure:
+          type: string
+        limit:
+          type: integer
+        metric:
+          type: string
+        page:
+          type: integer
+        start:
+          type: integer
+        total_count:
+          type: integer
+      type: object
+      x-examples:
+        example-1:
+          chassis:
+          - chassis: '1'
+            degraded: 12.283334
+            duration: 13655.167
+            role: master
+            switch_mac: d0dd49012345
+            switch_name: test-chassis
+            total: 13655.167
+          classifier: ''
+          end: 1668760643
+          failure: ''
+          limit: 1000
+          metric: switch-health
+          page: 1
+          start: 1668121200
+          total_count: 1
+    sle_impacted_clients:
+      properties:
+        classifier:
+          type: string
+        clients:
+          items:
+            properties:
+              degraded:
+                type: integer
+              duration:
+                type: integer
+              mac:
+                type: string
+              name:
+                type: string
+              switches:
+                items:
+                  properties:
+                    interfaces:
+                      items:
+                        type: string
+                      type: array
+                    switch_mac:
+                      type: string
+                    switch_name:
+                      type: string
+                  type: object
+                type: array
+              total:
+                type: integer
+            type: object
+          type: array
+        end:
+          type: integer
+        failure:
+          type: string
+        limit:
+          type: integer
+        metric:
+          type: string
+        page:
+          type: integer
+        start:
+          type: integer
+        total_count:
+          type: integer
+      type: object
+      x-examples:
+        example-1:
+          classifier: ''
+          clients:
+          - degraded: 40
+            duration: 11014
+            mac: '001122334455'
+            name: test-device
+            switches:
+            - interfaces:
+              - ge-0/0/6
+              switch_mac: 2c2131001122
+              switch_name: test-ex
+            total: 11014
+          end: 1668760198
+          failure: ''
+          limit: 1000
+          metric: switch-throughput
+          page: 1
+          start: 1668726000
+          total_count: 1
+    sle_impacted_gateways:
+      properties:
+        classifier:
+          type: string
+        end:
+          type: integer
+        failure:
+          type: string
+        gateways:
+          items:
+            properties:
+              degraded:
+                type: number
+              duration:
+                type: integer
+              gateway_mac:
+                type: string
+              gateway_model:
+                type: string
+              gateway_version:
+                type: string
+              name:
+                type: string
+              total:
+                type: integer
+            type: object
+          type: array
+        limit:
+          type: integer
+        metric:
+          type: string
+        page:
+          type: integer
+        start:
+          type: integer
+        total_count:
+          type: integer
+      type: object
+      x-examples:
+        example-1:
+          classifier: ''
+          end: 1668760746
+          failure: ''
+          gateways:
+          - degraded: 758573.1
+            duration: 2770997
+            gateway_mac: fc3342001122
+            gateway_model: SRX320
+            gateway_version: 20.4R1.12
+            name: test-SRX
+            total: 2770997
+          limit: 1000
+          metric: application-health
+          page: 1
+          start: 1668121200
+          total_count: 1
+    sle_impacted_interfaces:
+      properties:
+        classifier:
+          type: string
+        end:
+          type: integer
+        failure:
+          type: string
+        interfaces:
+          items:
+            properties:
+              degraded:
+                type: number
+              duration:
+                type: number
+              interface_name:
+                type: string
+              switch_mac:
+                type: string
+              switch_name:
+                type: string
+              total:
+                type: number
+            type: object
+          type: array
+        limit:
+          type: integer
+        metric:
+          type: string
+        page:
+          type: integer
+        start:
+          type: integer
+        total_count:
+          type: integer
+      type: object
+      x-examples:
+        example-1:
+          classifier: ''
+          end: 1668760198
+          failure: ''
+          interfaces:
+          - degraded: 11.583333
+            duration: 765.4667
+            interface_name: ge-0/0/10
+            switch_mac: 2c2131001122
+            switch_name: test-ex
+            total: 765.4667
+          - degraded: 191.08333
+            duration: 13775.35
+            interface_name: xe-0/1/0
+            switch_mac: 2c2131001122
+            switch_name: test-ex
+            total: 13775.35
+          limit: 1000
+          metric: switch-throughput
+          page: 1
+          start: 1668726000
+          total_count: 5
+    sle_impacted_switches:
+      properties:
+        classifier:
+          type: string
+        end:
+          type: integer
+        failure:
+          type: string
+        limit:
+          type: integer
+        metric:
+          type: string
+        page:
+          type: integer
+        start:
+          type: integer
+        switches:
+          items:
+            properties:
+              degraded:
+                type: number
+              duration:
+                type: number
+              interface:
+                items:
+                  type: string
+                type: array
+              name:
+                type: string
+              switch_mac:
+                type: string
+              switch_model:
+                type: string
+              switch_version:
+                type: string
+              total:
+                type: number
+            type: object
+          type: array
+        total_count:
+          type: integer
+      type: object
+      x-examples:
+        example-1:
+          classifier: ''
+          end: 1668760198
+          failure: ''
+          limit: 1000
+          metric: switch-throughput
+          page: 1
+          start: 1668726000
+          switches:
+          - degraded: 109.88333
+            duration: 5753.75
+            interface:
+            - ge-0/0/11
+            - xe-0/1/0
+            name: test-ex
+            switch_mac: 2c2131001122
+            switch_model: EX2300-C-12P
+            switch_version: 20.4R3-S3.4
+            total: 5753.75
+          total_count: 1
     sle_impacted_users:
       description: ''
       properties:
