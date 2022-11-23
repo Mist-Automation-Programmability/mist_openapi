@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.32.6**
+  description: '> Version: **0.32.7**
 
     >
 
-    > Date: **November 17th, 2022**
+    > Date: **November 23rd, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.32.6
+  version: 0.32.7
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -20255,12 +20255,12 @@ paths:
         \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
         \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
         \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
-        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n DNS\
-        \ resolutions are performed on the Device. The output will be available through\
-        \ websocket. As there can be multiple command issued against the same SSR\
-        \ at the same time and the output all goes through the same websocket stream,\
-        \ `session` is used for demux.\n \n #### Subscribe to Device Command outputs\n\
-        `WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n DNS resolutions are performed on the Device. The output will be available\
+        \ through websocket. As there can be multiple command issued against the same\
+        \ SSR at the same time and the output all goes through the same websocket\
+        \ stream, `session` is used for demux.\n \n #### Subscribe to Device Command\
+        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
         \n}\n```\n##### Example output from ws stream\n```\n Router      | Hostname\
         \               | Resolved | Last Resolved        | Expiration\n-------------|------------------------|----------|----------------------|---------------------\n\
         \ test-device | xxx.yyy.net            | Y        | 2022-03-28T03:56:49Z |\
@@ -22114,15 +22114,6 @@ paths:
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/map_id'
-    post:
-      description: This API is used to trigger a map for Auto orientation
-      operationId: setSiteMapAutoOrientation
-      responses:
-        '200':
-          description: OK
-      summary: setSiteMapAutoOrientation
-      tags:
-      - Sites Maps
   /api/v1/sites/{site_id}/maps/{map_id}/auto_placement:
     delete:
       description: This API is called to force stop auto placement for a given map
@@ -22133,46 +22124,6 @@ paths:
         '400':
           description: Autoplacement was not triggered
       summary: deleteSiteApAutoplacement
-      tags:
-      - Sites Devices APs
-    get:
-      description: This API is called to trigger a map for auto placement. For auto
-        placement feature to work, RTT-FTM data need to be collected from the APs
-        on the map. This scan is disruptive and therefore the user must be notified
-        of service disrution during the functioning of auto placement Repeated POST
-        to this endpoint while a map is still running will be rejected.
-      operationId: getSiteApAutoplacement
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                in progress:
-                  value:
-                    estimated_seconds_left: 32
-                    in_progress: true
-                    start_time: 1667552980
-                not in progress:
-                  value:
-                    in_progress: false
-              schema:
-                properties:
-                  estimated_seconds_left:
-                    description: if `in_progress`==`true`, estimate of the time to
-                      completion
-                    type: integer
-                  in_progress:
-                    type: boolean
-                  start_time:
-                    description: if `in_progress`==`true`, time when autoplacement
-                      process began for this map
-                    type: integer
-                type: object
-          description: OK
-        '400':
-          description: Map has less than 3 APs associated with it to perform auto
-            placement or Auto AP Placement is already in progress for this Map
-      summary: getSiteApAutoplacement
       tags:
       - Sites Devices APs
     parameters:
@@ -22299,48 +22250,6 @@ paths:
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/map_id'
-    post:
-      description: This API is called to associate a list of access points (by mac
-        address) to a particular map. APs that are associated with a map will be considered
-        for auto-placement for that map
-      operationId: setSiteApAutoplacement
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  devices:
-                  - '112233445566'
-            schema:
-              properties:
-                devices:
-                  description: list of device macs
-                  items:
-                    type: string
-                  type: array
-              type: object
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                properties:
-                  failed_aps:
-                    description: 'list of device macs that failed.
-
-                      Empty list implies all Input APs pass
-
-                      '
-                    items:
-                      type: string
-                    type: array
-                type: object
-          description: OK
-      summary: setSiteApAutoplacement
-      tags:
-      - Sites Devices APs
   /api/v1/sites/{site_id}/maps/{map_id}/wayfinding/import:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -24619,11 +24528,11 @@ paths:
         type: string
   /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/impact-summary:
     get:
-      description: "\n\n\n Get impact summary counts optionally filtered by classifier\
-        \ and failure type\n \n* Wireless SLE Fields: `wlan`, `device_type`, `device_os`\
-        \ ,`band`, `ap`, `server`, `mxedge`\n* Wired SLE Fields: `switch`, `client`,\
-        \ `vlan`, `interface`, `chassis`\n* WAN SLE Fields: `gateway`, `client`, `interface`,\
-        \ `chassis`, `peer_path`, `gateway_zones`"
+      description: "\n\n\n\n\n\n Get impact summary counts optionally filtered by\
+        \ classifier and failure type\n \n* Wireless SLE Fields: `wlan`, `device_type`,\
+        \ `device_os` ,`band`, `ap`, `server`, `mxedge`\n* Wired SLE Fields: `switch`,\
+        \ `client`, `vlan`, `interface`, `chassis`\n* WAN SLE Fields: `gateway`, `client`,\
+        \ `interface`, `chassis`, `peer_path`, `gateway_zones`"
       operationId: getSiteSleImpactSummary
       parameters:
       - $ref: '#/components/parameters/start'
