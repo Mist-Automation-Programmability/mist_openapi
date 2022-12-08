@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.32.7**
+  description: '> Version: **0.33.0**
 
     >
 
-    > Date: **November 23rd, 2022**
+    > Date: **December 8th, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.32.7
+  version: 0.33.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -176,6 +176,7 @@ tags:
 - name: Orgs SSO Roles
 - name: Orgs SSO
 - name: Orgs Stats
+- name: Orgs Stats Tunnels
 - name: Orgs Subscriptions
 - name: Orgs Templates
 - name: Orgs Tickets
@@ -6723,7 +6724,7 @@ paths:
                       networks:
                       - string
                       type: internal
-                      via: string
+                      via: wan
                       wan_name: string
                     property2:
                       auth_key: string
@@ -6756,7 +6757,7 @@ paths:
                       networks:
                       - string
                       type: internal
-                      via: string
+                      via: lan
                       wan_name: string
                   created_time: 0
                   dhcpd_config:
@@ -7405,7 +7406,7 @@ paths:
                       networks:
                       - string
                       type: internal
-                      via: string
+                      via: lan
                       wan_name: string
                     property2:
                       auth_key: string
@@ -7438,7 +7439,7 @@ paths:
                       networks:
                       - string
                       type: internal
-                      via: string
+                      via: wan
                       wan_name: string
                   created_time: 0
                   dhcpd_config:
@@ -8689,38 +8690,46 @@ paths:
               examples:
                 example-1:
                   value:
-                  - contract_end_time: 1666036300
-                    contract_id: '60741935'
-                    contract_sku: PAR-ND-EX34-48TA
-                    contract_start_time: 1665036300
-                    eol_time: null
-                    eos_time: null
-                    installed_address: 1 First St, San Jose, CA 95112
-                    model: EX3400-48T
-                    serial: NX3622360326
-                    sku: EX3400-48T-AFI
+                  - contract_end_time: 1708214400
+                    contract_id: '68247710'
+                    contract_sku: PAR-SDCE-EX4300T48
+                    contract_start_time: 1629331200
+                    customer_po: '4501942932'
+                    distributor: dist1
+                    eol_time: 1671062400
+                    eos_time: 1828828800
+                    installed_address: Address
+                    model: EX4300-48T
+                    order_id: '15909647'
+                    reseller: reseller1
+                    serial: PE3721050223
+                    sku: EX4300-48T-AFI
+                    type: switch
+                    warranty_end_time: 2258236800
+                    warranty_start_time: 1619395200
+                    warranty_type: Enhanced Hardware Warranty
               schema:
                 items:
                   properties:
                     contract_end_time:
-                      description: contract end time
                       type: integer
                     contract_id:
-                      description: contract id
                       type: string
                     contract_sku:
-                      description: contract sku
                       type: string
                     contract_start_time:
-                      description: contract start time
                       type: integer
+                    customer_po:
+                      description: po number associated with this SKU
+                      type: string
+                    distributor:
+                      description: distributor name
+                      type: string
                     eol_time:
                       description: end of life time
-                      nullable: true
                       type: integer
                     eos_time:
                       description: end of support time
-                      nullable: true
                       type: integer
                     installed_address:
                       description: address where the device is installed. It is a
@@ -8729,26 +8738,52 @@ paths:
                     model:
                       description: model of the install base inventory
                       type: string
+                    order_id:
+                      description: order ID associated with this SKU
+                      type: string
+                    reseller:
+                      description: reseller name
+                      type: string
                     serial:
                       description: serial Number of the inventory
                       type: string
                     sku:
                       description: serviceable device stock
                       type: string
+                    type:
+                      enum:
+                      - ap
+                      - switch
+                      - gateway
+                      type: string
+                    warranty_end_time:
+                      type: integer
+                    warranty_start_time:
+                      type: integer
+                    warranty_type:
+                      type: string
                   type: object
                 type: array
                 x-examples:
-                  example-1:
-                  - contract_end_time: 1666036300
-                    contract_id: '60741935'
-                    contract_sku: PAR-ND-EX34-48TA
-                    contract_start_time: 1665036300
-                    eol_time: null
-                    eos_time: null
-                    installed_address: 1 First St, San Jose, CA 95112
-                    model: EX3400-48T
-                    serial: NX3622360326
-                    sku: EX3400-48T-AFI
+                  Example 1:
+                  - contract_end_time: 1708214400
+                    contract_id: '68247710'
+                    contract_sku: PAR-SDCE-EX4300T48
+                    contract_start_time: 1629331200
+                    customer_po: '4501942932'
+                    distributor: dist1
+                    eol_time: 1671062400
+                    eos_time: 1828828800
+                    installed_address: Address
+                    model: EX4300-48T
+                    order_id: '15909647'
+                    reseller: reseller1
+                    serial: PE3721050223
+                    sku: EX4300-48T-AFI
+                    type: switch
+                    warranty_end_time: 2258236800
+                    warranty_start_time: 1619395200
+                    warranty_type: Enhanced Hardware Warranty
           description: OK
         '400':
           content:
@@ -11207,6 +11242,26 @@ paths:
       summary: updateOrgPsk
       tags:
       - Orgs Psks
+  /api/v1/orgs/{org_id}/psks/{psk_id}/delete_old_passphrase:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/psk_id'
+    post:
+      description: "Delete `old_passphrase` from PSK. \nIf successful, response is\
+        \ same as GET, returns the PSK with `old_passphrase` removed."
+      operationId: deleteOrgPskOldPassphrase
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties: {}
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/Psk'
+      summary: deleteOrgPskOldPassphrase
+      tags:
+      - Orgs Psks
   /api/v1/orgs/{org_id}/rftemplates:
     get:
       description: Get Org RF Template
@@ -13416,6 +13471,27 @@ paths:
           - connected
           - disconnected
           type: string
+      - in: query
+        name: site_id
+        schema:
+          format: uuid
+          type: string
+      - in: query
+        name: mac
+        schema:
+          type: string
+      - description: EVPN Topology ID
+        in: query
+        name: evpntopo_id
+        schema:
+          format: uuid
+          type: string
+      - description: "if `evpn_unused`==`true`, find EVPN eligible switches which\
+          \ don\u2019t belong to any EVPN Topology yet"
+        in: query
+        name: evpn_unused
+        schema:
+          type: string
       responses:
         '200':
           $ref: '#/components/responses/DevicesArrayStats'
@@ -13948,37 +14024,42 @@ paths:
   /api/v1/orgs/{org_id}/stats/tunnels/count:
     get:
       description: Count Mist Tunnels Stats
-      operationId: countOrgMxTunnelsStats
+      operationId: countOrgTunnelsStats
       parameters:
-      - in: query
+      - description: "- If `type`==`wxtunnel`: wxtunnel_id / ap / remote_ip / remote_port\
+          \ / state / mxedge_id / mxcluster_id / site_id / peer_mxedge_id; default\
+          \ is wxtunnel_id \n- If `type`==`wan`: mac / site_id / node / peer_ip /\
+          \ peer_host/ ip / tunnel_name / protocol / auth_algo / encrypt_algo / ike_version\
+          \ / last_event / up"
+        in: query
         name: distinct
         schema:
-          default: wxtunnel_id
           enum:
-          - wxtunnel_id
-          - ap
-          - remote_ip
-          - remote_port
-          - state
-          - mxedge_id
-          - mxcluster_id
-          - site_id
-          - peer_mxedge_id
+          - auth_algo
+          type: string
+      - in: query
+        name: type
+        schema:
+          default: wxtunnel
+          enum:
+          - wxtunnel
+          - wan
           type: string
       responses:
         '200':
           $ref: '#/components/responses/count'
-      summary: countOrgMxTunnelsStats
+      summary: countOrgTunnelsStats
       tags:
-      - Orgs MxTunnels
+      - Orgs Stats Tunnels
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/stats/tunnels/search:
     get:
-      description: Search Org MxTunnels Stats
-      operationId: getOrgMxTunnelsStats
+      description: Search Org Tunnels Stats
+      operationId: getOrgTunnelsStats
       parameters:
-      - in: query
+      - description: if `type`==`wxtunnel`
+        in: query
         name: mxcluster_id
         schema:
           type: string
@@ -13990,13 +14071,78 @@ paths:
         name: site_id
         schema:
           type: string
-      - in: query
+      - description: if `type`==`wxtunnel`
+        in: query
         name: wxtunnel_id
         schema:
           type: string
-      - in: query
+      - description: if `type`==`wxtunnel`
+        in: query
         name: ap
         schema:
+          type: string
+      - description: if `type`==`wan`
+        in: query
+        name: mac
+        schema:
+          type: string
+      - description: if `type`==`wan`
+        in: query
+        name: node
+        schema:
+          type: string
+      - description: if `type`==`wan`
+        in: query
+        name: peer_ip
+        schema:
+          type: string
+      - description: if `type`==`wan`
+        in: query
+        name: peer_host
+        schema:
+          type: string
+      - description: if `type`==`wan`
+        in: query
+        name: ip
+        schema:
+          type: string
+      - description: if `type`==`wan`
+        in: query
+        name: tunnel_name
+        schema:
+          type: string
+      - description: if `type`==`wan`
+        in: query
+        name: protocol
+        schema:
+          type: string
+      - description: if `type`==`wan`
+        in: query
+        name: auth_algo
+        schema:
+          type: string
+      - description: if `type`==`wan`
+        in: query
+        name: encrypt_algo
+        schema:
+          type: string
+      - description: if `type`==`wan`
+        in: query
+        name: ike_version
+        schema:
+          type: string
+      - description: if `type`==`wan`
+        in: query
+        name: up
+        schema:
+          type: string
+      - in: query
+        name: type
+        schema:
+          default: wxtunnel
+          enum:
+          - wxtunnel
+          - wan
           type: string
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
@@ -14006,9 +14152,9 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/TunnelsSearch'
-      summary: getOrgMxTunnelsStats
+      summary: getOrgTunnelsStats
       tags:
-      - Orgs Stats
+      - Orgs Stats Tunnels
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/stats/vpn_peers/count:
@@ -20256,11 +20402,20 @@ paths:
         \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
         \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
         \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
-        \n\n DNS resolutions are performed on the Device. The output will be available\
-        \ through websocket. As there can be multiple command issued against the same\
-        \ SSR at the same time and the output all goes through the same websocket\
-        \ stream, `session` is used for demux.\n \n #### Subscribe to Device Command\
-        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n DNS resolutions are performed on\
+        \ the Device. The output will be available through websocket. As there can\
+        \ be multiple command issued against the same SSR at the same time and the\
+        \ output all goes through the same websocket stream, `session` is used for\
+        \ demux.\n \n #### Subscribe to Device Command outputs\n`WS /api-ws/v1/stream`\n\
+        \n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
         \n}\n```\n##### Example output from ws stream\n```\n Router      | Hostname\
         \               | Resolved | Last Resolved        | Expiration\n-------------|------------------------|----------|----------------------|---------------------\n\
         \ test-device | xxx.yyy.net            | Y        | 2022-03-28T03:56:49Z |\
@@ -20284,6 +20439,9 @@ paths:
           application/json:
             schema:
               properties:
+                member:
+                  description: optional for VC member
+                  type: string
                 node:
                   description: 'only for SSR: if node is not present, both nodes are
                     restarted
@@ -22112,8 +22270,17 @@ paths:
       - Sites Maps
   /api/v1/sites/{site_id}/maps/{map_id}/auto_orient:
     parameters:
-    - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/map_id'
+    - $ref: '#/components/parameters/site_id'
+    post:
+      description: This API is used to trigger a map for Auto orientation
+      operationId: startSiteApAutoOrientation
+      responses:
+        '200':
+          description: Map queued for auto orientation
+      summary: startSiteApAutoOrientation
+      tags:
+      - Sites Maps
   /api/v1/sites/{site_id}/maps/{map_id}/auto_placement:
     delete:
       description: This API is called to force stop auto placement for a given map
@@ -22125,17 +22292,70 @@ paths:
           description: Autoplacement was not triggered
       summary: deleteSiteApAutoplacement
       tags:
-      - Sites Devices APs
+      - Sites Maps
+    get:
+      description: This API is called to view the current status of auto placement
+        for a given map.
+      operationId: getSiteApAutoPlacement
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                Completed:
+                  value:
+                    in_progress: false
+                In Progress:
+                  value:
+                    estimated_seconds_left: 42
+                    in_progress: true
+                    start_time: 1670510275
+              schema:
+                properties:
+                  estimated_seconds_left:
+                    description: estimate of the time to completion
+                    type: integer
+                  in_progress:
+                    description: whether autoplacement is in progress for this map
+                    type: boolean
+                  start_time:
+                    description: Time when autoplacement process began for this map
+                    type: integer
+                required:
+                - in_progress
+                type: object
+          description: OK
+      summary: getSiteApAutoplacement
+      tags:
+      - Sites Maps
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/map_id'
     post:
-      description: This API is called to trigger a map for auto placement. For auto
+      description: 'This API is called to trigger a map for auto placement. For auto
         placement feature to work, RTT-FTM data need to be collected from the APs
         on the map. This scan is disruptive and therefore the user must be notified
         of service disrution during the functioning of auto placement Repeated POST
         to this endpoint while a map is still running will be rejected.
+
+
+        List of devices to provide suggestions for is an optional parameter that can
+        be given to this API. This will provide autoplacement suggestions only for
+        the devices specified. If no list of devices is provided, all APs asociated
+        with that map are considered by default'
       operationId: runSiteApAutoplacement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                device_ids:
+                  description: list of device macs
+                  items:
+                    type: string
+                  type: array
+              type: object
+        description: ''
       responses:
         '200':
           description: Autoplacement Process has begun for this map
@@ -22144,7 +22364,7 @@ paths:
             placement or Auto AP Placement is already in progress for this Map
       summary: runSiteApAutoplacement
       tags:
-      - Sites Devices APs
+      - Sites Maps
   /api/v1/sites/{site_id}/maps/{map_id}/image:
     delete:
       description: Delete Site Map Image
@@ -22244,6 +22464,71 @@ paths:
         '200':
           $ref: '#/components/responses/OK'
       summary: replaceSiteMapImage
+      tags:
+      - Sites Maps
+  /api/v1/sites/{site_id}/maps/{map_id}/set_map:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: "This API can be used to assign a list of AP Macs associated with\
+        \ site_id to the specified map_id. Note that map_id must be associated with\
+        \ corresponding site_id. This API obeys the following rules \n1. if AP is\
+        \ unassigned to any Map, it gets associated with map_id \n2. Any moved APs\
+        \ are returned in the response \n3. If the AP is considered a locked AP, no\
+        \ action will be taken"
+      operationId: bulkAssignSiteApsToMap
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  device_ids:
+                  - 00000000-0000-0000-1000-5c5b35000001
+                  - 00000000-0000-0000-1000-5c5b35584a6f
+            schema:
+              properties:
+                device_ids:
+                  items:
+                    type: string
+                  type: array
+              type: object
+              x-examples:
+                Example 1:
+                  device_ids:
+                  - 00000000-0000-0000-1000-5c5b35000001
+                  - 00000000-0000-0000-1000-5c5b35584a6f
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                Example 1:
+                  value:
+                    locked:
+                    - 00000000-0000-0000-1000-5c5b35000001
+                    moved:
+                    - 00000000-0000-0000-1000-5c5b35584a6f
+              schema:
+                properties:
+                  locked:
+                    items:
+                      type: string
+                    type: array
+                  moved:
+                    items:
+                      type: string
+                    type: array
+                type: object
+                x-examples:
+                  Example 1:
+                    locked:
+                    - 00000000-0000-0000-1000-5c5b35000001
+                    moved:
+                    - 00000000-0000-0000-1000-5c5b35584a6f
+          description: OK
+      summary: bulkAssignSiteApsToMap
       tags:
       - Sites Maps
   /api/v1/sites/{site_id}/maps/{map_id}/set_map_autoplacement:
@@ -22726,6 +23011,16 @@ paths:
                   max_pkt_len: 1500
                   num_packets: 100
                   type: gateway
+              Scan radio Packet Capture:
+                value:
+                  ap_mac: string
+                  client_mac: string
+                  duration: 600
+                  includes_mcast: true
+                  max_pkt_len: 128
+                  num_packets: 1024
+                  ssid: string
+                  type: client
               Wired Packet Capture:
                 value:
                   duration: 600
@@ -24528,11 +24823,20 @@ paths:
         type: string
   /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/impact-summary:
     get:
-      description: "\n\n\n\n\n\n Get impact summary counts optionally filtered by\
-        \ classifier and failure type\n \n* Wireless SLE Fields: `wlan`, `device_type`,\
-        \ `device_os` ,`band`, `ap`, `server`, `mxedge`\n* Wired SLE Fields: `switch`,\
-        \ `client`, `vlan`, `interface`, `chassis`\n* WAN SLE Fields: `gateway`, `client`,\
-        \ `interface`, `chassis`, `peer_path`, `gateway_zones`"
+      description: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Get impact\
+        \ summary counts optionally filtered by classifier and failure type\n \n*\
+        \ Wireless SLE Fields: `wlan`, `device_type`, `device_os` ,`band`, `ap`, `server`,\
+        \ `mxedge`\n* Wired SLE Fields: `switch`, `client`, `vlan`, `interface`, `chassis`\n\
+        * WAN SLE Fields: `gateway`, `client`, `interface`, `chassis`, `peer_path`,\
+        \ `gateway_zones`"
       operationId: getSiteSleImpactSummary
       parameters:
       - $ref: '#/components/parameters/start'
@@ -28303,6 +28607,11 @@ paths:
           - root
           - root-prevented
           type: string
+      - description: Optic Slot Partnumber, Check for null/empty
+        in: query
+        name: xcvr_part_number
+        schema:
+          type: string
       - description: if `up`==`true` && has Authenticator role
         in: query
         name: auth_state
@@ -28888,6 +29197,82 @@ paths:
       summary: searchSiteSwitchPorts
       tags:
       - Sites Devices Stats
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/stats/switches/metrics:
+    get:
+      description: 'Get version compliance metrics for managed or monitored switches
+
+        '
+      operationId: getSiteAdoptedSwitchesComplianceMetrics
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                Example 1:
+                  value:
+                    version_compliance:
+                      details:
+                        major_versions:
+                        - major_count: 1
+                          major_version: 21.4R3.5
+                          model: EX2300-C-12P
+                          system_names: []
+                        - major_count: 1
+                          major_version: 6.0.4-11
+                          model: SSR120
+                          system_names: []
+                      score: 100
+                      total_switch_count: 2
+              schema:
+                properties:
+                  version_compliance:
+                    properties:
+                      details:
+                        properties:
+                          major_versions:
+                            items:
+                              properties:
+                                major_count:
+                                  type: integer
+                                major_version:
+                                  type: string
+                                model:
+                                  type: string
+                                system_names:
+                                  items:
+                                    properties: {}
+                                    type: object
+                                  type: array
+                              type: object
+                            type: array
+                        type: object
+                      score:
+                        type: integer
+                      total_switch_count:
+                        type: integer
+                    type: object
+                type: object
+                x-examples:
+                  Example 1:
+                    version_compliance:
+                      details:
+                        major_versions:
+                        - major_count: 1
+                          major_version: 21.4R3.5
+                          model: EX2300-C-12P
+                          system_names: []
+                        - major_count: 1
+                          major_version: 6.0.4-11
+                          model: SSR120
+                          system_names: []
+                      score: 100
+                      total_switch_count: 2
+          description: OK
+      summary: getSiteAdoptedSwitchesComplianceMetrics
+      tags:
+      - Sites Devices Switches
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/wxrules:
@@ -31256,7 +31641,7 @@ paths:
                     update: true
                   topic: alarms
             schema:
-              $ref: '#/components/schemas/webhook.alarms'
+              $ref: '#/components/schemas/webhook_alarms'
         description: "**N.B.**: Fields like `aps`, `bssids`, `ssids` are event specific.\
           \ They are relevant to this event type ( rogue-ap-detected). For a different\
           \ event type, different fields may be sent. These don\u2019t contain all\
@@ -31304,7 +31689,7 @@ paths:
                     timestamp: 0
                   topic: asset-raw
             schema:
-              $ref: '#/components/schemas/webhook.asset_raw'
+              $ref: '#/components/schemas/webhook_asset_raw'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -31339,7 +31724,7 @@ paths:
                     timestamp: 0
                   topic: audits
             schema:
-              $ref: '#/components/schemas/webhook.audits'
+              $ref: '#/components/schemas/webhook_audits'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -31381,7 +31766,7 @@ paths:
                     wlan_id: 5028e92b-fc59-4056-91d1-ea4b4ca1617a
                   topic: client-join
             schema:
-              $ref: '#/components/schemas/webhook.client_join'
+              $ref: '#/components/schemas/webhook_client_join'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -31432,7 +31817,7 @@ paths:
                     wlan_id: 5028e92b-fc59-4056-91d1-ea4b4ca1617a
                   topic: client-sessions
             schema:
-              $ref: '#/components/schemas/webhook.client_sessions'
+              $ref: '#/components/schemas/webhook_client_sessions'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -31473,7 +31858,7 @@ paths:
                     type: string
                   topic: device-events
             schema:
-              $ref: '#/components/schemas/webhook.device_events'
+              $ref: '#/components/schemas/webhook_device_events'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -31508,11 +31893,58 @@ paths:
                     type: string
                   topic: device-updowns
             schema:
-              $ref: '#/components/schemas/webhook.device_updowns'
+              $ref: '#/components/schemas/webhook_device_updowns'
       responses:
         '200':
           $ref: '#/components/responses/OK'
       summary: deviceUpDown
+      tags:
+      - Webhook Samples
+  /webhook_example/_discovered_raw_rssi_:
+    parameters: []
+    post:
+      description: 'Webhook sample for `discovered-raw-rssi` topic
+
+
+        **Note**: The server host will be your own server FQDN where the Mist Cloud
+        is sending the webhook messages
+
+        '
+      operationId: discovered-raw-rssi
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  events:
+                  - ap_loc:
+                    - 0
+                    beam: 0
+                    device_id: 3bafab7b-4400-4bcf-8e6e-09f954699940
+                    ibeacon_major: 0
+                    ibeacon_minor: 0
+                    ibeacon_uuid: 1f89bc00-d0af-481b-82fe-a6629259a39f
+                    is_asset: true
+                    mac: string
+                    map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
+                    mfg_company_id: string
+                    mfg_data: string
+                    org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                    rssi: 0
+                    service_packets:
+                    - service_data: string
+                      service_uuid: 7138cc00-c611-4dec-a05e-5c4b1cae13c0
+                    site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                    timestamp: 0
+                  topic: string
+            schema:
+              $ref: '#/components/schemas/webhook_discovered_raw_rssi'
+        description: ''
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: discovered-raw-rssi
       tags:
       - Webhook Samples
   /webhook_example/_location_:
@@ -31553,7 +31985,7 @@ paths:
                     y: 0
                   topic: location
             schema:
-              $ref: '#/components/schemas/webhook.location'
+              $ref: '#/components/schemas/webhook_location'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -31592,7 +32024,7 @@ paths:
                     site_name: string
                   topic: occupancy-alerts
             schema:
-              $ref: '#/components/schemas/webhook.occupancy_alerts'
+              $ref: '#/components/schemas/webhook_occupancy_alerts'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -31623,7 +32055,7 @@ paths:
                     timestamp: 0
                   topic: ping
             schema:
-              $ref: '#/components/schemas/webhook.ping'
+              $ref: '#/components/schemas/webhook_ping'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -31673,7 +32105,7 @@ paths:
                     site_id: d761985e-49b1-4506-88e9-e0368a05c301
                   topic: sdkclient-scan-data
             schema:
-              $ref: '#/components/schemas/webhook.sdkclient-scan-data'
+              $ref: '#/components/schemas/webhook_sdkclient-scan-data'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -31710,7 +32142,7 @@ paths:
                     zone_id: 4495020a-236f-46e0-9453-e3f9cc6476f4
                   topic: zone
             schema:
-              $ref: '#/components/schemas/webhook.zone'
+              $ref: '#/components/schemas/webhook_zone'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -36575,7 +37007,7 @@ components:
                     networks:
                     - string
                     type: internal
-                    via: string
+                    via: wan
                     wan_name: string
                   property2:
                     auth_key: string
@@ -36608,7 +37040,7 @@ components:
                     networks:
                     - string
                     type: internal
-                    via: string
+                    via: wan
                     wan_name: string
                 created_time: 0
                 dhcpd_config:
@@ -37226,7 +37658,7 @@ components:
                     networks:
                     - string
                     type: internal
-                    via: string
+                    via: lan
                     wan_name: string
                   property2:
                     auth_key: string
@@ -37259,7 +37691,7 @@ components:
                     networks:
                     - string
                     type: internal
-                    via: string
+                    via: lan
                     wan_name: string
                 created_time: 0
                 dhcpd_config:
@@ -40525,7 +40957,7 @@ components:
                   gateway-health: 1
                   num_clients: 65
                   num_gateways: 1
-                  site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                  site_id: f5fcbee5-1234-5678-9101-1619ede87879
                   wan-link-health: 0.9988471089272484
                 start: 1651269600
                 total: 4
@@ -40537,16 +40969,16 @@ components:
                 page: 2
                 results:
                 - ap-availability: 1
-                  ap-health: 0.6734082531393244
-                  capacity: 0.9805205859945426
-                  coverage: 0.8124033491124427
+                  ap-health: 0.6735632316819553
+                  capacity: 0.9802900770150502
+                  coverage: 0.812181632387686
                   num_aps: 3
                   num_clients: 24
                   roaming: 1
-                  site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
-                  successful-connect: 0.9504132238793964
+                  site_id: f5fcbee5-1234-5678-9101-1619ede87879
+                  successful-connect: 0.9535864983932881
                   throughput: 1
-                  time-to-connect: 0.979381443298969
+                  time-to-connect: 0.9791666666666666
                 start: 1651269600
                 total: 4
             Wired SLE:
@@ -40558,14 +40990,14 @@ components:
                 results:
                 - num_clients: 6
                   num_switches: 1
-                  site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                  site_id: f5fcbee5-1234-5678-9101-1619ede87879
                   switch-health: 1
                   switch-stc: 1
-                  switch-throughput: 0.9673089339439619
+                  switch-throughput: 0.9669529756744796
                 start: 1651269600
                 total: 4
           schema:
-            oneOf:
+            anyOf:
             - $ref: '#/components/schemas/OrgSiteSleWifiResponse'
             - $ref: '#/components/schemas/OrgSiteSleWiredResponse'
             - $ref: '#/components/schemas/OrgSiteSleWanResponse'
@@ -44581,31 +45013,58 @@ components:
       content:
         application/json:
           examples:
-            example-1:
+            '`type`==`wan`':
               value:
-                end: 0
-                limit: 0
+                end: 1531862583
+                limit: 10
                 results:
-                - ap: string
-                  last_seen: 0
-                  mxcluster_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  mxedge_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  mxtunnel_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  remote_ip: string
-                  remote_port: 0
-                  rx_control_pkts: 0
+                - auth_algo: hmac-md5-96
+                  encrypt_algo: aes-256-cbc
+                  ike_version: '2'
+                  ip: 192.168.233.0
+                  last_event: down reason
+                  mac: 020001ae9dd5
+                  node: node0
+                  org_id: 78c11da8-f984-4425-bedb-a7ddd7d0f6da
+                  peer_host: sunnyvale1-vpn.zscalerbeta.net
+                  peer_ip: 10.224.8.16
+                  protocol: ipsec
+                  rx_bytes: 150
+                  rx_pkts: 75
+                  site_id: e83e7928-eda1-4e93-82db-df3dd42ab726
+                  tunnel_name: Device-ipsec-1
+                  tx_bytes: 100
+                  tx_pkts: 50
+                  up: true
+                  uptime: 10
+                start: 1531776183
+                total: 1
+            '`type`==`wxtunnel`':
+              value:
+                end: 1531862583
+                limit: 10
+                results:
+                - ap: 5c5b35000010
+                  last_seen: 1547437078
+                  mxcluster_id: 572586b7-f97b-a22b-526c-8b97a3f609c4
+                  mxedge_id: 387804a7-3474-85ce-15a2-f9a9684c9c90
+                  mxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
+                  org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                  peer_mxedge_id: 09320a5c-bc23-441e-80a0-b96c632d45f5
+                  remote_ip: 172.16.1.2
+                  remote_port: 13535
+                  rx_control_pkts: 7571
                   sessions:
-                  - local_sid: 0
-                    remote_id: string
-                    remote_sid: 0
-                    state: string
-                  site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  state: idle
-                  tx_control_pkts: 0
-                  uptime: 0
-                start: 0
-                total: 0
+                  - local_sid: 31
+                    remote_id: mxtunnel
+                    remote_sid: 13
+                    state: established
+                  site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+                  state: established_with_sessions
+                  tx_control_pkts: 14862
+                  uptime: 135
+                start: 1531776183
+                total: 1
           schema:
             properties:
               end:
@@ -44616,7 +45075,9 @@ components:
                 type: string
               results:
                 items:
-                  $ref: '#/components/schemas/stats_mxtunnel'
+                  anyOf:
+                  - $ref: '#/components/schemas/stats_mxtunnel'
+                  - $ref: '#/components/schemas/stats_wantunnel'
                 type: array
               start:
                 type: integer
@@ -48553,8 +49014,7 @@ components:
           x: 53.5
           y: 173.1
     capture:
-      description: capture
-      oneOf:
+      anyOf:
       - description: Initiate a Client Packet Capture
         properties:
           ap_mac:
@@ -48870,81 +49330,58 @@ components:
             type: string
         required:
         - type
+      - properties:
+          ap_mac:
+            description: filter by ap_mac
+            nullable: true
+            type: string
+          band:
+            default: '24'
+            description: Only Single value allowed
+            enum:
+            - '24'
+            - '5'
+            - '6'
+            type: string
+          channel:
+            description: specify the channel value where scan PCAP has to be started
+            type: string
+          client_mac:
+            description: filter by client mac
+            type: string
+          duration:
+            default: 600
+            description: duration of the capture, in seconds
+            maximum: 86400
+            minimum: 0
+            type: integer
+          format:
+            default: pcap
+            enum:
+            - pcap
+            - stream
+            type: string
+          max_pkt_len:
+            default: 512
+            description: max_len of each packet to capture
+            maximum: 2048
+            minimum: 128
+            type: integer
+          num_packets:
+            default: 1024
+            description: number of packets to capture, 0 for unlimited
+            type: integer
+          tcpdump_expression:
+            type: string
+          type:
+            default: scan
+            type: string
+          width:
+            description: specify the bandwidth value with respect to the channel.
+            type: string
+        required:
+        - type
       type: object
-      x-examples:
-        Client Packet Capture:
-          value:
-            client_mac: 60a10a773412
-            duration: 300
-            includes_mcast: false
-            max_pkt_len: 128
-            num_packets: 1000
-            type: client
-        New Wireless Client Associations Packet Capture:
-          value:
-            client_mac: 60a10a773412
-            duration: 600
-            includes_mcast: false
-            max_pkt_len: 128
-            num_packets: 100
-            type: new_assoc
-        Radiotap Packet Capture:
-          value:
-            duration: 600
-            max_pkt_len: 68
-            num_packets: 100
-            type: wlan
-        Radiotap Packet Capture and Wired Packet Capture:
-          ap_mac: null
-          band: '24'
-          client_mac: 38f9d3972ff1
-          duration: 600
-          format: stream
-          max_pkt_len: 68
-          num_packets: 100
-          radiotap_tcpdump_expression: type data
-          ssid: atest
-          tcpdump_expression: <common>
-          type: radiotap,wired
-          wired_tcpdump_expression: tcp port 80
-          wireless_tcpdump_expression: ''
-          wlan_id: fac8e973-feb9-421a-b381-aabbc4b61f5a
-        SSR Packet Capture:
-          duration: 600
-          format: stream
-          gateways:
-            '001122334455':
-              ports:
-                ge-0/0/0:
-                  tcpdump_expression: tcp
-                ge-0/0/1:
-                  tcpdump_expression: port 443
-                ge-1/0/0:
-                  tcpdump_expression: tcp
-                ge-1/0/1:
-                  tcpdump_expression: port 443
-            '001122334466':
-              ports:
-                ge-0/0/0:
-                  tcpdump_expression: udp
-                ge-0/0/1:
-                  tcpdump_expression: port 32768
-          max_pkt_len: 1500
-          num_packets: 100
-          type: gateway
-        Wired Packet Capture:
-          value:
-            duration: 600
-            max_pkt_len: 68
-            num_packets: 100
-            tcpdump_expression: tcp port 80
-            type: wired
-        Wlan Packet Capture:
-          value:
-            duration: 600
-            max_pkt_len: 68
-            num_packets: 100
-            type: wlan
     coa_server:
       description: CoA Server
       properties:
@@ -50010,13 +50447,6 @@ components:
                     description: '`tcp` / `udp` / `icmp` / `gre` / `any` / `:protocol_number`
                       (1-254)'
                     type: string
-                  subnets:
-                    default:
-                    - 0.0.0.0/0
-                    description: matched dst subnet
-                    items:
-                      type: string
-                    type: array
                 type: object
               src_groups:
                 items:
@@ -52004,7 +52434,6 @@ components:
               version: '2'
           type: standalone
     gatewaytemplate_tunnel_configs:
-      description: ''
       properties:
         ike_lifetime:
           description: 'Only if:
@@ -52054,7 +52483,8 @@ components:
                 - 3des
                 - aes128
                 - aes_gcm256
-                - 'null'
+                - aes_gcm128
+                nullable: true
                 type: string
             type: object
           type: array
@@ -52097,8 +52527,9 @@ components:
                 - aes256
                 - 3des
                 - aes128
+                - aes_gcm128
                 - aes_gcm256
-                - 'null'
+                nullable: true
                 type: string
             type: object
           type: array
@@ -52466,7 +52897,6 @@ components:
           sku: EX2300-C-12P
           type: switch
     junos_bgp_config:
-      description: ''
       properties:
         auth_key:
           type: string
@@ -52552,7 +52982,11 @@ components:
           minLength: 1
           type: string
         via:
+          default: lan
           description: network name
+          enum:
+          - lan
+          - wan
           type: string
         wan_name:
           description: if `via`==`wan`
@@ -52969,7 +53403,9 @@ components:
           description: used only if `subnet` is not specified in `networks`
           type: string
         network:
-          description: optional, the network to be used for mgmt
+          description: optional, the network to be used for mgmt.  The network where
+            this mgmt IP reside, this will be used as default network for outbound-ssh,
+            ntp, dns, tacplus, radius, syslog, snmp
           type: string
         type:
           default: dynamic
@@ -53095,26 +53531,29 @@ components:
           wan:
             zone: untrust
     junos_oob_ip_config:
+      additionalProperties:
+        description: '- If HA configuration: key parameter will be nodeX (eg: node1)
+
+          - If there are 2 routing engines, re1 mgmt IP has to be set separately (if
+          desired): key parameter = `re1`'
+        properties:
+          ip:
+            type: string
+          netmask:
+            description: used only if `subnet` is not specified in `networks`
+            type: string
+          network:
+            description: optional, the network to be used for mgmt
+            type: string
+          type:
+            default: dynamic
+            enum:
+            - static
+            - dynamic
+            type: string
+        type: object
       description: Junos out-of-band (vme/em0/fxp0) IP config
       properties:
-        additionalProperties:
-          description: for HA configuration.
-          properties:
-            ip:
-              type: string
-            netmask:
-              description: used only if `subnet` is not specified in `networks`
-              type: string
-            network:
-              description: optional, the network to be used for mgmt
-              type: string
-            type:
-              default: dynamic
-              enum:
-              - static
-              - dynamic
-              type: string
-          type: object
         dns:
           items:
             type: string
@@ -53143,18 +53582,37 @@ components:
           default: false
           description: if supported on the platform
           type: boolean
+        use_mgmt_vrf_for_host_outbound_traffic:
+          default: false
+          description: 'For switches only
+
+            if `use_mgmt_vrf`==`true`, whether to use this as the default routing
+            instance for outbound-ssh, ntp, dns, tacplus, radius, syslog, snmp'
+          type: boolean
       type: object
       x-examples:
-        example-1:
+        Example 1:
           dns:
-          - {}
+          - string
           dns_suffix:
-          - {}
+          - string
           gateway: string
           ip: string
           netmask: string
           network: string
-          type: string
+          property1:
+            ip: string
+            netmask: string
+            network: string
+            type: dynamic
+          property2:
+            ip: string
+            netmask: string
+            network: string
+            type: dynamic
+          type: dynamic
+          use_mgmt_vrf: false
+          use_mgmt_vrf_for_host_outbound_traffic: false
     junos_ospf_areas:
       description: Junos OSPF areas
       properties:
@@ -56828,7 +57286,6 @@ components:
           name: Org
           session_expiry: 1440
     org_setting:
-      additionalProperties: true
       description: Org Settings
       properties:
         auto_device_naming:
@@ -56943,6 +57400,8 @@ components:
               type: object
             app_usage:
               type: boolean
+            tacacs:
+              $ref: '#/components/schemas/tacacs'
           type: object
         id:
           format: uuid
@@ -57100,7 +57559,7 @@ components:
               type: boolean
           type: object
         simple_alert:
-          $ref: '#/components/schemas/org_simple_alert'
+          $ref: '#/components/schemas/simple_alert'
         site_id:
           format: uuid
           readOnly: true
@@ -57408,60 +57867,6 @@ components:
           tags:
           - string
           ui_idle_timeout: 0
-    org_simple_alert:
-      description: 'Set of heuristic rules will be enabled when marvis subscription
-        is not available.
-
-        It triggers when, in a 10 minute window, there are more than X distinct client
-        encountring over Y failures'
-      properties:
-        arp_failure:
-          properties:
-            client_count:
-              default: 10
-              type: integer
-            duration:
-              default: 20
-              description: failing within minutes
-              maximum: 60
-              minimum: 5
-              type: integer
-            incident_count:
-              default: 10
-              type: integer
-          type: object
-        dhcp_failure:
-          properties:
-            client_count:
-              default: 10
-              type: integer
-            duration:
-              default: 10
-              description: failing within minutes
-              maximum: 60
-              minimum: 5
-              type: integer
-            incident_count:
-              default: 20
-              type: integer
-          type: object
-        dhs_failure:
-          properties:
-            client_count:
-              default: 20
-              type: integer
-            duration:
-              default: 10
-              description: failing within minutes
-              maximum: 60
-              minimum: 5
-              type: integer
-            incident_count:
-              default: 30
-              type: integer
-          type: object
-      title: org_simple_alert
-      type: object
     orggroup:
       description: Organizations Group
       properties:
@@ -58255,6 +58660,9 @@ components:
           description: If set to true, notification will be sent when psk is created
             or edited
           type: boolean
+        old_passphrase:
+          description: previous passphrase of the PSK if it has been rotated
+          type: string
         org_id:
           format: uuid
           readOnly: true
@@ -58301,7 +58709,6 @@ components:
           usage: multi
           vlan_id: 1
     psk_portal:
-      description: ''
       properties:
         auth:
           default: sso
@@ -58354,6 +58761,36 @@ components:
               default: true
               type: boolean
             length:
+              maximum: 63
+              minimum: 8
+              type: integer
+            max_length:
+              description: 'for valid `max_length` and `min_length`, passphrase size
+                is set randomly from that range.
+
+                - if `max_length` and/or `min_length` are invalid, passphrase size
+                is equal to `length` parameter
+
+                - if `length` is not set or is invalid, default passphrase size is
+                8.
+
+                valid `max_length`, `min_length`, `length` should be an integer between
+                8 to 63. Also, `max_length` > `min_length`'
+              maximum: 63
+              minimum: 8
+              type: integer
+            min_length:
+              description: 'for valid `max_length` and `min_length`, passphrase size
+                is set randomly from that range.
+
+                - if `max_length` and/or `min_length` are invalid, passphrase size
+                is equal to `length` parameter
+
+                - if `length` is not set or is invalid, default passphrase size is
+                8.
+
+                valid `max_length`, `min_length`, `length` should be an integer between
+                8 to 63. Also, `max_length` > `min_length`'
               maximum: 63
               minimum: 8
               type: integer
@@ -58592,8 +59029,9 @@ components:
                 type: boolean
             type: object
           type: array
-        routing_instance:
-          example: routing-instance-name
+        network:
+          description: if source_address is configured, will use the vlan firstly
+            otherwise use source_ip
           type: string
         send_to_all_servers:
           default: true
@@ -58694,10 +59132,6 @@ components:
                 type: string
             type: object
           type: array
-        source_address:
-          description: if source_address is configured, will use the vlan firstly
-            otherwise use source_ip
-          type: string
         time_format:
           enum:
           - millisecond
@@ -58777,7 +59211,7 @@ components:
             file: file-name
             match: '!alarm|ntp|errors.crc_error[chan]'
             structured_data: true
-          routing_instance: routing-instance-name
+          network: default
           send_to_all_servers: true
           servers:
           - contents:
@@ -58797,7 +59231,6 @@ components:
             source_address: 192.168.1.1
             structured_data: true
             tag: ''
-          source_address: 192.168.1.1
           time_format: millisecond | year |  year millisecond
           users:
           - contents:
@@ -59954,6 +60387,59 @@ components:
           tenants:
           - pos.store
           - camera.store
+    simple_alert:
+      description: 'Set of heuristic rules will be enabled when marvis subscription
+        is not available.
+
+        It triggers when, in a Z minute window, there are more than Y distinct client
+        encountring over X failures'
+      properties:
+        arp_failure:
+          properties:
+            client_count:
+              default: 10
+              type: integer
+            duration:
+              default: 20
+              description: failing within minutes
+              maximum: 60
+              minimum: 5
+              type: integer
+            incident_count:
+              default: 10
+              type: integer
+          type: object
+        dhcp_failure:
+          properties:
+            client_count:
+              default: 10
+              type: integer
+            duration:
+              default: 10
+              description: failing within minutes
+              maximum: 60
+              minimum: 5
+              type: integer
+            incident_count:
+              default: 20
+              type: integer
+          type: object
+        dns_failure:
+          properties:
+            client_count:
+              default: 20
+              type: integer
+            duration:
+              default: 10
+              description: failing within minutes
+              maximum: 60
+              minimum: 5
+              type: integer
+            incident_count:
+              default: 30
+              type: integer
+          type: object
+      type: object
     site:
       description: Site
       properties:
@@ -60698,6 +61184,8 @@ components:
               description: asset tracking related
               type: boolean
           type: object
+        simple_alert:
+          $ref: '#/components/schemas/simple_alert'
         site_id:
           format: uuid
           readOnly: true
@@ -66966,6 +67454,35 @@ components:
           type: object
         last_seen:
           type: number
+        last_trouble:
+          description: last trouble code of switch
+          properties:
+            code:
+              description: 'Codes:
+
+                - 102   No DHCP lease received on any interface
+
+                - 103   No default gateway
+
+                - 104   Gateway unreachable
+
+                - 105   No DNS server
+
+                - 106   DNS lookup failed
+
+                - 108   Agent cannot connect to controller
+
+                - 109   Authentication failed
+
+                - 110   Underlying service (i.e. Netconf/SSH/HTTPS) is down
+
+                - 113   DNS failure with Mist cloud
+
+                - 114   Empty DNS response with Mist cloud'
+              type: string
+            timestamp:
+              type: integer
+          type: object
         mac:
           type: string
         memory_stat:
@@ -68122,17 +68639,19 @@ components:
           description: indicates if interface is up
           readOnly: true
           type: boolean
+        xcvr_part_number:
+          type: string
       required:
+      - mac
+      - neighbor_mac
+      - org_id
+      - port_id
+      - port_mac
       - rx_bytes
       - rx_pkts
       - site_id
-      - org_id
-      - port_mac
-      - tx_pkts
-      - mac
       - tx_bytes
-      - neighbor_mac
-      - port_id
+      - tx_pkts
       type: object
       x-examples:
         example-1:
@@ -68199,6 +68718,83 @@ components:
           rssi: -75
           x: 60
           y: 80
+    stats_wantunnel:
+      properties:
+        auth_algo:
+          description: authentication algorithm
+          type: string
+        encrypt_algo:
+          description: encryption algorithm
+          type: string
+        ike_version:
+          description: ike version
+          type: string
+        ip:
+          description: ip address
+          type: string
+        last_event:
+          description: reason of why the tunnel is down
+          type: string
+        mac:
+          description: router mac address
+          type: string
+        node:
+          description: node0/node1
+          type: string
+        org_id:
+          type: string
+        peer_host:
+          description: peer host
+          type: string
+        peer_ip:
+          description: peer ip address
+          type: string
+        protocol:
+          enum:
+          - ipsec
+          - gre
+          type: string
+        rx_bytes:
+          type: integer
+        rx_pkts:
+          type: integer
+        site_id:
+          type: string
+        tunnel_name:
+          description: Mist Tunnel Name
+          type: string
+        tx_bytes:
+          type: integer
+        tx_pkts:
+          type: integer
+        up:
+          type: boolean
+        uptime:
+          description: duration from first (or last) SA was established
+          type: integer
+      type: object
+      x-examples:
+        Example 1:
+          When: '2022-10-27T10:53:20.973Z'
+          auth_algo: hmac-md5-96
+          encrypt_algo: aes-256-cbc
+          ike_version: '2'
+          ip: 192.168.233.0
+          last_event: down reason
+          mac: 020001ae9dd5
+          node: node0
+          org_id: 78c11da8-f984-4425-bedb-a7ddd7d0f6da
+          peer_host: sunnyvale1-vpn.zscalerbeta.net
+          peer_ip: 10.224.8.16
+          protocol: ipsec
+          rx_bytes: 150
+          rx_pkts: 75
+          site_id: e83e7928-eda1-4e93-82db-df3dd42ab726
+          tunnel_name: Device-ipsec-1
+          tx_bytes: 100
+          tx_pkts: 50
+          up: true
+          uptime: 10
     stats_wxrule:
       description: Wxrule statistics
       properties:
@@ -68462,6 +69058,66 @@ components:
           num_sdkclients: 0
           sdkclients:
           - 7e2b463d-c91c-ff7d-f3c0-6eccc6949ff8
+    tacacs:
+      properties:
+        acct_servers:
+          items:
+            properties:
+              host:
+                type: string
+              port:
+                type: integer
+              secret:
+                type: string
+              timeout:
+                default: 10
+                maximum: 90
+                minimum: 1
+                type: integer
+            type: object
+          type: array
+        enabled:
+          type: boolean
+        network:
+          description: which network the TACACS server resides
+          type: string
+        tacplus_servers:
+          items:
+            properties:
+              host:
+                type: string
+              port:
+                type: integer
+              secret:
+                type: string
+              timeout:
+                default: 10
+                maximum: 90
+                minimum: 1
+                type: integer
+            type: object
+          type: array
+      type: object
+      x-examples:
+        Example 1:
+          acct_servers:
+          - host: 1.2.3.4
+            port: 49
+            secret: testing123
+          - host: tacacs.internal
+            port: 49
+            secret: testing123
+            timeout: 10
+          enabled: true
+          network: default
+          tacplus_servers:
+          - host: 1.2.3.4
+            port: 49
+            secret: testing123
+          - host: tacacs.internal
+            port: 49
+            secret: testing123
+            timeout: 10
     template:
       description: Template
       properties:
@@ -69028,7 +69684,7 @@ components:
           type: splunk
           url: https://my.splunk.host:8088/services/collector
           verify_cert: false
-    webhook.alarms:
+    webhook_alarms:
       description: "**N.B.**: Fields like `aps`, `bssids`, `ssids` are event specific.\
         \ They are relevant to this event type ( rogue-ap-detected). For a different\
         \ event type, different fields may be sent. These don\u2019t contain all affected\
@@ -69139,7 +69795,9 @@ components:
               type: string
               update: true
             topic: alarms
-    webhook.asset_raw:
+      x-stoplight:
+        id: 8bf41abeb79f8
+    webhook_asset_raw:
       description: asset raw webhook
       properties:
         events:
@@ -69198,6 +69856,18 @@ components:
                 description: optional, UUID from service data
                 format: uuid
                 type: string
+              service_packets:
+                description: list of service data packets heard from the asset/ beacon
+                items:
+                  properties:
+                    service_data:
+                      description: ata from service data
+                      type: string
+                    service_uuid:
+                      description: UUID from service data
+                      type: string
+                  type: object
+                type: array
               site_id:
                 description: site id
                 format: uuid
@@ -69244,7 +69914,9 @@ components:
             site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
             timestamp: 1461220784
           topic: asset-raw
-    webhook.audits:
+      x-stoplight:
+        id: 9e7641ef7c64a
+    webhook_audits:
       description: audit webhook
       properties:
         events:
@@ -69302,7 +69974,9 @@ components:
             src_ip: 73.92.124.103
             timestamp: 1549047906.201053
           topic: audits
-    webhook.client_join:
+      x-stoplight:
+        id: c8616f7028337
+    webhook_client_join:
       description: client join webhook
       properties:
         events:
@@ -69396,7 +70070,9 @@ components:
             version: 2
             wlan_id: 6c0c0b07-0d77-44d1-9ab2-610aee9ce711
           topic: client-join
-    webhook.client_sessions:
+      x-stoplight:
+        id: adf9376c9c6ff
+    webhook_client_sessions:
       description: client session webhook
       properties:
         events:
@@ -69542,7 +70218,9 @@ components:
             version: 2
             wlan_id: 6c0c0b07-0d77-44d1-9ab2-610aee9ce711
           topic: client-sessions
-    webhook.device_events:
+      x-stoplight:
+        id: d5d78718f958f
+    webhook_device_events:
       description: device event  webhook
       properties:
         events:
@@ -69641,7 +70319,9 @@ components:
             timestamp: 1461220784
             type: AP_RESTARTED
           topic: device-events
-    webhook.device_updowns:
+      x-stoplight:
+        id: 8eef709bf0a1e
+    webhook_device_updowns:
       description: device up/down webhook
       properties:
         events:
@@ -69702,7 +70382,120 @@ components:
             timestamp: 1461220784
             type: AP_RESTARTED
           topic: device-updowns
-    webhook.location:
+      x-stoplight:
+        id: d9bcea34184a3
+    webhook_discovered_raw_rssi:
+      properties:
+        events:
+          items:
+            properties:
+              ap_loc:
+                description: coordinates (if any) of reporting AP (updated once in
+                  60s per client)
+                items:
+                  type: number
+                type: array
+              beam:
+                description: antenna index, from 1-8, clock-wise starting from the
+                  LED
+                type: integer
+              device_id:
+                description: device id of the reporting AP
+                format: uuid
+                type: string
+              ibeacon_major:
+                type: integer
+              ibeacon_minor:
+                type: integer
+              ibeacon_uuid:
+                format: uuid
+                type: string
+              is_asset:
+                type: boolean
+              mac:
+                description: MAC of the asset/ beacon
+                type: string
+              map_id:
+                format: uuid
+                type: string
+              mfg_company_id:
+                description: BLE manufacturing company ID
+                type: string
+              mfg_data:
+                description: "BLE manufacturing data in hex byte-string format (ie:\
+                  \ \u201C112233AABBCC\u201D)"
+                type: string
+              org_id:
+                format: uuid
+                type: string
+              rssi:
+                description: signal strength
+                type: number
+              service_packets:
+                items:
+                  properties:
+                    service_data:
+                      type: string
+                    service_uuid:
+                      format: uuid
+                      type: string
+                  type: object
+                type: array
+              site_id:
+                format: uuid
+                type: string
+              timestamp:
+                type: integer
+            required:
+            - beam
+            - device_id
+            - mac
+            - map_id
+            - org_id
+            - rssi
+            - site_id
+            type: object
+          type: array
+        topic:
+          type: string
+      required:
+      - topic
+      type: object
+      x-examples:
+        Example 1:
+          events:
+          - beam: 8
+            device_id: 00000000-0000-0000-1000-ac2316eca70b
+            ibeacon_major: 2
+            ibeacon_minor: 2121
+            ibeacon_uuid: ac950d7b-af31-42d2-be7c-e15639fab2cd
+            is_asset: false
+            mac: ed2cc53f2770
+            map_id: bd42f0c3-2e6a-4f8a-ac2d-d34e268c1418
+            org_id: 9c3e516c-397d-11e6-ae35-0242ac110008
+            rssi: -79
+            site_id: 27ea2f07-6fe6-4eab-be1b-b8e3ce083d67
+            timestamp: 1661300746
+          - ap_loc:
+            - 36.03303862386182
+            - 43.57022468463291
+            - 2.75
+            beam: 7
+            device_id: 00000000-0000-0000-1000-ac2316eca70b
+            is_asset: false
+            mac: ed2cc53f2771
+            map_id: bd42f0c3-2e6a-4f8a-ac2d-d34e268c1418
+            org_id: 9c3e516c-397d-11e6-ae35-0242ac110008
+            rssi: -74
+            service_packets:
+            - service_data: 010441060606fe3d35700601cecbd902512f000001
+              service_uuid: UUID
+            site_id: 27ea2f07-6fe6-4eab-be1b-b8e3ce083d67
+            timestamp: 1661300746
+          topic: discovered-raw-rssi
+      x-stoplight:
+        id: 5e62ab1fa7fb7
+    webhook_location:
       description: location  webhook
       properties:
         events:
@@ -69836,7 +70629,9 @@ components:
             x: 13.5
             y: 3.2
           topic: location
-    webhook.occupancy_alerts:
+      x-stoplight:
+        id: b9aeb10d136c7
+    webhook_occupancy_alerts:
       description: occupancy alert  webhook
       properties:
         events:
@@ -69939,7 +70734,9 @@ components:
             site_id: 67970e46-4e12-11e6-9188-0242ac110007
             site_name: TRUE MIST OFFICE [STAGING]
           topic: occupancy-alerts
-    webhook.ping:
+      x-stoplight:
+        id: f7a3f8bedd649
+    webhook_ping:
       description: ping webhook
       properties:
         events:
@@ -69979,7 +70776,9 @@ components:
             site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
             timestamp: 1461220784
           topic: ping
-    webhook.sdkclient-scan-data:
+      x-stoplight:
+        id: 54d3cc3295be4
+    webhook_sdkclient-scan-data:
       description: ''
       properties:
         events:
@@ -70138,7 +70937,9 @@ components:
                 timestamp: 1592333828
               site_id: d761985e-49b1-4506-88e9-e0368a05c301
             topic: sdkclient-scan-data
-    webhook.zone:
+      x-stoplight:
+        id: 595a3fb2a397a
+    webhook_zone:
       description: zone webhook
       properties:
         events:
@@ -70235,6 +71036,8 @@ components:
             type: wifi
             zone_id: 8ac84899-32db-6327-334c-9b6d58544cfe
           topic: zone
+      x-stoplight:
+        id: 0350c2a3b3c30
     wired_client.response:
       description: ''
       properties:
@@ -71360,12 +72163,15 @@ components:
           items:
             type: string
           type: array
+        blocked_subnets:
+          description: list of blocked CIDRs
+          items:
+            example: 192.168.0.0/16
+            type: string
+          type: array
         enabled:
+          default: false
           type: boolean
-      required:
-      - enabled
-      - allowed_subnets
-      - allowed_hostnames
       type: object
     wlan_datarates:
       description: data rates wlan settings
@@ -71626,7 +72432,13 @@ components:
           - broadnet
           - clickatell
           - puzzel
+          - gupshup
+          - telstra
           type: string
+        sponsor_auto_approve:
+          default: false
+          description: if `sponsor_auto_approve`==`false
+          type: boolean
         sponsor_email_domains:
           description: list of domain allowed for sponsor email. Required if `sponsor_enabled`
             is `true` and `sponsors` is empty.
@@ -71676,6 +72488,12 @@ components:
           enum:
           - email
           - unspecified
+          type: string
+        telstra_client_id:
+          description: when `sms_provider`==`telstra`, Client ID provided by Telstra
+          type: string
+        telstra_client_secret:
+          description: when `sms_provider`==`telstra`, Client secret provided by Telstra
           type: string
         thumbnail:
           description: Url of portal background image thumbnail
@@ -72963,6 +73781,7 @@ x-tagGroups:
   - Orgs SSO Roles
   - Orgs SSO
   - Orgs Stats
+  - Orgs Stats Tunnels
   - Orgs Subscriptions
   - Orgs Templates
   - Orgs Tickets
