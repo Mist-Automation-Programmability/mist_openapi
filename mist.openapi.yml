@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.33.0**
+  description: '> Version: **0.34.0**
 
     >
 
-    > Date: **December 8th, 2022**
+    > Date: **January 13th, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.33.0
+  version: 0.34.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -119,6 +119,7 @@ tags:
 - name: Orgs Devices SSR
 - description: Gateway Template is applied to a site for gateway(s) in a site.
   name: Orgs Gateway Templates
+- name: Orgs Guests
 - name: Orgs Inventory
 - name: Orgs Invites
 - description: "Juniper Support Insight is a free service provided to all Mist customers.\
@@ -199,6 +200,7 @@ tags:
 - name: Sites Asset Filters
 - name: Sites Assets
 - name: Sites Beacons
+- name: Sites Calls Stats
 - name: Sites Clients
 - description: 'Mist provides many ways (device-type specific template, site template,
     device profile, per-device) to configure devices for different kind of scenarios.
@@ -504,7 +506,7 @@ paths:
                       items:
                         type: integer
                       type: array
-                    description: The property name is the channel width
+                    description: The property key is the channel width
                     required:
                     - '20'
                     - '40'
@@ -516,7 +518,7 @@ paths:
                       items:
                         type: integer
                       type: array
-                    description: The property name is the channel width
+                    description: The property key is the channel width
                     type: object
                   band5_enabled:
                     type: boolean
@@ -1052,7 +1054,7 @@ paths:
                     unit:
                       type: string
                   type: object
-                description: The property name is the metric name
+                description: The property key is the metric name
                 type: object
           description: OK
       summary: getSiteAvailableInsightMetrics
@@ -8023,6 +8025,140 @@ paths:
       summary: updateOrgGatewayTemplate
       tags:
       - Orgs Gateway Templates
+  /api/v1/orgs/{org_id}/guests:
+    get:
+      description: Get Org Guest Authorizations
+      operationId: getOrgGuestAuthorizations
+      responses:
+        '200':
+          $ref: '#/components/responses/GuestsArray'
+      summary: getOrgGuestAuthorizations
+      tags:
+      - Orgs Guests
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/guests/count:
+    get:
+      description: Count Org Authorized Guest
+      operationId: countOrgGuestAuthorizations
+      parameters:
+      - example: auth_method
+        in: query
+        name: distinct
+        schema:
+          default: auth_method
+          enum:
+          - auth_method
+          - ssid
+          - company
+          type: string
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+      summary: countOrgGuestAuthorizations
+      tags:
+      - Orgs Guests
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/guests/search:
+    get:
+      description: Search Authorized Guest
+      operationId: searchOrgGuestAuthorization
+      parameters:
+      - example: 00000000-0000-0000-0000-000000000000
+        in: query
+        name: wlan_id
+        schema:
+          type: string
+      - in: query
+        name: auth_method
+        schema:
+          type: string
+      - in: query
+        name: ssid
+        schema:
+          type: string
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          $ref: '#/components/responses/GuestsSearch'
+      summary: searchOrgGuestAuthorization
+      tags:
+      - Orgs Guests
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/guests/{guest_mac}:
+    delete:
+      description: Delete Guest Authorization
+      operationId: deleteOrgGuestAuthorization
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: deleteOrgGuestAuthorization
+      tags:
+      - Orgs Guests
+    get:
+      description: Get Guest Authorization
+      operationId: getOrgGuestAuthorization
+      responses:
+        '200':
+          $ref: '#/components/responses/Guest'
+      summary: getOrgGuestAuthorization
+      tags:
+      - Orgs Guests
+    parameters:
+    - in: path
+      name: org_id
+      required: true
+      schema:
+        example: 000000ab-00ab-00ab-00ab-0000000000ab
+        format: uuid
+        type: string
+    - in: path
+      name: guest_mac
+      required: true
+      schema:
+        example: 0000000000ab
+        pattern: ^[0-9a-fA-F]{12}$
+        type: string
+    put:
+      description: Update Guest Authorization
+      operationId: updateOrgGuestAuthorization
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  authorized: true
+                  authorized_expiring_time: 0
+                  authorized_time: 0
+                  company: string
+                  email: user@example.com
+                  field1: string
+                  field2: string
+                  field3: string
+                  field4: string
+                  mac: string
+                  minutes: 0
+                  name: string
+            schema:
+              $ref: '#/components/schemas/guest'
+      responses:
+        '200':
+          $ref: '#/components/responses/Guest'
+      summary: updateOrgGuestAuthorization
+      tags:
+      - Orgs Guests
   /api/v1/orgs/{org_id}/insights/sites-sle:
     get:
       description: Get Org Sites SLE
@@ -20180,7 +20316,7 @@ paths:
             schema:
               additionalProperties:
                 type: integer
-              description: the property name is the IoT port name (e.g A0)
+              description: the property key is the IoT port name (e.g A0)
               example:
                 A1: 1
                 DO: 0
@@ -20410,14 +20546,20 @@ paths:
         \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
         \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
         \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
-        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n DNS resolutions are performed on\
-        \ the Device. The output will be available through websocket. As there can\
-        \ be multiple command issued against the same SSR at the same time and the\
-        \ output all goes through the same websocket stream, `session` is used for\
-        \ demux.\n \n #### Subscribe to Device Command outputs\n`WS /api-ws/v1/stream`\n\
-        \n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
-        \n}\n```\n##### Example output from ws stream\n```\n Router      | Hostname\
-        \               | Resolved | Last Resolved        | Expiration\n-------------|------------------------|----------|----------------------|---------------------\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n DNS resolutions are performed on the Device. The output will\
+        \ be available through websocket. As there can be multiple command issued\
+        \ against the same SSR at the same time and the output all goes through the\
+        \ same websocket stream, `session` is used for demux.\n \n #### Subscribe\
+        \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
+        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n##### Example\
+        \ output from ws stream\n```\n Router      | Hostname               | Resolved\
+        \ | Last Resolved        | Expiration\n-------------|------------------------|----------|----------------------|---------------------\n\
         \ test-device | xxx.yyy.net            | Y        | 2022-03-28T03:56:49Z |\
         \ 2022-03-28T03:57:49Z\n```"
       operationId: testSiteSsrDnsResolution
@@ -22466,6 +22608,56 @@ paths:
       summary: replaceSiteMapImage
       tags:
       - Sites Maps
+  /api/v1/sites/{site_id}/maps/{map_id}/revert_auto_orient:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: This API is used to revert the orientations of a map or subset
+        of APs on a map to the state before auto orientation.
+      operationId: revertSiteApAutoOrient
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                device_ids:
+                  description: list of device macs
+                  items:
+                    type: string
+                  type: array
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: revertSiteApAutoOrient
+      tags:
+      - Sites Maps
+  /api/v1/sites/{site_id}/maps/{map_id}/revert_autoplacement:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: This API is used to revert the locations of a map or subset of
+        APs on a map to the state before auto placement.
+      operationId: revertSiteApAutoplacement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                device_ids:
+                  description: list of device macs
+                  items:
+                    type: string
+                  type: array
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: revertSiteApAutoplacement
+      tags:
+      - Sites Maps
   /api/v1/sites/{site_id}/maps/{map_id}/set_map:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -22531,10 +22723,6 @@ paths:
       summary: bulkAssignSiteApsToMap
       tags:
       - Sites Maps
-  /api/v1/sites/{site_id}/maps/{map_id}/set_map_autoplacement:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/map_id'
   /api/v1/sites/{site_id}/maps/{map_id}/wayfinding/import:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -24831,12 +25019,17 @@ paths:
         \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
         \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
         \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
-        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Get impact\
-        \ summary counts optionally filtered by classifier and failure type\n \n*\
-        \ Wireless SLE Fields: `wlan`, `device_type`, `device_os` ,`band`, `ap`, `server`,\
-        \ `mxedge`\n* Wired SLE Fields: `switch`, `client`, `vlan`, `interface`, `chassis`\n\
-        * WAN SLE Fields: `gateway`, `client`, `interface`, `chassis`, `peer_path`,\
-        \ `gateway_zones`"
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+        \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Get impact summary counts optionally\
+        \ filtered by classifier and failure type\n \n* Wireless SLE Fields: `wlan`,\
+        \ `device_type`, `device_os` ,`band`, `ap`, `server`, `mxedge`\n* Wired SLE\
+        \ Fields: `switch`, `client`, `vlan`, `interface`, `chassis`\n* WAN SLE Fields:\
+        \ `gateway`, `client`, `interface`, `chassis`, `peer_path`, `gateway_zones`"
       operationId: getSiteSleImpactSummary
       parameters:
       - $ref: '#/components/parameters/start'
@@ -25928,7 +26121,7 @@ paths:
           $ref: '#/components/responses/count'
       summary: countSiteCalls
       tags:
-      - Sites Stats
+      - Sites Calls Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/calls/search:
@@ -25960,7 +26153,7 @@ paths:
           $ref: '#/components/responses/CallStatsArray'
       summary: searchSiteCalls
       tags:
-      - Sites Stats
+      - Sites Calls Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/clients/{client_mac}:
@@ -31563,6 +31756,50 @@ paths:
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/zone_type'
+  /api/v1/utils/test_telstra:
+    get:
+      description: 'Allows validation of Telstra sms gateway credentials.
+
+
+        In case of success, a text message confirming successful setup should be received.
+        In case of error, telstra error message are returned.'
+      operationId: testSiteWlanTelstraSetup
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  telstra_client_id: '123456'
+                  telstra_client_secret: abcdef
+                  to: '+911122334455'
+            schema:
+              properties:
+                telstra_client_id:
+                  description: Telstra client id
+                  type: string
+                telstra_client_secret:
+                  description: Telstra client secret
+                  type: string
+                to:
+                  description: Phone number of the recipient of SMS with country code
+                  type: string
+              required:
+              - telstra_client_id
+              - telstra_client_secret
+              - to
+              type: object
+              x-examples:
+                Example 1:
+                  telstra_client_id: '123456'
+                  telstra_client_secret: abcdef
+                  to: '+911122334455'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: testSiteWlanTelstraSetup
+      tags:
+      - Sites Wlans
   /api/v1/utils/test_twilio:
     post:
       description: 'Allows validation of twilio setup
@@ -31606,7 +31843,7 @@ paths:
           $ref: '#/components/responses/OK'
       summary: testSiteWlanTwilioSetup
       tags:
-      - Sites
+      - Sites Wlans
   /webhook_example/_alarm_:
     parameters: []
     post:
@@ -35080,7 +35317,7 @@ components:
           schema:
             additionalProperties:
               type: integer
-            description: The property name is the IoT port name (e.g. "A1")
+            description: The property key is the IoT port name (e.g. "A1")
             type: object
       description: OK
     DeviceMetric:
@@ -38807,7 +39044,7 @@ components:
                   additionalProperties:
                     readOnly: true
                     type: integer
-                  description: The property name is the service name (e.g. "SUB-MAN")
+                  description: The property key is the service name (e.g. "SUB-MAN")
                   readOnly: true
                   type: object
                 num_devices:
@@ -38821,7 +39058,7 @@ components:
                   additionalProperties:
                     readOnly: true
                     type: integer
-                  description: subscriptions and their quantities. The property name
+                  description: subscriptions and their quantities. The property key
                     is the service name (e.g. "SUB-MAN")
                   readOnly: true
                   type: object
@@ -48649,8 +48886,7 @@ components:
                   port_config:
                     additionalProperties:
                       $ref: '#/components/schemas/ap_port_config'
-                    description: The property name is the interface(s) name (e.g.
-                      "eth1,eth2")
+                    description: The property key is the interface(s) name (e.g. "eth1,eth2")
                     type: object
                 type: object
               minItems: 1
@@ -49305,10 +49541,10 @@ components:
                         description: tcpdump expression per port
                         type: string
                     type: object
-                  description: Property name is the port ID
+                  description: Property key is the port ID
                   type: object
               type: object
-            description: List of SSRs. Property name is the SSR MAC
+            description: List of SSRs. Property key is the SSR MAC
             type: object
           max_pkt_len:
             default: 128
@@ -49372,6 +49608,9 @@ components:
             description: number of packets to capture, 0 for unlimited
             type: integer
           tcpdump_expression:
+            description: tcpdump expression, port specific if specified under ports
+              dict, otherwise applicable across ports if specified at top level of
+              payload. Port specific value overrides top level value when both exist.
             type: string
           type:
             default: scan
@@ -49381,6 +49620,50 @@ components:
             type: string
         required:
         - type
+      - properties:
+          duration:
+            default: 600
+            description: duration of the capture, in seconds
+            maximum: 86400
+            minimum: 0
+            type: integer
+          format:
+            default: pcap
+            enum:
+            - pcap
+            - stream
+            type: string
+          max_pkt_len:
+            default: 512
+            description: max_len of each packet to capture
+            maximum: 2048
+            minimum: 128
+            type: integer
+          num_packets:
+            default: 1024
+            description: number of packets to capture, 0 for unlimited
+            type: integer
+          switches:
+            additionalProperties:
+              properties:
+                ports:
+                  additionalProperties:
+                    nullable: true
+                    type: object
+                  description: Property key is the interface name
+                  type: object
+              type: object
+            description: Property key is the switch mac
+            type: object
+          tcpdump_expression:
+            description: tcpdump expression, port specific if specified under ports
+              dict, otherwise applicable across ports if specified at top level of
+              payload. Port specific value overrides top level value when both exist.
+            type: string
+          type:
+            enum:
+            - switch
+            type: string
       type: object
     coa_server:
       description: CoA Server
@@ -49712,8 +49995,8 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/ap_port_config'
           description: "eth0 is allowed in mesh relay mode, otherwise eth0 is not\
-            \ allowed here. \nThe property name is the interface(s) name (e.g. \"\
-            eth1\" or\"eth1,eth2\")"
+            \ allowed here. \nThe property key is the interface(s) name (e.g. \"eth1\"\
+            \ or\"eth1,eth2\")"
           type: object
         pwr_config:
           description: power related configs
@@ -49737,6 +50020,15 @@ components:
           type: string
         switch_config:
           $ref: '#/components/schemas/ap_switch'
+        uplink_port_config:
+          properties:
+            dot1x:
+              default: false
+              description: Whether to do 802.1x against uplink switch. When enaled,
+                AP cert will be used to do EAP-TLS and the Org's CA Cert has to be
+                provisioned at the switch
+              type: boolean
+          type: object
         usb_config:
           $ref: '#/components/schemas/ap_usb'
         vars:
@@ -50084,7 +50376,7 @@ components:
               via:
                 type: string
             type: object
-          description: The property name is the destination
+          description: The property key is the destination
           minProperties: 0
           type: object
         for_site:
@@ -50119,7 +50411,7 @@ components:
               vlan_id:
                 type: integer
             type: object
-          description: The property name is the network name or a CIDR
+          description: The property key is the network name or a CIDR
           minProperties: 0
           type: object
         ntp_servers:
@@ -50135,7 +50427,7 @@ components:
         port_config:
           additionalProperties:
             $ref: '#/components/schemas/junos_port_config_gateway'
-          description: The property name is the port name or range (e.g. "ge-0/0/0-10")
+          description: The property key is the port name or range (e.g. "ge-0/0/0-10")
           type: object
         site_id:
           format: uuid
@@ -50401,59 +50693,16 @@ components:
         and be able to re-use the same settings across switches entries defined here
         will "replace" those defined in Site Setting/Network Template'
       properties:
-        acl_groups:
-          additionalProperties:
-            properties:
-              matching:
-                properties:
-                  macs:
-                    items:
-                      type: string
-                    type: array
-                  network:
-                    default: any
-                    type: string
-                  radius_group:
-                    type: string
-                  subnets:
-                    items:
-                      type: string
-                    type: array
-                type: object
-            type: object
-          type: object
         acl_policies:
           items:
-            properties:
-              action:
-                enum:
-                - allow
-                - deny
-                type: string
-              dst_groups:
-                items:
-                  type: string
-                type: array
-              dst_specs:
-                properties:
-                  port_range:
-                    default: 0
-                    description: matched dst port, `0` means any
-                    maxLength: 65535
-                    minLength: 0
-                    type: integer
-                  protocol:
-                    default: any
-                    description: '`tcp` / `udp` / `icmp` / `gre` / `any` / `:protocol_number`
-                      (1-254)'
-                    type: string
-                type: object
-              src_groups:
-                items:
-                  type: string
-                type: array
-            type: object
+            $ref: '#/components/schemas/junos_acl_policies'
           type: array
+        acl_tags:
+          additionalProperties:
+            $ref: '#/components/schemas/junos_acl_tags'
+          description: ACL Tags to identify traffic source or destination. Key name
+            is the tag name
+          type: object
         additional_config_cmds:
           items:
             type: string
@@ -50494,7 +50743,7 @@ components:
                 description: next-hop IP Address
                 type: string
             type: object
-          description: The property name is the network name or a CIDR
+          description: The property key is the network name or a CIDR
           type: object
         id:
           format: uuid
@@ -50542,17 +50791,17 @@ components:
         other_ip_configs:
           additionalProperties:
             $ref: '#/components/schemas/junos_other_ip_configs'
-          description: The property name is the network name
+          description: The property key is the network name
           type: object
         port_config:
           additionalProperties:
             $ref: '#/components/schemas/junos_port_config'
-          description: The property name is the port name or range (e.g. "ge-0/0/0-10")
+          description: The property key is the port name or range (e.g. "ge-0/0/0-10")
           type: object
         port_usages:
           additionalProperties:
             $ref: '#/components/schemas/junos_port_usages'
-          description: The property name is the port profile name
+          description: The property key is the port profile name
           properties:
             dynamic:
               $ref: '#/components/schemas/junos_port_usages_dynamic'
@@ -51091,7 +51340,7 @@ components:
         port_config:
           additionalProperties:
             $ref: '#/components/schemas/ap_port_config'
-          description: The property name is the interface(s) name (e.g. "eth1,eth2")
+          description: The property key is the interface(s) name (e.g. "eth1,eth2")
           type: object
         pwr_config:
           description: power related configs
@@ -51594,7 +51843,7 @@ components:
                   required:
                   - ip
                   type: object
-                description: The property name is the device MAC address
+                description: The property key is the device MAC address
                 type: object
               gateway:
                 format: ipv4
@@ -51617,11 +51866,11 @@ components:
                 - relay
                 type: string
             type: object
-          description: The property name is the network name
+          description: The property key is the network name
           type: object
         extra_routes:
           additionalProperties:
-            description: The property name is a CIDR or name from `networks`
+            description: The property key is a CIDR or name from `networks`
             properties:
               via:
                 format: ipv4
@@ -51644,7 +51893,7 @@ components:
                 example: /24
                 type: string
             type: object
-          description: The property name is the network name
+          description: The property key is the network name
           type: object
         modified_time:
           readOnly: true
@@ -51654,7 +51903,7 @@ components:
         networks:
           additionalProperties:
             $ref: '#/components/schemas/network'
-          description: The property name is the network name
+          description: The property key is the network name
           type: object
         oob_ip_config:
           $ref: '#/components/schemas/junos_oob_ip_config'
@@ -51664,7 +51913,7 @@ components:
           type: string
         path_preferences:
           additionalProperties:
-            description: The property name is the path name
+            description: The property key is the path name
             properties:
               paths:
                 properties:
@@ -51711,12 +51960,12 @@ components:
         port_config:
           additionalProperties:
             $ref: '#/components/schemas/junos_port_config_gateway'
-          description: The property name is the port(s) name or range (e.g. "ge-0/0/0-10")
+          description: The property key is the port(s) name or range (e.g. "ge-0/0/0-10")
           type: object
         routing_policies:
           additionalProperties:
             $ref: '#/components/schemas/junos_routing_policy'
-          description: The property name is the routing policy name
+          description: The property key is the routing policy name
           type: object
         service_policies:
           items:
@@ -51777,7 +52026,7 @@ components:
         tunnel_configs:
           additionalProperties:
             $ref: '#/components/schemas/gatewaytemplate_tunnel_configs'
-          description: Property name is the tunnel name
+          description: Property key is the tunnel name
           type: object
         type:
           default: standalone
@@ -52896,6 +53145,148 @@ components:
           site_id: 1505f5d6-5366-4ca2-a9e2-2c6b805e5a47
           sku: EX2300-C-12P
           type: switch
+    junos_acl_policies:
+      description: '- for GBP-based policy, all src_tags and dst_tags have to be gbp-based
+
+        - for ACL-based policy, `network` is required in either the source or destination
+        so that we know where to attach the policy to'
+      properties:
+        action:
+          enum:
+          - allow
+          - deny
+          type: string
+        dst_tags:
+          items:
+            type: string
+          type: array
+        name:
+          type: string
+        src_tags:
+          items:
+            type: string
+          type: array
+      type: object
+      x-examples:
+        Example 1:
+          action: allow
+          dst_tags:
+          - printer
+          name: guest access to printer
+          src_tags:
+          - guest
+      x-stoplight:
+        id: 78da34fa64a5f
+    junos_acl_tags:
+      properties:
+        gbp_tag:
+          description: 'required if
+
+            - `type`==`dynamic_gbp` (gbp_tag received from RADIUS)
+
+            - `type`==`static_gbp` (applying gbp tag against matching conditions)'
+          type: number
+        macs:
+          description: "required if \n- `type`==`mac`\n- `type`==`static_gbp` if from\
+            \ matching mac"
+          items:
+            type: string
+          type: array
+        network:
+          description: 'if:
+
+            - `type`==`mac` (optional. default is `any`)
+
+            - `type`==`subnet` (optional. default is `any`)
+
+            - `type`==`network`
+
+            - `type`==`resource` (optional. default is `any`)
+
+            - `type`==`static_gbp` if from matching network (vlan)'
+          type: string
+        radius_group:
+          description: "required if \n- `type`==`radius_group` \n- `type`==`static_gbp`\
+            \ if from matching radius_group"
+          type: string
+        specs:
+          description: 'if `type`==`resource`
+
+            empty means unrestricted, i.e. any'
+          items:
+            properties:
+              port_range:
+                default: 0
+                description: matched dst port, "0" means any
+                type: integer
+              protocol:
+                default: any
+                description: '`tcp` / `udp` / `icmp` / `gre` / `any` / `:protocol_number`.
+                  `protocol_number` is between 1-254'
+                type: string
+            type: object
+          type: array
+        subnets:
+          description: "if \n- `type`==`subnet` \n- `type`==`resource` (optional.\
+            \ default is `any`)\n- `type`==`static_gbp` if from matching subnet"
+          items:
+            type: string
+          type: array
+        type:
+          enum:
+          - mac
+          - subnet
+          - network
+          - radius_group
+          - any
+          - resource
+          - dynamic_gbp
+          - static_gbp
+          type: string
+      required:
+      - type
+      type: object
+      x-examples:
+        any:
+          type: any
+        dynamic_gbp:
+          gbp_tag: 100
+          type: dynamic_gbp
+        mac:
+          macs:
+          - '010203040506'
+          - abcdef*
+          network: iot
+          type: mac
+        network:
+          network: guest
+          type: network
+        radius_group:
+          radius_group: VIP
+          type: radius_group
+        resource:
+          network: dmz
+          specs:
+          - port_range: 80
+            protocol: tcp
+          subnets:
+          - 192.168.0.5
+          type: resource
+        static_gbp:
+          gbp_tag: 100
+          macs:
+          - '010203040506'
+          - abcdef*
+          network: employee
+          radius_group: VIP
+          subnets:
+          - 192.168.0.0/16
+          type: static_gbp
+        subnet:
+          network: lan
+          subnets:
+          - 192.168.1.30/32
+          type: subnet
     junos_bgp_config:
       properties:
         auth_key:
@@ -52921,6 +53312,11 @@ components:
                 type: string
             type: object
           type: array
+        disable_bfd:
+          default: false
+          description: BFD provides faster path failure detection and is enabled by
+            default
+          type: boolean
         export:
           type: string
         export_policy:
@@ -52966,7 +53362,7 @@ components:
               neighbor_as:
                 type: integer
             type: object
-          description: if per-neighbor as is desired. Property name is the neighbor
+          description: if per-neighbor as is desired. Property key is the neighbor
             address
           type: object
         networks:
@@ -53077,7 +53473,7 @@ components:
                 name:
                   type: string
               type: object
-            description: The property name is the MAC Address
+            description: The property key is the MAC Address
             type: object
           gateway:
             description: if `type`==`local` - optional, `ip` will be used if not provided
@@ -53143,7 +53539,7 @@ components:
               * sub option code: 1-255, sub-option code'
             type: object
         type: object
-      description: if DHCP Server/Relay is intended. The property name is the network
+      description: if DHCP Server/Relay is intended. The property key is the network
         name
       properties:
         enabled:
@@ -53391,10 +53787,6 @@ components:
           items:
             type: string
           type: array
-        evpn_anycast:
-          default: false
-          description: Only for switches with EVPN
-          type: boolean
         gateway:
           type: string
         ip:
@@ -53413,6 +53805,10 @@ components:
           - static
           - dynamic
           type: string
+        use_mgmt_vrf:
+          default: false
+          description: for host-out traffic (NTP/TACPLUS/RADIUS/SYSLOG/SNMP)
+          type: boolean
       type: object
       x-examples:
         example-1:
@@ -53580,14 +53976,8 @@ components:
           type: string
         use_mgmt_vrf:
           default: false
-          description: if supported on the platform
-          type: boolean
-        use_mgmt_vrf_for_host_outbound_traffic:
-          default: false
-          description: 'For switches only
-
-            if `use_mgmt_vrf`==`true`, whether to use this as the default routing
-            instance for outbound-ssh, ntp, dns, tacplus, radius, syslog, snmp'
+          description: if supported on the platform. If enabled, DNS will be using
+            this routing-instance, too
           type: boolean
       type: object
       x-examples:
@@ -53622,7 +54012,7 @@ components:
               auth_keys:
                 additionalProperties:
                   type: string
-                description: if `auth_type`==`md5`. The property name is the key number
+                description: if `auth_type`==`md5`. The property key is the key number
                 type: object
               auth_password:
                 description: if `auth_type`==`password`, the password, max length
@@ -53657,8 +54047,8 @@ components:
                 description: whether to send OSPF-Hello
                 type: boolean
             type: object
-          description: networks to participate in an OSPF area. The property name
-            is the network name
+          description: networks to participate in an OSPF area. The property key is
+            the network name
           type: object
         type:
           default: default
@@ -53692,7 +54082,7 @@ components:
                 type: boolean
             type: object
           description: OSPF areas to run on this device and the corresponding per-area-specific
-            configs. The property name is the area
+            configs. The property key is the area
           type: object
         enabled:
           description: whether to rung OSPF on this device
@@ -53707,6 +54097,10 @@ components:
     junos_other_ip_configs:
       description: optional, if it's required to have switch's L3 presense on a network/vlan
       properties:
+        evpn_anycast:
+          default: false
+          description: for EVPN, if anycast is desired
+          type: boolean
         ip:
           description: required if `type`==`static`
           type: string
@@ -53737,6 +54131,9 @@ components:
           type: integer
         aggregated:
           default: false
+          type: boolean
+        critical:
+          description: if want to generate port up/down alarm
           type: boolean
         description:
           type: string
@@ -54003,7 +54400,7 @@ components:
             networks:
               additionalProperties:
                 type: integer
-              description: The property name is the network name
+              description: The property key is the network name
               type: object
             type:
               default: standard
@@ -54779,7 +55176,7 @@ components:
       properties:
         extra_routes:
           additionalProperties:
-            description: The property name is a CIDR
+            description: The property key is a CIDR
             properties:
               via:
                 format: ipv4
@@ -54844,7 +55241,7 @@ components:
               ip:
                 type: string
             type: object
-          description: The property name is the network name
+          description: The property key is the network name
           type: object
       type: object
       x-examples:
@@ -55529,7 +55926,7 @@ components:
                 type: string
             type: object
           description: DHCP server/relay configuration of Mist Tunneled VLANs. The
-            property name is the VLAN ID
+            property key is the VLAN ID
           properties:
             enabled:
               default: false
@@ -55550,8 +55947,8 @@ components:
               via:
                 type: string
             type: object
-          description: extra routes for Mist Tunneled VLANs. The property name is
-            a CIDR
+          description: extra routes for Mist Tunneled VLANs. The property key is a
+            CIDR
           type: object
         tunterm_hosts:
           description: hostnames or IPs where a Mist Tunnel will use as the Peer (i.e.
@@ -55753,7 +56150,7 @@ components:
           type: boolean
         proxy_hosts:
           description: hostnames or IPs for Mist AP to use as the TLS Server (i.e.
-            they are reachable from AP), optional, default to `tunterm_hosts`
+            they are reachable from AP) in addition to `tunterm_hosts`
           items:
             type: string
           type: array
@@ -55897,7 +56294,7 @@ components:
                 - relay
                 type: string
             type: object
-          description: global and per-VLAN. The property name is the VLAN ID
+          description: global and per-VLAN. The property key is the VLAN ID
           properties:
             enabled:
               default: false
@@ -55919,7 +56316,7 @@ components:
               via:
                 type: string
             type: object
-          description: The property name is a CIDR
+          description: The property key is a CIDR
           type: object
         tunterm_igmp_snooping_config:
           properties:
@@ -55993,7 +56390,7 @@ components:
             - ip
             - netmask
             type: object
-          description: ip configs by VLAN ID. The property name is the VLAN ID
+          description: ip configs by VLAN ID. The property key is the VLAN ID
           type: object
         tunterm_port_config:
           description: ethernet port configurations
@@ -56484,11 +56881,13 @@ components:
       title: nac_rule_matching
       type: object
     nac_tag:
-      description: ''
       properties:
         created_time:
           readOnly: true
           type: number
+        gbp_tag:
+          description: if `type`==`gbp_tag`
+          type: integer
         id:
           format: uuid
           readOnly: true
@@ -56527,6 +56926,7 @@ components:
           - match
           - radius_group
           - vlan
+          - gbp_tag
           minLength: 1
           type: string
         values:
@@ -56538,9 +56938,8 @@ components:
           description: if `type`==`vlan`
           type: string
       required:
-      - type
       - name
-      title: ''
+      - type
       type: object
       x-examples:
         client_mac:
@@ -56664,7 +57063,7 @@ components:
                   port:
                     type: string
                 type: object
-              description: The property name may be an IP Address (i.e. "172.16.0.1"),
+              description: The property key may be an IP Address (i.e. "172.16.0.1"),
                 and IP Address and Port (i.e. "172.16.0.1:8443") or a CIDR (i.e. "172.16.0.12/20")
               type: object
             enabled:
@@ -56682,7 +57081,7 @@ components:
                   name:
                     type: string
                 type: object
-              description: The property name may be an IP Address (i.e. "172.16.0.1"),
+              description: The property key may be an IP Address (i.e. "172.16.0.1"),
                 and IP Address and Port (i.e. "172.16.0.1:8443") or a CIDR (i.e. "172.16.0.12/20")
               type: object
           type: object
@@ -56867,6 +57266,14 @@ components:
           format: uuid
           readOnly: true
           type: string
+        mist_nac:
+          description: enable mist_nac to use radsec
+          properties:
+            enabled:
+              type: boolean
+            network:
+              type: string
+          type: object
         modified_time:
           readOnly: true
           type: number
@@ -56875,7 +57282,7 @@ components:
         networks:
           additionalProperties:
             $ref: '#/components/schemas/junos_networks'
-          description: The property name is network name
+          description: The property key is network name
           type: object
         org_id:
           format: uuid
@@ -56884,7 +57291,7 @@ components:
         port_usages:
           additionalProperties:
             $ref: '#/components/schemas/junos_port_usages'
-          description: The property name is the port profile name
+          description: The property key is the port profile name
           properties:
             dynamic:
               $ref: '#/components/schemas/junos_port_usages_dynamic'
@@ -57373,10 +57780,10 @@ components:
           type: object
         device_updown_threshold:
           default: 0
-          description: enable threshold-based device down delivery via 1) device-updowns
-            webhooks topic, 2) Mist Alert Framework; e.g. send AP/SW/GW down event
-            only if AP/SW/GW Up is not seen within the threshold in minutes; 0 - 30,
-            default is 0 (trigger immediate)
+          description: "enable threshold-based device down delivery via \n1) device-updowns\
+            \ webhooks topic, \n2) Mist Alert Framework; e.g. send AP/SW/GW down event\
+            \ only if AP/SW/GW Up is not seen within the threshold in minutes; 0 -\
+            \ 240, default is 0 (trigger immediate)"
           maximum: 30
           minimum: 0
           type: integer
@@ -58894,11 +59301,12 @@ components:
         idle_timeout:
           type: integer
         mxcluster_ids:
-          description: 'To use org mxedges when this WLAN does not use mxtunnel, specify
+          description: 'To use Org mxedges when this WLAN does not use mxtunnel, specify
             their mxcluster_ids.
 
-            Org mxedge(s) identified by mxcluster_ids or use site mxedge(s)'
+            Org mxedge(s) identified by mxcluster_ids'
           items:
+            format: uuid
             type: string
           type: array
         server_name:
@@ -58918,6 +59326,10 @@ components:
           uniqueItems: true
         use_mxedge:
           description: use mxedge(s) as radsecproxy
+          type: boolean
+        use_site_mxedge:
+          default: false
+          description: To use Site mxedges when this WLAN does not use mxtunnel
           type: boolean
       type: object
     remote_syslog:
@@ -59507,7 +59919,7 @@ components:
                 $ref: '#/components/schemas/ap_radio_band'
             type: object
           description: overwrites for a specific model. If a band is specified, it
-            will shadow the default. The property name is the model name (e.g. "AP63")
+            will shadow the default. The property key is the model name (e.g. "AP63")
           type: object
         modified_time:
           readOnly: true
@@ -60568,8 +60980,8 @@ components:
         custom_versions:
           additionalProperties:
             type: string
-          description: custom versions for different models. The property name is
-            the model name (e.g. "AP41")
+          description: custom versions for different models. The property key is the
+            model name (e.g. "AP41")
           type: object
         day_of_week:
           enum:
@@ -61006,7 +61418,7 @@ components:
                   port_config:
                     additionalProperties:
                       $ref: '#/components/schemas/ap_port_config'
-                    description: The property name is the interface(s) (e.g. "eth1,eth2")
+                    description: The property key is the interface(s) (e.g. "eth1,eth2")
                     type: object
                 type: object
               type: array
@@ -61017,9 +61429,9 @@ components:
               additionalProperties:
                 additionalProperties:
                   $ref: '#/components/schemas/ap_port_config'
-                description: the property name is the interface(s) (e.g. "eth1,eth2")
+                description: the property key is the interface(s) (e.g. "eth1,eth2")
                 type: object
-              description: the property name is the AP model (e.g "AP32")
+              description: the property key is the AP model (e.g "AP32")
               type: object
           type: object
         auto_placement:
@@ -61118,7 +61530,7 @@ components:
         networks:
           additionalProperties:
             $ref: '#/components/schemas/junos_networks'
-          description: the property name is the network name
+          description: the property key is the network name
           type: object
         ntp_servers:
           description: list of NTP servers
@@ -61134,7 +61546,7 @@ components:
         ospf_areas:
           additionalProperties:
             $ref: '#/components/schemas/junos_ospf_areas'
-          description: the property name is the OSPF area
+          description: the property key is the OSPF area
           type: object
         persist_config_on_device:
           default: false
@@ -61143,7 +61555,7 @@ components:
         port_usages:
           additionalProperties:
             $ref: '#/components/schemas/junos_port_usages'
-          description: the property name is the port usage name
+          description: the property key is the port usage name
           properties:
             dynamic:
               $ref: '#/components/schemas/junos_port_usages_dynamic'
@@ -61237,7 +61649,7 @@ components:
           type: boolean
         vars:
           additionalProperties:
-            description: the property name is the var name
+            description: the property key is the var name
             type: string
           type: object
         vna:
@@ -61251,12 +61663,12 @@ components:
         vrf_instances:
           additionalProperties:
             $ref: '#/components/schemas/junos_vrf_instance'
-          description: the property name is the network name
+          description: the property key is the network name
           type: object
         vrrp_groups:
           additionalProperties:
             $ref: '#/components/schemas/junos_vrrp_group'
-          description: the property name is the vrrp group
+          description: the property key is the vrrp group
           type: object
         wan_vna:
           properties:
@@ -65536,6 +65948,8 @@ components:
           type: integer
         mac:
           type: string
+        meeting_id:
+          type: string
         org_id:
           type: string
         rating:
@@ -66435,7 +66849,7 @@ components:
               type: string
             ips:
               additionalProperties:
-                description: the property name is the VLAN name
+                description: the property key is the VLAN name
                 type: string
               type: object
             netmask:
@@ -66445,7 +66859,7 @@ components:
           type: object
         l2tp_stat:
           additionalProperties:
-            description: the property name is the L2TP tunnel id
+            description: the property key is the L2TP tunnel id
             properties:
               sessions:
                 description: list of sessions
@@ -66553,7 +66967,7 @@ components:
           type: string
         mesh_downlinks:
           additionalProperties:
-            description: the property name is the mesh downlink id
+            description: the property key is the mesh downlink id
             properties:
               band:
                 type: string
@@ -69213,7 +69627,7 @@ components:
         rules:
           items:
             additionalProperties:
-              description: 'property name define the type of matchine. e.g: `match_name[0:3]`,
+              description: 'property key define the type of matchine. e.g: `match_name[0:3]`,
                 `match_model[0-6]` or   `match_role`'
               type: string
             properties:
@@ -69263,7 +69677,7 @@ components:
         rules:
           items:
             additionalProperties:
-              description: 'property name define the type of matching, value is the
+              description: 'property key define the type of matching, value is the
                 string to match. e.g: `match_name[0:3]`, `match_name[2:6]`, `match_model`,  `match_model[0-6]`'
               type: string
             properties:
@@ -72021,6 +72435,11 @@ components:
     wlan_auth:
       description: authentication wlan settings
       properties:
+        anticlog_threshold:
+          description: SAE anti-clogging token threshold
+          maximum: 32
+          minimum: 5
+          type: integer
         eap_reauth:
           default: false
           description: whether to trigger EAP reauth when the session ends
@@ -73689,6 +74108,7 @@ x-tagGroups:
   - Sites Asset Filters
   - Sites Assets
   - Sites Beacons
+  - Sites Calls Stats
   - Sites Clients
   - Sites Devices
   - Sites Devices APs
@@ -73749,6 +74169,7 @@ x-tagGroups:
   - Orgs Devices SSR
   - Orgs Device Profiles
   - Orgs Gateway Templates
+  - Orgs Guests
   - Orgs Inventory
   - Orgs Invites
   - Orgs JSI
