@@ -3,7 +3,7 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.34.10**
+  description: '> Version: **0.34.11**
 
     >
 
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.34.10
+  version: 0.34.11
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -3048,7 +3048,6 @@ paths:
           items:
             type: string
           type: array
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       responses:
         '200':
@@ -3086,7 +3085,6 @@ paths:
           - orgs
           type: string
       - $ref: '#/components/parameters/q'
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -3614,7 +3612,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/AlarmsSearch'
@@ -4992,7 +4989,7 @@ paths:
   /api/v1/orgs/{org_id}/clients/events/search:
     get:
       description: Get Org Clients Events
-      operationId: searchOrgClientEvents
+      operationId: searchOrgClientsEvents
       parameters:
       - description: event type, e.g. MARVIS_EVENT_CLIENT_FBT_FAILURE
         in: query
@@ -5039,7 +5036,6 @@ paths:
         name: wlan_id
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -5047,7 +5043,7 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/EventsSearch'
-      summary: searchOrgClientEvents
+      summary: searchOrgClientsEvents
       tags:
       - Orgs Clients
     parameters:
@@ -5109,7 +5105,6 @@ paths:
         name: text
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -5252,7 +5247,6 @@ paths:
         name: psk_name
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -5883,16 +5877,6 @@ paths:
         in: query
         name: type
         schema:
-          enum:
-          - AP_CONFIG_CHANGED_BY_RRM
-          - AP_CONFIG_CHANGED_BY_USER
-          - AP_CONFIGURED
-          - AP_RECONFIGURED
-          - AP_RESTARTED
-          - AP_RESTART_BY_USER
-          - AP_RRM_ACTION
-          - CLIENT_DNS_OK
-          - MARVIS_DNS_FAILURE
           type: string
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
@@ -5917,14 +5901,9 @@ paths:
         name: site_id
         schema:
           type: string
-      - description: AP mac
+      - description: device mac
         in: query
-        name: ap
-        schema:
-          type: string
-      - description: AP Firmware
-        in: query
-        name: apfw
+        name: mac
         schema:
           type: string
       - description: device model
@@ -5942,22 +5921,11 @@ paths:
         name: timestamp
         schema:
           type: string
-      - description: Events Type
+      - description: see [Event Types Definition](/#tag/Constants/operation/getDeviceEventsDefinitions)
         in: query
         name: type
         schema:
-          enum:
-          - AP_CONFIG_CHANGED_BY_RRM
-          - AP_CONFIG_CHANGED_BY_USER
-          - AP_CONFIGURED
-          - AP_RECONFIGURED
-          - AP_RESTARTED
-          - AP_RESTART_BY_USER
-          - AP_RRM_ACTION
-          - CLIENT_DNS_OK
-          - MARVIS_DNS_FAILURE
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -6008,7 +5976,7 @@ paths:
   /api/v1/orgs/{org_id}/devices/last_config/search:
     get:
       description: Search Device Last Configs
-      operationId: searchOrgDeviceLastConfig
+      operationId: searchOrgDeviceLastConfigs
       parameters:
       - in: query
         name: device_type
@@ -6023,13 +5991,22 @@ paths:
         name: mac
         schema:
           type: string
+      - in: query
+        name: name
+        schema:
+          type: string
+      - in: query
+        name: version
+        schema:
+          type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/duration'
       responses:
         '200':
           $ref: '#/components/responses/ConfigsHistorySearch'
-      summary: searchOrgDeviceLastConfig
+      summary: searchOrgDeviceLastConfigs
       tags:
       - Orgs Devices
     parameters:
@@ -6195,7 +6172,6 @@ paths:
         name: eth0_port_speed
         schema:
           type: integer
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -7815,7 +7791,6 @@ paths:
         name: ssid
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -7910,7 +7885,8 @@ paths:
       description: Get Org SLEs (all/worst sites, Mx Edges, ...)
       operationId: getOrgSle
       parameters:
-      - description: see /api/v1/const/insight_metrics for more details
+      - description: see [/api/v1/const/insight_metrics](/#tag/Constants/operation/getSiteAvailableInsightMetrics)
+          for more details
         in: query
         name: sle
         schema:
@@ -12502,7 +12478,7 @@ paths:
         in: query
         name: auto_upgrade_version
         schema:
-          type: boolean
+          type: string
       - description: site country code
         in: query
         name: country_code
@@ -12558,7 +12534,6 @@ paths:
         name: wifi_enabled
         schema:
           type: boolean
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -13150,18 +13125,29 @@ paths:
       - in: query
         name: site_id
         schema:
+          format: uuid
           type: string
       - in: query
         name: mac
         schema:
           type: string
       - in: query
+        name: device_name
+        schema:
+          type: string
+      - in: query
+        name: name
+        schema:
+          type: string
+      - in: query
         name: map_id
         schema:
+          format: uuid
           type: string
       - in: query
         name: ibeacon_uuid
         schema:
+          format: uuid
           type: string
       - in: query
         name: ibeacon_major
@@ -13172,18 +13158,29 @@ paths:
         schema:
           type: string
       - in: query
+        name: eddystone_uid_namespace
+        schema:
+          type: string
+      - in: query
+        name: eddystone_uid_instance
+        schema:
+          type: string
+      - in: query
+        name: eddystone_url
+        schema:
+          type: string
+      - in: query
         name: ap_mac
         schema:
           type: string
       - in: query
         name: beam
         schema:
-          type: string
+          type: integer
       - in: query
         name: rssi
         schema:
-          type: string
-      - $ref: '#/components/parameters/page'
+          type: integer
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -13539,7 +13536,6 @@ paths:
           - authenticating
           - held
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -13597,6 +13593,8 @@ paths:
                     type: integer
                   limit:
                     type: integer
+                  next:
+                    type: string
                   results:
                     items:
                       $ref: '#/components/schemas/stats_switch_port'
@@ -13606,11 +13604,11 @@ paths:
                   total:
                     type: integer
                 required:
-                - start
                 - end
                 - limit
-                - total
                 - results
+                - start
+                - total
                 type: object
           description: OK
       summary: searchOrgSwOrGwPorts
@@ -13968,7 +13966,6 @@ paths:
           - wxtunnel
           - wan
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -14011,7 +14008,6 @@ paths:
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       responses:
         '200':
@@ -14058,12 +14054,13 @@ paths:
                     start: 1619518689.4989705
                     total: 2
               schema:
-                description: ''
                 properties:
                   end:
                     type: number
                   limit:
                     type: integer
+                  next:
+                    type: string
                   results:
                     items:
                       properties:
@@ -14126,10 +14123,10 @@ paths:
                   total:
                     type: integer
                 required:
-                - results
-                - start
                 - end
                 - limit
+                - results
+                - start
                 - total
                 type: object
                 x-examples:
@@ -14749,11 +14746,10 @@ paths:
         name: text
         schema:
           type: string
-      - description: E.g. CLIENT_DNS_OK
-        in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
       responses:
         '200':
           $ref: '#/components/responses/WiredClientsSearch'
@@ -16244,7 +16240,6 @@ paths:
         name: group
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -16913,7 +16908,7 @@ paths:
   /api/v1/sites/{site_id}/clients/events/search:
     get:
       description: Get Site Clients Events
-      operationId: searchSiteClientEvents
+      operationId: searchSiteClientsEvents
       parameters:
       - description: event type, e.g. MARVIS_EVENT_CLIENT_FBT_FAILURE
         in: query
@@ -16960,7 +16955,6 @@ paths:
         name: wlan_id
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -16968,7 +16962,7 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/EventsSearch'
-      summary: searchSiteClientEvents
+      summary: searchSiteClientsEvents
       tags:
       - Sites Clients
     parameters:
@@ -17020,7 +17014,6 @@ paths:
         name: text
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -17108,7 +17101,7 @@ paths:
   /api/v1/sites/{site_id}/clients/sessions/search:
     get:
       description: Search Client Sessions
-      operationId: searchSiteClientSessions
+      operationId: searchSiteClientWirelessSessions
       parameters:
       - description: AP MAC
         in: query
@@ -17150,7 +17143,6 @@ paths:
         name: wlan_id
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -17158,7 +17150,7 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/ClientSessionsSearch'
-      summary: searchSiteClientSessions
+      summary: searchSiteClientWirelessSessions
       tags:
       - Sites Clients
     parameters:
@@ -17846,7 +17838,6 @@ paths:
         name: mac
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -18085,22 +18076,42 @@ paths:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/devices/events/search:
     get:
-      description: Search AP Events
-      operationId: searchSiteDeviceEvents
+      description: Search Devices Events
+      operationId: searchSiteDevicesEvents
       parameters:
       - in: query
+        name: device_type
+        schema:
+          enum:
+          - ap
+          - switch
+          - gateway
+          type: string
+      - description: device mac
+        in: query
+        name: mac
+        schema:
+          type: string
+      - description: device model
+        in: query
         name: model
         schema:
           type: string
-      - in: query
+      - description: event message
+        in: query
+        name: text
+        schema:
+          type: string
+      - description: event time
+        in: query
+        name: timestamp
+        schema:
+          type: string
+      - description: see [Event Types Definition](/#tag/Constants/operation/getDeviceEventsDefinitions)
+        in: query
         name: type
         schema:
           type: string
-      - in: query
-        name: type_code
-        schema:
-          type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -18152,7 +18163,7 @@ paths:
                 - total
                 type: object
           description: OK
-      summary: searchSiteDeviceEvents
+      summary: searchSiteDevicesEvents
       tags:
       - Sites Devices
     parameters:
@@ -18640,7 +18651,6 @@ paths:
         name: name
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -18869,7 +18879,6 @@ paths:
         schema:
           default: false
           type: boolean
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -21005,7 +21014,6 @@ paths:
         name: type
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -21187,7 +21195,6 @@ paths:
         name: ssid
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -21291,7 +21298,6 @@ paths:
       operationId: getSiteRogueAPs
       parameters:
       - $ref: '#/components/parameters/rogue_type'
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -21309,7 +21315,6 @@ paths:
       description: Get Rogue Clients
       operationId: getSiteRogueClients
       parameters:
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -23253,14 +23258,13 @@ paths:
         in: query
         name: channel
         schema:
-          type: string
+          type: integer
       - description: 'whether the reporting AP see a wireless client (on LAN) connecting
           to it  '
         in: query
         name: seen_on_lan
         schema:
           type: boolean
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -24526,7 +24530,6 @@ paths:
         schema:
           type: integer
       - $ref: '#/components/parameters/ip'
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -24557,6 +24560,8 @@ paths:
                     type: integer
                   limit:
                     type: integer
+                  next:
+                    type: string
                   results:
                     items:
                       $ref: '#/components/schemas/events_skyatp'
@@ -25702,7 +25707,6 @@ paths:
         name: rssi
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -25820,7 +25824,6 @@ paths:
         schema:
           example: zoom
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -27044,7 +27047,6 @@ paths:
           - poe_compliance
           - version_compliance
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -27056,139 +27058,72 @@ paths:
               examples:
                 example-1:
                   value:
+                    end: 1675193686.0191767
+                    limit: 1
+                    next: /api/v1/sites/f5fcbee5-fbca-45b3-8bf1-1619ede87879/stats/discovered_switch_metrics/search?end=1675193686.0191767&limit=1&search_after=%5B1675193400000%5D&start=1675107286.0191767
                     results:
-                    - details:
-                        system_names:
-                        - CORP-D-SW-2
-                      org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
+                    - details: {}
+                      org_id: 203d3d02-dbc0-4c1b-9f41-76896a3330f4
                       scope: site
-                      score: 95
-                      site_id: c1698122-c14c-11e5-8e81-1258369c38a9
-                      timestamp: 1568917200
+                      score: 100
+                      site_id: f5fcbee5-fbca-45b3-8bf1-1619ede87879
+                      timestamp: 1675193400
                       type: inactive_wired_vlans
-                    - details:
-                        total_aps: 4
-                        total_power: 78000
-                      org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
-                      scope: site
-                      score: 100
-                      site_id: c1698122-c14c-11e5-8e81-1258369c38a9
-                      timestamp: 1568917200
-                      type: poe_compliance
-                    - details:
-                        major_versions:
-                        - major_count: 1
-                          major_version: 18.2R3-S6.5
-                          model: EX2300-48P
-                          system_names: []
-                      org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
-                      scope: site
-                      score: 100
-                      site_id: c1698122-c14c-11e5-8e81-1258369c38a9
-                      timestamp: 1568917201
-                      total_switch_count: 1
-                      type: version_compliance
-                    - details:
-                        threshold: 12
-                      org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
-                      scope: site
-                      score: 100
-                      site_id: c1698122-c14c-11e5-8e81-1258369c38a9
-                      timestamp: 1568917201
-                      type: switch_ap_affinity
+                    start: 1675107286.0191767
+                    total: 3
               schema:
-                description: ''
                 properties:
+                  end:
+                    type: number
+                  limit:
+                    type: integer
+                  next:
+                    type: string
                   results:
                     items:
                       properties:
                         details:
-                          properties:
-                            major_versions:
-                              items:
-                                properties:
-                                  major_count:
-                                    type: number
-                                  major_version:
-                                    minLength: 1
-                                    type: string
-                                  model:
-                                    minLength: 1
-                                    type: string
-                                  system_names:
-                                    items:
-                                      properties: {}
-                                    type: array
-                              minItems: 1
-                              type: array
-                              uniqueItems: true
                           type: object
                         org_id:
-                          minLength: 1
                           type: string
                         scope:
-                          minLength: 1
                           type: string
                         score:
-                          type: number
+                          type: integer
                         site_id:
-                          minLength: 1
                           type: string
                         timestamp:
-                          type: number
-                        total_switch_count:
-                          type: number
+                          type: integer
                         type:
-                          minLength: 1
                           type: string
-                    minItems: 1
+                      type: object
                     type: array
-                    uniqueItems: true
+                  start:
+                    type: number
+                  total:
+                    type: integer
                 required:
                 - results
+                - start
+                - end
+                - limit
+                - total
                 type: object
                 x-examples:
-                  example-1:
+                  Example 1:
+                    end: 1675193686.0191767
+                    limit: 1
+                    next: /api/v1/sites/f5fcbee5-fbca-45b3-8bf1-1619ede87879/stats/discovered_switch_metrics/search?end=1675193686.0191767&limit=1&search_after=%5B1675193400000%5D&start=1675107286.0191767
                     results:
-                    - details:
-                        system_names:
-                        - CORP-D-SW-2
-                      org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
+                    - details: {}
+                      org_id: 203d3d02-dbc0-4c1b-9f41-76896a3330f4
                       scope: site
-                      score: 95
-                      site_id: c1698122-c14c-11e5-8e81-1258369c38a9
-                      timestamp: 1568917200
+                      score: 100
+                      site_id: f5fcbee5-fbca-45b3-8bf1-1619ede87879
+                      timestamp: 1675193400
                       type: inactive_wired_vlans
-                    - details:
-                        total_aps: 4
-                        total_power: 78000
-                      org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
-                      scope: site
-                      score: 100
-                      site_id: c1698122-c14c-11e5-8e81-1258369c38a9
-                      timestamp: 1568917200
-                      type: poe_compliance
-                    - details:
-                        major_versions:
-                        - major_count: 1
-                          major_version: 18.2R3-S6.5
-                          model: EX2300-48P
-                          system_names: []
-                      org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
-                      scope: site
-                      score: 100
-                      site_id: c1698122-c14c-11e5-8e81-1258369c38a9
-                      timestamp: 1568917201
-                      total_switch_count: 1
-                      type: version_compliance
-                    - details:
-                        threshold: 12
-                      org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
-                      scope: site
-                      score: 100
-                      site_id: c1698122-c14c-11e5-8e81-1258369c38a9
-                      timestamp: 1568917201
-                      type: switch_ap_affinity
+                    start: 1675107286.0191767
+                    total: 3
           description: OK
       summary: searchSiteDiscoveredSwitchesMetrics
       tags:
@@ -27424,15 +27359,23 @@ paths:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/discovered_switches/search:
     get:
-      description: Search Count Discovered Switches
+      description: Search Discovered Switches
       operationId: searchSiteDiscoveredSwitches
       parameters:
+      - in: query
+        name: adopted
+        schema:
+          type: boolean
       - in: query
         name: system_name
         schema:
           type: string
       - in: query
-        name: mgmt_addr
+        name: hostname
+        schema:
+          type: string
+      - in: query
+        name: vendor
         schema:
           type: string
       - in: query
@@ -27443,7 +27386,6 @@ paths:
         name: version
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -27483,6 +27425,8 @@ paths:
                     type: number
                   limit:
                     type: integer
+                  next:
+                    type: string
                   results:
                     items:
                       properties:
@@ -28493,7 +28437,6 @@ paths:
           - authenticating
           - held
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -28991,7 +28934,6 @@ paths:
         name: up
         schema:
           type: boolean
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -30010,15 +29952,14 @@ paths:
       description: Search Wired Clients
       operationId: searchSiteClientsWired
       parameters:
-      - description: client mac
-        in: query
-        name: mac
-        schema:
-          type: string
-      - $ref: '#/components/parameters/ip'
       - description: device mac
         in: query
         name: device_mac
+        schema:
+          type: string
+      - description: client mac
+        in: query
+        name: mac
         schema:
           type: string
       - description: port id
@@ -30031,7 +29972,17 @@ paths:
         name: vlan
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/ip'
+      - description: manufacture
+        in: query
+        name: manufacture
+        schema:
+          type: string
+      - description: single entry of hostname/mac
+        in: query
+        name: text
+        schema:
+          type: string
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -32170,15 +32121,14 @@ components:
         format: uuid
         type: string
     duration:
+      description: Aggregation works by giving a time range plus interval (e.g. 1d,
+        1h, 10m) where aggregation function would be applied to.
       in: query
       name: duration
       required: false
       schema:
         default: 1d
-        enum:
-        - 1d
-        - 1h
-        - 10m
+        example: 10m
         type: string
     end:
       in: query
@@ -34119,6 +34069,8 @@ components:
                 type: number
               limit:
                 type: integer
+              next:
+                type: string
               results:
                 items:
                   $ref: '#/components/schemas/stats_call'
@@ -41663,6 +41615,8 @@ components:
             properties:
               limit:
                 type: integer
+              next:
+                type: string
               page:
                 type: integer
               results:
@@ -41763,7 +41717,6 @@ components:
                 start: 1613778578.4365668
                 total: 2
           schema:
-            description: ''
             properties:
               end:
                 readOnly: true
@@ -41771,6 +41724,8 @@ components:
               limit:
                 readOnly: true
                 type: integer
+              next:
+                type: string
               results:
                 items:
                   properties:
@@ -41866,10 +41821,10 @@ components:
                 readOnly: true
                 type: integer
             required:
-            - results
-            - start
             - end
             - limit
+            - results
+            - start
             - total
             type: object
             x-examples:
@@ -45956,6 +45911,8 @@ components:
                 type: number
               limit:
                 type: integer
+              next:
+                type: string
               results:
                 items:
                   properties:
@@ -46009,16 +45966,16 @@ components:
                       type: string
                   required:
                   - ap
+                  - band
+                  - client_manufacture
+                  - connect
                   - disconnect
-                  - ssid
+                  - duration
+                  - mac
                   - org_id
                   - site_id
-                  - mac
-                  - connect
-                  - band
+                  - ssid
                   - timestamp
-                  - duration
-                  - client_manufacture
                   - wlan_id
                   type: object
                 minItems: 1
@@ -46029,11 +45986,11 @@ components:
               total:
                 type: integer
             required:
-            - start
             - end
             - limit
-            - total
             - results
+            - start
+            - total
             type: object
       description: OK
     Wlan:
