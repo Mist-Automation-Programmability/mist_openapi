@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.35.12**
+  description: '> Version: **0.35.13**
 
     >
 
-    > Date: **February 21th, 2022**
+    > Date: **March 1, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.35.12
+  version: 0.35.13
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -55841,24 +55841,6 @@ components:
           - full
           - auto
           type: string
-        dynamic_vlan:
-          properties:
-            default_network:
-              description: default (unmatched) comes from `port_network` above
-              type: integer
-            enabled:
-              type: boolean
-            networks:
-              additionalProperties:
-                type: integer
-              description: The property key is the network name
-              type: object
-            type:
-              default: standard
-              enum:
-              - standard
-              type: string
-          type: object
         enable_mac_auth:
           description: if `port_auth`==`dot1x`, whether to enable MAC Auth
           type: boolean
@@ -58727,9 +58709,15 @@ components:
     networktemplate:
       description: Network Template
       properties:
+        additional_config_cmds:
+          items:
+            type: string
+          type: array
         created_time:
           readOnly: true
           type: number
+        dhcp_snooping:
+          $ref: '#/components/schemas/junos_dhcp_snooping'
         dns_servers:
           items:
             type: string
@@ -58738,6 +58726,15 @@ components:
           items:
             type: string
           type: array
+        extra_routes:
+          additionalProperties:
+            description: Property key is the destination CIDR or network name
+            properties:
+              via:
+                description: Next-hop address
+                type: string
+            type: object
+          type: object
         group_tags:
           type: object
         id:
@@ -58759,9 +58756,20 @@ components:
           type: string
         networks:
           additionalProperties:
-            $ref: '#/components/schemas/junos_networks'
+            properties:
+              subnet:
+                example: 192.168.1.0/24
+                type: string
+              vlan_id:
+                example: 10
+                type: integer
+            type: object
           description: The property key is network name
           type: object
+        ntp_servers:
+          items:
+            type: string
+          type: array
         org_id:
           format: uuid
           readOnly: true
@@ -58776,10 +58784,86 @@ components:
           type: object
         radius_config:
           $ref: '#/components/schemas/junos_radius_config'
+        remote_syslog:
+          $ref: '#/components/schemas/remote_syslog'
         snmp_config:
           $ref: '#/components/schemas/junos_snmp_config'
         switch_matching:
           $ref: '#/components/schemas/template_switch.matching'
+        switch_mgmt:
+          properties:
+            config_revert:
+              default: 10
+              type: integer
+            protect_re:
+              properties:
+                enabled:
+                  default: false
+                  type: boolean
+              type: object
+            root_password:
+              type: string
+            tacacs:
+              properties:
+                acct_servers:
+                  items:
+                    properties:
+                      host:
+                        type: string
+                      port:
+                        type: string
+                      secret:
+                        type: string
+                      timeout:
+                        default: 10
+                        type: integer
+                    type: object
+                  type: array
+                enabled:
+                  type: boolean
+                network:
+                  type: string
+                tacplus_servers:
+                  items:
+                    properties:
+                      host:
+                        type: string
+                      port:
+                        type: string
+                      secret:
+                        type: string
+                      timeout:
+                        default: 10
+                        type: integer
+                    type: object
+                  type: array
+              type: object
+          type: object
+        vrf_config:
+          properties:
+            enabled:
+              default: false
+              type: boolean
+          type: object
+        vrf_instances:
+          additionalProperties:
+            properties:
+              extra_routes:
+                additionalProperties:
+                  properties:
+                    via:
+                      description: Next-hop address
+                      type: string
+                  type: object
+                description: Property key is the destination CIDR (e.g. "10.0.0.0/8")
+                type: object
+              networks:
+                items:
+                  type: string
+                type: array
+            type: object
+          description: Property key is the VRF name
+          type: object
       type: object
       x-examples:
         example-1:
