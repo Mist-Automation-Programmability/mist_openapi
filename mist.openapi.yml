@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.35.13**
+  description: '> Version: **0.36.0**
 
     >
 
-    > Date: **March 1, 2022**
+    > Date: **March 2, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.35.13
+  version: 0.36.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -119,6 +119,12 @@ tags:
 - description: API Call for 3rd party devices
   name: Orgs Devices Others
 - name: Orgs Devices SSR
+- description: "In Zscaler UI \n 1. add Partner Integration at https://admin.zscalerbeta.net/#administration/partner-integration\
+    \ \n 2. Add Partner Administrator Role at https://admin.zscalerbeta.net/#administration/role-management\
+    \ - Name: Mist - Access: Full \n 3. add Partner Admin at https://admin.zscalerbeta.net/#administration/admin-management\
+    \ with - Login ID: john - email: john@abc.com \n 4. Find the cloud name for ZIA\
+    \ https://help.zscaler.com/zia/what-my-cloud-name-zia\n"
+  name: Orgs Devices Zscaler
 - description: Gateway Template is applied to a site for gateway(s) in a site.
   name: Orgs Gateway Templates
 - name: Orgs Guests
@@ -246,6 +252,7 @@ tags:
 - name: Sites SLEs
 - name: Sites Stats
 - name: Sites Subscriptions
+- name: Sites Synthetic Tests
 - name: Sites UI Settings
 - name: Sites vBeacons
 - name: Sites Webhooks
@@ -2971,21 +2978,27 @@ paths:
                   amendment_id: 2b9116ab-cd1e-e897-6e08-31fccd88e792
                   op: unamend
             schema:
-              description: ''
               properties:
                 dst_org_id:
+                  description: required if `op`==`amend`, destination org id
                   minLength: 1
+                  type: string
+                notes:
+                  description: required if `op`== `annotate`
                   type: string
                 op:
                   enum:
                   - amend
                   - unamend
                   - delete
+                  - annotate
                   minLength: 1
                   type: string
                 quantity:
+                  description: required if `op`==`amend`
                   type: number
                 subscription_id:
+                  description: required if `op`==`unamend` or `op`== `annotate`
                   minLength: 1
                   type: string
               required:
@@ -2997,6 +3010,7 @@ paths:
                   op: amend
                   quantity: 10
                   subscription_id: SUB-0000144
+        description: ''
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -3016,7 +3030,7 @@ paths:
     parameters:
     - $ref: '#/components/parameters/msp_id'
     post:
-      description: Upload Logo (only for advanced msp users)
+      description: Upload Logo (only for advanced msp tier)
       operationId: postMspLogo
       requestBody:
         content:
@@ -7089,10 +7103,10 @@ paths:
                       vlan_id: 0
                       vpn_paths:
                         property1:
-                          bfd_profile: string
+                          bfd_profile: broadband
                           role: spoke
                         property2:
-                          bfd_profile: string
+                          bfd_profile: broadband
                           role: spoke
                       wan_ext_ip: string
                       wan_source_nat:
@@ -7139,10 +7153,10 @@ paths:
                       vlan_id: 0
                       vpn_paths:
                         property1:
-                          bfd_profile: string
+                          bfd_profile: broadband
                           role: spoke
                         property2:
-                          bfd_profile: string
+                          bfd_profile: broadband
                           role: spoke
                       wan_ext_ip: string
                       wan_source_nat:
@@ -7771,10 +7785,10 @@ paths:
                       vlan_id: 0
                       vpn_paths:
                         property1:
-                          bfd_profile: string
+                          bfd_profile: broadband
                           role: spoke
                         property2:
-                          bfd_profile: string
+                          bfd_profile: broadband
                           role: spoke
                       wan_ext_ip: string
                       wan_source_nat:
@@ -7821,10 +7835,10 @@ paths:
                       vlan_id: 0
                       vpn_paths:
                         property1:
-                          bfd_profile: string
+                          bfd_profile: broadband
                           role: spoke
                         property2:
-                          bfd_profile: string
+                          bfd_profile: broadband
                           role: spoke
                       wan_ext_ip: string
                       wan_source_nat:
@@ -8360,12 +8374,7 @@ paths:
       tags:
       - Orgs Inventory
     put:
-      description: '** Add or Delete multiple inventory from org **
-
-        * if Delete
-
-        This removes the inventory from the org. If the inventory is already assigned
-        to a site, it will be unassigned.'
+      description: Update Org Inventory
       operationId: updateOrgInventoryAssignment
       requestBody:
         content:
@@ -8396,7 +8405,8 @@ paths:
                     be managed/configured by Mist by default, this disabled the behavior
                   type: boolean
                 macs:
-                  description: if `op`==`assign`, list of MAC, e.g. ["5c5b350e0001"]
+                  description: if `op`==`assign`, `op`==`unassign`,  `op`==`manage`or
+                    `op`==`unmanage` , list of MAC, e.g. ["5c5b350e0001"]
                   items:
                     type: string
                   type: array
@@ -8410,9 +8420,23 @@ paths:
                     an already assigned AP as error
                   type: boolean
                 op:
+                  description: '* if `op`== `manage`: Upgrade to mist-managed
+
+                    * if `op`== `unmanage`: Downgrade to basic monitoring
+
+                    * if `op`== `assign`: Assign inventory to a site
+
+                    * if `op`== `unassign`: Unassign inventory to a site
+
+                    * if `op`== `delete`: Delete multiple inventory from org
+
+                    '
                   enum:
-                  - delete
                   - assign
+                  - unassign
+                  - delete
+                  - manage
+                  - unmanage
                   type: string
                 serials:
                   description: if `op`==`delete`, list of serial numbers, e.g. ["FXLH2015150025"]
@@ -9575,15 +9599,26 @@ paths:
                     tunterm: default
             schema:
               properties:
-                allow_downgrade:
-                  description: whether downgrade is allowed when running version is
-                    higher than expected version for each service
-                  type: boolean
                 allow_downgrades:
-                  default: false
                   description: whether downgrade is allowed when running version is
                     higher than expected version for each service
-                  type: boolean
+                  properties:
+                    mxagent:
+                      default: false
+                      type: boolean
+                    mxdas:
+                      default: false
+                      type: boolean
+                    mxocproxy:
+                      default: false
+                      type: boolean
+                    radsecproxy:
+                      default: false
+                      type: boolean
+                    tunterm:
+                      default: false
+                      type: boolean
+                  type: object
                 channel:
                   default: stable
                   description: upgrade channel to follow, stable (default) / beta
@@ -9595,8 +9630,7 @@ paths:
                   type: string
                 distro:
                   description: distro upgrade, optional, to specific codename (e.g.
-                    bullseye) with default service versions
-                  example: current
+                    bullseye) with highest qualified versions
                   type: string
                 mxedge_ids:
                   description: list of mxedge IDs to upgrade. If not specified, it
@@ -9618,10 +9652,15 @@ paths:
                   type: string
                 versions:
                   description: version to upgrade for each service, optional (ignored
-                    if distro upgrade), current (assumed) / latest / default / specific
-                    version (e.g. 2.5.100)
+                    if distro upgrade)
                   properties:
                     mxagent:
+                      type: string
+                    mxdas:
+                      type: string
+                    mxocproxy:
+                      type: string
+                    radsecproxy:
                       type: string
                     tunterm:
                       type: string
@@ -10936,36 +10975,6 @@ paths:
       - Orgs Devices
     parameters:
     - $ref: '#/components/parameters/org_id'
-  /api/v1/orgs/{org_id}/otherdeivces/{device_mac}:
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    - $ref: '#/components/parameters/device_mac'
-    put:
-      description: If the Site / Device cannot be identified, manually associate can
-        be made
-      operationId: updateOrgCradlepointRouterData
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                device_mac:
-                  example: 0adfea67e65b
-                  type: string
-                site_id:
-                  example: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-                  type: string
-              type: object
-              x-examples:
-                example-1:
-                  device_mac: 0adfea67e65b
-                  site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-      summary: updateOrgOtherDevice
-      tags:
-      - Orgs Devices Others
   /api/v1/orgs/{org_id}/otherdevices:
     get:
       description: Get Org other devices (3rd party devices)
@@ -11001,19 +11010,99 @@ paths:
       - Orgs Devices Others
     parameters:
     - $ref: '#/components/parameters/org_id'
-  /api/v1/orgs/{org_id}/otherdevices/{device_mac}:
-    get:
-      description: Get Org other device (3rd party device) stats
-      operationId: getOrgOtherDevicesStats
+    put:
+      description: If the Site / Device cannot be identified, a manual association
+        can be made. Either a site_id or a device_mac needs to be provided.
+      operationId: updateOrgOtherDevices
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  device_mac: 0adfea67e65b
+                  macs:
+                  - 5c5b350e0001
+                  - 5c5b350e0003
+                  site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+            schema:
+              properties:
+                device_mac:
+                  type: string
+                macs:
+                  items:
+                    type: string
+                  type: array
+                site_id:
+                  description: Either a site_id OR a device_mac must be provided
+                  type: string
+              type: object
+              x-examples:
+                Example 1:
+                  device_mac: 0adfea67e65b
+                  macs:
+                  - 5c5b350e0001
+                  - 5c5b350e0003
+                  site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+        description: ''
       responses:
         '200':
-          $ref: '#/components/responses/DeviceOtherStats'
-      summary: getOrgOtherDevicesStats
+          $ref: '#/components/responses/OK'
+      summary: updateOrgOtherDevices
+      tags:
+      - Orgs Devices Others
+  /api/v1/orgs/{org_id}/otherdevices/{device_mac}:
+    delete:
+      description: Delete OtherDevice
+      operationId: deleteOrgOtherDevice
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: deleteOrgOtherDevice
+      tags:
+      - Orgs Devices Others
+    get:
+      description: Get Org other device (3rd party device)
+      operationId: getOrgOtherDevice
+      responses:
+        '200':
+          $ref: '#/components/responses/DeviceOther'
+      summary: getOrgOtherDevice
       tags:
       - Orgs Devices Others
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/device_mac'
+    put:
+      description: If the Site / Device cannot be identified, a manual association
+        can be made
+      operationId: updateOrgOtherDevice
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  device_mac: 0adfea67e65b
+                  site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+            schema:
+              properties:
+                device_mac:
+                  type: string
+                site_id:
+                  type: string
+              type: object
+              x-examples:
+                Example 1:
+                  device_mac: 0adfea67e65b
+                  site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+        description: ''
+      responses:
+        '200':
+          description: OK
+      summary: updateOrgOtherDevice
+      tags:
+      - Orgs Devices Others
   /api/v1/orgs/{org_id}/pma/dashboards:
     get:
       description: This all the premium analytics dashboards for this Org
@@ -12540,10 +12629,109 @@ paths:
       summary: verifyOrgCustomBucket
       tags:
       - Orgs Setting
+  /api/v1/orgs/{org_id}/setting/zscaler/setup:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: 'To setup Zscaler credential
+
+        '
+      operationId: setupOrgZscalerCredential
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  cloud_name: zscalerbeta.net
+                  partner_key: K35vrZcK3JvrZc
+                  password: foryoureyesonly
+                  username: john@abc.com
+            schema:
+              properties:
+                cloud_name:
+                  type: string
+                partner_key:
+                  type: string
+                password:
+                  type: string
+                username:
+                  type: string
+              type: object
+              x-examples:
+                Example 1:
+                  cloud_name: zscalerbeta.net
+                  partner_key: K35vrZcK3JvrZc
+                  password: foryoureyesonly
+                  username: john@abc.com
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: setupOrgZscalerCredential
+      tags:
+      - Orgs Devices Zscaler
   /api/v1/orgs/{org_id}/setting/{app_name}/link:
+    delete:
+      deprecated: true
+      description: "Kept for backward compatibility. \nUse `/api/v1/orgs/{org_id}/setting/{app_name}/link`\
+        \ instead.\n\nDelete Org Level OAuth Application Authorization With Mist Portal"
+      operationId: deleteOrgOauthAppAuthorization_deprecated
+      responses:
+        '200':
+          description: Successful
+        '400':
+          description: Unsuccessful
+      summary: deleteOrgOauthAppAuthorization
+      tags:
+      - Orgs OAuth
+    get:
+      deprecated: true
+      description: "Kept for backward compatibility. \nUse `/api/v1/orgs/{org_id}/setting/{app_name}/link`\
+        \ instead.\n\nGet Org Level OAuth Application Linked Status"
+      operationId: getOrgOauthAppLinkedStatus_deprecated
+      parameters:
+      - description: Mist portal url to which backend needs to redirect after succesful
+          OAuth authorization. **Required** to get the `authorization_url`
+        in: query
+        name: forward
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/OauthAppLinkStatus'
+      summary: getOrgOauthAppLinkedStatusAndUrl_deprecated
+      tags:
+      - Orgs OAuth
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - description: 'OAuth application name (Example : zoom, teams, etc..)'
+      in: path
+      name: app_name
+      required: true
+      schema:
+        type: string
+  /api/v1/orgs/{org_id}/setting/{app_name}/link_accounts:
     delete:
       description: Delete Org Level OAuth Application Authorization With Mist Portal
       operationId: deleteOrgOauthAppAuthorization
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  account_id: iojzXIJWEuiD73ZvydOfg
+            schema:
+              properties:
+                account_id:
+                  description: Linked app(zoom/teams) account id
+                  type: string
+              required:
+              - account_id
+              type: object
+              x-examples:
+                Example 1:
+                  account_id: iojzXIJWEuiD73ZvydOfg
       responses:
         '200':
           description: Successful
@@ -12564,30 +12752,7 @@ paths:
           type: string
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                with `forward`query param:
-                  value:
-                    authorization_url: https://zoom.us/oauth/authorize?response_type=code&client_id=YDyajBmJREjwkyb3TPAbA&redirect_uri=https%3A%2F%2Fapi.local%2Fapi%2Fv1%2Forg%2Fb4e16c72-d50e-4c03-a952-a3217e231e2c%2Foauth2%2Fapp%2Fzoom%2Fcallback&state=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2NDk3NjE0MDQsImZvcndhcmQiOiJodHRwczovL2NsaWVudGZvcndhcmR1cmwuY29tIn0.RIE4XTU5kpF4nKIy7_enJ0PpOCyTTp6DLm9PZsdncpI
-                    linked: false
-                without `forward`query param:
-                  value:
-                    linked: true
-              schema:
-                properties:
-                  authorization_url:
-                    description: OAuth application authorization url
-                    format: uri
-                    type: string
-                  linked:
-                    description: OAuth application linked status, is mist portal authorized
-                      with the OAuth appliation
-                    type: boolean
-                required:
-                - linked
-                type: object
-          description: OK
+          $ref: '#/components/responses/OauthAppLinkStatus'
       summary: getOrgOauthAppLinkedStatusAndUrl
       tags:
       - Orgs OAuth
@@ -13689,6 +13854,19 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/mxedge_id'
+  /api/v1/orgs/{org_id}/stats/otherdevices/{device_mac}:
+    get:
+      description: Get Otherdevice Stats
+      operationId: getOrgOtherDeviceStats
+      responses:
+        '200':
+          $ref: '#/components/responses/DeviceOtherStats'
+      summary: getOrgOtherDeviceStats
+      tags:
+      - Orgs Devices Others
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/device_mac'
   /api/v1/orgs/{org_id}/stats/ports/search:
     get:
       description: Search Switch / Gateway Ports
@@ -19998,9 +20176,9 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Session'
-      summary: startSiteSwitchRadiusSyntheticTest
+      summary: triggerSiteSwitchRadiusSyntheticTest
       tags:
-      - Sites Devices Switches
+      - Sites Synthetic Tests
   /api/v1/sites/{site_id}/devices/{device_id}/clear_arp:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -21010,12 +21188,12 @@ paths:
                   vlan_id: 30
       responses:
         '200':
-          $ref: '#/components/responses/OK'
+          description: scheduled
         '400':
           description: Device not online / Device not supported / Already in progress
-      summary: StartSiteDeviceSyntheticTest
+      summary: triggerSiteDeviceSyntheticTest
       tags:
-      - Sites Devices Utilities
+      - Sites Synthetic Tests
   /api/v1/sites/{site_id}/devices/{device_id}/traceroute:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -21170,7 +21348,7 @@ paths:
                     vc_ports:
                     - xe-0/1/0
             schema:
-              $ref: '#/components/schemas/device_switch.vc'
+              $ref: '#/components/schemas/device_switch_vc'
         description: Request Body
       responses:
         '200':
@@ -21179,37 +21357,45 @@ paths:
       tags:
       - Sites Devices Switches Virtual Chassis
     put:
-      description: "## Add new members\nFor models (e.g. EX4300 and up) having dedicated\
-        \ VC ports, it is easier to add new member switches into a VC by just connecting\
-        \ cables with the dedicated VC ports. Cloud will detect the new members and\
-        \ update the inventory.\n\nFor EX2300 VC, adding new members requires to follow\
-        \ the procedures below:\n1. Powering on the new member switches and ensuring\
-        \ cables are not connected to any VC ports.\n2. Claim or adopt all new member\
-        \ switches under the VC\u2019s organization Inventory\n3. Assign all new member\
-        \ switches to the same Site as the VC\n4. Invoke vc command to add switches\
-        \ to the VC.\n5. Connect the cables to the VC ports for these switches\n6.\
-        \ After a while, the Org\u2019s Inventory shows this new switches has been\
-        \ added into the VC.\n\n## Removing member switch\nTo remove a member switch\
-        \ from the VC, following the procedures below:\n\n1. Ensuring the VC is connected\
-        \ to the cloud first\n2. Unplug the cable from the VC port of the switch\n\
-        3. Waiting for the VC state (vc_state) of this switch is changed to not-present\n\
-        4. Invoke update_vc with remove to remove this switch from the VC\n5. The\
-        \ Org\u2019s Inventory shows the switch is removed.\n\nPlease notice that\
-        \ member ID 0 (fpc0) cannot be removed. When a VC has two switches left, unpluging\
-        \ the cable may result in the situation that fpc0 becomes a line card (LC).\
-        \ When this situation is happened, please re-plug in the cable, wait for both\
-        \ switches becoming present (show virtual-chassis) and then removing the cable\
-        \ again.\n\n## Renumber a member switch\nWhen a member switch doesn\u2019\
-        t work properly and needed to be replaced, the renumber API could be used.\
-        \ The following two types of renumber are supported:\n\n1. Replace a non-fpc0\
-        \ member switch\n2. Replace fpc0. When fpc0 is relaced, PAPI device config\
-        \ and JUNOS config will be both updated.\n\nFor renumber to work, the following\
-        \ procedures are needed: \n1. Ensuring the VC is connected to the cloud and\
-        \ the state of the member switch to be replaced must be non present. \n2.\
-        \ Adding the new member switch to the VC \n3. Waiting for the VC state (vc_state)\
-        \ of this VC to be updated to API server \n4. Invoke vc with renumber to replace\
-        \ the new member switch from fpc X to"
-      operationId: removeSiteVirtualChassisMember
+      description: "The VC creation and adding member switch API will update the device\u2019\
+        s virtual chassis config which is applied after VC is formed to create JUNOS\
+        \ pre-provisioned virtual chassis configuration.\n\n## Change to use preprovisioned\
+        \ VC\nTo switch the VC to use preprovisioned VC, enable preprovisioned in\
+        \ virtual_chassis config. Both vc_role master and backup will be matched to\
+        \ routing-engine role in Junos preprovisioned VC config. Member-id will be\
+        \ determined by the sequence of listed members.\n\nNotice: to configure preprovisioned\
+        \ VC, every member of the VC must be presented in members or the confg push\
+        \ will be failed.\n\n## Add new members\nFor models (e.g. EX4300 and up) having\
+        \ dedicated VC ports, it is easier to add new member switches into a VC by\
+        \ just connecting cables with the dedicated VC ports. Cloud will detect the\
+        \ new members and update the inventory.\n\nFor EX2300 VC, adding new members\
+        \ requires to follow the procedures below:\n1. Powering on the new member\
+        \ switches and ensuring cables are not connected to any VC ports.\n2. Claim\
+        \ or adopt all new member switches under the VC\u2019s organization Inventory\n\
+        3. Assign all new member switches to the same Site as the VC\n4. Invoke vc\
+        \ command to add switches to the VC.\n5. Connect the cables to the VC ports\
+        \ for these switches\n6. After a while, the Org\u2019s Inventory shows this\
+        \ new switches has been added into the VC.\n\n## Removing member switch\n\
+        To remove a member switch from the VC, following the procedures below:\n\n\
+        1. Ensuring the VC is connected to the cloud first\n2. Unplug the cable from\
+        \ the VC port of the switch\n3. Waiting for the VC state (vc_state) of this\
+        \ switch is changed to not-present\n4. Invoke update_vc with remove to remove\
+        \ this switch from the VC\n5. The Org\u2019s Inventory shows the switch is\
+        \ removed.\n\nPlease notice that member ID 0 (fpc0) cannot be removed. When\
+        \ a VC has two switches left, unpluging the cable may result in the situation\
+        \ that fpc0 becomes a line card (LC). When this situation is happened, please\
+        \ re-plug in the cable, wait for both switches becoming present (show virtual-chassis)\
+        \ and then removing the cable again.\n\n## Renumber a member switch\nWhen\
+        \ a member switch doesn\u2019t work properly and needed to be replaced, the\
+        \ renumber API could be used. The following two types of renumber are supported:\n\
+        \n1. Replace a non-fpc0 member switch\n2. Replace fpc0. When fpc0 is relaced,\
+        \ PAPI device config and JUNOS config will be both updated.\n\nFor renumber\
+        \ to work, the following procedures are needed: \n1. Ensuring the VC is connected\
+        \ to the cloud and the state of the member switch to be replaced must be non\
+        \ present. \n2. Adding the new member switch to the VC \n3. Waiting for the\
+        \ VC state (vc_state) of this VC to be updated to API server \n4. Invoke vc\
+        \ with renumber to replace the new member switch from fpc X to"
+      operationId: updateSiteVirtualChassisMember
       requestBody:
         content:
           application/json:
@@ -21243,8 +21429,19 @@ paths:
                   member: 3
                   new-member: 2
                   op: renumber
+              preprovisioned VC:
+                value:
+                  member: 0
+                  members:
+                  - mac: string
+                    member: 0
+                    vc_ports:
+                    - string
+                    vc_role: master
+                  new-member: 0
+                  op: add
             schema:
-              $ref: '#/components/schemas/device_switch.vc'
+              $ref: '#/components/schemas/device_switch_vc'
         description: Request Body
       responses:
         '200':
@@ -22434,6 +22631,17 @@ paths:
       tags:
       - Sites Maps
   /api/v1/sites/{site_id}/maps/{map_id}/auto_orient:
+    delete:
+      description: This API is called to force stop auto placement for a given map
+      operationId: deleteSiteApAutoOrientation
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          description: Autoplacement was not triggered
+      summary: deleteSiteApAutoOrientation
+      tags:
+      - Sites Maps
     parameters:
     - $ref: '#/components/parameters/map_id'
     - $ref: '#/components/parameters/site_id'
@@ -22595,6 +22803,56 @@ paths:
       summary: runSiteApAutoplacement
       tags:
       - Sites Maps
+  /api/v1/sites/{site_id}/maps/{map_id}/clear_auto_orient:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: This API is used to destroy the autoorientations of a map or subset
+        of APs on a map.
+      operationId: clearSiteApAutoOrient
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                device_ids:
+                  description: list of device macs
+                  items:
+                    type: string
+                  type: array
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: clearSiteApAutoOrient
+      tags:
+      - Sites Maps
+  /api/v1/sites/{site_id}/maps/{map_id}/clear_autoplacement:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: This API is used to destroy the cached autoplacement locations
+        of a map or subset of APs on a map.
+      operationId: clearSiteApAutoplacement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                device_ids:
+                  description: list of device macs
+                  items:
+                    type: string
+                  type: array
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: clearSiteApAutoplacement
+      tags:
+      - Sites Maps
   /api/v1/sites/{site_id}/maps/{map_id}/image:
     delete:
       description: Delete Site Map Image
@@ -22697,6 +22955,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/map_id'
     post:
+      deprecated: true
       description: This API is used to revert the orientations of a map or subset
         of APs on a map to the state before auto orientation.
       operationId: revertSiteApAutoOrient
@@ -22722,6 +22981,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/map_id'
     post:
+      deprecated: true
       description: This API is used to revert the locations of a map or subset of
         APs on a map to the state before auto placement.
       operationId: revertSiteApAutoplacement
@@ -29872,6 +30132,82 @@ paths:
       summary: SubscribeSite
       tags:
       - Sites Subscriptions
+  /api/v1/sites/{site_id}/synthetic_test:
+    get:
+      description: Get Synthetic Testing Status
+      operationId: getSiteSyntheticTestStatus
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  end_time:
+                    type: integer
+                  id:
+                    type: string
+                  report_url:
+                    type: string
+                  start_time:
+                    type: integer
+                  status:
+                    type: string
+                type: object
+                x-examples:
+                  Example 1:
+                    end_time: 1675718873
+                    id: 68b329da-9893-e340-99c7-d8ad5cb9c940
+                    report_url: ''
+                    start_time: 1675718807
+                    status: ready
+          description: OK
+      summary: getSiteSyntheticTestStatus
+      tags:
+      - Sites Synthetic Tests
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    post:
+      description: Trigger Synthetic Testing
+      operationId: triggerSiteSyntheticTest
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  email: john@abc.com
+            schema:
+              properties:
+                email:
+                  type: string
+              type: object
+              x-examples:
+                Example 1:
+                  email: john@abc.com
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                Example 1:
+                  value:
+                    email: john@abc.com
+                    id: 68b329da-9893-e340-99c7-d8ad5cb9c940
+              schema:
+                properties:
+                  email:
+                    type: string
+                  id:
+                    type: string
+                type: object
+                x-examples:
+                  Example 1:
+                    email: john@abc.com
+                    id: 68b329da-9893-e340-99c7-d8ad5cb9c940
+          description: OK
+      summary: triggerSiteSyntheticTest
+      tags:
+      - Sites Synthetic Tests
   /api/v1/sites/{site_id}/uisettings:
     get:
       description: CURD site UI settings
@@ -34697,61 +35033,43 @@ components:
                 type: integer
             type: object
       description: Example response
-    CallEvent:
-      content:
-        application/json:
-          examples:
-            Example 1:
-              value:
-                app: zoom
-                meeting_id: string
-                org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
-                reason: Network connection error.
-                site_id: 1916d52a-4a90-11e5-8b45-1258369c38a9
-                timestamp: 1674199827
-                type: CLIENT_DISCONNECTED_FROM_CALL
-                wcid: 82c70a73-e2e1-42f9-6da0-97db44b7b9ad
-          schema:
-            $ref: '#/components/schemas/event_call'
-      description: Example response
-    CallEventsArray:
-      content:
-        application/json:
-          examples:
-            Example 1:
-              value:
-              - app: zoom
-                meeting_id: string
-                org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
-                reason: Network connection error.
-                site_id: 1916d52a-4a90-11e5-8b45-1258369c38a9
-                timestamp: 1674199827
-                type: CLIENT_DISCONNECTED_FROM_CALL
-                wcid: 82c70a73-e2e1-42f9-6da0-97db44b7b9ad
-          schema:
-            items:
-              $ref: '#/components/schemas/event_call'
-            type: array
-      description: Example response
     CallEventsArraySearch:
       content:
         application/json:
           examples:
             Example 1:
               value:
-                end: 0
-                limit: 0
+                end: 1674819324
+                limit: 10
                 results:
                 - app: zoom
-                  meeting_id: string
+                  audio_quality: good
+                  meeting_id: '87609329850'
+                  org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                  reason: Host ended the meeting.
+                  screen_share_quality: good
+                  site_id: 1916d52a-4a90-11e5-8b45-1258369c38a9
+                  timestamp: 1674199827
+                  type: CLIENT_LEFT_CALL
+                  video_quality: good
+                  wcid: 82c70a73-e2e1-42f9-6da0-97db44b7b9ad
+                - app: zoom
+                  meeting_id: '87609329850'
                   org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
                   reason: Network connection error.
                   site_id: 1916d52a-4a90-11e5-8b45-1258369c38a9
                   timestamp: 1674199827
                   type: CLIENT_DISCONNECTED_FROM_CALL
                   wcid: 82c70a73-e2e1-42f9-6da0-97db44b7b9ad
-                start: 0
-                total: 0
+                - app: zoom
+                  meeting_id: '87609329850'
+                  org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                  site_id: 1916d52a-4a90-11e5-8b45-1258369c38a9
+                  timestamp: 1674199827
+                  type: CLIENTS_JOINED_CALL
+                  wcid: 82c70a73-e2e1-42f9-6da0-97db44b7b9ad
+                start: 1674153000
+                total: 3
           schema:
             properties:
               end:
@@ -36432,10 +36750,14 @@ components:
           examples:
             Example 1:
               value:
+                created_time: 1676983730
                 device_mac: '001122334455'
-                mac: string
+                id: ae9dee49-69e7-4710-a114-5b827a777738
+                mac: 5c5b35000018
                 model: AP41
+                modified_time: 1676983730
                 name: hallway
+                org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
                 serial: FXLH2015150025
                 site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
                 vendor: cradlepoint
@@ -36448,10 +36770,14 @@ components:
           examples:
             Example 1:
               value:
-              - device_mac: '001122334455'
-                mac: string
+              - created_time: 1676983730
+                device_mac: '001122334455'
+                id: ae9dee49-69e7-4710-a114-5b827a777738
+                mac: 5c5b35000018
                 model: AP41
+                modified_time: 1676983730
                 name: hallway
+                org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
                 serial: FXLH2015150025
                 site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
                 vendor: cradlepoint
@@ -36466,13 +36792,13 @@ components:
           examples:
             Example 1:
               value:
-                device_mac: aa0011223344
+                last_config: 1675392788
+                last_seen: 1675843629
                 mac: 5c5b35000018
-                model: AP41
-                name: hallway
-                serial: FXLH2015150025
-                site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+                uptime: 20296
                 vendor: cradlepoint
+                vendor_specific: {}
+                version: 7.22.70
           schema:
             $ref: '#/components/schemas/stats_device_other'
       description: Example response
@@ -38706,10 +39032,10 @@ components:
                     vlan_id: 0
                     vpn_paths:
                       property1:
-                        bfd_profile: string
+                        bfd_profile: broadband
                         role: spoke
                       property2:
-                        bfd_profile: string
+                        bfd_profile: broadband
                         role: spoke
                     wan_ext_ip: string
                     wan_source_nat:
@@ -38756,10 +39082,10 @@ components:
                     vlan_id: 0
                     vpn_paths:
                       property1:
-                        bfd_profile: string
+                        bfd_profile: broadband
                         role: spoke
                       property2:
-                        bfd_profile: string
+                        bfd_profile: broadband
                         role: spoke
                     wan_ext_ip: string
                     wan_source_nat:
@@ -39357,10 +39683,10 @@ components:
                     vlan_id: 0
                     vpn_paths:
                       property1:
-                        bfd_profile: string
+                        bfd_profile: broadband
                         role: spoke
                       property2:
-                        bfd_profile: string
+                        bfd_profile: broadband
                         role: spoke
                     wan_ext_ip: string
                     wan_source_nat:
@@ -39407,10 +39733,10 @@ components:
                     vlan_id: 0
                     vpn_paths:
                       property1:
-                        bfd_profile: string
+                        bfd_profile: broadband
                         role: spoke
                       property2:
-                        bfd_profile: string
+                        bfd_profile: broadband
                         role: spoke
                     wan_ext_ip: string
                     wan_source_nat:
@@ -41903,6 +42229,33 @@ components:
           schema:
             type: object
       description: OK
+    OauthAppLinkStatus:
+      content:
+        application/json:
+          examples:
+            Example 1:
+              value:
+                accounts:
+                - account_id: KkEM7orQSIWHZNFzwMLuRA
+                  last_status: success
+                  last_sync: 1665465339000
+                  linked_by: Testname1
+                  name: Test Compay1 Ltd
+                - account_id: kojzWgIJQ0ujR73VvydOdg
+                  error: OAuth token refresh failed, please re-link zoom
+                  last_status: failed
+                  last_sync: 1665465346000
+                  linked_by: Testname2
+                  name: Test Compay2 Ltd
+                - account_id: iojzXIJWEuiD73ZvydOfg
+                  last_status: 1665465538000
+                  last_sync: failed
+                  linked_by: Testname3
+                  name: Test Compay3 Ltd
+                linked: true
+          schema:
+            $ref: '#/components/schemas/oauth_app_status'
+      description: OK
     Org:
       content:
         application/json:
@@ -42733,7 +43086,6 @@ components:
                 started_time: 1435080709
                 type: client
           schema:
-            description: ''
             properties:
               ap_mac:
                 nullable: true
@@ -42767,11 +43119,16 @@ components:
                 type: string
               includes_mcast:
                 type: boolean
+              max_num_packets:
+                description: max number of packets configured by user
+                example: 1000
+                type: integer
               max_pkt_len:
                 example: 128
                 type: integer
               num_packets:
-                example: 1000
+                description: total number of packets captured by all AP, not applicable
+                  for type [client, new_assoc]
                 type: integer
               ok:
                 description: List of target APs successfully configured to capture
@@ -42779,12 +43136,23 @@ components:
                 items:
                   type: string
                 type: array
+              radiotap_tcpdump_expression:
+                description: when `type`==`radiotap`, radiotap_tcpdump_expression
+                  expression provided by the user
+                type: string
+              scan_tcpdump_expression:
+                description: when `type`==`scan`, scan_tcpdump_expression provided
+                  by the user
+                type: string
               ssid:
                 nullable: true
                 type: string
               started_time:
                 example: 1435080709
                 type: integer
+              tcpdump_expression:
+                description: tcpdump expression provided by the user (common)
+                type: string
               type:
                 enum:
                 - new_assoc
@@ -42795,9 +43163,17 @@ components:
                 - gateway
                 example: client
                 type: string
+              wired_tcpdump_expression:
+                description: when `type`==`wired`, wired_tcpdump_expression provided
+                  by the user
+                type: string
+              wireless_tcpdump_expression:
+                description: "when `type`==`\u2018wireless\u2019`, wireless_tcpdump_expression\
+                  \ provided by the user"
+                type: string
             required:
-            - type
             - id
+            - type
             type: object
       description: OK
     PcapsSearch:
@@ -46503,7 +46879,7 @@ components:
           schema:
             properties:
               id:
-                $ref: '#/components/schemas/device_switch.vc'
+                $ref: '#/components/schemas/device_switch_vc'
             type: object
       description: Example response
     Vpn:
@@ -49833,17 +50209,26 @@ components:
           readOnly: true
           type: number
         disasbled:
+          description: whether the asset filter is disabled
           type: boolean
         eddystone_uid_namespace:
+          description: eddystone uid namespace used to filter assets
+          example: 2818e3868dec25629ede
           type: string
         eddystone_url:
+          description: eddystone url used to filter assets
+          example: https://www.abc.com
           type: string
         for_site:
           readOnly: true
           type: boolean
         ibeacon_major:
+          description: ibeacon major value used to filter assets
+          example: 13
           type: integer
         ibeacon_uuid:
+          description: ibeacon uuid used to filter assets
+          example: f3f17139-704a-f03a-2786-0400279e37c3
           format: uuid
           type: string
         id:
@@ -49851,11 +50236,14 @@ components:
           readOnly: true
           type: string
         mfg_company_id:
+          description: ble manufacturing-specific company-id used to filter assets
+          example: 935
           type: integer
         modified_time:
           readOnly: true
           type: number
         name:
+          example: Visitor Tags
           type: string
         org_id:
           format: uuid
@@ -49863,6 +50251,11 @@ components:
           type: string
         rssi:
           type: integer
+        service_uuid:
+          description: ble service data uuid used to filter assets
+          example: 0000fe6a-0000-1000-8000-0030459b3cfb
+          format: uuid
+          type: string
         site_id:
           format: uuid
           readOnly: true
@@ -51317,8 +51710,6 @@ components:
           format: uuid
           readOnly: true
           type: string
-        switch_config:
-          $ref: '#/components/schemas/ap_switch'
         uplink_port_config:
           properties:
             dot1x:
@@ -51813,41 +52204,39 @@ components:
             RADIUS_SECRET: 11s64632d
     device_other:
       properties:
+        created_time:
+          type: integer
         device_mac:
-          description: the device mac
-          example: '001122334455'
+          type: string
+        id:
           type: string
         mac:
-          description: the mac address
           type: string
         model:
-          description: the model of the device
-          example: AP41
           type: string
+        modified_time:
+          type: integer
         name:
-          description: the name of the device
-          example: hallway
+          type: string
+        org_id:
           type: string
         serial:
-          description: "the device\u2019s serial number"
-          example: FXLH2015150025
           type: string
         site_id:
-          description: the site id where the device is located
-          example: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-          format: uuid
           type: string
         vendor:
-          description: the vendor
-          example: cradlepoint
           type: string
       type: object
       x-examples:
         Example 1:
+          created_time: 1676983730
           device_mac: '001122334455'
+          id: ae9dee49-69e7-4710-a114-5b827a777738
           mac: 5c5b35000018
           model: AP41
+          modified_time: 1676983730
           name: hallway
+          org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
           serial: FXLH2015150025
           site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
           vendor: cradlepoint
@@ -52283,7 +52672,7 @@ components:
           vars:
             RADIUS_IP1: 172.31.2.5
             RADIUS_SECRET: 11s64632d
-    device_switch.vc:
+    device_switch_vc:
       description: Virtual Chassis
       properties:
         member:
@@ -52321,6 +52710,7 @@ components:
           - remove
           - renumber
           type: string
+      title: ''
       type: object
       x-examples:
         add_member:
@@ -52355,6 +52745,8 @@ components:
           - member: 2
           - member: 3
           op: remove
+      x-stoplight:
+        id: ac5bc7de9d2fd
     device_upgrade:
       description: ''
       properties:
@@ -53005,43 +53397,41 @@ components:
     event_call:
       properties:
         app:
-          example: zoom
+          type: string
+        audio_quality:
           type: string
         meeting_id:
-          example: '87609329850'
           type: string
         org_id:
-          example: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
           type: string
         reason:
-          example: Network connection error.
+          type: string
+        screen_share_quality:
           type: string
         site_id:
-          example: 1916d52a-4a90-11e5-8b45-1258369c38a9
           type: string
         timestamp:
-          example: 1674199827
           type: integer
         type:
-          description: Event Type. See [getCallEventsDefinitions](#tag/Constants/operation/getCallEventsDefinitions)
-          example: CLIENT_DISCONNECTED_FROM_CALL
+          type: string
+        video_quality:
           type: string
         wcid:
-          example: 82c70a73-e2e1-42f9-6da0-97db44b7b9ad
           type: string
       type: object
       x-examples:
         Example 1:
           app: zoom
+          audio_quality: good
           meeting_id: '87609329850'
           org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
-          reason: Network connection error.
+          reason: Host ended the meeting.
+          screen_share_quality: good
           site_id: 1916d52a-4a90-11e5-8b45-1258369c38a9
           timestamp: 1674199827
-          type: CLIENT_DISCONNECTED_FROM_CALL
+          type: CLIENT_LEFT_CALL
+          video_quality: good
           wcid: 82c70a73-e2e1-42f9-6da0-97db44b7b9ad
-      x-stoplight:
-        id: 285e76f55aadb
     events_client:
       description: client events
       properties:
@@ -54557,12 +54947,21 @@ components:
         - for ACL-based policy, `network` is required in either the source or destination
         so that we know where to attach the policy to'
       properties:
-        action:
-          enum:
-          - allow
-          - deny
-          type: string
-        dst_tags:
+        allow_dst_tags:
+          description: '- for GBP-based policy, all src_tags and dst_tags have to
+            be gbp-based
+
+            - for ACL-based policy, `network` is required in either the source or
+            destination so that we know where to attach the policy to'
+          items:
+            type: string
+          type: array
+        deny_dst_tags:
+          description: '- for GBP-based policy, all src_tags and dst_tags have to
+            be gbp-based
+
+            - for ACL-based policy, `network` is required in either the source or
+            destination so that we know where to attach the policy to'
           items:
             type: string
           type: array
@@ -54789,6 +55188,8 @@ components:
           enum:
           - lan
           - wan
+          type: string
+        vpn_name:
           type: string
         wan_name:
           description: if `via`==`wan`
@@ -55201,9 +55602,9 @@ components:
           description: used only if `subnet` is not specified in `networks`
           type: string
         network:
-          description: optional, the network to be used for mgmt.  The network where
-            this mgmt IP reside, this will be used as default network for outbound-ssh,
-            ntp, dns, tacplus, radius, syslog, snmp
+          description: the network where this mgmt IP reside, this will be used as
+            default network for outbound-ssh, dns, ntp, dns, tacplus, radius, syslog,
+            snmp
           type: string
         type:
           default: dynamic
@@ -55384,6 +55785,11 @@ components:
           default: false
           description: if supported on the platform. If enabled, DNS will be using
             this routing-instance, too
+          type: boolean
+        use_mgmt_vrf_for_host_out:
+          default: false
+          description: whether to use `mgmt_junos` for host-out traffic (NTP/TACPLUS/RADIUS/SYSLOG/SNMP),
+            if alternative service is desired
           type: boolean
       type: object
       x-examples:
@@ -55605,6 +56011,9 @@ components:
       properties:
         description:
           type: string
+        disable_autoneg:
+          default: false
+          type: boolean
         dsl_config:
           description: if `wan_type`==`dsl`
           properties:
@@ -55620,8 +56029,13 @@ components:
             ppoe_username:
               type: string
           type: object
-        dsl_type:
-          description: if `wan_type`==`dsl`
+        duplex:
+          default: auto
+          enum:
+          - half
+          - full
+          - auto
+          example: full
           type: string
         ip_config:
           $ref: '#/components/schemas/junos_ip_config_gateway'
@@ -55637,7 +56051,6 @@ components:
           - pap
           type: string
         lte_backup:
-          description: ''
           type: boolean
         lte_password:
           description: if `wan_type`==`lte`
@@ -55645,6 +56058,8 @@ components:
         lte_username:
           description: if `wan_type`==`lte`
           type: string
+        mtu:
+          type: integer
         name:
           description: name that we'll use to derive config
           type: string
@@ -55653,12 +56068,23 @@ components:
           items:
             type: string
           type: array
+        outer_vlan_id:
+          description: for Q-in-Q
+          type: integer
         pci_address:
-          description: for 128T
+          description: For 128T only
+          example: '0000:02:00.0'
           type: string
+        poe_disabled:
+          default: false
+          type: boolean
         port_network:
           description: if `usage`==`lan`
           type: string
+        preserve_dscp:
+          default: true
+          description: whether to preserve dscp when sending traffic over VPN (SSR-only)
+          type: boolean
         redundant:
           description: if HA mode
           type: boolean
@@ -55668,14 +56094,27 @@ components:
         reth_node:
           description: if HA mode
           type: string
+        speed:
+          default: auto
+          example: 1g
+          type: string
+        svr_port_range:
+          description: For 128T only
+          example: 60000-60005
+          type: string
         traffic_shaping:
-          description: optionally, for WAN port, traffic_shaping can be performed
           properties:
+            class_percentages:
+              description: 'percentages for differet class of traffic: high / medium
+                / low / best-effort
+
+                sum must be equal to 100'
+              items:
+                type: integer
+              type: array
             enabled:
+              default: false
               type: boolean
-            max_tx_kbps:
-              description: Throughput, in Kbps
-              type: integer
           type: object
         usage:
           description: port usage name
@@ -55692,13 +56131,35 @@ components:
           additionalProperties:
             properties:
               bfd_profile:
+                default: broadband
+                enum:
+                - lte
+                - broadband
                 type: string
+              bfd_udp_transform:
+                default: false
+                type: boolean
               role:
                 default: spoke
                 enum:
                 - spoke
                 - hub
                 type: string
+              traffic_shaping:
+                properties:
+                  class_percentage:
+                    description: 'percentages for differet class of traffic: high
+                      / medium / low / best-effort
+
+                      sum must be equal to 100'
+                    items:
+                      type: integer
+                    type: array
+                  enabled:
+                    type: boolean
+                  max_tx_kbps:
+                    type: integer
+                type: object
             type: object
           type: object
         wan_ext_ip:
@@ -56077,7 +56538,6 @@ components:
           auth_servers_retries: 3
           auth_servers_timeout: 5
     junos_routing_policy:
-      description: ''
       properties:
         terms:
           description: zero or more criteria/filter can be specified to match the
@@ -56108,7 +56568,8 @@ components:
                       type: string
                     type: array
                   local_preference:
-                    description: optional, local_preference can be changed
+                    description: optional, for an import policy, local_preference
+                      can be changed
                     type: string
                   prepend_as_path:
                     description: when used as export policy, optional. By default,
@@ -56117,6 +56578,11 @@ components:
                       example: '65003'
                       type: string
                     type: array
+                  summarize:
+                    description: for an export policy, summarization/aggregation can
+                      be added
+                    example: 192.168.0.0/16
+                    type: string
                 type: object
               matching:
                 description: zero or more criteria/filter can be specified to match
@@ -56162,6 +56628,17 @@ components:
                           it can also be the name of the VPN or wan if they'
                         type: string
                     type: object
+                  vpn_name:
+                    description: for a lan/wan bgp_config's export policy to vpn/overlay
+                    items:
+                      type: string
+                    type: array
+                  vpn_path:
+                    description: for a vpn bgp_config's import policy (usually on
+                      spoke)
+                    items:
+                      type: string
+                    type: array
                 type: object
             type: object
           type: array
@@ -58005,7 +58482,8 @@ components:
         cluster of mist edges
       properties:
         coa_servers:
-          description: ' list of COA (change of authorization) servers'
+          description: dynamic authorization clients configured to send CoA|DM to
+            mist edges on port 3799
           items:
             properties:
               disable_event_timestamp_check:
@@ -58942,6 +59420,68 @@ components:
         example:
           value:
             note: maintenance window
+    oauth_app_status:
+      properties:
+        accounts:
+          description: List of linked apps(zoom/teams) account details
+          items:
+            properties:
+              account_id:
+                description: Linked apps(zoom/teams) account id
+                type: string
+              error:
+                description: This error is provided only when the apps(zoom) account
+                  refresh token fails in the backend
+                type: string
+              last_status:
+                description: Is the last data pull for apps(zoom/teams) account is
+                  successful or not
+                oneOf:
+                - type: integer
+                - type: string
+              last_sync:
+                oneOf:
+                - type: integer
+                - type: string
+              linked_by:
+                description: First name of the user who linked the apps(zoom/teams)
+                  account
+                type: string
+              name:
+                description: Name of the company whose (zoom/teams) account mist has
+                  subscribed to
+                type: string
+            type: object
+          type: array
+        authorization_url:
+          description: Only if `forward_url` is set in the request
+          type: string
+        linked:
+          description: OAuth application linked status, is mist portal authorized
+            with the OAuth appliation
+          type: boolean
+      type: object
+      x-examples:
+        Example 1:
+          accounts:
+          - account_id: KkEM7orQSIWHZNFzwMLuRA
+            last_status: success
+            last_sync: 1665465339000
+            linked_by: Testname1
+            name: Test Compay1 Ltd
+          - account_id: kojzWgIJQ0ujR73VvydOdg
+            error: OAuth token refresh failed, please re-link zoom
+            last_sync: 1665465346000
+            linked_by: Testname2
+            name: Test Compay2 Ltd
+          - account_id: iojzXIJWEuiD73ZvydOfg
+            last_status: 1665465538000
+            last_sync: failed
+            linked_by: Testname3
+            name: Test Compay3 Ltd
+          linked: true
+      x-stoplight:
+        id: 1fb753875ddef
     org:
       description: An organization usualy represents a customer - which has inventories,
         licenses. An Organization can contain multiple sites. A site usually represents
@@ -60520,6 +61060,10 @@ components:
     psk:
       description: PSK
       properties:
+        admin_sso_id:
+          description: sso id for psk created from psk portal
+          readOnly: true
+          type: string
         created_time:
           readOnly: true
           type: number
@@ -60639,6 +61183,10 @@ components:
           description: Number of days before psk is expired. Used as to when to start
             sending reminder notification when the psk is about to expire
           type: integer
+        hide_psks_created_by_other_admins:
+          default: false
+          description: only if `type`==`admin`
+          type: boolean
         id:
           readOnly: true
           type: string
@@ -63128,7 +63676,41 @@ components:
               type: array
           type: object
         switch_matching:
-          $ref: '#/components/schemas/template_switch.matching'
+          properties:
+            additional_config_cmds:
+              description: 'additional CLI commands to append if this rule matches
+
+                NOTE: no check is done'
+              items:
+                type: string
+              type: array
+            enabled:
+              default: false
+              type: boolean
+            rules:
+              items:
+                properties:
+                  additionalProperty:
+                    description: Property key is `match_name[x:y]`, where x and y
+                      are the first and the last characters of the string to match.
+                      Value is the string to match.
+                    type: string
+                  match_model:
+                    type: string
+                  name:
+                    type: string
+                  port_config:
+                    additionalProperties:
+                      properties:
+                        usage:
+                          type: string
+                      type: object
+                    description: Object key is a comma separated list of interface
+                      names or interface ranges (e.g. ge-0/0/0, ge-0/0/0-5)
+                    type: object
+                type: object
+              type: array
+          type: object
         switch_mgmt:
           $ref: '#/components/schemas/site_switch'
         track_anonymous_devices:
@@ -67061,17 +67643,35 @@ components:
           - email
           - unspecified
           type: string
-        oauth_client_it:
+        oauth_cc_client_id:
+          description: if `oauth_type`==`okta`, Client Credentials
+          example: e60da615-7def-4c5a-8196-43675f45e174
+          type: string
+        oauth_cc_client_secret:
+          description: if `oauth_type`==`okta`, oauth_cc_client_secret is RSA private
+            key, of the form "-----BEGIN RSA PRIVATE KEY--...."
+          example: akL8Q~5kWFMVFYl4TFZ3fi~7cMdyDONi6cj01cpH
           type: string
         oauth_discovery_url:
           description: if `idp_type`==`oauth`
           type: string
-        oauth_secret:
+        oauth_ropc_client_id:
+          description: ropc = Resource Owner Password Credentials
+          example: 9ce04c97-b5b1-4ec8-af17-f5ed42d2daf7
+          type: string
+        oauth_ropc_secret:
+          description: oauth_ropc_client_secret can be empty if oauth_type is azure
+          example: blM9R~6kWFMVFYl4TFZ3fi~8cMdyDONi6cj01dqI
+          type: string
+        oauth_tenant_id:
+          description: if `oauth_type`==`okta`, oauth_tenant_id
+          example: dev-88336535
           type: string
         oauth_type:
-          default: MSIdentity
+          default: azure
           enum:
-          - MSIdentity
+          - azure
+          - okta
           type: string
         org_id:
           format: uuid
@@ -68226,6 +68826,7 @@ components:
             eddystone_url_enabled:
               type: boolean
             eddystone_url_freq_msec:
+              description: Frequency (msec) of data emmit by Eddystone-UID beacon
               type: integer
             eddystone_url_url:
               type: string
@@ -68255,6 +68856,7 @@ components:
             tx_pkts:
               type: integer
             tx_resets:
+              description: resets due to tx hung
               type: integer
             uuid:
               format: uuid
@@ -68565,6 +69167,7 @@ components:
         name:
           type: string
         num_clients:
+          description: how many wireless clients are currently connected
           type: integer
         port_stat:
           additionalProperties:
@@ -68658,6 +69261,9 @@ components:
                 channel:
                   description: current channel the radio is running on
                   type: integer
+                dynamic_chaining_enalbed:
+                  description: Use dynamic chaining for downlink
+                  type: boolean
                 mac:
                   description: radio (base) mac, it can have 16 bssids (e.g. 5c5b350001a0-5c5b350001af)
                   type: string
@@ -68675,6 +69281,30 @@ components:
                   type: number
                 tx_pkts:
                   type: number
+                util_all:
+                  description: all utilization in percentage
+                  type: integer
+                util_non_wifi:
+                  description: "reception of \u201CNo Packets\u201D utilization in\
+                    \ percentage, received frames with invalid PLCPs and CRS glitches\
+                    \ as noise"
+                  type: integer
+                util_rx_in_bss:
+                  description: "reception of \u201CIn BSS\u201D utilization in percentage,\
+                    \ only frames that are received from AP/STAs within the BSS"
+                  type: integer
+                util_rx_other_bss:
+                  description: "reception of \u201COther BSS\u201D utilization in\
+                    \ percentage, all frames received from AP/STAs that are outside\
+                    \ the BSS"
+                  type: integer
+                util_tx:
+                  description: transmission utilization in percentage
+                  type: integer
+                util_unknown_wifi:
+                  description: "reception of \u201CNo Category\u201D utilization in\
+                    \ percentage, all 802.11 frames that are corrupted at the receiver"
+                  type: integer
               type: object
             band_5:
               description: radio stat of 5G radio
@@ -68689,6 +69319,9 @@ components:
                 channel:
                   description: current channel the radio is running on
                   type: integer
+                dynamic_chaining_enalbed:
+                  description: Use dynamic chaining for downlink
+                  type: boolean
                 mac:
                   description: radio (base) mac, it can have 16 bssids (e.g. 5c5b350001a0-5c5b350001af)
                   type: string
@@ -68705,6 +69338,30 @@ components:
                   type: number
                 tx_pkts:
                   type: number
+                util_all:
+                  description: all utilization in percentage
+                  type: integer
+                util_non_wifi:
+                  description: "reception of \u201CNo Packets\u201D utilization in\
+                    \ percentage, received frames with invalid PLCPs and CRS glitches\
+                    \ as noise"
+                  type: integer
+                util_rx_in_bss:
+                  description: "reception of \u201CIn BSS\u201D utilization in percentage,\
+                    \ only frames that are received from AP/STAs within the BSS"
+                  type: integer
+                util_rx_other_bss:
+                  description: "reception of \u201COther BSS\u201D utilization in\
+                    \ percentage, all frames received from AP/STAs that are outside\
+                    \ the BSS"
+                  type: integer
+                util_tx:
+                  description: transmission utilization in percentage
+                  type: integer
+                util_unknown_wifi:
+                  description: "reception of \u201CNo Category\u201D utilization in\
+                    \ percentage, all 802.11 frames that are corrupted at the receiver"
+                  type: integer
               type: object
             band_6:
               description: radio stat of 6G radio
@@ -68720,6 +69377,9 @@ components:
                 channel:
                   description: current channel the radio is running on
                   type: integer
+                dynamic_chaining_enalbed:
+                  description: Use dynamic chaining for downlink
+                  type: boolean
                 mac:
                   description: radio (base) mac, it can have 16 bssids (e.g. 5c5b350001a0-5c5b350001af)
                   type: string
@@ -68736,6 +69396,30 @@ components:
                   type: number
                 tx_pkts:
                   type: number
+                util_all:
+                  description: all utilization in percentage
+                  type: integer
+                util_non_wifi:
+                  description: "reception of \u201CNo Packets\u201D utilization in\
+                    \ percentage, received frames with invalid PLCPs and CRS glitches\
+                    \ as noise"
+                  type: integer
+                util_rx_in_bss:
+                  description: "reception of \u201CIn BSS\u201D utilization in percentage,\
+                    \ only frames that are received from AP/STAs within the BSS"
+                  type: integer
+                util_rx_other_bss:
+                  description: "reception of \u201COther BSS\u201D utilization in\
+                    \ percentage, all frames received from AP/STAs that are outside\
+                    \ the BSS"
+                  type: integer
+                util_tx:
+                  description: transmission utilization in percentage
+                  type: integer
+                util_unknown_wifi:
+                  description: "reception of \u201CNo Category\u201D utilization in\
+                    \ percentage, all 802.11 frames that are corrupted at the receiver"
+                  type: integer
               type: object
           type: object
         rx_bps:
@@ -68748,6 +69432,11 @@ components:
           description: serial
           type: string
         status:
+          enum:
+          - connected
+          - disconnected
+          - restarting
+          - upgrading
           type: string
         tx_bps:
           type: number
@@ -68759,6 +69448,7 @@ components:
           description: device type, ap / ble
           type: string
         uptime:
+          description: how long, in seconds, has the device been up (or rebooted)
           type: number
         usb_stat:
           properties:
@@ -69292,38 +69982,31 @@ components:
           version: 18.4R1.8
     stats_device_other:
       properties:
-        device_mac:
-          example: aa0011223344
-          type: string
+        last_config:
+          type: integer
+        last_seen:
+          type: integer
         mac:
-          example: 5c5b35000018
           type: string
-        model:
-          example: AP41
-          type: string
-        name:
-          example: hallway
-          type: string
-        serial:
-          example: FXLH2015150025
-          type: string
-        site_id:
-          example: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-          format: uuid
-          type: string
+        uptime:
+          type: integer
         vendor:
-          example: cradlepoint
+          type: string
+        vendor_specific:
+          properties: {}
+          type: object
+        version:
           type: string
       type: object
       x-examples:
         Example 1:
-          device_mac: '001122334455'
+          last_config: 1675392788
+          last_seen: 1675843629
           mac: 5c5b35000018
-          model: AP41
-          name: hallway
-          serial: FXLH2015150025
-          site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+          uptime: 20296
           vendor: cradlepoint
+          vendor_specific: {}
+          version: 7.22.70
     stats_device_switch:
       description: Switch statistics
       properties:
@@ -75681,6 +76364,7 @@ x-tagGroups:
   - Sites SLEs
   - Sites Stats
   - Sites Subscriptions
+  - Sites Synthetic Tests
   - Sites UI Settings
   - Sites vBeacons
   - Sites Webhooks
@@ -75711,6 +76395,7 @@ x-tagGroups:
   - Orgs Devices EVPN
   - Orgs Devices Others
   - Orgs Devices SSR
+  - Orgs Devices Zscaler
   - Orgs Device Profiles
   - Orgs Gateway Templates
   - Orgs Guests
