@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.36.3**
+  description: '> Version: **0.37.0**
 
     >
 
-    > Date: **March 16, 2022**
+    > Date: **March 30, 2022**
 
 
     ---
@@ -38,7 +38,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.36.3
+  version: 0.37.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -3959,6 +3959,50 @@ paths:
       tags:
       - Orgs Alarm Templates
   /api/v1/orgs/{org_id}/alarmtemplates/suppress:
+    delete:
+      description: Un-Suppress Suppressed Alarms
+      operationId: unsuppressOrgSuppressedAlarms
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: unsuppressOrgSuppressedAlarms
+      tags:
+      - Orgs Alarm Templates
+    get:
+      description: GET Current Suppressed Alarms
+      operationId: getOrgSuppressedAlarms
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                Example 1:
+                  value:
+                    results:
+                    - duration: 48
+                      site_id: 581328b6-e382-f54e-c9dc-9c998d183a34
+              schema:
+                properties:
+                  results:
+                    items:
+                      properties:
+                        duration:
+                          description: remaining_duration, in seconds.
+                          type: integer
+                        site_id:
+                          type: string
+                      type: object
+                    type: array
+                type: object
+                x-examples:
+                  Example 1:
+                    results:
+                    - duration: 48
+                      site_id: 581328b6-e382-f54e-c9dc-9c998d183a34
+          description: OK
+      summary: getOrgSuppressedAlarms
+      tags:
+      - Orgs Alarm Templates
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -3969,7 +4013,6 @@ paths:
         content:
           application/json:
             schema:
-              description: ''
               properties:
                 applies:
                   description: Object defines the scope (within the org e.g. whole
@@ -4000,15 +4043,19 @@ paths:
                       type: array
                   required:
                   - org_id
-                  - sitegroup_ids
                   - site_ids
+                  - sitegroup_ids
                   type: object
                 duration:
-                  default: 60
-                  description: duration, in seconds
+                  default: 3600
+                  description: duration, in seconds. 0 is to un-suppress alarms
                   maximum: 86400
                   minimum: 0
                   type: number
+                scheduled_time:
+                  description: poch_time in seconds, Default as now, accepted time
+                    range is from now to now + 7 days
+                  type: integer
               required:
               - applies
               type: object
@@ -6554,6 +6601,180 @@ paths:
       schema:
         format: uuid
         type: string
+  /api/v1/orgs/{org_id}/devices/{device_id}/clear_tunnels:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: Remove Tunnel for a gateway
+      operationId: removeOrgGatewaysTunnel
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  name: tunnel-name
+                  provider: zscaler-ipsec
+            schema:
+              properties:
+                name:
+                  example: tunnel-name
+                  type: string
+                provider:
+                  enum:
+                  - zscaler-ipsec
+                  - zscaler-gre
+                  type: string
+              type: object
+              x-examples:
+                Example 1:
+                  name: tunnel-name
+                  provider: zscaler-ipsec
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: removeOrgGatewaysTunnel
+      tags:
+      - Orgs Devices Others
+  /api/v1/orgs/{org_id}/devices/{device_id}/provision_tunnels:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: 'Create credential for gateways
+
+        '
+      operationId: createOrgGatewaysCredentials
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  latlng:
+                    lat: 37.295833
+                    lng: -122.032946
+                  name: tunnel-name
+                  primary:
+                    num_hosts: 1
+                    wan_names:
+                    - wan0
+                  provider: zscaler-ipsec
+                  region: auto
+                  secondary: null
+                  vars_only: false
+            schema:
+              properties:
+                latlng:
+                  description: by default, we'll use the Site lat/lng, but overwrite
+                    can be given
+                  properties:
+                    lat:
+                      example: 37.295833
+                      type: number
+                    lng:
+                      example: -122.032946
+                      type: number
+                  type: object
+                name:
+                  example: tunnel-name
+                  type: string
+                primary:
+                  properties:
+                    num_hosts:
+                      example: 1
+                      type: integer
+                    wan_names:
+                      description: optional, only needed if `vars_only`==`false`
+                      items:
+                        example: wan0
+                        type: string
+                      type: array
+                  type: object
+                provider:
+                  enum:
+                  - zscaler-ipsec
+                  - zscaler-gre
+                  type: string
+                region:
+                  default: auto
+                  enum:
+                  - auto
+                  - EMEA
+                  - Americas
+                  - APAC
+                  type: string
+                secondary:
+                  nullable: true
+                  properties:
+                    num_hosts:
+                      example: 1
+                      type: integer
+                    wan_names:
+                      description: optional, only needed if `vars_only`==`false`
+                      items:
+                        example: wan0
+                        type: string
+                      type: array
+                  type: object
+                vars_only:
+                  default: false
+                  description: if false, we'd generate the config inline
+                  type: boolean
+              type: object
+              x-examples:
+                Example 1:
+                  latlng:
+                    lat: 37.295833
+                    lng: -122.032946
+                  name: tunnel-name
+                  primary:
+                    num_hosts: 2
+                    wan_names:
+                    - wan0
+                    - wan1
+                  provider: zscaler-ipsec
+                  region: auto
+                  secondary: null
+                  vars_only: true
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                Example 1:
+                  value:
+                    vars:
+                      ZSCALER_IPSEC_LOCAL_ID: local_id
+                      ZSCALER_IPSEC_PRIMARY_HOST_1_{TUNNEL-NAME}: host1
+                      ZSCALER_IPSEC_PRIMARY_HOST_2_{TUNNEL-NAME}: host2
+                      ZSCALER_IPSEC_PSK: psk
+              schema:
+                properties:
+                  vars:
+                    properties:
+                      ZSCALER_IPSEC_LOCAL_ID:
+                        type: string
+                      ZSCALER_IPSEC_PRIMARY_HOST_1_{TUNNEL-NAME}:
+                        type: string
+                      ZSCALER_IPSEC_PRIMARY_HOST_2_{TUNNEL-NAME}:
+                        type: string
+                      ZSCALER_IPSEC_PSK:
+                        type: string
+                    type: object
+                type: object
+                x-examples:
+                  Example 1:
+                    vars:
+                      ZSCALER_IPSEC_LOCAL_ID: local_id
+                      ZSCALER_IPSEC_PRIMARY_HOST_1_{TUNNEL-NAME}: host1
+                      ZSCALER_IPSEC_PRIMARY_HOST_2_{TUNNEL-NAME}: host2
+                      ZSCALER_IPSEC_PSK: psk
+          description: OK
+      summary: createOrgGatewaysCredentials
+      tags:
+      - Orgs Devices Others
   /api/v1/orgs/{org_id}/evpn_topologies:
     get:
       description: Get the existing EVPN topology
@@ -8403,8 +8624,9 @@ paths:
               properties:
                 disable_auto_config:
                   default: false
-                  description: if `op`==`assign`, a cloud-ready switch/gateway will
-                    be managed/configured by Mist by default, this disabled the behavior
+                  description: if `op`==`assign`, a **cloud-ready** switch/gateway
+                    will be managed/configured by Mist by default, this disabled the
+                    behavior
                   type: boolean
                 macs:
                   description: if `op`==`assign`, `op`==`unassign`,  `op`==`manage`or
@@ -8414,8 +8636,9 @@ paths:
                   type: array
                 managed:
                   default: false
-                  description: if `op`==`assign`, an adopted switch/gateway will not
-                    be managed/configured by Mist by default, this enables the behavior
+                  description: if `op`==`assign`, an **adopted** switch/gateway will
+                    not be managed/configured by Mist by default, this enables the
+                    behavior
                   type: boolean
                 no_reassign:
                   description: if `op`==`assign`, if true, treat site assignment against
@@ -12423,6 +12646,44 @@ paths:
       summary: setupOrgCradlepointConnectionToMist
       tags:
       - Orgs Devices Others
+    put:
+      description: This updates the sets up of cradlepoint webhooks to send events
+        to Mist
+      operationId: updateOrgCradlepointConnectionToMist
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  cp_api_id: 84446d61-2206-4ea5-855a-0043f980be54
+                  cp_api_key: 79c329da9893e34099c7d8ad5cb9c941
+                  ecm_api_id: 73446d61-2206-4ea5-855a-0043f980be62
+                  ecm_api_key: 68b329da9893e34099c7d8ad5cb9c9405
+            schema:
+              properties:
+                cp_api_id:
+                  type: string
+                cp_api_key:
+                  type: string
+                ecm_api_id:
+                  type: string
+                ecm_api_key:
+                  type: string
+              type: object
+              x-examples:
+                Example 1:
+                  cp_api_id: 84446d61-2206-4ea5-855a-0043f980be54
+                  cp_api_key: 79c329da9893e34099c7d8ad5cb9c941
+                  ecm_api_id: 73446d61-2206-4ea5-855a-0043f980be62
+                  ecm_api_key: 68b329da9893e34099c7d8ad5cb9c9405
+        description: ''
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: updateOrgCradlepointConnectionToMist
+      tags:
+      - Orgs Devices Others
   /api/v1/orgs/{org_id}/setting/cradlepoint/sync:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -12632,6 +12893,48 @@ paths:
       tags:
       - Orgs Setting
   /api/v1/orgs/{org_id}/setting/zscaler/setup:
+    delete:
+      description: 'To delete Zscaler credential
+
+        '
+      operationId: deleteOrgZscalerCredential
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: deleteOrgZscalerCredential
+      tags:
+      - Orgs Devices Zscaler
+    get:
+      description: To get Zscaler credential
+      operationId: getOrgZscalerCredential
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                Example 1:
+                  value:
+                    cloud_name: zscalerbeta.net
+                    partner_key: abcd12cK3JvrZc
+                    username: john@abc.com
+              schema:
+                properties:
+                  cloud_name:
+                    type: string
+                  partner_key:
+                    type: string
+                  username:
+                    type: string
+                type: object
+                x-examples:
+                  Example 1:
+                    cloud_name: zscalerbeta.net
+                    partner_key: abcd12cK3JvrZc
+                    username: john@abc.com
+          description: OK
+      summary: getOrgZscalerCredential
+      tags:
+      - Orgs Devices Zscaler
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -12670,6 +12973,39 @@ paths:
         '200':
           $ref: '#/components/responses/OK'
       summary: setupOrgZscalerCredential
+      tags:
+      - Orgs Devices Zscaler
+    put:
+      description: update Zscaler credential
+      operationId: udpateOrgZscalerCredential
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  partner_key: abcd12cK3JvrZc
+            schema:
+              properties:
+                cloud_name:
+                  type: string
+                partner_key:
+                  type: string
+                password:
+                  type: string
+                username:
+                  type: string
+              type: object
+              x-examples:
+                Example 1:
+                  cloud_name: zscalerbeta.net
+                  partner_key: K35vrZcK3JvrZc
+                  password: foryoureyesonly
+                  username: john@abc.com
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: udpateOrgZscalerCredential
       tags:
       - Orgs Devices Zscaler
   /api/v1/orgs/{org_id}/setting/{app_name}/link:
@@ -20050,6 +20386,23 @@ paths:
         t Tx Bytes\\tFlows\\tIdle sec\\n-----------------------------------------------------------------------------------------------------------------------\"\
         \n  } \n}\n```"
       operationId: arpFromDevice
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  node: node0
+            schema:
+              properties:
+                node:
+                  description: only for HA
+                  enum:
+                  - node0
+                  - node1
+                  type: string
+              type: object
+        description: ''
       responses:
         '200':
           $ref: '#/components/responses/Session'
@@ -20197,8 +20550,35 @@ paths:
       requestBody:
         content:
           application/json:
+            examples:
+              Example 1:
+                value:
+                  ip: 10.1.1.1
+                  node: node0
+                  port_id: wan
+                  vlan: 1000
             schema:
-              properties: {}
+              properties:
+                ip:
+                  description: The IP address for which to clear an ARP entry. port_id
+                    must be specified. Both vlan and ip cannot be specified.
+                  example: 10.1.1.1
+                  type: string
+                node:
+                  description: only for HA
+                  enum:
+                  - node0
+                  - node1
+                  type: string
+                port_id:
+                  description: The device interface on which to clear the ARP cache.
+                  example: wan
+                  type: string
+                vlan:
+                  description: The VLAN on which to clear the ARP cache. port_id must
+                    be specified. Both vlan and ip cannot be specified.
+                  example: 1000
+                  type: integer
               type: object
           application/xml:
             schema:
@@ -20220,6 +20600,7 @@ paths:
                   ip: 10.1.1.1
                   port_id: wan
                   vlan: 1000
+        description: ''
       responses:
         '200':
           $ref: '#/components/responses/Session'
@@ -20702,7 +21083,14 @@ paths:
                   description: Interface through which packet needs to egress
                   type: string
                 host:
+                  example: 1.1.1.1
                   format: ipv4
+                  type: string
+                node:
+                  description: Only for HA
+                  enum:
+                  - node0
+                  - node1
                   type: string
                 size:
                   default: 56
@@ -20744,12 +21132,23 @@ paths:
       requestBody:
         content:
           application/json:
+            examples:
+              Example 1:
+                value:
+                  node: node0
+                  port: string
             schema:
-              description: ''
               properties:
+                node:
+                  description: only for HA
+                  enum:
+                  - node0
+                  - node1
+                  type: string
                 port:
                   description: The nework interface on which to release the current
                     DHCP release
+                  example: wan-interface
                   minLength: 1
                   type: string
               required:
@@ -20915,21 +21314,16 @@ paths:
         \ at the same time and the output all goes through the same websocket stream,\
         \ `session` is introduced for demux.\n\n#### Subscribe to Device Command outputs\n\
         `WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
-        \n}\n```\n##### Example output from ws stream\n```\nshow service-path\n\n\
-        Service    Service-route     Type              Destination  Next-Hop  Interface\
-        \  Vector  Cost  Rate  Capacity        State\n\nWeb        web-route1    \
-        \    service-agent     4.4.4.4      1.1.1.2     lan        red     10    1\
-        \    200/3000       Up*\nWeb        web-route1        service-agent     4.4.4.4\
-        \      1.1.1.3     lan        red     10    1    200/3000       Up\nWeb  \
-        \      web-route2        service-agent     5.5.5.5      2.2.2.2     lan  \
-        \     blue     20    2    50/unlimited   Down\nLogin      <None>         \
-        \   BgpOverSVR        10.1.1.1     1.2.3.4     wan        red     10    3\
-        \        -          Up\nLogin      <None>            BgpOverSVR        11.1.1.1\
-        \     1.2.3.4     wan        red     10    1        -          Up\nApp1  \
-        \     <None>            Routed                -           -         -    \
-        \      -      -     -        -          -\nApp1       learned-routed    Routed\
-        \                -           -         -          -      -     -        -\
-        \          -\n```"
+        \n}\n```\n##### Example output from ws stream\n```\nadmin@labsystem1.fiedler#\
+        \ show bgp neighbors\nBGP neighbor is 192.168.4.1, remote AS 4200000001, local\
+        \ AS 4200000128, external\nlink\n  BGP version 4, remote router ID 1.1.1.1\n\
+        \  BGP state = Established, up for 00:27:25\n  Last read 00:00:25, hold time\
+        \ is 90, keepalive interval is 30 seconds\n  Configured hold time is 90, keepalive\
+        \ interval is 30 seconds\n  Neighbor capabilities:\n    4 Byte AS: advertised\
+        \ and received\n    Route refresh: advertised and received(old &amp; new)\n\
+        \    Address family IPv4 Unicast: advertised and received\n    Graceful Restart\
+        \ Capabilty: advertised and received\n      Remote Restart timer is 120 seconds\n\
+        \      Address families by peer:\n        none\n        ...\n```"
       operationId: getSiteSsrAndSrxRoutes
       requestBody:
         content:
@@ -20945,12 +21339,21 @@ paths:
             schema:
               properties:
                 neighbor:
+                  example: 192.168.4.1
+                  type: string
+                node:
+                  description: Only for HA
+                  enum:
+                  - node0
+                  - node1
                   type: string
                 prefix:
                   description: route prefix
+                  example: 192.168.0.5/30
                   type: string
                 protocol:
                   description: only bgp is supported
+                  example: bgp
                   type: string
                 route:
                   description: 'if specified, dump both received and advertised
@@ -20962,8 +21365,10 @@ paths:
                   enum:
                   - received
                   - advertised
+                  example: advertised
                   type: string
                 vrf_name:
+                  example: default
                   type: string
               type: object
               x-examples:
@@ -20978,6 +21383,60 @@ paths:
         '200':
           $ref: '#/components/responses/Session'
       summary: getSiteSsrAndSrxRoutes
+      tags:
+      - Sites Devices WAN Edges
+  /api/v1/sites/{site_id}/devices/{device_id}/show_service_path:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: "Get service path information of the Device. The output will be\
+        \ available through websocket. As there can be multiple command issued against\
+        \ the same device at the same time and the output all goes through the same\
+        \ websocket stream, session is introduced for demux.\n\n\n#### Subscribe to\
+        \ Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\"\
+        : \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n##### Example output\
+        \ from ws stream\n```\nshow service-path\n\nService    Service-route     Type\
+        \              Destination  Next-Hop  Interface  Vector  Cost  Rate  Capacity\
+        \        State\n\nWeb        web-route1        service-agent     4.4.4.4 \
+        \     1.1.1.2     lan        red     10    1    200/3000       Up*\nWeb  \
+        \      web-route1        service-agent     4.4.4.4      1.1.1.3     lan  \
+        \      red     10    1    200/3000       Up\nWeb        web-route2       \
+        \ service-agent     5.5.5.5      2.2.2.2     lan       blue     20    2  \
+        \  50/unlimited   Down\nLogin      <None>            BgpOverSVR        10.1.1.1\
+        \     1.2.3.4     wan        red     10    3        -          Up\nLogin \
+        \     <None>            BgpOverSVR        11.1.1.1     1.2.3.4     wan   \
+        \     red     10    1        -          Up\nApp1       <None>            Routed\
+        \                -           -         -          -      -     -        -\
+        \          -\nApp1       learned-routed    Routed                -       \
+        \    -         -          -      -     -        -          -\n```"
+      operationId: getSiteSsrServicePath
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  node: node0
+                  service_name: any
+            schema:
+              description: The exact service name for which to display the service
+                path
+              properties:
+                node:
+                  description: only for HA
+                  enum:
+                  - node0
+                  - node1
+                  type: string
+                service_name:
+                  example: any
+                  type: string
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/Session'
+      summary: getSiteSsrServicePath
       tags:
       - Sites Devices WAN Edges
   /api/v1/sites/{site_id}/devices/{device_id}/show_session:
@@ -21020,14 +21479,22 @@ paths:
         content:
           application/json:
             examples:
-              example-1:
+              Example 1:
                 value:
+                  node: node0
                   service_name: any
             schema:
               properties:
+                node:
+                  description: 'only for '
+                  enum:
+                  - node0
+                  - node1
+                  type: string
                 service_name:
                   description: The exact service name for which to display the active
                     sessions
+                  example: any
                   type: string
               type: object
               x-examples:
@@ -21369,25 +21836,24 @@ paths:
         \ virtual_chassis config. Both vc_role master and backup will be matched to\
         \ routing-engine role in Junos preprovisioned VC config. Member-id will be\
         \ determined by the sequence of listed members.\n\nNotice: to configure preprovisioned\
-        \ VC, every member of the VC must be presented in members or the confg push\
-        \ will be failed.\n\n## Add new members\nFor models (e.g. EX4300 and up) having\
-        \ dedicated VC ports, it is easier to add new member switches into a VC by\
-        \ just connecting cables with the dedicated VC ports. Cloud will detect the\
-        \ new members and update the inventory.\n\nFor EX2300 VC, adding new members\
-        \ requires to follow the procedures below:\n1. Powering on the new member\
-        \ switches and ensuring cables are not connected to any VC ports.\n2. Claim\
-        \ or adopt all new member switches under the VC\u2019s organization Inventory\n\
-        3. Assign all new member switches to the same Site as the VC\n4. Invoke vc\
-        \ command to add switches to the VC.\n5. Connect the cables to the VC ports\
-        \ for these switches\n6. After a while, the Org\u2019s Inventory shows this\
-        \ new switches has been added into the VC.\n\n## Removing member switch\n\
-        To remove a member switch from the VC, following the procedures below:\n\n\
-        1. Ensuring the VC is connected to the cloud first\n2. Unplug the cable from\
-        \ the VC port of the switch\n3. Waiting for the VC state (vc_state) of this\
-        \ switch is changed to not-present\n4. Invoke update_vc with remove to remove\
-        \ this switch from the VC\n5. The Org\u2019s Inventory shows the switch is\
-        \ removed.\n\nPlease notice that member ID 0 (fpc0) cannot be removed. When\
-        \ a VC has two switches left, unpluging the cable may result in the situation\
+        \ VC, every member of the VC must be in the inventory.\n\n## Add new members\n\
+        For models (e.g. EX4300 and up) having dedicated VC ports, it is easier to\
+        \ add new member switches into a VC by just connecting cables with the dedicated\
+        \ VC ports. Cloud will detect the new members and update the inventory.\n\n\
+        For EX2300 VC, adding new members requires to follow the procedures below:\n\
+        1. Powering on the new member switches and ensuring cables are not connected\
+        \ to any VC ports.\n2. Claim or adopt all new member switches under the VC\u2019\
+        s organization Inventory\n3. Assign all new member switches to the same Site\
+        \ as the VC\n4. Invoke vc command to add switches to the VC.\n5. Connect the\
+        \ cables to the VC ports for these switches\n6. After a while, the Org\u2019\
+        s Inventory shows this new switches has been added into the VC.\n\n## Removing\
+        \ member switch\nTo remove a member switch from the VC, following the procedures\
+        \ below:\n\n1. Ensuring the VC is connected to the cloud first\n2. Unplug\
+        \ the cable from the VC port of the switch\n3. Waiting for the VC state (vc_state)\
+        \ of this switch is changed to not-present\n4. Invoke update_vc with remove\
+        \ to remove this switch from the VC\n5. The Org\u2019s Inventory shows the\
+        \ switch is removed.\n\nPlease notice that member ID 0 (fpc0) cannot be removed.\
+        \ When a VC has two switches left, unpluging the cable may result in the situation\
         \ that fpc0 becomes a line card (LC). When this situation is happened, please\
         \ re-plug in the cable, wait for both switches becoming present (show virtual-chassis)\
         \ and then removing the cable again.\n\n## Renumber a member switch\nWhen\
@@ -22714,44 +23180,45 @@ paths:
           content:
             application/json:
               examples:
+                Done:
+                  value:
+                    end_time: 1678900362
+                    start_time: 1678900062
+                    status: done
+                Error:
+                  value:
+                    end_time: 1678900362
+                    start_time: 1678900062
+                    status: error
                 In Progress:
                   value:
-                    estimated_time_left: 63
-                    state: In Progress
-                    time_queued: 1675414259
-                    time_stopped: 0
-                Localized:
+                    est_time_left: 300
+                    start_time: 1678900062
+                    status: inprogress
+                Pending:
                   value:
-                    estimated_time_left: 0
-                    state: Localized
-                    time_queued: 1675414142
-                    time_stopped: 1675414259
-                Not Started:
-                  value:
-                    estimated_time_left: 0
-                    state: Not Started
-                    time_queued: -1
-                    time_stopped: -1
+                    status: pending
               schema:
                 properties:
+                  end_time:
+                    description: time when autoplacement completed or was manually
+                      stopped
+                    type: number
                   estimated_time_left:
                     description: estimate of the time to completion
                     type: number
-                  state:
-                    description: The state of autoplacement for a given map.
-                    enum:
-                    - Not Started
-                    - In Progress
-                    - Localized
-                    type: string
-                  time_queued:
-                    description: Time when autoplacement process was last queued for
+                  start_time:
+                    description: time when autoplacement process was last queued for
                       this map
                     type: number
-                  time_stopped:
-                    description: time when autoplacement finished whether complete
-                      or prematurely terminated.
-                    type: number
+                  status:
+                    description: the status of autoplacement for a given map
+                    enum:
+                    - pending
+                    - inprogress
+                    - done
+                    - error
+                    type: string
                 type: object
                 x-examples:
                   Example 1:
@@ -23653,6 +24120,32 @@ paths:
       summary: startSitePacketCapture
       tags:
       - Sites Pcaps
+  /api/v1/sites/{site_id}/pcaps/{pcap_id}:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/pcap_id'
+    put:
+      description: Update or add notes to a completed packet capture
+      operationId: updateSitePacketCapture
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  notes: wired pcap test
+            schema:
+              properties:
+                notes:
+                  example: wired pcap test
+                  type: string
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: updateSitePacketCapture
+      tags:
+      - Sites Pcaps
   /api/v1/sites/{site_id}/psks:
     get:
       description: Get Site PSKs
@@ -24164,6 +24657,17 @@ paths:
                   items:
                     type: string
                   type: array
+                macs:
+                  description: targeting AP (neighbor APs may get changed, too), default
+                    is empty for ALL APs
+                  items:
+                    example: 5c5b35000001
+                    type: string
+                  type: array
+                txpower_only:
+                  default: false
+                  description: only changng TX Power (will not disconnect clients)
+                  type: boolean
               required:
               - bands
               type: object
@@ -29911,6 +30415,74 @@ paths:
       - Sites Devices Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/stats/switch_wired_clients/{device_id}/search:
+    get:
+      description: This API is used to get recent wired clients mac and parent interface
+        names for a switch device
+      operationId: getSiteWiredClientAndParentInterface
+      parameters:
+      - in: query
+        name: port_id
+        schema:
+          example: eth-0/0/0
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                Example 1:
+                  value:
+                  - device_mac: dc38e1dbf3cd
+                    hostname: test-sw1
+                    mac: b0c4e7001544
+                    org_id: a16fdfc0-8540-47ab-be59-9dd2d00e7c84
+                    port_ids:
+                    - eth-0/0/0
+                    - ge-0/0/1
+                    site_id: a16fdfc0-8540-47ab-be59-9dd2d00e7c84
+              schema:
+                items:
+                  properties:
+                    _ttl:
+                      description: TTL of the validity of the stat
+                      type: integer
+                    device_mac:
+                      description: switch mac
+                      type: string
+                    hostname:
+                      description: switch hostname
+                      type: string
+                    mac:
+                      type: string
+                    org_id:
+                      type: string
+                    port_ids:
+                      description: ports on switch where the wired client is connected
+                      items:
+                        type: string
+                      type: array
+                    site_id:
+                      type: string
+                  type: object
+                type: array
+                x-examples:
+                  Example 1:
+                  - device_mac: dc38e1dbf3cd
+                    hostname: test-sw1
+                    mac: b0c4e7001544
+                    org_id: a16fdfc0-8540-47ab-be59-9dd2d00e7c84
+                    port_ids:
+                    - eth-0/0/0
+                    - ge-0/0/1
+                    site_id: a16fdfc0-8540-47ab-be59-9dd2d00e7c84
+          description: OK
+      summary: getSiteWiredClientAndParentInterface
+      tags:
+      - Sites Wired Clients
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
   /api/v1/sites/{site_id}/stats/switches/metrics:
     get:
       description: 'Get version compliance metrics for managed or monitored switches
@@ -30048,7 +30620,7 @@ paths:
           content:
             application/json:
               examples:
-                example-1:
+                with map_id query param:
                   value:
                   - assets_waits:
                       avg: 0
@@ -30060,22 +30632,73 @@ paths:
                       max: 3610
                       min: 600
                       p95: 2800
-                    id: 8ac84899-32db-6327-334c-9b6d58544cfe
-                    map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
-                    name: Board Room
+                    created_time: 1616625211
+                    id: 123470c7-5d9d-424a-8475-8b344c621234
+                    map_id: 123449d4-d12f-4feb-b40f-5be0e2ae1234
+                    modified_time: 1616625211
+                    name: Zone A
                     num_assets: 0
                     num_clients: 80
                     num_sdkclients: 10
+                    occupancy_limit: 4
+                    org_id: 1234c1a0-6ef6-11e6-8bbf-02e208b21234
                     sdkclients_waits:
                       avg: 1200
                       max: 3610
                       min: 600
                       p95: 2800
+                    site_id: 123448e6-6ef6-11e6-8bbf-02e208b21234
+                    vertices:
+                    - x: 732
+                      y: 1821
+                    - x: 732.5
+                      y: 1731
+                    - x: 837.5
+                      y: 1731.5
+                    - x: 839
+                      y: 1821
+                    vertices_m:
+                    - x: 24.1983341951072
+                      y: 60.198314985369144
+                    - x: 24.21486311190714
+                      y: 57.22310996138056
+                    - x: 27.685935639893827
+                      y: 57.23963887818049
+                    - x: 27.73552239029364
+                      y: 60.198314985369144
+                without map_id query param:
+                  value:
+                  - created_time: 1616625211
+                    id: 123470c7-5d9d-424a-8475-8b344c621234
+                    map_id: 123449d4-d12f-4feb-b40f-5be0e2ae1234
+                    modified_time: 1616625211
+                    name: Zone A
+                    occupancy_limit: 4
+                    org_id: 1234c1a0-6ef6-11e6-8bbf-02e208b21234
+                    site_id: 123448e6-6ef6-11e6-8bbf-02e208b21234
+                    vertices:
+                    - x: 732
+                      y: 1821
+                    - x: 732.5
+                      y: 1731
+                    - x: 837.5
+                      y: 1731.5
+                    - x: 839
+                      y: 1821
+                    vertices_m:
+                    - x: 24.1983341951072
+                      y: 60.198314985369144
+                    - x: 24.21486311190714
+                      y: 57.22310996138056
+                    - x: 27.685935639893827
+                      y: 57.23963887818049
+                    - x: 27.73552239029364
+                      y: 60.198314985369144
               schema:
                 items:
                   $ref: '#/components/schemas/stats_zone'
                 type: array
-          description: OK
+          description: Ok
       summary: getSiteZonesStats
       tags:
       - Sites Stats
@@ -32506,7 +33129,8 @@ paths:
         **Note**: The server host will be your own server FQDN where the Mist Cloud
         is sending the webhook messages
 
-        '
+
+        **will be deprecated after 03/31/2024**'
       operationId: assetRaw
       requestBody:
         content:
@@ -33287,6 +33911,13 @@ components:
         default: 1
         minimum: 1
         type: integer
+    pcap_id:
+      in: path
+      name: pcap_id
+      required: true
+      schema:
+        format: uuid
+        type: string
     psk_id:
       description: PSK ID
       in: path
@@ -42400,6 +43031,7 @@ components:
               value:
                 error: []
                 op: assign
+                reason: []
                 success:
                 - 5c5b350e0001
             delete:
@@ -42407,9 +43039,19 @@ components:
                 error:
                 - FXLH2015150026
                 op: delete
+                reason: []
                 success:
                 - FXLH2015150025
                 - 5c5b350e0001
+            error:
+              value:
+                error:
+                - 5c5b350e0001
+                op: manage
+                reason:
+                - already managed
+                success:
+                - c15353123096
           schema:
             properties:
               error:
@@ -42420,15 +43062,22 @@ components:
                 enum:
                 - delete
                 - assign
+                - manage
+                - unmanage
                 type: string
+              reason:
+                items:
+                  type: string
+                type: array
               success:
                 items:
                   type: string
                 type: array
             required:
+            - error
             - op
             - success
-            - error
+            - reason
             type: object
       description: OK
     OrgSetting:
@@ -49786,6 +50435,7 @@ components:
           - '24'
           - '5'
           - auto
+          - '6'
           type: string
         band_5:
           $ref: '#/components/schemas/ap_radio_band'
@@ -50005,6 +50655,16 @@ components:
           type: boolean
         host:
           description: only if `type`==`imagotag`
+          type: string
+        imagotag_type:
+          default: auto
+          description: 'only if `type`==`imagotag`
+
+            if native imagotag is enabled, BLE will be disabled automatically'
+          enum:
+          - auto
+          - usb
+          - native
           type: string
         port:
           default: 0
@@ -52124,6 +52784,27 @@ components:
             $ref: '#/components/schemas/junos_port_config_gateway'
           description: The property key is the port name or range (e.g. "ge-0/0/0-10")
           type: object
+        port_mirroring:
+          properties:
+            port_mirror:
+              properties:
+                family_type:
+                  type: string
+                ingress_port_ids:
+                  items:
+                    example: ge-0/0/3
+                    type: string
+                  type: array
+                output_port_id:
+                  example: ge-0/0/5
+                  type: string
+                rate:
+                  type: integer
+                run_length:
+                  minimum: 0
+                  type: integer
+              type: object
+          type: object
         site_id:
           format: uuid
           readOnly: true
@@ -52753,7 +53434,6 @@ components:
       x-stoplight:
         id: ac5bc7de9d2fd
     device_upgrade:
-      description: ''
       properties:
         canary_phases:
           default:
@@ -52859,7 +53539,8 @@ components:
           minLength: 1
           type: string
         version:
-          default: stable
+          default: latest
+          description: specific version / stable
           example: 3.1.5
           minLength: 1
           type: string
@@ -54849,6 +55530,9 @@ components:
           description: deviceprofile id if assigned, null if not assigned
           nullable: true
           type: string
+        hostname:
+          description: hostname reported by the device
+          type: string
         hw_rev:
           description: device hardware revision number
           type: string
@@ -54870,7 +55554,7 @@ components:
           description: inventory last modified time, in epoch
           type: integer
         name:
-          description: device name if assigned
+          description: device name if configured
           type: string
         org_id:
           description: org id
@@ -55780,6 +56464,37 @@ components:
         network:
           description: optional, the network to be used for mgmt
           type: string
+        node1:
+          description: for HA Cluster, node1 can have different IP Config
+          properties:
+            ip:
+              type: string
+            netmask:
+              description: used only if `subnet` is not specified in `networks`
+              type: string
+            network:
+              description: optional, the network to be used for mgmt
+              type: string
+            type:
+              default: dynamic
+              enum:
+              - static
+              - dynamic
+              type: string
+            use_mgmt_vrf:
+              default: false
+              description: if supported on the platform. If enabled, DNS will be using
+                this routing-instance, too
+              type: boolean
+            use_mgmt_vrf_for_host_out:
+              default: false
+              description: whether to use `mgmt_junos` for host-out traffic (NTP/TACPLUS/RADIUS/SYSLOG/SNMP),
+                if alternative service is desired
+              type: boolean
+            vlan_id:
+              description: optional, if different from parent
+              type: integer
+          type: object
         type:
           default: dynamic
           enum:
@@ -55796,6 +56511,8 @@ components:
           description: whether to use `mgmt_junos` for host-out traffic (NTP/TACPLUS/RADIUS/SYSLOG/SNMP),
             if alternative service is desired
           type: boolean
+        vlan_id:
+          type: integer
       type: object
       x-examples:
         Example 1:
@@ -56076,10 +56793,6 @@ components:
         outer_vlan_id:
           description: for Q-in-Q
           type: integer
-        pci_address:
-          description: For 128T only
-          example: '0000:02:00.0'
-          type: string
         poe_disabled:
           default: false
           type: boolean
@@ -56268,6 +56981,45 @@ components:
           ingress_port_ids:
           - ge-0/0/3
           output_network: analyze
+          output_port_id: ge-0/0/5
+    junos_port_mirroring:
+      properties:
+        egress_port_ids:
+          description: at least one of the `ingress_port_ids`, `egress_port_ids` or
+            `ingress_networks ` should be specified
+          items:
+            example: ge-0/0/3
+            type: string
+          type: array
+        ingress_networks:
+          description: at least one of the `ingress_port_ids`, `egress_port_ids` or
+            `ingress_networks ` should be specified
+          items:
+            example: corp
+            type: string
+          type: array
+        ingress_port_ids:
+          description: at least one of the `ingress_port_ids`, `egress_port_ids` or
+            `ingress_networks ` should be specified
+          items:
+            example: ge-0/0/3
+            type: string
+          type: array
+        output_network:
+          example: analyze
+          type: string
+        output_port_id:
+          description: exaclty on of the `output_port_id` or `output_network` should
+            be provided
+          example: ge-0/0/5
+          type: string
+      type: object
+      x-examples:
+        Example 1:
+          egress_port_ids:
+          - ge-0/0/3
+          ingress_port_ids:
+          - ge-0/0/3
           output_port_id: ge-0/0/5
     junos_port_usages:
       description: Junos port usages
@@ -59908,6 +60660,10 @@ components:
           description: whether to disallow Mist to analyze pcap files (this is required
             for marvis pcap)
           type: boolean
+        disable_remote_shell:
+          default: false
+          description: whether to disable remote shell access for an entire org
+          type: boolean
         for_site:
           readOnly: true
           type: boolean
@@ -60358,61 +61114,72 @@ components:
       description: Portal Template
       properties:
         accessCodeAlternateEmail:
-          description: "\u201CPlease provide valid alternate email\u201D"
+          default: Please provide valid alternate email
           type: string
         alignment:
           description: "defines alignment on portal. \u201Cleft\u201D is default."
           type: string
         authButtonAmazon:
+          default: Sign in with Amazon
           description: label for Amazon auth button
           type: string
         authButtonAzure:
+          default: Sign in with Azure
           description: label for Azure auth button
           type: string
         authButtonEmail:
+          default: Sign in with Email
           description: label for Email auth button
           type: string
         authButtonFacebook:
+          default: Sign in with Facebook
           description: label for Facebook auth button
           type: string
         authButtonGoogle:
+          default: Sign in with Google
           description: label for Google auth button
           type: string
         authButtonMicrosoft:
+          default: Sign in with Microsoft
           description: label for Microsoft auth button
           type: string
         authButtonPassphrase:
           description: label for passphrase auth button
           type: string
         authButtonSms:
+          default: Sign in with Text Message
           description: label for SMS auth button
           type: string
         authButtonSponsor:
+          default: Sign in as Guest
           description: label for Sponsor auth button
           type: string
         authLabel:
-          description: "\u201CConnect to WiFi with\u201D"
+          default: "\u201CConnect to WiFi with\u201D"
           type: string
         backLink:
+          default: Go back and edit request form
           description: label of the link to go back to /logon
           type: string
         color:
-          description: "\u201C#1074bc\u201D"
+          default: "\u201C#1074bc\u201D"
           type: string
         colorDark:
-          description: "\u201C#0b5183\u201D"
+          default: "\u201C#0b5183\u201D"
           type: string
         colorLight:
-          description: "\u201C#3589c6\u201D"
+          default: "\u201C#3589c6\u201D"
           type: string
         company:
           default: false
           description: whether company field is required
           type: boolean
         companyError:
+          default: Please provide company name
           description: error message when company not provided
           type: string
         companyLabel:
+          default: Company
           description: label of company field
           type: string
         created_time:
@@ -60423,80 +61190,99 @@ components:
           description: whether email field is required
           type: boolean
         emailAccessDomainError:
+          default: Access is restricted by email domain
           description: "error message when a user has valid social login but doesn\u2019\
             t match specified email domains."
           type: string
         emailCancel:
-          description: "\u201CCancel\u201D"
+          default: Cancel
           type: string
         emailCodeError:
-          description: "\u201CPlease provide valid alternate email\u201D"
+          default: Please provide valid alternate email
           type: string
         emailError:
+          default: Please provide valid email
           description: error message when email not provided
           type: string
         emailFieldLabel:
-          description: "\u201CEnter your email address\u201D"
+          default: Enter your email address
           type: string
         emailLabel:
+          default: Email
           description: label of email field
           type: string
         emailMessage:
-          description: "\u201CWe will email you an authentication code which you can\
-            \ use to connect to the WiFi network.\u201D"
+          default: We will email you an authentication code which you can use to connect
+            to the WiFi network.
           type: string
         emailSubmit:
-          description: "\u201CSend Access Code\u201D"
+          default: "\u201CSend Access Code\u201D"
           type: string
         emailTitle:
-          description: "\u201CSign in with Email\u201D"
+          default: "\u201CSign in with Email\u201D"
           type: string
         field1:
+          default: false
           description: whether to ask field1
           type: boolean
         field1Error:
+          default: Please provide field1
           description: error message when field1 not provided
           type: string
         field1Label:
+          default: Custom1
           description: label of field1
           type: string
         field1Required:
+          default: false
           description: whether field1 is required field
           type: boolean
         field2:
+          default: false
           description: whether to ask field2
           type: boolean
         field2Error:
+          default: Please provide field2
           description: error message when field2 not provided
           type: string
         field2Label:
+          default: Custom2
           description: label of field2
           type: string
         field2Required:
+          default: false
           description: whether field2 is required field
           type: boolean
         field3:
+          default: false
           description: whether to ask field3
           type: boolean
         field3Error:
+          default: Please provide field3
           description: error message when field3 not provided
           type: string
         field3Label:
+          default: Custom3
           description: label of field3
           type: string
         field3Required:
+          default: false
           description: whether field3 is required field
           type: boolean
         field4:
+          default: false
           description: whether to ask field4
           type: boolean
         field4Error:
+          default: Please provide field4
           description: error message when field4 not provided
           type: string
         field4Label:
+          default: Custom4
           description: label of field4
           type: string
         field4Required:
+          default: false
           description: whether field4 is required field
           type: boolean
         for_site:
@@ -60507,7 +61293,7 @@ components:
           readOnly: true
           type: string
         message:
-          description: "\u201CPlease enjoy the complimentary Wifi\u201D"
+          default: Please enjoy the complimentary Wifi
           type: string
         modified_time:
           readOnly: true
@@ -60517,40 +61303,44 @@ components:
           description: whether name field is required
           type: boolean
         nameError:
+          default: Please provide your name
           description: error message when name not provided
           type: string
         nameLabel:
+          default: Name
           description: label of name field
           type: string
         optout:
           description: "whether to display \u201CDo Not Store My Personal Information\u201D"
           type: boolean
         optoutLabel:
-          description: "label for \u201CDo Not Store My Personal Information\u201D"
+          default: Do Not Store My Personal Information
           type: string
         org_id:
           format: uuid
           readOnly: true
           type: string
         pageTitle:
-          description: "\u201CWelcome\u201D"
+          default: Welcome
           type: string
         passphraseCancel:
-          description: "\u201CCancel\u201D"
+          default: Cancel
           type: string
         passphraseError:
+          default: Invalid Passphrase
           description: error message when invalid passphrase is provided
           type: string
         passphraseLabel:
-          description: Passphrase
+          default: Passphrase
           type: string
         passphraseMessage:
-          description: "\u201CLogin using passphrase\u201D"
+          default: Login using passphrase
           type: string
         passphraseSubmit:
-          description: "\u201CSign in\u201D"
+          default: Sign in
           type: string
         passphraseTitle:
+          default: Sign in with Passphrase
           description: Title for passphrase details page
           type: string
         poweredBy:
@@ -60558,9 +61348,11 @@ components:
           description: "whether to show \u201CPowered by Mist\u201D"
           type: boolean
         requiredFieldLabel:
+          default: required
           description: label to denote required field
           type: string
         signInLabel:
+          default: Sign In
           description: label of the button to /signin
           type: string
         site_id:
@@ -60568,133 +61360,165 @@ components:
           readOnly: true
           type: string
         smsCarrierDefault:
-          description: "\u201CPlease Select\u201D"
+          default: Please Select
           type: string
         smsCarrierError:
-          description: "\u201CPlease select a mobile carrier\u201D"
+          default: Please select a mobile carrier
           type: string
         smsCarrierFieldLabel:
+          default: Mobile Carrier
           description: label for mobile carrier drop-down list
           type: string
         smsCodeCancel:
+          default: Cancel
           description: Label for cancel confirmation code submission
           type: string
         smsCodeError:
+          default: Invalid Access Code
           description: error message when confirmation code is invalid
           type: string
         smsCodeFieldLabel:
-          description: "\u201CConfirmation Code\u201D"
+          default: Confirmation Code
           type: string
         smsCodeMessage:
-          description: "\u201CEnter the confirmation code\u201D"
+          default: Enter the confirmation code
           type: string
         smsCodeSubmit:
+          default: Submit Code
           description: Label for confirmation code submit button
           type: string
         smsCodeTitle:
-          description: "\u201CAccess Code\u201D"
+          default: Access Code
           type: string
         smsCountryFieldLabel:
           description: "\u201CCountry Code\u201D"
           type: string
         smsCountryFormat:
-          description: "\u201C+1\u201D"
+          default: "\u201C+1\u201D"
           type: string
         smsHaveAccessCode:
+          default: I have an access code
           description: Label for checkbox to specify that the user has access code
           type: string
         smsMessageFormat:
+          default: Code {{code}} expires in {{duration}} minutes.
           description: format of access code sms message. {{code}} and {{duration}}
             are place holders and should be retained as is.
           type: string
         smsNumberCancel:
+          default: Cancel
           description: label for canceling mobile details for SMS auth
           type: string
         smsNumberError:
-          description: "\u201CInvalid Mobile Number\u201D"
+          default: Invalid Mobile Number
           type: string
         smsNumberFieldLabel:
+          default: Mobile Number
           description: label for field to provide mobile number
           type: string
         smsNumberFormat:
-          description: "\u201C2125551212 (digits only)\u201D"
+          default: "\u201C2125551212 (digits only)\u201D"
           type: string
         smsNumberMessage:
-          description: "\u201CWe will send an access code to your mobile number which\
-            \ you can use to connect to the WiFi network. Message and data rates may\
-            \ apply.\u201D"
+          default: We will send an access code to your mobile number which you can
+            use to connect to the WiFi network. Message and data rates may apply.
           type: string
         smsNumberSubmit:
+          default: Sign In
           description: label for submit button for code generation
           type: string
         smsNumberTitle:
+          default: Text Message Confirmation
           description: Title for phone number details
           type: string
         smsUsernameFormat:
-          description: "\u201Cusername\u201D"
+          default: username
           type: string
         smsValidityDuration:
+          default: 5
           description: how long confirmation code should be considered valid (in minutes)
           type: number
+        sponsorAutoApproved:
+          default: Your request was approved.
+          type: string
+        sponsorAutoApprovedNote:
+          default: Your notification has been sent to
+          type: string
         sponsorBackLink:
-          description: "\u201CGo back and edit request form\u201D"
+          default: Go back and edit request form
           type: string
         sponsorCancel:
-          description: "\u201CCancel\u201D"
+          default: Cancel
           type: string
         sponsorEmail:
+          default: Please provide valid sponsor email
           description: label for Sponsor Email
           type: string
         sponsorEmailError:
-          description: "\u201CPlease provide valid sponsor email\u201D"
+          default: Please provide valid sponsor email
           type: string
         sponsorEmailTemplate:
           description: "\u201Chtml template to replace/override default sponsor email\
             \ template\u201D"
           type: string
         sponsorInfoApproved:
-          description: "\u201CYour request was approved by\u201D"
+          default: Your request was approved by
           type: string
         sponsorInfoDenied:
-          description: "\u201CYour request was denied by\u201D"
+          default: Your request was denied by
           type: string
         sponsorInfoPending:
-          description: "\u201CYour notification has been sent to\u201D"
+          default: Your notification has been sent to
           type: string
         sponsorName:
+          default: Sponsor Name
           description: label for Sponsor Name
           type: string
         sponsorNameError:
-          description: "\u201CPlease provide sponsor\u2019s name\u201D"
+          default: "Please provide sponsor\u2019s name"
           type: string
         sponsorNotePending:
-          description: "\u201CPlease wait for them to acknowledge.\u201D"
+          default: Please wait for them to acknowledge.
           type: string
         sponsorStatusApproved:
+          default: Your request was approved
           description: text to display if sponsor approves request
           type: string
         sponsorStatusDenied:
+          default: Your request was denied
           description: text to display when sponsor denies request
           type: string
         sponsorStatusPending:
+          default: Notification Sent
           description: text to display if request is still pending
           type: string
         sponsorSubmit:
+          default: Notify Sponsor
           description: submit button label to notify sponsor about guest request
+          type: string
+        sponsorsAutoApprovedNote:
+          default: Your notification has been sent to the sponsors."
+          type: string
+        sponsorsError:
+          default: Please select a sponsor
           type: string
         tos:
           default: true
           type: boolean
         tosAcceptLabel:
+          default: I accept the Terms of Service
           description: prefix of the label of the link to go to /tos
           type: string
         tosError:
+          default: Please review and accept terms of service
           description: error message when tos not accepted
           type: string
         tosLink:
+          default: Terms of Service
           description: label of the link to go to /tos
           type: string
         tosText:
+          default: terms of service
           description: text of the Terms of Service
           type: string
       required:
@@ -63200,6 +64024,18 @@ components:
         app_usage:
           description: consumes uplink bandwidth, requires WA license
           type: boolean
+        auto_signature_update:
+          properties:
+            day_of_week:
+              description: optional, daily if omitted
+              type: string
+            enable:
+              default: true
+              type: boolean
+            time_of_day:
+              description: optional, Mist will decide the timing
+              type: string
+          type: object
         config_revert_timer:
           default: 10
           description: he rollback timer for commit confirmed
@@ -63600,6 +64436,15 @@ components:
           default: false
           description: whether to store the config on AP
           type: boolean
+        port_mirroring:
+          additionalProperties:
+            $ref: '#/components/schemas/junos_port_mirroring'
+          description: 'Property key is the port mirroring instance name
+
+            port_mirroring can be added under site/settings. It takes interface and
+            ports as input for ingress, interface as input for egress and can take
+            interface and port as output.'
+          type: object
         port_usages:
           additionalProperties:
             $ref: '#/components/schemas/junos_port_usages'
@@ -63751,6 +64596,22 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/junos_vrrp_group'
           description: the property key is the vrrp group
+          type: object
+        vs_instances:
+          additionalProperties:
+            properties:
+              networks:
+                items:
+                  example: guest
+                  type: string
+                type: array
+            type: object
+          description: 'virtual-switch (for EX92xx and QFX5130)
+
+            all the networks not included here will be placed in default `evpn_vs`
+            virtual-switch RI
+
+            Property key is the instance name'
           type: object
         wan_vna:
           properties:
@@ -67977,6 +68838,9 @@ components:
       uniqueItems: true
     stats_bgp:
       properties:
+        evpn_overlay:
+          description: if this is created for evpn overlay
+          type: boolean
         for_overlay:
           description: if this is created for overlay
           type: boolean
@@ -67992,6 +68856,9 @@ components:
           type: integer
         neighbor_mac:
           description: if it's another device in the same org
+          type: string
+        node:
+          description: node0/node1
           type: string
         org_id:
           description: router org ID
@@ -69198,6 +70065,13 @@ components:
         power_budget:
           description: in mW, surplus if positie or deficit if negative
           type: number
+        power_constrained:
+          description: whether insufficient power
+          type: boolean
+        power_opmode:
+          description: constrained mode
+          example: '[20] 6GHz(2x2) 5GHz(4x4) 2.4GHz(2x2).'
+          type: string
         power_src:
           description: DC Input / PoE 802.3at / PoE 802.3af / LLDP / ? (unknown)
           type: string
@@ -69746,6 +70620,7 @@ components:
               type: number
           type: object
         hostname:
+          description: hostname reported by the device
           type: string
         ip:
           description: IP address
@@ -69867,6 +70742,7 @@ components:
           type: array
           uniqueItems: true
         name:
+          description: device name if configured
           type: string
         serial:
           description: serial
@@ -70036,6 +70912,7 @@ components:
               type: integer
           type: object
         hostname:
+          description: hostname reported by the device
           type: string
         if_stat:
           additionalProperties:
@@ -70220,6 +71097,7 @@ components:
           type: array
           uniqueItems: true
         name:
+          description: device name if configured
           type: string
         serial:
           type: string
@@ -71523,11 +72401,6 @@ components:
             p95:
               description: 95th percentile of all the wait time(s)
               type: number
-          required:
-          - max
-          - min
-          - avg
-          - p95
           type: object
         clients_waits:
           description: client wait time right now
@@ -71544,12 +72417,9 @@ components:
             p95:
               description: 95th percentile of all the wait time(s)
               type: number
-          required:
-          - max
-          - min
-          - avg
-          - p95
           type: object
+        created_time:
+          type: integer
         id:
           description: id of the zone
           format: uuid
@@ -71558,6 +72428,8 @@ components:
           description: map_id of the zone
           format: uuid
           type: string
+        modified_time:
+          type: integer
         name:
           description: name of the zone
           type: string
@@ -71570,6 +72442,10 @@ components:
         num_sdkclients:
           description: number of sdk clients
           type: integer
+        occupancy_limit:
+          type: integer
+        org_id:
+          type: string
         sdkclients_waits:
           description: sdkclient wait time right now
           properties:
@@ -71585,17 +72461,13 @@ components:
             p95:
               description: 95th percentile of all the wait time(s)
               type: number
-          required:
-          - max
-          - min
-          - avg
-          - p95
           type: object
+        site_id:
+          type: string
       required:
       - id
-      - name
       - map_id
-      - num_sdkclients
+      - name
       type: object
       x-examples:
         example-1:
@@ -74871,6 +75743,11 @@ components:
     wlan_portal:
       description: portal wlan settings
       properties:
+        allow_wlan_id_roam:
+          default: false
+          description: whether to allow guest roam between different wlan_ids (same
+            ssid). requires cross_site enabled
+          type: boolean
         amazon_client_id:
           description: amazon OAuth2 client id. This is optional. If not provided,
             it will use a default one.
@@ -75086,7 +75963,9 @@ components:
           type: string
         sponsor_auto_approve:
           default: false
-          description: if `sponsor_auto_approve`==`false
+          description: whether to automatically approve guest and allow sponsor to
+            revoke guest access, needs predefined_sponsors_enabled enabled and sponsor_notify_all
+            disabled
           type: boolean
         sponsor_email_domains:
           description: list of domain allowed for sponsor email. Required if `sponsor_enabled`
