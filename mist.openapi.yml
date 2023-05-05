@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **0.38.0**
+  description: '> Version: **0.39.0**
 
     >
 
-    > Date: **April 24, 2023**
+    > Date: **May 5, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 0.38.0
+  version: 0.39.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -21903,6 +21903,14 @@ paths:
         content:
           application/json:
             examples:
+              client_mac:
+                value:
+                  match: client_mac
+                  name: cameras
+                  type: match
+                  values:
+                  - '010203040506'
+                  - abcdef*
               matches_cert_cn:
                 value:
                   match: cert_cn
@@ -21941,7 +21949,7 @@ paths:
                   - /C=CN/ST=defy/O=defy/OU=defy/CN=steve
               matches_radius_group:
                 value:
-                  name: group
+                  name: VIP
                   radius_group: VIP
                   type: radius_group
               matches_realm:
@@ -21975,9 +21983,24 @@ paths:
                   - cisco
               matches_vlan:
                 value:
-                  name: vlan
+                  name: vlan-user
                   type: vlan
                   vlan: '30'
+              radius_attr:
+                value:
+                  name: idle-timeout
+                  radius_attr: Idle-Timeout=600
+                  type: radius_attr
+              radius_vendor_attr:
+                value:
+                  name: PA-SuperUser
+                  radius_vendor_attr: PaloAlto-Admin-Role=superuser
+                  type: radius_vendor_attr
+              session_timeout:
+                value:
+                  name: session-timeout
+                  session_timeout: 86400
+                  type: session_timeout
             schema:
               $ref: '#/components/schemas/nac_tag'
       responses:
@@ -28020,6 +28043,240 @@ paths:
       summary: syncOrgCradlepointRouters
       tags:
       - Orgs Devices Others
+  /api/v1/orgs/{org_id}/setting/jamf/link_accounts:
+    delete:
+      description: Delete Jamf Authorization With Mist Portal
+      operationId: deleteOrgJamfAppAuthorization
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  account_id: junipernfr.jamfcloud.com
+            schema:
+              properties:
+                account_id:
+                  example: junipernfr.jamfcloud.com
+                  type: string
+              type: object
+              x-examples:
+                Example 1:
+                  account_id: junipernfr.jamfcloud.com
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: deleteOrgJamfAppAuthorization
+      tags:
+      - Orgs OAuth
+    get:
+      description: 'Get Jamf Application Linked Status
+
+        '
+      operationId: getOrgJamfAppLinkedStatus
+      responses:
+        '200':
+          $ref: '#/components/responses/OauthAppLinkStatus'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: getOrgJamfAppLinkedStatus
+      tags:
+      - Orgs OAuth
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: Add Jamf Authorization With Mist Portal
+      operationId: addOrgJamfAppAuthorization
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  instance_url: customer account Jamf instance URL
+                  password: customer account password
+                  smartgroup_name: smart group membership for determining compliance
+                    status
+                  username: customer account user name
+            schema:
+              properties:
+                instance_url:
+                  description: customer account Jamf instance URL
+                  example: customer account Jamf instance URL
+                  type: string
+                password:
+                  description: customer account password
+                  example: customer account password
+                  type: string
+                smartgroup_name:
+                  description: smart group membership for determining compliance status
+                  example: smart group membership for determining compliance status
+                  type: string
+                username:
+                  description: customer account user name
+                  example: customer account user name
+                  type: string
+              required:
+              - instance_url
+              - username
+              - password
+              - smartgroup_name
+              type: object
+              x-examples:
+                Example 1:
+                  instance_url: customer account Jamf instance URL
+                  password: customer account password
+                  smartgroup_name: smart group membership for determining compliance
+                    status
+                  username: customer account user name
+      responses:
+        '200':
+          $ref: '#/components/responses/OauthAppLinkStatus'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: addOrgJamfAppAuthorization
+      tags:
+      - Orgs OAuth
   /api/v1/orgs/{org_id}/setting/jsec/setup:
     delete:
       description: Delete JSEC credential
@@ -28871,15 +29128,6 @@ paths:
       summary: setupOrgZscalerCredential
       tags:
       - Orgs Devices Zscaler
-  /api/v1/orgs/{org_id}/setting/{app_name}/link:
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    - description: 'OAuth application name (Example : zoom, teams, etc..)'
-      in: path
-      name: app_name
-      required: true
-      schema:
-        type: string
   /api/v1/orgs/{org_id}/setting/{app_name}/link_accounts:
     delete:
       description: Delete Org Level OAuth Application Authorization With Mist Portal
@@ -29016,7 +29264,7 @@ paths:
       - Orgs OAuth
     parameters:
     - $ref: '#/components/parameters/org_id'
-    - description: 'OAuth application name (Example : zoom, teams, etc..)'
+    - description: 'OAuth application name (Example : zoom, teams, intune'
       in: path
       name: app_name
       required: true
@@ -44392,7 +44640,8 @@ paths:
       description: Get List of Available Device Versions
       operationId: listSiteAvailableDeviceVersions
       parameters:
-      - in: query
+      - description: fetch version for device type (E.g. switch)
+        in: query
         name: type
         schema:
           default: ap
@@ -44400,6 +44649,12 @@ paths:
           - ap
           - switch
           - gateway
+          type: string
+      - description: fetch version for device model, use/combine with `type` as needed
+          (for switch and gateway devices)
+        in: query
+        name: model
+        schema:
           type: string
       responses:
         '200':
@@ -51791,9 +52046,8 @@ paths:
           description: Autoplacement Process has begun for this map
         '400':
           description: "* Map has less than 3 APs associated with it to perform auto\
-            \ placement \n* Insufficient anchors for auto placement. 3 required\n\
-            * Auto AP Placement is already in progress for this Map\n* Autoplacement\
-            \ data does not exist or has gone stale"
+            \ placement \n* Auto AP Placement is already in progress for this Map\n\
+            * Autoplacement data does not exist or has gone stale"
         '401':
           content:
             application/json:
@@ -59680,7 +59934,7 @@ paths:
           enum:
           - mac
           type: string
-      - description: feedback rating
+      - description: feedback rating (e.g. "rating=1" or "rating=1,2")
         in: query
         name: rating
         schema:
@@ -74531,7 +74785,7 @@ components:
             items:
               properties:
                 model:
-                  description: AP model (as seen in the device stats)
+                  description: Device model (as seen in the device stats)
                   type: string
                 tag:
                   description: annotation, stable / beta / alpha. Or it can be empty
@@ -88177,6 +88431,10 @@ components:
           type: object
         usb_config:
           $ref: '#/components/schemas/ap_usb'
+        use_auto_placement:
+          default: false
+          description: whether this AP uses autoplacement values or ignores them
+          type: boolean
         vars:
           description: a dictionary of name->value, the vars can then be used in Wlans.
             This can overwrite those from Site Vars
@@ -91087,6 +91345,13 @@ components:
         import_policy:
           description: default import policies if no per-neighbor policies defined
           type: string
+        imported_networks:
+          description: "for networks learned from this BGP peer that we may want to\n\
+            \  - define services / policies for it\n  - re-advertised to overlay"
+          items:
+            example: dc-apps
+            type: string
+          type: array
         local_as:
           type: integer
         neighbor_as:
@@ -91376,6 +91641,14 @@ components:
     junos_evpn_options:
       description: EVPN Options
       properties:
+        auto_router_id_subnet:
+          description: 'optional, this generates router_id automatically, if specified,
+            `router_id_prefix` is ignored
+
+            this subnet will also be used for loopback IP, by default, /16 can support
+            2048 switches with 32 VRFs'
+          example: 100.100.0.0/16
+          type: string
         core_as_border:
           default: false
           description: 'optional, for ERB or CLOS, you can either use esilag to upstream
@@ -94764,6 +95037,7 @@ components:
       title: nac_rule_matching
       type: object
     nac_tag:
+      description: ''
       properties:
         created_time:
           readOnly: true
@@ -94778,17 +95052,18 @@ components:
         match:
           description: if `type`==`match`
           enum:
-          - vendor
-          - idp_role
           - cert_cn
-          - cert_sub
-          - cert_serial
           - cert_issuer
           - cert_san
-          - realm
-          - user_name
-          - ssid
+          - cert_serial
+          - cert_sub
           - client_mac
+          - idp_role
+          - radius_group
+          - realm
+          - ssid
+          - user_name
+          - vendor
           minLength: 1
           type: string
         modified_time:
@@ -94801,15 +95076,38 @@ components:
           format: uuid
           readOnly: true
           type: string
+        radius_attr:
+          description: "if `type`==`radius_attr`, user can specify any standard attribute\
+            \ in the field \"radius_attr\". \nIt is the responsibility of the user\
+            \ to provide a  syntactically correct string, otherwise it may not work\
+            \ as expected.\nNote that it is allowed to have more than one radius_attr\
+            \ in the result of a given rule."
+          example: Idle-Timeout=600
+          type: string
         radius_group:
           description: if `type`==`radius_group`
           type: string
+        radius_vendor_attr:
+          description: "if `type`==`radius_vendor_attr`, user can specify any vendor-specific\
+            \ attribute in the field \"radius_vendor_attr\". \nIt is the responsibility\
+            \ of the user to provide a  syntactically correct string, otherwise it\
+            \ may not work as expected.\nNote that it is allowed to have more than\
+            \ one radius_vendor_attr in the result of a given rule."
+          example: PaloAlto-Admin-Role=superuser
+          type: string
+        session_timeout:
+          description: if `type`==`session_timeout, in seconds
+          example: 86000
+          type: integer
         type:
           enum:
           - match
-          - radius_group
           - vlan
           - gbp_tag
+          - radius_attr
+          - radius_group
+          - radius_vendor_attr
+          - session_timeout
           minLength: 1
           type: string
         values:
@@ -94894,6 +95192,15 @@ components:
         matches_vlan:
           type: vlan
           vlan: '30'
+        radius_attr:
+          radius_attr: Idle-Timeout=600
+          type: radius_attr
+        radius_vendor_attr:
+          radius_vendor_attr: PaloAlto-Admin-Role=superuser
+          type: radius_vendor_attr
+        session_timeout:
+          session_timeout: 86400
+          type: session_timeout
     network:
       description: Networks are usually subnets that have cross-site significance.
         `networks`in Org Settings will got merged into `networks`in Site Setting.
@@ -95000,6 +95307,14 @@ components:
         vpn_access:
           additionalProperties:
             properties:
+              affinity:
+                default: hub
+                description: when used in path preference, whether we should prefer
+                  the same hub or by path
+                enum:
+                - hub
+                - path
+                type: string
               allow_ping:
                 description: whether to allow ping from vpn into this routed network
                 type: boolean
@@ -95304,15 +95619,13 @@ components:
           items:
             properties:
               account_id:
-                description: Linked apps(zoom/teams) account id
+                description: Linked apps(zoom/teams/intune/jamf) tenant id
                 type: string
               error:
                 description: This error is provided only when the apps(zoom) account
                   refresh token fails in the backend
                 type: string
               last_status:
-                description: Is the last data pull for apps(zoom/teams) account is
-                  successful or not
                 oneOf:
                 - type: integer
                 - type: string
@@ -95321,12 +95634,12 @@ components:
                 - type: integer
                 - type: string
               linked_by:
-                description: First name of the user who linked the apps(zoom/teams)
+                description: First name of the user who linked the apps(zoom/teams/intune/jamf)
                   account
                 type: string
               name:
-                description: Name of the company whose (zoom/teams) account mist has
-                  subscribed to
+                description: Name of the company whose (zoom/teams/intune/jamf) account
+                  mist has subscribed to
                 type: string
             type: object
           type: array
@@ -95799,8 +96112,6 @@ components:
               type: object
             app_usage:
               type: boolean
-            tacacs:
-              $ref: '#/components/schemas/tacacs'
           type: object
         id:
           format: uuid
@@ -95899,6 +96210,9 @@ components:
                 key:
                   example: '-----BEGIN PRI...'
                   type: string
+                password:
+                  description: private key password (optional)
+                  type: string
               type: object
           type: object
         modified_time:
@@ -95952,8 +96266,6 @@ components:
           type: object
         pcap_bucket_verified:
           type: boolean
-        remote_syslog:
-          $ref: '#/components/schemas/remote_syslog'
         security:
           properties:
             disable_local_ssh:
@@ -96004,6 +96316,18 @@ components:
               maximum: 4294967295
               minimum: 1
               type: integer
+          type: object
+        wan_pma:
+          properties:
+            enabled:
+              default: false
+              type: boolean
+          type: object
+        wired_pma:
+          properties:
+            enabled:
+              default: false
+              type: boolean
           type: object
       type: object
       x-examples:
@@ -100655,6 +100979,8 @@ components:
           type: object
         root_password:
           type: string
+        tacacs:
+          $ref: '#/components/schemas/tacacs'
         use_mxedge_proxy:
           description: to use mxedge as proxy
           type: boolean
@@ -104883,6 +105209,17 @@ components:
             vcore_voltage:
               type: number
           type: object
+        esl_stat:
+          properties:
+            channel:
+              type: integer
+            connected:
+              type: boolean
+            type:
+              type: string
+            up:
+              type: boolean
+          type: object
         ext_ip:
           type: string
         fwupdate:
@@ -105446,19 +105783,6 @@ components:
         uptime:
           description: how long, in seconds, has the device been up (or rebooted)
           type: number
-        usb_stat:
-          properties:
-            channel:
-              type: integer
-            connected:
-              type: boolean
-            last_activity:
-              type: integer
-            type:
-              type: string
-            up:
-              type: boolean
-          type: object
         version:
           type: string
         x:
