@@ -1,0 +1,815 @@
+description: 'WLAN
+
+
+  **Note**: portal_template will be forked out of wlan objects soon. To fetch portal_template,
+  please query portal_template_url. To update portal_template, use Wlan Portal Template.'
+properties:
+  acct_interim_interval:
+    default: 0
+    description: how frequently should interim accounting be reported, 60-65535. default
+      is 0 (use one specified in Access-Accept request from RADIUS Server). Very frequent
+      messages can affect the performance of the radius server, 600 and up is recommended
+      when enabled
+    maximum: 65535
+    minimum: 0
+    type: integer
+  acct_servers:
+    description: list of RADIUS accounting servers, optional, order matters where
+      the first one is treated as primary
+    items:
+      $ref: ./acct_server.yaml
+    type: array
+  airwatch:
+    $ref: ./acct_server.yaml
+  allow_ipv6_ndp:
+    default: true
+    description: only applicable when limit_bcast==true, which allows or disallows
+      ipv6 Neighbor Discovery packets to go through
+    type: boolean
+  allow_mdns:
+    default: false
+    description: only applicable when limit_bcast==true, which allows mDNS / Bonjour
+      packets to go through
+    type: boolean
+  allow_ssdp:
+    default: false
+    description: only applicable when `limit_bcast`==`tru`e, which allows SSDP
+    type: boolean
+  ap_ids:
+    description: list of device ids
+    items:
+      format: uuid
+      type: string
+    nullable: true
+    type: array
+  app_limit:
+    description: bandwidth limiting for apps (applies to up/down)
+    properties:
+      apps:
+        description: map from app key to bandwidth in kbps. app key defined in Get
+          Application List
+        type: object
+      enabled:
+        type: boolean
+      wxtag_ids:
+        description: map from wxtag_id of Hostname Wxlan Tags to bandwidth in kbps
+        type: object
+    type: object
+  app_qos:
+    $ref: ./acct_server.yaml
+  apply_to:
+    enum:
+    - site
+    - wxtags
+    - aps
+    nullable: true
+    type: string
+  arp_filter:
+    default: false
+    description: whether to enable smart arp filter
+    type: boolean
+  auth:
+    $ref: ./acct_server.yaml
+  auth_server_selection:
+    default: ordered
+    description: When ordered, AP will prefer and go back to the first server if possible
+    enum:
+    - ordered
+    - unordered
+    nullable: true
+    type: string
+  auth_servers:
+    description: list of RADIUS authentication servers, at least one is needed if
+      `auth type`==`eap`, order matters where the first one is treated as primary
+    items:
+      $ref: ./acct_server.yaml
+    type: array
+  auth_servers_nas_id:
+    description: optional, up to 48 bytes, will be dynamically generated if not provided.
+      used only for authentication servers
+    nullable: true
+    type: string
+  auth_servers_nas_ip:
+    description: optional, NAS-IP-ADDRESS to use
+    nullable: true
+    type: string
+  auth_servers_retries:
+    default: 2
+    description: "radius auth session retries. Following fast timers are set if \u201C\
+      fast_dot1x_timers\u201D knob is enabled. \u2018retries\u2019 are set to value\
+      \ of auth_servers_retries. \u2018max-requests\u2019 is also set when setting\
+      \ auth_servers_retries and is set to default value to 3."
+    type: integer
+  auth_servers_timeout:
+    default: 5
+    description: "radius auth session timeout. Following fast timers are set if \u201C\
+      fast_dot1x_timers\u201D knob is enabled. \u2018quite-period\u2019 and \u2018\
+      transmit-period\u2019 are set to half the value of auth_servers_timeout. \u2018\
+      supplicant-timeout\u2019 is also set when setting auth_servers_timeout and is\
+      \ set to default value of 10."
+    type: integer
+  band:
+    deprecated: true
+    description: '`band` is deprecated and kept for backward compability. Use bands
+      instead'
+    type: string
+  band_steer:
+    default: false
+    description: whether to enable band_steering, this works only when band==both
+    type: boolean
+  band_steer_force_band5:
+    default: false
+    description: force dual-band capable client to connect to 5G
+    type: boolean
+  bands:
+    default:
+    - '24'
+    - '5'
+    description: list of radios that the wlan should apply to
+    items:
+      enum:
+      - '24'
+      - '5'
+      - '6'
+      type: string
+    type: array
+  block_blacklist_clients:
+    description: whether to block the clients in the blacklist (up to first 256 macs)
+    type: boolean
+  bonjour:
+    $ref: ./acct_server.yaml
+  cisco_cwa:
+    $ref: ./acct_server.yaml
+  client_limit_down:
+    description: kbps
+    type: integer
+  client_limit_down_enabled:
+    default: false
+    description: if downlink limiting per-client is enabled
+    type: boolean
+  client_limit_up:
+    description: kbps
+    type: integer
+  client_limit_up_enabled:
+    default: false
+    description: if uplink limiting per-client is enabled
+    type: boolean
+  coa_servers:
+    description: list of COA (change of authorization) servers, optional
+    items:
+      $ref: ./acct_server.yaml
+    nullable: true
+    type: array
+  created_time:
+    readOnly: true
+    type: number
+  disable_11ax:
+    default: false
+    description: some old WLAN drivers may not be compatible
+    type: boolean
+  disable_ht_vht_rates:
+    default: false
+    description: to disable ht or vht rates
+    type: boolean
+  disable_uapsd:
+    default: false
+    description: whether to disable U-APSD
+    type: boolean
+  disable_v1_roam_notify:
+    default: true
+    description: disable sending v2 roam notification messages
+    type: boolean
+  disable_v2_roam_notify:
+    default: false
+    description: disable sending v2 roam notification messages
+    type: boolean
+  disable_wmm:
+    default: false
+    description: whether to disable WMM
+    type: boolean
+  dns_server_rewrite:
+    description: for radius_group-based DNS server (rewrite DNS request depending
+      on the Group RADIUS server returns)
+    nullable: true
+    properties:
+      enabled:
+        type: boolean
+      radius_groups:
+        description: map between radius_group and the desired DNS server (IPv4 only)
+        type: object
+    type: object
+  dtim:
+    default: 2
+    type: integer
+  dynamic_psk:
+    description: 'for dynamic PSK where we get per-user PSK from Radius
+
+      dynamic_psk allows PSK to be selected at runtime depending on context (wlan/site/user/...)
+      thus following configurations are assumed (currently)
+
+      - PSK will come from RADIUS server
+
+      - AP sends client MAC as username ans password (i.e. `enable_mac_auth` is assumed)
+
+      - AP sends BSSID:SSID as Caller-Station-ID
+
+      - `auth_servers` is required
+
+      - PSK will come from cloud WLC if source is cloud_psks
+
+      - default_psk will be used if cloud WLC is not available
+
+      - `multi_psk_only` and `psk` is ignored
+
+      - `pairwise` can only be wpa2-ccmp (for now, wpa3 support on the roadmap)'
+    nullable: true
+    properties:
+      default_psk:
+        description: default PSK to use if cloud WLC is not available, 8-63 characters
+        maxLength: 63
+        minLength: 8
+        type: string
+      default_vlan_id:
+        nullable: true
+        type: integer
+      enabled:
+        type: boolean
+      source:
+        default: radius
+        enum:
+        - radius
+        - cloud_psks
+        type: string
+      vlan_ids:
+        items:
+          maximum: 4094
+          minimum: 1
+          nullable: true
+          type: integer
+        type: array
+    type: object
+  dynamic_vlan:
+    description: for 802.1x
+    nullable: true
+    properties:
+      default_vlan_id:
+        default: 999
+        description: "vlan_id to use when there\u2019s no match from RADIUS"
+        maximum: 4094
+        minimum: 1
+        nullable: true
+        type: integer
+      enabled:
+        default: false
+        description: whether to enable dynamic vlan
+        type: boolean
+      local_vlan_ids:
+        description: vlan_ids to be locally bridged
+        items:
+          maximum: 4094
+          minimum: 1
+          nullable: true
+          type: integer
+        type: array
+      type:
+        description: standard (using Tunnel-Private-Group-ID, widely supported), airespace-interface-name
+          (Airespace/Cisco)
+        enum:
+        - standard
+        - airespace-interface-name
+        nullable: true
+        type: string
+      vlans:
+        additionalProperties:
+          type: string
+        description: map between vlan_id (as string) to airespace interface names
+          (comma-separated) or null for stndard mapping
+        type: object
+    type: object
+  enable_local_keycaching:
+    default: false
+    description: enable AP-AP keycaching via multicast
+    type: boolean
+  enable_wireless_bridging:
+    description: 'whether to enable wireless bridging, which allows more broadcast
+      packets to go through
+
+      (allows forwarding of DHCP response to client not associated with the AP)'
+    type: boolean
+  enabled:
+    default: true
+    description: if this wlan is enabled
+    type: boolean
+  fast_dot1x_timers:
+    default: false
+    description: "if set to true, sets default fast-timers with values calculated\
+      \ from \u2018auth_servers_timeout\u2019 and \u2018auth_server_retries\u2019."
+    type: boolean
+  for_site:
+    readOnly: true
+    type: boolean
+  hide_ssid:
+    default: false
+    description: whether to hide SSID in beacon
+    type: boolean
+  hostname_ie:
+    default: false
+    description: include hostname inside IE in AP beacons / probe responses
+    type: boolean
+  hotspot20:
+    $ref: ./acct_server.yaml
+  id:
+    format: uuid
+    readOnly: true
+    type: string
+  interface:
+    default: all
+    description: where this WLAN will be connected to
+    enum:
+    - all
+    - eth0
+    - eth1
+    - eth2
+    - eth3
+    - wxtunnel
+    - mxtunnel
+    - site_mxedge
+    type: string
+  isolation:
+    default: false
+    description: whether to allow clients to talk to each other
+    type: boolean
+  l2_isolation:
+    default: false
+    description: if isolation is enabled, whether to deny clients to talk to L2 on
+      the LAN
+    type: boolean
+  legacy_overds:
+    description: "legacy devices requires the Over-DS (for Fast BSS Transition) bit\
+      \ set (while our chip doesn\u2019t support it). Warning! Enabling this will\
+      \ cause problem for iOS devices."
+    type: boolean
+  limit_bcast:
+    default: false
+    description: whether to limit broadcast packets going to wireless (i.e. only allow
+      certain bcast packets to go through)
+    type: boolean
+  limit_probe_response:
+    description: limit probe response base on some heuristic rules
+    type: boolean
+  max_idletime:
+    default: 1800
+    description: max idle time in seconds
+    maximum: 86400
+    minimum: 60
+    type: integer
+  mist_nac:
+    properties:
+      enabled:
+        description: 'when enabled:
+
+          * `auth_servers` is ignored
+
+          * `acct_servers` is ignored
+
+          * `auth_servers_*` are ignored
+
+          * `coa_servers` is ignored
+
+          * `radsec` is ignored'
+        type: boolean
+    type: object
+  modified_time:
+    readOnly: true
+    type: number
+  msp_id:
+    format: uuid
+    readOnly: true
+    type: string
+  mxtunnel:
+    description: when `interface`=`site_medge`, the definition of the Mist Tunnels
+      (key is the name)
+    type: object
+  mxtunnel_id:
+    description: when `interface`=`mxtunnel`, id of the Mist Tunnel
+    format: uuid
+    nullable: true
+    type: string
+  mxtunnel_name:
+    default: default
+    description: when `interface`=`site_medge`, name of the mxtunnel that in mxtunnels
+      under Site Setting
+    nullable: true
+    type: string
+  no_static_dns:
+    default: false
+    description: "whether to only allow client to use DNS that we\u2019ve learned\
+      \ from DHCP response"
+    type: boolean
+  no_static_ip:
+    default: false
+    description: "whether to only allow client that we\u2019ve learned from DHCP exchange\
+      \ to talk"
+    type: boolean
+  org_id:
+    format: uuid
+    readOnly: true
+    type: string
+  portal:
+    $ref: ./acct_server.yaml
+  portal_allowed_hostnames:
+    description: list of hostnames without http(s):// (matched by substring)
+    items:
+      type: string
+    type: array
+  portal_allowed_subnets:
+    description: list of CIDRs
+    items:
+      type: string
+    type: array
+  portal_api_secret:
+    description: api secret (auto-generated) that can be used to sign guest authorization
+      requests
+    nullable: true
+    type: string
+  portal_denied_hostnames:
+    description: list of hostnames without http(s):// (matched by substring), this
+      takes precedence over portal_allowed_hostnames
+    items:
+      type: string
+    type: array
+  portal_image:
+    description: Url of portal background image
+    format: uri
+    nullable: true
+    type: string
+  portal_sso_url:
+    nullable: true
+    type: string
+  portal_template_url:
+    description: N.B portal_template will be forked out of wlan objects soon. To fetch
+      portal_template, please query portal_template_url. To update portal_template,
+      use Wlan Portal Template.
+    nullable: true
+    type: string
+  qos:
+    properties:
+      class:
+        default: best_effort
+        enum:
+        - background
+        - best_effort
+        - video
+        - voice
+        type: string
+      overwrite:
+        default: false
+        description: whether to overwrite QoS
+        type: boolean
+    type: object
+  radsec:
+    $ref: ./acct_server.yaml
+  rateset:
+    properties:
+      '24':
+        $ref: ./acct_server.yaml
+      '5':
+        $ref: ./acct_server.yaml
+    type: object
+  roam_mode:
+    default: none
+    enum:
+    - none
+    - NONE
+    - OKC
+    - 11r
+    nullable: true
+    type: string
+  schedule:
+    description: WLAN operating schedule, default is disabled
+    properties:
+      enabled:
+        default: false
+        type: boolean
+      hours:
+        description: "time ranges, the key is mon / tue / wed / thu / fri / sat /\
+          \ sun, the value is time range in \u201CHH:MM-HH:MM\u201D (24-hour format),\
+          \ the minimum resolution is 30 minute"
+        type: object
+    type: object
+  site_id:
+    format: uuid
+    readOnly: true
+    type: string
+  sle_excluded:
+    default: false
+    description: whether to exclude this WLAN from SLE metrics
+    type: boolean
+  ssid:
+    description: the name of the SSID
+    type: string
+  template_id:
+    format: uuid
+    nullable: true
+    type: string
+  thumbnail:
+    description: Url of portal background image thumbnail
+    format: uri
+    nullable: true
+    type: string
+  use_eapol_v1:
+    default: false
+    description: "if `auth.type`==\u2019eap\u2019 or \u2018psk\u2019, should only\
+      \ be set for legacy client, such as pre-2004, 802.11b devices"
+    type: boolean
+  vlan_enabled:
+    default: false
+    description: if vlan tagging is enabled
+    type: boolean
+  vlan_id:
+    maximum: 4094
+    minimum: 1
+    nullable: true
+    type: integer
+  vlan_ids:
+    description: list of VLAN ids
+    items:
+      maximum: 4094
+      minimum: 1
+      nullable: true
+      type: integer
+    type: array
+  vlan_pooling:
+    default: false
+    description: vlan pooling allows AP to place client on different VLAN using a
+      deterministic algorithm
+    type: boolean
+  wlan_limit_down:
+    description: kbps
+    type: integer
+  wlan_limit_down_enabled:
+    default: false
+    description: if downlink limiting for whole wlan is enabled
+    type: boolean
+  wlan_limit_up:
+    description: kbps
+    type: integer
+  wlan_limit_up_enabled:
+    default: false
+    description: if uplink limiting for whole wlan is enabled
+    type: boolean
+  wxtag_ids:
+    description: list of wxtag_ids
+    items:
+      format: uuid
+      type: string
+    nullable: true
+    type: array
+  wxtunnel_id:
+    description: when `interface`=`wxtunnel`, id of the WXLAN Tunnel
+    nullable: true
+    type: string
+  wxtunnel_remote_id:
+    description: when `interface`=`wxtunnel`, remote tunnel identifier
+    nullable: true
+    type: string
+required:
+- ssid
+title: wlan
+type: object
+x-examples:
+  example-1:
+    acct_interim_interval: 0
+    acct_servers:
+    - host: string
+      port: 0
+      secret: string
+    airwatch:
+      api_key: string
+      console_url: string
+      enabled: true
+      password: string
+      username: string
+    allow_ipv6_ndp: true
+    allow_mdns: true
+    ap_ids:
+    - string
+    app_limit:
+      apps: {}
+      enabled: true
+      wxtag_ids: {}
+    app_qos:
+      apps:
+        skype-business-video:
+          dscp: 0
+          dst_subnet: string
+          src_subnet: string
+        skype-business-voice:
+          dscp: 0
+      enabled: true
+      others:
+      - dscp: 0
+        dst_subnet: string
+        port_ranges: string
+        protocol: string
+        src_subnet: string
+    apply_to: string
+    arp_filter: true
+    auth:
+      eap_reauth: true
+      enable_mac_auth: true
+      key_idx: 1
+      keys:
+      - string
+      multi_psk_only: true
+      owe: string
+      pairwise:
+      - string
+      private_wlan: true
+      psk: string123
+      type: string
+      wep_as_secondary_auth: true
+    auth_server_selection: ordered
+    auth_servers:
+    - host: string
+      port: 0
+      secret: string
+    auth_servers_nas_id: string
+    auth_servers_nas_ip: string
+    auth_servers_retries: 0
+    auth_servers_timeout: 0
+    band: string
+    band_steer: true
+    band_steer_force_band5: true
+    block_blacklist_clients: true
+    bonjour:
+      additional_vlan_ids:
+      - 0
+      enabled: true
+      services:
+        $service_name:
+          disable_local: true
+          radius_groups:
+          - string
+          scope: string
+    cisco_cwa:
+      allowed_hostnames:
+      - string
+      allowed_subnets:
+      - string
+      enabled: true
+    client_limit_down: 0
+    client_limit_down_enabled: true
+    client_limit_up: 0
+    client_limit_up_enabled: true
+    coa_servers:
+    - disable_event_timestamp_check: true
+      enabled: true
+      ip: string
+      port: 0
+      secret: string
+    disable_11ax: true
+    disable_uapsd: true
+    disable_wmm: true
+    dns_server_rewrite:
+      enabled: true
+      radius_groups: {}
+    dtim: 0
+    dynamic_psk:
+      enabled: true
+    dynamic_vlan:
+      default_vlan_id: 1
+      enabled: true
+      local_vlan_ids:
+      - 0
+      type: string
+      vlans:
+      - {}
+    enable_wireless_bridging: true
+    enabled: true
+    hide_ssid: true
+    hostname_ie: true
+    hotspot20:
+      enabled: true
+      operators:
+      - null
+      venue_name: string
+    interface: string
+    isolation: true
+    legacy_overds: true
+    limit_bcast: true
+    limit_probe_response: true
+    max_idletime: 60
+    mxtunnel_id: string
+    no_static_dns: true
+    no_static_ip: true
+    portal:
+      amazon_client_id: string
+      amazon_client_secret: string
+      amazon_email_domains:
+      - string
+      amazon_enabled: true
+      auth: string
+      azure_client_id: string
+      azure_client_secret: string
+      azure_enabled: true
+      azure_tenant_id: string
+      bypass_when_cloud_down: true
+      email_enabled: true
+      enabled: true
+      expire: 0
+      external_portal_url: string
+      facebook_client_id: string
+      facebook_client_secret: string
+      facebook_email_domains:
+      - string
+      facebook_enabled: true
+      forward: true
+      forward_url: string
+      google_email_domains:
+      - string
+      google_enabled: true
+      microsoft_client_id: string
+      microsoft_client_secret: string
+      microsoft_email_domains:
+      - string
+      microsoft_enabled: true
+      passphrase_enabled: true
+      password: string
+      portal_allowed_hostnames: string
+      portal_allowed_subnets: string
+      portal_api_secret: string
+      portal_denied_hostnames: string
+      portal_image: string
+      portal_sso_url: string
+      privacy: true
+      sms_enabled: true
+      sms_provider: string
+      sponsor_email_domains:
+      - string
+      sponsor_enabled: true
+      sponsor_link_validity_duration: '60'
+      sso_default_role: string
+      sso_idp_cert: string
+      sso_idp_sign_algo: string
+      sso_idp_sso_url: string
+      sso_issuer: string
+      thumbnail: string
+      twilio_auth_token: string
+      twilio_phone_number: string
+      twilio_sid: string
+    portal_allowed_hostnames:
+    - string
+    portal_allowed_subnets:
+    - string
+    portal_api_secret: string
+    portal_denied_hostnames:
+    - string
+    portal_image: http://example.com
+    portal_sso_url: string
+    portal_template_url: string
+    qos:
+      class: string
+      overwrite: true
+    radsec:
+      enabled: true
+      server_name: string
+      servers:
+      - host: string
+        port: 0
+    rateset:
+      '24':
+        ht: string
+        legacy:
+        - string
+        min_rssi: 0
+        template: string
+        vht: string
+      '5':
+        ht: string
+        legacy:
+        - string
+        min_rssi: 0
+        template: string
+        vht: string
+    roam_mode: 11r
+    schedule:
+      enabled: true
+      hours: {}
+    sle_excluded: true
+    ssid: string
+    thumbnail: http://example.com
+    use_eapol_v1: true
+    vlan_enabled: true
+    vlan_id: 1
+    vlan_ids:
+    - 0
+    vlan_pooling: true
+    wlan_limit_down: 0
+    wlan_limit_down_enabled: true
+    wlan_limit_up: 0
+    wlan_limit_up_enabled: true
+    wxtag_ids:
+    - string
+    wxtunnel_id: string
+    wxtunnel_remote_id: string
