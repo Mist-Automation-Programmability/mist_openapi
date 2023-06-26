@@ -59,6 +59,9 @@ security:
 - apiToken: []
 - basicAuth: []
 tags:
+- name: Authentication
+- name: Monitor
+- name: Operational
 - name: Login
 - description: A Mist account can be linked to OAuth2 providers:\n1. First, login
     with your Mist account\n2. Obtain the Authorization URL for Linking 1. in JSON
@@ -164,7 +167,6 @@ tags:
   name: Orgs Gateway Templates
 - name: Orgs Guests
 - name: Orgs Inventory
-- name: Orgs Invites
 - name: Orgs JSE
 - description: "Juniper Support Insight is a free service provided to all Mist customers.\
     \ You can adopt your devices via a few lines CLI comands. Allowing you to \n*\
@@ -214,7 +216,6 @@ tags:
   name: Orgs Psk Portals
 - name: Orgs RF Templates
 - name: Orgs SDK Clients
-- name: Orgs SDK Invites
 - name: Orgs SDK Templates
 - description: "Security Policy is designed to audit / catch discripancies between\
     \ \u201Cwhat\u2019s intended to be running\u201D versus \u201Cwhat\u2019s actually\
@@ -391,71 +392,6 @@ paths:
       tags:
       - Admin
       - Operational
-  /api/v1/login/oauth/{provider}:
-    delete:
-      description: Unlink OAuth2 Provider
-      operationId: unlinkOAuth2Provider
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: unlinkOAuth2Provider
-      tags:
-      - Login With OAuth2
-      - Operational
-    parameters:
-    - in: path
-      name: provider
-      required: true
-      schema:
-        type: string
   /api/v1/mobile/verify/{secret}:
     parameters:
     - $ref: '#/components/parameters/secret'
@@ -2514,6 +2450,16 @@ paths:
       tags:
       - Msps SSO Roles
       - Operational
+    get:
+      description: Get MSP SSO Role
+      operationId: getMspSsoRole
+      responses:
+        '200':
+          $ref: '#/components/responses/Ssorole'
+      summary: getMspSsoRole
+      tags:
+      - Msps SSO Roles
+      - Operational
     parameters:
     - $ref: '#/components/parameters/msp_id'
     - $ref: '#/components/parameters/ssorole_id'
@@ -2583,8 +2529,8 @@ paths:
       - Operational
   /api/v1/msps/{msp_id}/ssos:
     get:
-      description: Get MSP SSO Config
-      operationId: getMspSso
+      description: List MSP SSO Configs
+      operationId: listMspSsos
       responses:
         '200':
           $ref: '#/components/responses/SsosArray'
@@ -2636,7 +2582,7 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: getMspSso
+      summary: listMspSsos
       tags:
       - Msps SSO
       - Operational
@@ -2762,6 +2708,16 @@ paths:
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
       summary: deleteMspSso
+      tags:
+      - Msps SSO
+      - Operational
+    get:
+      description: Get MSP SSO Config
+      operationId: getMspSso
+      responses:
+        '200':
+          description: OK
+      summary: getMspSso
       tags:
       - Msps SSO
       - Operational
@@ -2986,6 +2942,68 @@ paths:
     parameters:
     - $ref: '#/components/parameters/msp_id'
     - $ref: '#/components/parameters/sso_id'
+  /api/v1/msps/{msp_id}/stats/licenses:
+    get:
+      description: Get List of MSP Licences
+      operationId: listMspOrgLicenses
+      parameters: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Licence'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listMspOrgLicenses
+      tags:
+      - Msps Licenses
+      - Operational
+    parameters:
+    - $ref: '#/components/parameters/msp_id'
   /api/v1/msps/{msp_id}/tickets:
     get:
       description: Get List of Tickets of a MSP
@@ -12453,7 +12471,7 @@ paths:
             exist
       summary: inviteOrgAdmin
       tags:
-      - Orgs Invites
+      - Orgs Admins
       - Operational
   /api/v1/orgs/{org_id}/invites/{invite_id}:
     delete:
@@ -12512,7 +12530,7 @@ paths:
             exist
       summary: uninviteOrgAdmin
       tags:
-      - Orgs Invites
+      - Orgs Admins
       - Operational
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -12598,7 +12616,7 @@ paths:
             exist
       summary: updateOrgAdminInvite
       tags:
-      - Orgs Invites
+      - Orgs Admins
       - Operational
   /api/v1/orgs/{org_id}/jsi/devices/outbound_ssh_cmd:
     get:
@@ -19345,7 +19363,7 @@ paths:
             exist
       summary: listSdkInvites
       tags:
-      - Orgs SDK Invites
+      - Orgs SDK Clients
       - Operational
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -19418,7 +19436,7 @@ paths:
             exist
       summary: createSdkInvite
       tags:
-      - Orgs SDK Invites
+      - Orgs SDK Clients
       - Operational
   /api/v1/orgs/{org_id}/sdkinvites/{sdkinvite_id}:
     delete:
@@ -19477,7 +19495,7 @@ paths:
             exist
       summary: revokeSdkInvite
       tags:
-      - Orgs SDK Invites
+      - Orgs SDK Clients
       - Operational
     get:
       description: Get SDK Invite Details
@@ -19535,7 +19553,7 @@ paths:
             exist
       summary: getSdkInvite
       tags:
-      - Orgs SDK Invites
+      - Orgs SDK Clients
       - Operational
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -19602,7 +19620,7 @@ paths:
             exist
       summary: updateSdkInvite
       tags:
-      - Orgs SDK Invites
+      - Orgs SDK Clients
       - Operational
   /api/v1/orgs/{org_id}/sdkinvites/{sdkinvite_id}/email:
     parameters:
@@ -19674,7 +19692,7 @@ paths:
             exist
       summary: sendSdkInviteEmail
       tags:
-      - Orgs SDK Invites
+      - Orgs SDK Clients
       - Operational
   /api/v1/orgs/{org_id}/sdkinvites/{sdkinvite_id}/qrcode:
     get:
@@ -19733,7 +19751,7 @@ paths:
             exist
       summary: getSdkInviteQrCode
       tags:
-      - Orgs SDK Invites
+      - Orgs SDK Clients
       - Operational
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -19813,7 +19831,7 @@ paths:
             exist
       summary: sendSdkInviteSms
       tags:
-      - Orgs SDK Invites
+      - Orgs SDK Clients
       - Operational
   /api/v1/orgs/{org_id}/sdktemplates:
     get:
@@ -29339,6 +29357,21 @@ paths:
       required: true
       schema:
         type: string
+    put:
+      description: Update API Token
+      operationId: updateApiToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./components/schemas/Model_object_device_id.yaml
+      responses:
+        '200':
+          $ref: '#/components/responses/Apitoken'
+      summary: updateApiToken
+      tags:
+      - API Token
+      - Operational
   /api/v1/self/subscriptions:
     get:
       description: Get List of all the subscriptions
@@ -29586,6 +29619,68 @@ paths:
       - Operational
     parameters:
     - $ref: '#/components/parameters/token'
+  /api/v1/sites/{org_id}/webhooks/{webhook_id}/ping:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/webhook_id'
+    post:
+      description: send a Ping event to the webhook
+      operationId: pingOrgWebhook
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: pingOrgWebhook
+      tags:
+      - Orgs Webhooks
+      - Operational
   /api/v1/sites/{site_id}:
     delete:
       description: Delete Site
@@ -30249,69 +30344,6 @@ paths:
       tags:
       - Sites Alarms
       - Operational
-  /api/v1/sites/{site_id}/anomaly/client/{client_mac}/{metric}:
-    get:
-      description: Get Client Anomaly Events
-      operationId: getSiteClientAnomalyEvents
-      responses:
-        '200':
-          $ref: '#/components/responses/AnomalyMetrics'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: getSiteClientAnomalyEvents
-      tags:
-      - Sites Anomaly
-      - Operational
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/client_mac'
-    - $ref: '#/components/parameters/metric'
   /api/v1/sites/{site_id}/apps:
     get:
       description: Get List of Site Applications
@@ -37022,82 +37054,6 @@ paths:
       tags:
       - Sites Devices - Wired Virtual Chassis
       - Operational
-  /api/v1/sites/{site_id}/events/fast_roam:
-    get:
-      description: Get Roaming Events data
-      operationId: getSiteRoamingEvents
-      parameters:
-      - description: event type
-        in: query
-        name: type
-        schema:
-          enum:
-          - success
-          - fail
-          - none
-          type: string
-      - $ref: '#/components/parameters/page'
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      responses:
-        '200':
-          $ref: '#/components/responses/EventsFastroam'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: getSiteRoamingEvents
-      tags:
-      - Sites Events
-      - Operational
-    parameters:
-    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/evpn_topologies:
     get:
       description: Get the existing EVPN topology
@@ -37963,6 +37919,68 @@ paths:
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
       summary: overwriteSiteMlForMap
+      tags:
+      - Sites Location
+      - Operational
+  /api/v1/sites/{site_id}/location/ml/reset/map/{map_id}:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: Reset ML Stats by Map
+      operationId: resetSiteMlStatsByMap
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: resetSiteMlStatsByMap
       tags:
       - Sites Location
       - Operational
@@ -44213,6 +44231,143 @@ paths:
       tags:
       - Sites SLEs
       - Operational
+  /api/v1/sites/{site_id}/ssr/upgrade/{upgrade_id}:
+    get:
+      description: Get Specific Site SSR Upgrade
+      operationId: getSiteSsrUpgrade
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    channel: stable
+                    device_type: gateway
+                    id: 5cbcee0a-c620-4bb4-a25e-15000934e9d8
+                    status: upgrading
+                    targets:
+                      failed: []
+                      queued: []
+                      success: []
+                      upgrading:
+                      - 8e525f1d-4178-4ae1-a988-2b0176855e55
+                    versions: {}
+              schema:
+                description: ''
+                properties:
+                  channel:
+                    minLength: 1
+                    type: string
+                  device_type:
+                    type: string
+                  id:
+                    minLength: 1
+                    type: string
+                  status:
+                    minLength: 1
+                    type: string
+                  targets:
+                    properties:
+                      failed:
+                        items:
+                          type: string
+                        type: array
+                      queued:
+                        items:
+                          type: string
+                        type: array
+                      success:
+                        items:
+                          type: string
+                        type: array
+                      upgrading:
+                        items:
+                          type: string
+                        type: array
+                    required:
+                    - queued
+                    - upgrading
+                    - success
+                    - failed
+                    type: object
+                  versions:
+                    type: object
+                required:
+                - status
+                - versions
+                - channel
+                - id
+                - targets
+                type: object
+                x-examples:
+                  example-1:
+                    channel: stable
+                    id: 5cbcee0a-c620-4bb4-a25e-15000934e9d8
+                    status: upgrading
+                    targets:
+                      failed: []
+                      queued: []
+                      success: []
+                      upgrading:
+                      - 8e525f1d-4178-4ae1-a988-2b0176855e55
+                    versions: {}
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: getSiteSsrUpgrade
+      tags:
+      - Sites Devices Upgrades
+      - Operational
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/upgrade_id'
   /api/v1/sites/{site_id}/ssr/{device_id}/upgrade:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -44313,80 +44468,6 @@ paths:
       tags:
       - Sites Devices Upgrades
       - Operational
-  /api/v1/sites/{site_id}/stats/discovered_assets:
-    get:
-      description: "Get List of Site Discovered BLE Assets that doesn\u2019t match\
-        \ any of the Asset / Assetfilters"
-      operationId: listSiteDiscoveredAssets
-      parameters:
-      - $ref: '#/components/parameters/page'
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: ./components/schemas/Model_object_device_id.yaml
-                type: array
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: listSiteDiscoveredAssets
-      tags:
-      - Sites Stats
-      - Operational
-    parameters:
-    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/filtered_assets:
     get:
       description: Get a list of BLE beacons that matches Asset or AssetFilter
@@ -44457,7 +44538,7 @@ paths:
   /api/v1/sites/{site_id}/subscriptions:
     delete:
       description: Unsubscribe to Site Alarms
-      operationId: UnsubscribeSite
+      operationId: UnsubscribeSiteAlarms
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -44509,7 +44590,7 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: UnsubscribeSite
+      summary: UnsubscribeSiteAlarms
       tags:
       - Sites Subscriptions
       - Operational
@@ -44517,7 +44598,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     post:
       description: Subscribe to Site Alarms
-      operationId: SubscribeSite
+      operationId: SubscribeSiteAlarms
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -44569,7 +44650,7 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: SubscribeSite
+      summary: SubscribeSiteAlarms
       tags:
       - Sites Subscriptions
       - Operational
@@ -49303,13 +49384,6 @@ components:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
         format: uuid
         type: string
-    metric:
-      description: see /api/v1/const/insight_metrics for available metrics
-      in: path
-      name: metric
-      required: true
-      schema:
-        type: string
     msp_id:
       in: path
       name: msp_id
@@ -50413,33 +50487,6 @@ components:
             items:
               $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
-      description: OK
-    AnomalyMetrics:
-      content:
-        application/json:
-          schema:
-            properties:
-              end:
-                type: integer
-              limit:
-                type: integer
-              page:
-                type: integer
-              results:
-                items:
-                  $ref: ./components/schemas/Model_object_device_id.yaml
-                minItems: 1
-                type: array
-                uniqueItems: true
-              start:
-                type: integer
-            required:
-            - start
-            - end
-            - limit
-            - page
-            - results
-            type: object
       description: OK
     Apitoken:
       content:
@@ -53752,82 +53799,6 @@ components:
               - $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
-    EventsFastroam:
-      content:
-        application/json:
-          examples:
-            example-1:
-              value:
-                end: 1501023379
-                limit: 2
-                next: /api/v1/sites/dca0a44b-324c-11e6-a776-0243ad110007/events/fast_roam?type=success&start=1428939600&end=1428949600&limit=200&token=AAAAEgAIAAVVJh4hF8AAAARzc2lkAH%2F%2F%2F%2F0%3D
-                results:
-                - ap_mac: 5c5b350e040b
-                  client_mac: dc2b2a3fb13d
-                  fromap: 5c5b350e0569
-                  latency: 0.1874195
-                  ssid: marvis_test
-                  subtype: CLIENT_AUTHENTICATED_11R
-                  timestamp: 1501000002283782
-                start: 1500940800
-          schema:
-            properties:
-              end:
-                type: integer
-              limit:
-                type: integer
-              next:
-                description: the link to query next set of results. value is null
-                  if no next page exists.
-                type: string
-              results:
-                items:
-                  properties:
-                    ap_mac:
-                      type: string
-                    client_mac:
-                      type: string
-                    fromap:
-                      type: string
-                    latency:
-                      type: number
-                    ssid:
-                      type: string
-                    subtype:
-                      type: string
-                    timestamp:
-                      description: timestamp of the event in nsec
-                      type: number
-                    type:
-                      description: success / fail / none / poor/ pingpong / slow
-                      enum:
-                      - success
-                      - fail
-                      - none
-                      - poor
-                      - pingpong
-                      - slow
-                      type: string
-                  required:
-                  - latency
-                  - ssid
-                  - timestamp
-                  - ap_mac
-                  - fromap
-                  - client_mac
-                  type: object
-                minItems: 1
-                type: array
-                uniqueItems: true
-              start:
-                type: integer
-            required:
-            - start
-            - end
-            - limit
-            - results
-            type: object
-      description: OK
     EvpnTopology:
       content:
         application/json:
@@ -53925,6 +53896,172 @@ components:
                 readOnly: true
                 type: string
             type: object
+      description: OK
+    Licence:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                amendments:
+                - created_time: 1644684842
+                  end_time: 1744156799
+                  id: ff0a14f6-1234-5678-90ab-c8e64d4bc6c6
+                  modified_time: 1644684842
+                  quantity: -1
+                  start_time: 1632873600
+                  subscription_id: VNA-000000af
+                  type: SUB-VNA
+                - created_time: 1644684842
+                  end_time: 1744156799
+                  id: c1c28812-1234-5678-90ab-dc95680da61e
+                  modified_time: 1644684842
+                  quantity: -1
+                  start_time: 1632873600
+                  subscription_id: MAN-000008be
+                  type: SUB-MAN
+                - created_time: 1644684842
+                  end_time: 1744243199
+                  id: 96c0a41f-1234-5678-90ab-afe74817e9fd
+                  modified_time: 1644684842
+                  quantity: -1
+                  start_time: 1586476800
+                  subscription_id: EX24-000000bc
+                  type: SUB-EX24
+                entitled:
+                  SUB-ENG: 26
+                  SUB-EX24: 9
+                  SUB-MAN: 26
+                  SUB-VNA: 26
+                licenses:
+                - created_time: 1555353534
+                  end_time: 1586822399
+                  id: 693a41a6-1234-5678-90ab-f53dbd3a31c0
+                  modified_time: 1555353534
+                  order_id: '00000000'
+                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+                  quantity: 2
+                  remaining_quantity: 0
+                  start_time: 1555286400
+                  subscription_id: VNA-000000aa
+                  type: SUB-VNA
+                - created_time: 1576132516
+                  end_time: 1586822399
+                  id: 656607cf-1234-5678-90ab-fc9035614ea5
+                  modified_time: 1576132516
+                  order_id: '00000000'
+                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+                  quantity: 8
+                  remaining_quantity: 0
+                  start_time: 1576022400
+                  subscription_id: VNA-000000ab
+                  type: SUB-VNA
+                - created_time: 1579204568
+                  end_time: 1730764800
+                  id: db50d0bc-1234-5678-90ab-e439958cb06b
+                  modified_time: 1579204568
+                  order_id: '00000000'
+                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+                  quantity: 2
+                  remaining_quantity: 2
+                  start_time: 1572998400
+                  subscription_id: MAN-000000ac
+                  type: SUB-MAN
+                - created_time: 1579204568
+                  end_time: 1730764800
+                  id: 2ff9e84a-1234-5678-90ab-fb9ec0726e01
+                  modified_time: 1579204568
+                  order_id: '00000000'
+                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+                  quantity: 2
+                  remaining_quantity: 2
+                  start_time: 1572998400
+                  subscription_id: ENG-000000ad
+                  type: SUB-ENG
+                - created_time: 1579204568
+                  end_time: 1730764800
+                  id: 16df7ea6-1234-5678-90ab-78018cd4024d
+                  modified_time: 1579204568
+                  order_id: '00000000'
+                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+                  quantity: 2
+                  remaining_quantity: 2
+                  start_time: 1572998400
+                  subscription_id: VNA-000000ae
+                  type: SUB-VNA
+                - created_time: 1586237081
+                  end_time: 1744243199
+                  id: 1b6f68d5-1234-5678-90ab-70d3e6d18c73
+                  modified_time: 1586237081
+                  order_id: '00000000'
+                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+                  quantity: 14
+                  remaining_quantity: 14
+                  start_time: 1586563200
+                  subscription_id: VNA-000000af
+                  type: SUB-VNA
+                - created_time: 1586237097
+                  end_time: 1744243199
+                  id: 1375c9bf-1234-5678-90ab-9c636708c89e
+                  modified_time: 1586237097
+                  order_id: '00000000'
+                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+                  quantity: 14
+                  remaining_quantity: 14
+                  start_time: 1586563200
+                  subscription_id: MAN-000000ba
+                  type: SUB-MAN
+                - created_time: 1586237137
+                  end_time: 1744243199
+                  id: 5974e979-1234-5678-90ab-438f833ec1c9
+                  modified_time: 1586237137
+                  order_id: '00000000'
+                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+                  quantity: 14
+                  remaining_quantity: 14
+                  start_time: 1586563200
+                  subscription_id: ENG-000000bb
+                  type: SUB-ENG
+                - created_time: 1629947267
+                  end_time: 1744243199
+                  id: 340a9cb3-1234-5678-90ab-b009344dbf3c
+                  modified_time: 1629947267
+                  order_id: '00000000'
+                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+                  quantity: 10
+                  remaining_quantity: 9
+                  start_time: 1586476800
+                  subscription_id: EX24-000000bc
+                  type: SUB-EX24
+                - created_time: 1632941870
+                  end_time: 1744156799
+                  id: 9b599b0f-1234-5678-90ab-406081b58e7f
+                  modified_time: 1632941870
+                  order_id: '00000000'
+                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+                  quantity: 10
+                  remaining_quantity: 10
+                  start_time: 1632873600
+                  subscription_id: ENG-000000bd
+                  type: SUB-ENG
+                - created_time: 1632941882
+                  end_time: 1744156799
+                  id: d6d8ead3-1234-5678-90ab-98badeac7287
+                  modified_time: 1632941882
+                  order_id: '00000000'
+                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+                  quantity: 11
+                  remaining_quantity: 9
+                  start_time: 1632873600
+                  subscription_id: MAN-000008be
+                  type: SUB-MAN
+                summary:
+                  SUB-ENG: 18
+                  SUB-EX24: 3
+                  SUB-MAN: 22
+                  SUB-VNA: 20
+          schema:
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     MacsArray:
       content:
@@ -59647,7 +59784,6 @@ x-tagGroups:
   - Orgs Gateway Templates
   - Orgs Guests
   - Orgs Inventory
-  - Orgs Invites
   - Orgs JSE
   - Orgs JSI
   - Orgs Licenses
@@ -59667,7 +59803,6 @@ x-tagGroups:
   - Orgs Psk Portals
   - Orgs RF Templates
   - Orgs SDK Clients
-  - Orgs SDK Invites
   - Orgs SDK Templates
   - Orgs SecPolicies
   - Orgs Services

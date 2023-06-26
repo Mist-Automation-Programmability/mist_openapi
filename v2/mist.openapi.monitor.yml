@@ -59,6 +59,9 @@ security:
 - apiToken: []
 - basicAuth: []
 tags:
+- name: Authentication
+- name: Monitor
+- name: Operational
 - name: Login
 - description: A Mist account can be linked to OAuth2 providers:\n1. First, login
     with your Mist account\n2. Obtain the Authorization URL for Linking 1. in JSON
@@ -164,7 +167,6 @@ tags:
   name: Orgs Gateway Templates
 - name: Orgs Guests
 - name: Orgs Inventory
-- name: Orgs Invites
 - name: Orgs JSE
 - description: "Juniper Support Insight is a free service provided to all Mist customers.\
     \ You can adopt your devices via a few lines CLI comands. Allowing you to \n*\
@@ -214,7 +216,6 @@ tags:
   name: Orgs Psk Portals
 - name: Orgs RF Templates
 - name: Orgs SDK Clients
-- name: Orgs SDK Invites
 - name: Orgs SDK Templates
 - description: "Security Policy is designed to audit / catch discripancies between\
     \ \u201Cwhat\u2019s intended to be running\u201D versus \u201Cwhat\u2019s actually\
@@ -942,68 +943,6 @@ paths:
     parameters:
     - $ref: '#/components/parameters/msp_id'
     - $ref: '#/components/parameters/sso_id'
-  /api/v1/msps/{msp_id}/stats/licenses:
-    get:
-      description: Get List of MSP Licences
-      operationId: listMspOrgLicenses
-      parameters: []
-      responses:
-        '200':
-          $ref: '#/components/responses/Licence'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: listMspOrgLicenses
-      tags:
-      - Msps Licenses
-      - Monitor
-    parameters:
-    - $ref: '#/components/parameters/msp_id'
   /api/v1/msps/{msp_id}/stats/orgs:
     get:
       description: Get List of MSP Orgs Stats
@@ -4998,7 +4937,7 @@ paths:
             exist
       summary: countOrgBgpStats
       tags:
-      - Orgs Devices Stats
+      - Orgs Devices
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -5059,7 +4998,7 @@ paths:
             exist
       summary: searchOrgBgpStats
       tags:
-      - Orgs Devices Stats
+      - Orgs Devices
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -5669,7 +5608,7 @@ paths:
             exist
       summary: searchOrgSwOrGwPorts
       tags:
-      - Orgs Devices Stats
+      - Orgs Devices
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -7749,6 +7688,69 @@ paths:
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/anomaly/client/{client_mac}/{metric}:
+    get:
+      description: Get Client Anomaly Events
+      operationId: getSiteClientAnomalyEvents
+      responses:
+        '200':
+          $ref: '#/components/responses/AnomalyMetrics'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: getSiteClientAnomalyEvents
+      tags:
+      - Sites Anomaly
+      - Monitor
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/client_mac'
+    - $ref: '#/components/parameters/metric'
   /api/v1/sites/{site_id}/anomaly/device/{device_mac}/{metric}:
     get:
       description: Get Device Anomaly Events
@@ -9367,7 +9369,7 @@ paths:
             exist
       summary: countSiteDeviceEvents
       tags:
-      - Sites Devices
+      - Sites Devices - Wireless
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -9510,7 +9512,7 @@ paths:
             exist
       summary: searchSiteDevicesEvents
       tags:
-      - Sites Devices
+      - Sites Devices - Wireless
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -10094,6 +10096,82 @@ paths:
       tags:
       - Sites Devices - WAN
       - Monitor
+  /api/v1/sites/{site_id}/events/fast_roam:
+    get:
+      description: Get Roaming Events data
+      operationId: getSiteRoamingEvents
+      parameters:
+      - description: event type
+        in: query
+        name: type
+        schema:
+          enum:
+          - success
+          - fail
+          - none
+          type: string
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          $ref: '#/components/responses/EventsFastroam'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: getSiteRoamingEvents
+      tags:
+      - Sites Events
+      - Monitor
+    parameters:
+    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/events/interference:
     get:
       description: Get Interference Events
@@ -10737,7 +10815,7 @@ paths:
             exist
       summary: listSiteRogueAPs
       tags:
-      - Sites Insights
+      - Sites Rogues
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -10804,7 +10882,7 @@ paths:
             exist
       summary: listSiteRogueClients
       tags:
-      - Sites Insights
+      - Sites Rogues
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -11184,68 +11262,6 @@ paths:
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/location/ml/reset/map/{map_id}:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/map_id'
-    post:
-      description: Reset ML Stats by Map
-      operationId: resetSiteMlStatsByMap
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: resetSiteMlStatsByMap
-      tags:
-      - Sites Location
-      - Monitor
   /api/v1/sites/{site_id}/location/ml/updates:
     get:
       description: Get Machine Learning Events
@@ -13608,143 +13624,6 @@ paths:
       required: true
       schema:
         type: string
-  /api/v1/sites/{site_id}/ssr/upgrade/{upgrade_id}:
-    get:
-      description: Get Specific Site SSR Upgrade
-      operationId: getSiteSsrUpgrade
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    channel: stable
-                    device_type: gateway
-                    id: 5cbcee0a-c620-4bb4-a25e-15000934e9d8
-                    status: upgrading
-                    targets:
-                      failed: []
-                      queued: []
-                      success: []
-                      upgrading:
-                      - 8e525f1d-4178-4ae1-a988-2b0176855e55
-                    versions: {}
-              schema:
-                description: ''
-                properties:
-                  channel:
-                    minLength: 1
-                    type: string
-                  device_type:
-                    type: string
-                  id:
-                    minLength: 1
-                    type: string
-                  status:
-                    minLength: 1
-                    type: string
-                  targets:
-                    properties:
-                      failed:
-                        items:
-                          type: string
-                        type: array
-                      queued:
-                        items:
-                          type: string
-                        type: array
-                      success:
-                        items:
-                          type: string
-                        type: array
-                      upgrading:
-                        items:
-                          type: string
-                        type: array
-                    required:
-                    - queued
-                    - upgrading
-                    - success
-                    - failed
-                    type: object
-                  versions:
-                    type: object
-                required:
-                - status
-                - versions
-                - channel
-                - id
-                - targets
-                type: object
-                x-examples:
-                  example-1:
-                    channel: stable
-                    id: 5cbcee0a-c620-4bb4-a25e-15000934e9d8
-                    status: upgrading
-                    targets:
-                      failed: []
-                      queued: []
-                      success: []
-                      upgrading:
-                      - 8e525f1d-4178-4ae1-a988-2b0176855e55
-                    versions: {}
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: getSiteSsrUpgrade
-      tags:
-      - Sites Devices Upgrades
-      - Monitor
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/upgrade_id'
   /api/v1/sites/{site_id}/stats:
     get:
       description: Get Site Stats
@@ -13999,7 +13878,7 @@ paths:
             exist
       summary: listSiteAssetsStats
       tags:
-      - Sites Stats
+      - Sites Assets
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -14064,7 +13943,7 @@ paths:
             exist
       summary: getSiteAssetStats
       tags:
-      - Sites Stats
+      - Sites Assets
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -14410,7 +14289,7 @@ paths:
             exist
       summary: countSiteBgpStats
       tags:
-      - Sites Devices Stats
+      - Sites Devices - WAN
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -14471,7 +14350,7 @@ paths:
             exist
       summary: searchSiteBgpStats
       tags:
-      - Sites Devices Stats
+      - Sites Devices - WAN
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -14797,7 +14676,7 @@ paths:
             exist
       summary: listSiteWirelessClientsStats
       tags:
-      - Sites Stats
+      - Sites Clients - Wireless
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -14956,7 +14835,7 @@ paths:
             exist
       summary: getSiteWirelessClientStats
       tags:
-      - Sites Stats
+      - Sites Clients - Wireless
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -16150,11 +16029,85 @@ paths:
             exist
       summary: getSiteAllClientsStatsByDevice
       tags:
-      - Sites Clients
+      - Sites Clients - Wireless
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
+  /api/v1/sites/{site_id}/stats/discovered_assets:
+    get:
+      description: "Get List of Site Discovered BLE Assets that doesn\u2019t match\
+        \ any of the Asset / Assetfilters"
+      operationId: listSiteDiscoveredAssets
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: ./components/schemas/stats_switch_port.yaml
+                type: array
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listSiteDiscoveredAssets
+      tags:
+      - Sites Assets
+      - Monitor
+    parameters:
+    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/discovered_switch_metrics/search:
     get:
       description: Search Discovered Switch Metrics
@@ -16308,7 +16261,7 @@ paths:
             exist
       summary: searchSiteDiscoveredSwitchesMetrics
       tags:
-      - Sites Stats
+      - Sites Devices - Wired
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -16437,7 +16390,7 @@ paths:
             exist
       summary: countSiteDiscoveredSwitches
       tags:
-      - Sites Stats
+      - Sites Devices - Wired
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -16633,7 +16586,7 @@ paths:
             exist
       summary: getSiteDiscoveredSwitchesMetrics
       tags:
-      - Sites Stats
+      - Sites Devices - Wired
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -16832,7 +16785,7 @@ paths:
             exist
       summary: searchSiteDiscoveredSwitches
       tags:
-      - Sites Stats
+      - Sites Devices - Wired
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -16941,7 +16894,7 @@ paths:
             exist
       summary: getSiteGatewayMetrics
       tags:
-      - Sites Stats
+      - Sites Devices - WAN
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -17072,7 +17025,7 @@ paths:
             exist
       summary: getSiteWirelessClientsStatsByMap
       tags:
-      - Sites Stats
+      - Sites Clients - Wireless
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -17159,7 +17112,7 @@ paths:
             exist
       summary: getSiteDiscoveredAssetByMap
       tags:
-      - Sites Stats
+      - Sites Assets
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -17321,7 +17274,7 @@ paths:
             exist
       summary: listSiteUnconnectedClientStats
       tags:
-      - Sites Stats
+      - Sites Clients - Wireless
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -19244,7 +19197,7 @@ paths:
             exist
       summary: getSiteWxRulesUsage
       tags:
-      - Sites Stats
+      - Sites WxRules
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -19392,7 +19345,7 @@ paths:
             exist
       summary: listSiteZonesStats
       tags:
-      - Sites Stats
+      - Sites Zones
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -19474,7 +19427,7 @@ paths:
             exist
       summary: getSiteZoneStats
       tags:
-      - Sites Stats
+      - Sites Zones
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -21308,14 +21261,6 @@ components:
         default: 0
         minimum: 0
         type: integer
-    upgrade_id:
-      in: path
-      name: upgrade_id
-      required: true
-      schema:
-        example: 000000ab-00ab-00ab-00ab-0000000000ab
-        format: uuid
-        type: string
     wxtag_id:
       in: path
       name: wxtag_id
@@ -22981,6 +22926,82 @@ components:
             - results
             - start
             - total
+            type: object
+      description: OK
+    EventsFastroam:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                end: 1501023379
+                limit: 2
+                next: /api/v1/sites/dca0a44b-324c-11e6-a776-0243ad110007/events/fast_roam?type=success&start=1428939600&end=1428949600&limit=200&token=AAAAEgAIAAVVJh4hF8AAAARzc2lkAH%2F%2F%2F%2F0%3D
+                results:
+                - ap_mac: 5c5b350e040b
+                  client_mac: dc2b2a3fb13d
+                  fromap: 5c5b350e0569
+                  latency: 0.1874195
+                  ssid: marvis_test
+                  subtype: CLIENT_AUTHENTICATED_11R
+                  timestamp: 1501000002283782
+                start: 1500940800
+          schema:
+            properties:
+              end:
+                type: integer
+              limit:
+                type: integer
+              next:
+                description: the link to query next set of results. value is null
+                  if no next page exists.
+                type: string
+              results:
+                items:
+                  properties:
+                    ap_mac:
+                      type: string
+                    client_mac:
+                      type: string
+                    fromap:
+                      type: string
+                    latency:
+                      type: number
+                    ssid:
+                      type: string
+                    subtype:
+                      type: string
+                    timestamp:
+                      description: timestamp of the event in nsec
+                      type: number
+                    type:
+                      description: success / fail / none / poor/ pingpong / slow
+                      enum:
+                      - success
+                      - fail
+                      - none
+                      - poor
+                      - pingpong
+                      - slow
+                      type: string
+                  required:
+                  - latency
+                  - ssid
+                  - timestamp
+                  - ap_mac
+                  - fromap
+                  - client_mac
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+              start:
+                type: integer
+            required:
+            - start
+            - end
+            - limit
+            - results
             type: object
       description: OK
     EventsInterference:
@@ -26397,7 +26418,6 @@ x-tagGroups:
   - Orgs Gateway Templates
   - Orgs Guests
   - Orgs Inventory
-  - Orgs Invites
   - Orgs JSE
   - Orgs JSI
   - Orgs Licenses
@@ -26417,7 +26437,6 @@ x-tagGroups:
   - Orgs Psk Portals
   - Orgs RF Templates
   - Orgs SDK Clients
-  - Orgs SDK Invites
   - Orgs SDK Templates
   - Orgs SecPolicies
   - Orgs Services
