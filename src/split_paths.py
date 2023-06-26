@@ -158,7 +158,10 @@ def save():
             "security" : parts.get("security"),
             "tags" : parts.get("tags"),
             "paths" : cat_paths.get(category),
-            "components" : components,
+            "components" : {
+                "parameters": dst_parameters,
+                "responses": dst_responses
+            },
             "x-tagGroups" : parts.get("x-tagGroups"),
         }    
 
