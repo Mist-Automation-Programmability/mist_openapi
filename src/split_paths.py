@@ -8,7 +8,7 @@ with open("mist.openapi.yml", "r") as f:
     data = yaml.load(f, Loader=yaml.loader.SafeLoader)
 
 
-cat = [ "Constants", "Authentication", "Monitor", "Operational"]
+cat = [ "Constants", "Authentication", "Monitor", "Operational", "Installer"]
 verbs = ["get", "post", "put", "delete"]
 order = ["openapi", "info", "servers", "security",
          "tags", "paths", "components", "x-tagGroups"]
@@ -29,6 +29,7 @@ cat_paths = {
     "authentication": {},
     "monitor": {},
     "operational": {},
+    "installer": {},
 }
 
 cat_params = {
@@ -36,12 +37,15 @@ cat_params = {
     "authentication": [],
     "monitor": [],
     "operational": [],
+    "installer": [],
+    "installer": [],
 }
 cat_responses = {
     "constants": [],
     "authentication": [],
     "monitor": [],
     "operational": [],
+    "installer": [],
 }
 
 cat_schemas = {
@@ -49,6 +53,7 @@ cat_schemas = {
     "authentication": [],
     "monitor": [],
     "operational": [],
+    "installer": [],
 }
 
 missing = []
@@ -87,7 +92,9 @@ def split():
         parameters = properties.get("parameters")
         for verb in properties:
             if verb in verbs:
-                if "Constants" in properties[verb]["tags"]:
+                if path.startswith("/api/v1/installer/"):
+                    add_endpoint("installer", path, parameters, verb, properties[verb])
+                elif "Constants" in properties[verb]["tags"]:
                     add_endpoint("constants", path, parameters, verb, properties[verb])
                 elif "Authentication" in properties[verb]["tags"]:
                     add_endpoint("authentication", path, parameters, verb, properties[verb])
@@ -118,7 +125,7 @@ def get_schemas(src_schemas, schemas):
 
 def save():
     for category in cat_paths:    
-        filename = f"../mist.openapi.{category}.yml"
+        filename = f"../v2/mist.openapi.{category}.yml"
         components = {}
         additional_schemas = []
 
@@ -159,7 +166,7 @@ def save():
         output_str = json.dumps(data)
         re_schema = "\$ref\"*: \"#/components/schemas/([0-9a-zA-Z_.-]+)\""
         for entry in re.findall(re_schema, output_str):
-            output_str = re.sub(re_schema, f"$ref\": \"./{entry}.yaml\"", output_str)
+            output_str = re.sub(re_schema, f"$ref\": \"./components/schemas/{entry}.yaml\"", output_str)
         data = json.loads(output_str)
 
         with open(filename, 'w') as oas_out_file:

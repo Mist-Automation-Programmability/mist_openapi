@@ -327,189 +327,34 @@ tags:
 - name: Account
 - name: Webhook Samples
 paths:
-  /api/v1/login:
-    post:
-      description: "Log in with email/password.\nWhen 2FA is enabled, there are two\
-        \ ways to login:\n1. login with two_factor token (with Google Authenticator,\
-        \ etc) \n2. login with email/password, generate the token, and use /login/two_factor\
-        \ with the token"
-      operationId: login
-      requestBody:
-        content:
-          application/json:
-            examples:
-              with 2FA:
-                value:
-                  email: string
-                  password: string
-                  two_factor: string
-              without 2FA:
-                value:
-                  email: string
-                  password: string
-            schema:
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
-                two_factor:
-                  type: string
-              required:
-              - email
-              - password
-              type: object
+  /api/v1/installer/orgs/{org_id}/alarmtemplates:
+    get:
+      description: Get List of alarm templates
+      operationId: listInstallerAlarmTemplates
       responses:
         '200':
           content:
             application/json:
               examples:
-                2FA Required:
-                  value:
-                    email: test@mistsys.com
-                    two_factor_passed: false
-                    two_factor_required: true
-                OK:
-                  value: {}
-              schema:
-                properties:
-                  email:
-                    type: string
-                  two_factor_passed:
-                    type: boolean
-                  two_factor_required:
-                    type: boolean
-                type: object
-          description: Login Success
-          headers:
-            Set-Cookie:
-              description: Session Cookie if login/password authentication is successful
-              schema:
-                example: csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue,
-                  15-Mar-2016 19:47:20 GMT; Max-Age=31449600; Path=/
-                type: string
-        '400':
-          content:
-            application/json:
-              examples:
                 example-1:
                   value:
-                    detail: sso admin login needs to be initiated by IdP
-                    forward_url: https://my.sso/idp_sso_url
+                  - id: 684dfc5c-fe77-2290-eb1d-ef3d677fe168
+                    name: AlarmTemplate 1
               schema:
-                oneOf:
-                - properties:
-                    detail:
+                items:
+                  properties:
+                    id:
+                      format: uuid
                       type: string
-                    forward_url:
+                    name:
                       type: string
                   required:
-                  - detail
+                  - id
+                  - name
                   type: object
-          description: Login Failed
-      summary: login
-      tags:
-      - Login
-      - Authentication
-  /api/v1/login/lookup:
-    post:
-      description: Login Lookup
-      operationId: lookup
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  email: test@mistsys.com
-            schema:
-              $ref: ./components/schemas/Model_object_email.yaml
-        description: Request Body
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                SSO user exists:
-                  value:
-                    sso_url: https://my.sso/idp_sso_url
-                local user exists:
-                  value: {}
-              schema:
-                properties:
-                  sso_url:
-                    type: string
-                type: object
-          description: account exists
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          description: user does not exist
-      summary: lookup
-      tags:
-      - Login
-      - Authentication
-  /api/v1/login/oauth/{provider}:
-    get:
-      description: Obtain Authorization URL for Login
-      operationId: getOAuth2AuthorizationUrlForLogin
-      parameters:
-      - in: query
-        name: forward
-        schema:
-          example: http://manage.mist.com/oauth/callback.html
-          type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    authorization_url: https://accounts.google.com/o/oauth2/v2/auth?.....
-                    client_id: 173131512-mpbnju32.apps.googleusercontent.com
-              schema:
-                properties:
-                  authorization_url:
-                    type: string
-                  client_id:
-                    type: string
-                required:
-                - client_id
-                - authorization_url
-                type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
           description: OK
         '400':
           content:
@@ -559,379 +404,42 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: getOAuth2AuthorizationUrlForLogin
+      summary: listInstallerAlarmTemplates
       tags:
-      - Login With OAuth2
-      - Authentication
+      - Installer
+      - Installer
     parameters:
-    - in: path
-      name: provider
-      required: true
-      schema:
-        type: string
-    post:
-      description: Login via OAuth2
-      operationId: loginOAuth2
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  code: 4/S9tegDeLkrYg0L9pWNXV4cgMVbbr3SR9t693A2kSHzw
-            schema:
-              properties:
-                code:
-                  type: string
-              required:
-              - code
-              type: object
-        description: Request Body
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: loginOAuth2
-      tags:
-      - Login With OAuth2
-      - Authentication
-  /api/v1/login/two_factor:
-    post:
-      description: Send 2FA Code
-      operationId: twoFactor
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  two_factor: '123456'
-            schema:
-              properties:
-                two_factor:
-                  type: string
-              required:
-              - two_factor
-              type: object
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: two_factor code is correct
-          headers: {}
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          description: "two_factor code is incorrect or the user hasn\u2019t login\
-            \ yet"
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          description: "the user doesn\u2019t have 2FA enabled"
-      summary: twoFactor
-      tags:
-      - Login
-      - Authentication
-  /api/v1/logout:
-    post:
-      description: Logout
-      operationId: logout
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    forward_url: https://my.sso/custom_logout_url
-              schema:
-                properties:
-                  forward_url:
-                    description: if configured in SSO as custom_logout_url
-                    type: string
-                type: object
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: logout
-      tags:
-      - Login
-      - Authentication
-  /api/v1/msps/{msp_id}/logs:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/installer/orgs/{org_id}/deviceprofiles:
     get:
-      description: Get list of change logs for the current MSP
-      operationId: listMspLogs
-      parameters:
-      - description: site id
-        in: query
-        name: site_id
-        schema:
-          type: string
-      - description: admin name or email
-        in: query
-        name: admin_name
-        schema:
-          type: string
-      - description: message
-        in: query
-        name: message
-        schema:
-          type: string
-      - description: sort order
-        in: query
-        name: sort
-        schema:
-          enum:
-          - timestamp
-          - -timestamp
-          - site_id
-          - admin_id
-          type: string
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
-      - $ref: '#/components/parameters/duration'
-      responses:
-        '200':
-          $ref: '#/components/responses/LogsSearch'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: listMspLogs
-      tags:
-      - Msps Logs
-      - Authentication
-    parameters:
-    - $ref: '#/components/parameters/msp_id'
-  /api/v1/msps/{msp_id}/ssos/{sso_id}/failures:
-    get:
-      description: Get List of MSP SSO Latest Failures
-      operationId: listMspSsoLatestFailures
-      responses:
-        '200':
-          $ref: '#/components/responses/SsoLatestFailures'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: listMspSsoLatestFailures
-      tags:
-      - Msps SSO
-      - Authentication
-    parameters:
-    - $ref: '#/components/parameters/msp_id'
-    - $ref: '#/components/parameters/sso_id'
-  /api/v1/msps/{msp_id}/stats/licenses:
-    get:
-      description: Get List of MSP Licences
-      operationId: listMspOrgLicenses
+      description: Get List of Device Profiles
+      operationId: listInstallerDeviceProfiles
       parameters: []
       responses:
         '200':
-          $ref: '#/components/responses/Licence'
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                  - id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+                    name: DeviceProfile 1
+              schema:
+                items:
+                  properties:
+                    id:
+                      format: uuid
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - id
+                  - name
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+          description: OK
         '400':
           content:
             application/json:
@@ -980,495 +488,453 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: listMspOrgLicenses
+      summary: listInstallerDeviceProfiles
       tags:
-      - Msps Licenses
-      - Authentication
-    parameters:
-    - $ref: '#/components/parameters/msp_id'
-  /api/v1/orgs/{org_id}/alarms/ack:
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    post:
-      description: Ack multiple Org Alarms
-      operationId: multiAckOrgAlarms
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  alarm_ids:
-                  - ccb8c94d-ca56-4075-932f-1f2ab444ff2c
-                  - 98ff4a3d-ec9b-4138-a42e-54fc3335179d
-                  note: maintenance window
-            schema:
-              properties:
-                alarm_ids:
-                  items:
-                    format: uuid
-                    type: string
-                  type: array
-                note:
-                  description: Some text note describing the intent
-                  type: string
-              required:
-              - alarm_ids
-              type: object
-        description: Request Body
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: multiAckOrgAlarms
-      tags:
-      - Orgs Alarms
-      - Authentication
-  /api/v1/orgs/{org_id}/alarms/ack_all:
+      - Installer
+      - Installer
     parameters:
     - $ref: '#/components/parameters/org_id'
-    post:
-      description: 'Ack all Org Alarms
-
-
-        **N.B.**: Batch size for multiple alarm ack and unack has to be less or or
-        equal to 1000.'
-      operationId: ackOrgAllAlarms
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  note: string
-            schema:
-              $ref: ./components/schemas/Model_object_email.yaml
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: ackOrgAllAlarms
-      tags:
-      - Orgs Alarms
-      - Authentication
-  /api/v1/orgs/{org_id}/alarms/unack:
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    post:
-      description: Unack multiple Org Alarms
-      operationId: multiUnackOrgAlarms
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  alarm_ids:
-                  - ccb8c94d-ca56-4075-932f-1f2ab444ff2c
-                  - 98ff4a3d-ec9b-4138-a42e-54fc3335179d
-                  note: maintenance window
-            schema:
-              properties:
-                alarm_ids:
-                  items:
-                    format: uuid
-                    type: string
-                  type: array
-                note:
-                  description: Some text note describing the intent
-                  type: string
-              required:
-              - alarm_ids
-              type: object
-        description: Request Body
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: multiUnackOrgAlarms
-      tags:
-      - Orgs Alarms
-      - Authentication
-  /api/v1/orgs/{org_id}/alarms/unack_all:
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    post:
-      description: 'Unack all Org Alarms
-
-
-        **N.B.**: Batch size for multiple alarm ack and unack has to be less or or
-        equal to 1000.'
-      operationId: unackOrgAllArlarms
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  note: maintenance window
-            schema:
-              $ref: ./components/schemas/Model_object_email.yaml
-        description: Request Body
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: unackOrgAllArlarms
-      tags:
-      - Orgs Alarms
-      - Authentication
-  /api/v1/orgs/{org_id}/alarms/{alarm_id}/ack:
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    - $ref: '#/components/parameters/alarm_id'
-    post:
-      description: Ack Org Alarm
-      operationId: ackOrgAlarm
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  note: maintenance window
-            schema:
-              $ref: ./components/schemas/Model_object_email.yaml
-        description: Request Body
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: ackOrgAlarm
-      tags:
-      - Orgs Alarms
-      - Authentication
-  /api/v1/orgs/{org_id}/alarmtemplates/suppress:
-    delete:
-      description: Un-Suppress Suppressed Alarms
-      operationId: unsuppressOrgSuppressedAlarms
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: unsuppressOrgSuppressedAlarms
-      tags:
-      - Orgs Alarm Templates
-      - Authentication
+  /api/v1/installer/orgs/{org_id}/devices:
     get:
-      description: Get List of Org Alarms Currently Suppressed
-      operationId: listOrgSuppressedAlarms
+      description: Get List of recently claimed devices
+      operationId: listInstallerListOfRenctlyClaimedDevices
       responses:
         '200':
           content:
             application/json:
               examples:
-                Example 1:
+                example-1:
                   value:
-                    results:
-                    - duration: 48
-                      site_id: 581328b6-e382-f54e-c9dc-9c998d183a34
+                  - connected: true
+                    mac: 5c5b35000018
+                    model: AP41
+                    serial: FXLH2015150025
+                  - connected: false
+                    deviceprofile_name: SJ1
+                    name: hallway
+                    site_name: SJ1
+                  - connected: true
+                    height: 2.7
+                    map_id: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+                    orientation: 90
+                    x: 150
+                    y: 300
+              schema:
+                items:
+                  properties:
+                    connected:
+                      type: boolean
+                    height:
+                      type: number
+                    map_id:
+                      format: uuid
+                      type: string
+                    orientation:
+                      type: number
+                    x:
+                      type: number
+                    y:
+                      type: number
+                  required:
+                  - connected
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
               schema:
                 properties:
-                  results:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listInstallerListOfRenctlyClaimedDevices
+      tags:
+      - Installer
+      - Installer
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: This mirrors `POST /api/v1/orgs/{org_id}/inventory` (see Inventory
+        API)
+      operationId: claimInstallerDevices
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                - 6JG8E-PTFV2-A9Z2N
+                - DVH4V-SNMSZ-PDXBR
+            schema:
+              $ref: ./components/schemas/Model_array_string.yaml
+        description: Request Body
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    added:
+                    - 6JG8E-PTFV2-A9Z2N
+                    duplicated:
+                    - DVH4V-SNMSZ-PDXBR
+                    error:
+                    - PO1025335ohoh
+                    inventory_added:
+                    - mac: 5c5b35000018
+                      magic: 6JG8EPTFV2A9Z2N
+                      model: AP41
+                      serial: FXLH2015150025
+                      type: ap
+                    inventory_duplicated:
+                    - mac: 5c5b35000012
+                      magic: DVH4VSNMSZPDXBR
+                      model: AP41
+                      serial: FXLH2015150027
+                      type: ap
+              schema:
+                properties:
+                  added:
+                    items:
+                      type: string
+                    type: array
+                  duplicated:
+                    items:
+                      type: string
+                    type: array
+                  error:
+                    items:
+                      type: string
+                    type: array
+                  inventory_added:
                     items:
                       properties:
-                        duration:
-                          description: duration, in seconds. Maximum duration is 86400
-                            * 14 (14 days). 0 is to un-suppress alarms.
-                          type: integer
-                        site_id:
+                        mac:
                           type: string
+                        magic:
+                          type: string
+                        model:
+                          type: string
+                        serial:
+                          type: string
+                        type:
+                          type: string
+                      required:
+                      - serial
+                      - model
+                      - type
+                      - magic
+                      - mac
                       type: object
+                    minItems: 1
                     type: array
+                    uniqueItems: true
+                  inventory_duplicated:
+                    items:
+                      properties:
+                        mac:
+                          type: string
+                        magic:
+                          type: string
+                        model:
+                          type: string
+                        serial:
+                          type: string
+                        type:
+                          type: string
+                      required:
+                      - serial
+                      - model
+                      - type
+                      - magic
+                      - mac
+                      type: object
+                    minItems: 1
+                    type: array
+                    uniqueItems: true
+                required:
+                - added
+                - duplicated
+                - error
+                - inventory_added
+                - inventory_duplicated
+                type: object
+          description: OK
+        '400':
+          description: Bad Request if none of the entries are valid
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: claimInstallerDevices
+      tags:
+      - Installer
+      - Installer
+  /api/v1/installer/orgs/{org_id}/devices/{device_mac}:
+    delete:
+      description: Unassign recently claimed devices
+      operationId: unassignInstallerRecentlyClaimedDevice
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: unassignInstallerRecentlyClaimedDevice
+      tags:
+      - Installer
+      - Installer
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/device_mac'
+    put:
+      description: "Provision or Replace a device \n\nIf replacing_mac is in the request\
+        \ payload, other attributes are ignored, we attempt to replace existing device\
+        \ (with mac replacing_mac) with the inventory device being configured. The\
+        \ replacement device must be in the inventory but not assigned, and the replacing_mac\
+        \ device must be assigned to a site, and satisfy grace period requirements.\
+        \ The Device replaced will become unassigned."
+      operationId: provisionInstallerDevices
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  deviceprofile_name: string
+                  for_site: true
+                  height: 0
+                  map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
+                  name: string
+                  orientation: 0
+                  site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                  site_name: string
+                  x: 0
+                  y: 0
+            schema:
+              $ref: ./components/schemas/Model_array_string.yaml
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              examples:
+                invalid mac given for replacing_mac:
+                  value:
+                    detail: invalid replacing_mac
+                inventory device is already assigned:
+                  value:
+                    detail: device already assigned
+                outsite_of_grace_period:
+                  value:
+                    detail: outside of grace period
+                replacing_mac device is not assigned to a site:
+                  value:
+                    detail: replacing_mac device is unassigned
+                replacing_mac device last modified outside of grace period:
+                  value:
+                    detail: replacing_mac device outside of grace period
+              schema:
+                properties:
+                  detail:
+                    type: string
+                required:
+                - detail
+                type: object
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                replacing_mac device is not in org inventory:
+                  value:
+                    detail: replacing_mac inventory not found
+                replacing_mac device not found:
+                  value:
+                    detail: replacing_mac device not found
+              schema:
+                properties:
+                  detail:
+                    type: string
                 type: object
                 x-examples:
-                  Example 1:
-                    results:
-                    - duration: 48
-                      site_id: 581328b6-e382-f54e-c9dc-9c998d183a34
-          description: OK
+                  example-1:
+                    detail: replacing_mac inventory not found
+          description: Not Found
+      summary: provisionInstallerDevices
+      tags:
+      - Installer
+      - Installer
+  /api/v1/installer/orgs/{org_id}/devices/{device_mac}/locate:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/device_mac'
+    post:
+      description: "Locate a Device by blinking it\u2019s LED, it\u2019s a persisted\
+        \ state that has to be stopped by calling Stop Locating API"
+      operationId: startInstallerLocateDevice
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties: {}
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
         '400':
           content:
             application/json:
@@ -1517,79 +983,228 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: listOrgSuppressedAlarms
+      summary: startInstallerLocateDevice
       tags:
-      - Orgs Alarm Templates
-      - Authentication
+      - Installer
+      - Installer
+  /api/v1/installer/orgs/{org_id}/devices/{device_mac}/unlocate:
     parameters:
     - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/device_mac'
     post:
-      description: In certain situations, for example, scheduled maintanance, you
-        may want to suspend alarms to be triggered for a period of time.
-      operationId: suppressOrgAlarm
+      description: Stop it
+      operationId: stopInstallerLocateDevice
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: stopInstallerLocateDevice
+      tags:
+      - Installer
+      - Installer
+  /api/v1/installer/orgs/{org_id}/devices/{device_mac}/{image_name}:
+    delete:
+      description: delete image
+      operationId: deleteInstallerDeviceImage
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: deleteInstallerDeviceImage
+      tags:
+      - Installer
+      - Installer
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/image_name'
+    - $ref: '#/components/parameters/device_mac'
+    post:
+      description: Add image
+      operationId: addInstallerDeviceImage
       requestBody:
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              properties:
-                applies:
-                  description: Object defines the scope (within the org e.g. whole
-                    org, and/or some site-groups, and/or some sites) for which the
-                    alarm service has to be suppressed for some `duration`
+              $ref: ./components/schemas/Model_array_string.yaml
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: addInstallerDeviceImage
+      tags:
+      - Installer
+      - Installer
+  /api/v1/installer/orgs/{org_id}/rftemplates:
+    get:
+      description: Get List of RF Templates
+      operationId: listInstallerRfTemplatesNames
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                  - id: bb8a9017-1e36-5d6c-6f2b-551abe8a76a2
+                    name: RFTemplate 1
+              schema:
+                items:
                   properties:
-                    org_id:
-                      description: UUID of the current org (if provided, the alarms
-                        will be suppressed at org level)
+                    id:
                       format: uuid
-                      minLength: 1
                       type: string
-                    site_ids:
-                      description: List of UUID of the sites within the org (if provided,
-                        the alarms will be suppressed for all the mentioned sites
-                        under the org)
-                      items:
-                        format: uuid
-                        type: string
-                      type: array
-                    sitegroup_ids:
-                      description: List of UUID of the site groups within the org
-                        (if provided, the alarms will be suppressed for all the sites
-                        under those site groups)
-                      items:
-                        format: uuid
-                        type: string
-                      type: array
+                    name:
+                      type: string
                   required:
-                  - org_id
-                  - site_ids
-                  - sitegroup_ids
+                  - id
+                  - name
                   type: object
-                duration:
-                  default: 3600
-                  description: duration, in seconds. 0 is to un-suppress alarms
-                  maximum: 86400
-                  minimum: 0
-                  type: number
-                scheduled_time:
-                  description: poch_time in seconds, Default as now, accepted time
-                    range is from now to now + 7 days
-                  type: integer
-              required:
-              - applies
-              type: object
-              x-examples:
-                example-1:
-                  applies:
-                    org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
-                    site_ids:
-                    - 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-                    sitegroup_ids:
-                    - 581328b6-e382-f54e-c9dc-999983183a34
-                    - f57096b9-0c2f-4df6-c77b-ae6ae87a3d43
-                  duration: 60
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
+                minItems: 1
+                type: array
+                uniqueItems: true
+          description: OK
         '400':
           content:
             application/json:
@@ -1638,224 +1253,16 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: suppressOrgAlarm
+      summary: listInstallerRfTemplatesNames
       tags:
-      - Orgs Alarm Templates
-      - Authentication
-  /api/v1/orgs/{org_id}/guests:
-    get:
-      description: Get List of Org Guest Authorizations
-      operationId: listOrgGuestAuthorizations
-      responses:
-        '200':
-          $ref: '#/components/responses/GuestsArray'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: listOrgGuestAuthorizations
-      tags:
-      - Orgs Guests
-      - Authentication
+      - Installer
+      - Installer
     parameters:
     - $ref: '#/components/parameters/org_id'
-  /api/v1/recover:
-    post:
-      description: 'Recover Password
-
-        An email will also be sent to the user with a link to https://manage.mist.com/verify/recover?token=:token'
-      operationId: recoverPassword
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  email: test@mistsys.com
-                  recaptcha: see https://www.google.com/recaptcha/
-            schema:
-              properties:
-                email:
-                  type: string
-                recaptcha:
-                  type: string
-              required:
-              - email
-              - recaptcha
-              type: object
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: recoverPassword
-      tags:
-      - Self
-      - Authentication
-  /api/v1/recover/verify/{token}:
-    parameters:
-    - $ref: '#/components/parameters/token'
-    post:
-      description: 'Verify Recover Password
-
-        With correct verification, the user will be authenticated. UI can then prompt
-        for new password'
-      operationId: verifyRecoverPasssword
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: verifyRecoverPasssword
-      tags:
-      - Self
-      - Authentication
-  /api/v1/self/oauth/{provider}:
+  /api/v1/installer/orgs/{org_id}/secpolicies:
     get:
-      description: Obtain Authorization URL for Linking
-      operationId: getOAuth2UrlForLinking
-      parameters:
-      - in: query
-        name: forward
-        schema:
-          example: http://manage.mist.com/oauth/callback.html
-          type: string
+      description: Get List of Secuity Policies
+      operationId: listInstallerSecPolicies
       responses:
         '200':
           content:
@@ -1863,18 +1270,23 @@ paths:
               examples:
                 example-1:
                   value:
-                    authorization_url: https://accounts.google.com/o/oauth2/v2/auth?.....
-                    linked: false
+                  - id: 3bcd0beb-5d0a-4cbd-92c1-14aea91e98ef
+                    name: SecuPolicy 1
               schema:
-                properties:
-                  authorization_url:
-                    type: string
-                  linked:
-                    type: boolean
-                required:
-                - linked
-                - authorization_url
-                type: object
+                items:
+                  properties:
+                    id:
+                      format: uuid
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - id
+                  - name
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
           description: OK
         '400':
           content:
@@ -1924,34 +1336,16 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: getOAuth2UrlForLinking
+      summary: listInstallerSecPolicies
       tags:
-      - Login With OAuth2
-      - Authentication
+      - Installer
+      - Installer
     parameters:
-    - in: path
-      name: provider
-      required: true
-      schema:
-        type: string
-    post:
-      description: Link Mist account with an OAuth2 Provider
-      operationId: linkOAuth2MistAccount
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  code: 4/S9tegDeLkrYg0L9pWNXV4cgMVbbr3SR9t693A2kSHzw
-            schema:
-              properties:
-                code:
-                  type: string
-              required:
-              - code
-              type: object
-        description: Request Body
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/installer/orgs/{org_id}/sitegroups:
+    get:
+      description: Get List of Site Groups
+      operationId: listInstallerSiteGroups
       responses:
         '200':
           content:
@@ -1959,39 +1353,32 @@ paths:
               examples:
                 example-1:
                   value:
-                    action: oauth account linked
-                    id: google-user-id
+                  - id: 581328b6-e382-f54e-c9dc-999983183a34
+                    name: SiteGroup 1
               schema:
-                properties:
-                  action:
-                    type: string
-                  id:
-                    type: string
-                required:
-                - action
-                - id
-                type: object
+                items:
+                  properties:
+                    id:
+                      format: uuid
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - id
+                  - name
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
           description: OK
         '400':
           content:
             application/json:
-              examples:
-                example-1:
-                  value:
-                    error: access_denied
-                    error_description: The resource owner or authorization server
-                      denied the request.
               schema:
-                properties:
-                  error:
-                    type: string
-                  error_description:
-                    type: string
-                required:
-                - error
-                - error_description
+                properties: {}
                 type: object
-          description: Authorization Error
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
         '401':
           content:
             application/json:
@@ -2032,22 +1419,150 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: linkOAuth2MistAccount
+      summary: listInstallerSiteGroups
       tags:
-      - Login With OAuth2
-      - Authentication
-  /api/v1/self/two_factor/token:
+      - Installer
+      - Installer
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/installer/orgs/{org_id}/sites:
     get:
-      description: Generate QR code for verification
-      operationId: generateQrCodeForVerification
-      parameters:
-      - in: query
-        name: by
-        schema:
-          default: qrcode
-          enum:
-          - qrcode
-          type: string
+      description: Get List of Sites
+      operationId: listInstallerSites
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                  - address: 1601 S. Deanza Blvd., Cupertino, CA, 95014
+                    country_code: US
+                    id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+                    latlng:
+                      lat: 37.295833
+                      lng: -122.032946
+                    name: Mist Office
+                    timezone: America/Los_Angeles
+              schema:
+                items:
+                  properties:
+                    address:
+                      type: string
+                    country_code:
+                      type: string
+                    id:
+                      format: uuid
+                      type: string
+                    latlng:
+                      properties:
+                        lat:
+                          type: number
+                        lng:
+                          type: number
+                      required:
+                      - lat
+                      - lng
+                      type: object
+                    name:
+                      type: string
+                    timezone:
+                      type: string
+                  required:
+                  - id
+                  - name
+                  - timezone
+                  - country_code
+                  - latlng
+                  - address
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listInstallerSites
+      tags:
+      - Installer
+      - Installer
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/installer/orgs/{org_id}/sites/{site_name}:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/site_name'
+    put:
+      description: Often the Installers are asked to assign Devices to Sites. The
+        Sites can either be pre-created or created/modified by the Installer. If this
+        is an update, the same grace period also applies.
+      operationId: createOrUpdateInstallerSites
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  address: 1601 S. Deanza Blvd., Cupertino, CA, 95014
+                  country_code: US
+                  latlng:
+                    lat: 37.295833
+                    lng: -122.032946
+                  name: string
+                  rftemplate_name: rftemplate1
+                  sitegroup_names:
+                  - sg1
+                  - sg2
+                  timezone: America/Los_Angeles
+            schema:
+              $ref: ./components/schemas/Model_array_string.yaml
+        description: Request Body
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -2099,40 +1614,17 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: generateQrCodeForVerification
+      summary: createOrUpdateInstallerSites
       tags:
-      - Self
-      - Authentication
-  /api/v1/self/two_factor/verify:
-    post:
-      description: "Verify Two-factor (OTP)\n\nTo verify two-factor authentication\
-        \ by using a code generated by app (e.g. Google Authenticator, Authy) or by\
-        \ SMS. Upon successful verification, the otp_verified will be set to true\
-        \ if it hasn\u2019t already been."
-      operationId: verifyTwoFactor
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  two_factor: '123456'
-            schema:
-              properties:
-                two_factor:
-                  type: string
-              required:
-              - two_factor
-              type: object
-        description: Request Body
+      - Installer
+      - Installer
+  /api/v1/installer/orgs/{org_id}/sites/{site_name}/maps:
+    get:
+      description: Get List of Maps
+      operationId: listInstallerMaps
       responses:
         '200':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: Response when 2FA verification is successful
+          $ref: '#/components/responses/MapsArray'
         '400':
           content:
             application/json:
@@ -2181,50 +1673,450 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: verifyTwoFactor
+      summary: listInstallerMaps
       tags:
-      - Self
-      - Authentication
+      - Installer
+      - Installer
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/site_name'
+  /api/v1/installer/orgs/{org_id}/sites/{site_name}/maps/import:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/site_name'
+    post:
+      description: Import data from files is a multipart POST which has an file, an
+        optional json, and an optional csv, to create floorplan, assign & place ap
+        if name or mac matches
+      operationId: importInstallerMap
+      requestBody:
+        content:
+          multipart/form-data:
+            examples:
+              example-1:
+                value:
+                  csv: string
+                  file: string
+                  json:
+                    import_all_floorplans: false
+                    import_height: false
+                    import_orientation: false
+                    vendor_name: ekahau
+            schema:
+              properties:
+                csv:
+                  format: binary
+                  type: string
+                file:
+                  format: binary
+                  type: string
+                json:
+                  properties:
+                    import_all_floorplans:
+                      default: false
+                      type: boolean
+                    import_height:
+                      default: false
+                      type: boolean
+                    import_orientation:
+                      default: false
+                      type: boolean
+                    vendor_name:
+                      enum:
+                      - ibwave
+                      - ekahau
+                      type: string
+                  required:
+                  - vendor_name
+                  type: object
+              type: object
+        description: ''
+      responses:
+        '200':
+          $ref: '#/components/responses/MapImport'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: importInstallerMap
+      tags:
+      - Installer
+      - Installer
+  /api/v1/installer/orgs/{org_id}/sites/{site_name}/maps/{map_id}:
+    delete:
+      description: Delete Map
+      operationId: deleteInstallerMap
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: deleteInstallerMap
+      tags:
+      - Installer
+      - Installer
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/site_name'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: Create a MAP
+      operationId: createInstallerMap
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  flags: {}
+                  height: 0
+                  latlng_br:
+                    lat: string
+                    lng: string
+                  latlng_tl:
+                    lat: string
+                    lng: string
+                  locked: true
+                  name: string
+                  orientation: 0
+                  origin_x: 0
+                  origin_y: 0
+                  ppm: 0
+                  sitesurvey_path:
+                  - coordinate: string
+                    id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                    name: string
+                    nodes:
+                    - edges:
+                        N2: string
+                      name: string
+                      position:
+                        x: 0
+                        y: 0
+                  thumbnail_url: string
+                  type: image
+                  url: string
+                  view: roadmap
+                  wall_path:
+                    coordinate: string
+                    nodes:
+                    - edges:
+                        N2: string
+                      name: string
+                      position:
+                        x: 0
+                        y: 0
+                  wayfinding:
+                    micello:
+                      account_key: string
+                      default_level_id: 0
+                      map_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                    snap_to_path: true
+                  wayfinding_path:
+                    coordinate: string
+                    nodes:
+                    - edges:
+                        N2: string
+                      name: string
+                      position:
+                        x: 0
+                        y: 0
+                  width: 0
+            schema:
+              $ref: ./components/schemas/Model_array_string.yaml
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/Map'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: createInstallerMap
+      tags:
+      - Installer
+      - Installer
+    put:
+      description: Update map
+      operationId: updateInstallerMap
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: ./components/schemas/Model_array_string.yaml
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/Map'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: updateInstallerMap
+      tags:
+      - Installer
+      - Installer
+  /api/v1/installer/sites/{site_name}/optimize:
+    get:
+      description: "After installation is considered complete (APs are placed on maps,\
+        \ all powered up), you can trigger an optimize operation where RRM will kick\
+        \ in (and maybe other things in the future) before it\u2019s automatically\
+        \ scheduled."
+      operationId: optimizeInstallerRrm
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: optimizeInstallerRrm
+      tags:
+      - Installer
+      - Installer
+    parameters:
+    - $ref: '#/components/parameters/site_name'
 components:
   parameters:
-    alarm_id:
+    device_mac:
       in: path
-      name: alarm_id
+      name: device_mac
       required: true
       schema:
-        example: 000000ab-00ab-00ab-00ab-0000000000ab
-        format: uuid
+        example: 0000000000ab
+        pattern: ^[0-9a-fA-F]{12}$
         type: string
-    duration:
-      description: "For historical stats and/or logs where time range is needed, you\
-        \ can specify the time range in a few different ways:\n  * ?start=1430000000&end=1430864000\t\
-        specify the start / end\n  * ?end=1430864000&duration=1d\tspecify end time\
-        \ and duration\n  * ?duration=1d\tspecify duration, end will be now() in seconds"
-      in: query
-      name: duration
-      required: false
-      schema:
-        default: 1d
-        example: 10m
-        type: string
-    end:
-      in: query
-      name: end
-      schema:
-        default: 0
-        minimum: 0
-        type: integer
-    limit:
-      in: query
-      name: limit
-      required: false
-      schema:
-        default: 100
-        minimum: 0
-        type: integer
-    msp_id:
+    image_name:
       in: path
-      name: msp_id
+      name: image_name
+      required: true
+      schema:
+        type: string
+    map_id:
+      in: path
+      name: map_id
       required: true
       schema:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
@@ -2238,330 +2130,238 @@ components:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
         format: uuid
         type: string
-    page:
-      in: query
-      name: page
-      required: false
-      schema:
-        default: 1
-        minimum: 1
-        type: integer
-    sso_id:
+    site_name:
       in: path
-      name: sso_id
-      required: true
-      schema:
-        example: 000000ab-00ab-00ab-00ab-0000000000ab
-        format: uuid
-        type: string
-    start:
-      in: query
-      name: start
-      schema:
-        default: 0
-        minimum: 0
-        type: integer
-    token:
-      in: path
-      name: token
+      name: site_name
       required: true
       schema:
         type: string
   responses:
-    GuestsArray:
+    Map:
       content:
         application/json:
-          examples:
-            example-1:
-              value:
-              - authorized: true
-                authorized_expiring_time: 0
-                authorized_time: 0
-                company: string
-                email: user@example.com
-                field1: string
-                field2: string
-                field3: string
-                field4: string
-                mac: string
-                minutes: 0
-                name: string
-            example-2:
-              value:
-              - authorized: true
-                authorized_expiring_time: 1480704955
-                authorized_time: 1480704355
-                company: abc
-                email: john@abc.com
-                field1: xxx
-                mac: 5684dae9ac8b
-                name: John Smith
           schema:
-            items:
-              $ref: ./components/schemas/Model_object_email.yaml
-            type: array
+            $ref: ./components/schemas/Model_array_string.yaml
       description: OK
-    Licence:
+    MapImport:
       content:
         application/json:
           examples:
-            example-1:
+            example-assigned_and_placed:
               value:
-                amendments:
-                - created_time: 1644684842
-                  end_time: 1744156799
-                  id: ff0a14f6-1234-5678-90ab-c8e64d4bc6c6
-                  modified_time: 1644684842
-                  quantity: -1
-                  start_time: 1632873600
-                  subscription_id: VNA-000000af
-                  type: SUB-VNA
-                - created_time: 1644684842
-                  end_time: 1744156799
-                  id: c1c28812-1234-5678-90ab-dc95680da61e
-                  modified_time: 1644684842
-                  quantity: -1
-                  start_time: 1632873600
-                  subscription_id: MAN-000008be
-                  type: SUB-MAN
-                - created_time: 1644684842
-                  end_time: 1744243199
-                  id: 96c0a41f-1234-5678-90ab-afe74817e9fd
-                  modified_time: 1644684842
-                  quantity: -1
-                  start_time: 1586476800
-                  subscription_id: EX24-000000bc
-                  type: SUB-EX24
-                entitled:
-                  SUB-ENG: 26
-                  SUB-EX24: 9
-                  SUB-MAN: 26
-                  SUB-VNA: 26
-                licenses:
-                - created_time: 1555353534
-                  end_time: 1586822399
-                  id: 693a41a6-1234-5678-90ab-f53dbd3a31c0
-                  modified_time: 1555353534
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 2
-                  remaining_quantity: 0
-                  start_time: 1555286400
-                  subscription_id: VNA-000000aa
-                  type: SUB-VNA
-                - created_time: 1576132516
-                  end_time: 1586822399
-                  id: 656607cf-1234-5678-90ab-fc9035614ea5
-                  modified_time: 1576132516
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 8
-                  remaining_quantity: 0
-                  start_time: 1576022400
-                  subscription_id: VNA-000000ab
-                  type: SUB-VNA
-                - created_time: 1579204568
-                  end_time: 1730764800
-                  id: db50d0bc-1234-5678-90ab-e439958cb06b
-                  modified_time: 1579204568
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 2
-                  remaining_quantity: 2
-                  start_time: 1572998400
-                  subscription_id: MAN-000000ac
-                  type: SUB-MAN
-                - created_time: 1579204568
-                  end_time: 1730764800
-                  id: 2ff9e84a-1234-5678-90ab-fb9ec0726e01
-                  modified_time: 1579204568
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 2
-                  remaining_quantity: 2
-                  start_time: 1572998400
-                  subscription_id: ENG-000000ad
-                  type: SUB-ENG
-                - created_time: 1579204568
-                  end_time: 1730764800
-                  id: 16df7ea6-1234-5678-90ab-78018cd4024d
-                  modified_time: 1579204568
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 2
-                  remaining_quantity: 2
-                  start_time: 1572998400
-                  subscription_id: VNA-000000ae
-                  type: SUB-VNA
-                - created_time: 1586237081
-                  end_time: 1744243199
-                  id: 1b6f68d5-1234-5678-90ab-70d3e6d18c73
-                  modified_time: 1586237081
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 14
-                  remaining_quantity: 14
-                  start_time: 1586563200
-                  subscription_id: VNA-000000af
-                  type: SUB-VNA
-                - created_time: 1586237097
-                  end_time: 1744243199
-                  id: 1375c9bf-1234-5678-90ab-9c636708c89e
-                  modified_time: 1586237097
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 14
-                  remaining_quantity: 14
-                  start_time: 1586563200
-                  subscription_id: MAN-000000ba
-                  type: SUB-MAN
-                - created_time: 1586237137
-                  end_time: 1744243199
-                  id: 5974e979-1234-5678-90ab-438f833ec1c9
-                  modified_time: 1586237137
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 14
-                  remaining_quantity: 14
-                  start_time: 1586563200
-                  subscription_id: ENG-000000bb
-                  type: SUB-ENG
-                - created_time: 1629947267
-                  end_time: 1744243199
-                  id: 340a9cb3-1234-5678-90ab-b009344dbf3c
-                  modified_time: 1629947267
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 10
-                  remaining_quantity: 9
-                  start_time: 1586476800
-                  subscription_id: EX24-000000bc
-                  type: SUB-EX24
-                - created_time: 1632941870
-                  end_time: 1744156799
-                  id: 9b599b0f-1234-5678-90ab-406081b58e7f
-                  modified_time: 1632941870
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 10
-                  remaining_quantity: 10
-                  start_time: 1632873600
-                  subscription_id: ENG-000000bd
-                  type: SUB-ENG
-                - created_time: 1632941882
-                  end_time: 1744156799
-                  id: d6d8ead3-1234-5678-90ab-98badeac7287
-                  modified_time: 1632941882
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 11
-                  remaining_quantity: 9
-                  start_time: 1632873600
-                  subscription_id: MAN-000008be
-                  type: SUB-MAN
+                aps:
+                - action: assigned-placed
+                  floorplan_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+                  height: 3
+                  mac: 5c5b35000001
+                  map_id: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+                  orientation: 45
+                floorplans:
+                - action: imported
+                  id: cbdb7f0b-3be0-4872-88f9-58790b509c23
+                  map_id: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+                  name: map1
+                site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
                 summary:
-                  SUB-ENG: 18
-                  SUB-EX24: 3
-                  SUB-MAN: 22
-                  SUB-VNA: 20
-          schema:
-            $ref: ./components/schemas/Model_object_email.yaml
-      description: OK
-    LogsSearch:
-      content:
-        application/json:
-          examples:
-            example-1:
+                  num_ap_assigned: 1
+                  num_inv_assigned: 1
+                  num_map_assigned: 1
+            example-assigned_named_and_placed:
               value:
-                end: 1428954000
-                limit: 100
-                results:
-                - admin_id: 72bfa2bd-e58a-4670-9d20-a1468f7a6f58
-                  admin_name: test@mistsys.com
-                  id: c6f9347b-b0a4-4a23-b927-fa9249f2ffb2
-                  message: TEST AUDIT
-                  org_id: 469f6eca-6276-4993-bfeb-53cbbbba6f58
-                  site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-                  timestamp: 1431382121
-                start: 1428939600
-                total: 135
+                aps:
+                - action: assigned-named-placed
+                  floorplan_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+                  mac: 5c5b35000001
+                  map_id: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+                  orientation: 45
+                floorplans:
+                - action: imported
+                  id: cbdb7f0b-3be0-4872-88f9-58790b509c23
+                  map_id: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+                  name: map1
+                site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+                summary:
+                  num_ap_assigned: 1
+                  num_inv_assigned: 1
+                  num_map_assigned: 1
+            example-placed:
+              value:
+                aps:
+                - action: placed
+                  floorplan_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  height: 3
+                  mac: 5c5b35000001
+                  map_id: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+                  orientation: 45
+                floorplans:
+                - action: imported
+                  id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  map_id: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+                  name: map1
+                site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+                summary:
+                  num_ap_assigned: 1
+                  num_inv_assigned: 1
+                  num_map_assigned: 1
           schema:
             properties:
-              end:
-                type: integer
-              limit:
-                type: integer
-              next:
-                type: string
-              results:
+              aps:
                 items:
                   properties:
-                    admin_id:
-                      description: admin id
+                    action:
+                      enum:
+                      - placed
+                      - assigned-placed
+                      - named-placed
+                      - assigned-named-placed
+                      - ignored
+                      type: string
+                    floorplan_id:
                       format: uuid
-                      nullable: true
-                      readOnly: true
                       type: string
-                    admin_name:
-                      description: name of the admin that performs the action
-                      nullable: true
-                      readOnly: true
-                      type: string
-                    after:
-                      description: field values after the change
-                      readOnly: true
-                      type: object
-                    before:
-                      description: field values prior to the change
-                      readOnly: true
-                      type: object
-                    for_site:
-                      readOnly: true
-                      type: boolean
-                    id:
-                      format: uuid
-                      readOnly: true
-                      type: string
-                    message:
-                      description: log message
-                      readOnly: true
-                      type: string
-                    org_id:
-                      description: org id
-                      format: uuid
-                      readOnly: true
-                      type: string
-                    site_id:
-                      description: site id
-                      format: uuid
-                      readOnly: true
-                      type: string
-                    timestamp:
-                      description: start time, in epoch
-                      readOnly: true
+                    height:
                       type: number
+                    mac:
+                      type: string
+                    map_id:
+                      format: uuid
+                      type: string
+                    orientation:
+                      type: number
+                    reason:
+                      type: string
                   required:
-                  - admin_id
-                  - admin_name
-                  - message
-                  - org_id
-                  - site_id
-                  - timestamp
+                  - mac
+                  - action
+                  - map_id
+                  - floorplan_id
+                  - orientation
                   type: object
                 minItems: 1
                 type: array
                 uniqueItems: true
-              start:
-                type: integer
-              total:
-                type: integer
+              floorplans:
+                items:
+                  properties:
+                    action:
+                      type: string
+                    id:
+                      format: uuid
+                      type: string
+                    map_id:
+                      format: uuid
+                      type: string
+                    name:
+                      type: string
+                    reason:
+                      type: string
+                  required:
+                  - id
+                  - name
+                  - action
+                  - map_id
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+              for_site:
+                readOnly: true
+                type: boolean
+              site_id:
+                format: uuid
+                type: string
+              summary:
+                properties:
+                  num_ap_assigned:
+                    type: integer
+                  num_inv_assigned:
+                    type: integer
+                  num_map_assigned:
+                    type: integer
+                required:
+                - num_ap_assigned
+                - num_map_assigned
+                - num_inv_assigned
+                type: object
             required:
-            - end
-            - limit
-            - results
-            - start
-            - total
+            - site_id
+            - aps
+            - floorplans
+            - summary
             type: object
+      description: OK
+    MapsArray:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+              - created_time: 0
+                flags: {}
+                height: 0
+                height_m: 0
+                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                latlng_br:
+                  lat: string
+                  lng: string
+                latlng_tl:
+                  lat: string
+                  lng: string
+                locked: true
+                modified_time: 0
+                name: string
+                occupancy_limit: 0
+                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                orientation: 0
+                origin_x: 0
+                origin_y: 0
+                ppm: 0
+                site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                sitesurvey_path:
+                - coordinate: string
+                  id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  name: string
+                  nodes:
+                  - edges:
+                      N2: string
+                    name: string
+                    position:
+                      x: 0
+                      y: 0
+                thumbnail_url: string
+                type: image
+                url: string
+                view: roadmap
+                wall_path:
+                  coordinate: string
+                  nodes:
+                  - edges:
+                      N2: string
+                    name: string
+                    position:
+                      x: 0
+                      y: 0
+                wayfinding:
+                  micello:
+                    account_key: string
+                    default_level_id: 0
+                    map_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  snap_to_path: true
+                wayfinding_path:
+                  coordinate: string
+                  nodes:
+                  - edges:
+                      N2: string
+                    name: string
+                    position:
+                      x: 0
+                      y: 0
+                width: 0
+                width_m: 0
+          schema:
+            items:
+              $ref: ./components/schemas/Model_array_string.yaml
+            type: array
       description: OK
     OK:
       content:
@@ -2569,410 +2369,531 @@ components:
           schema:
             type: object
       description: OK
-    SsoLatestFailures:
-      content:
-        application/json:
-          examples:
-            example-1:
-              value:
-                results:
-                - detail: string
-                  saml_assertion_xml: string
-                  timestamp: 0
-          schema:
-            properties:
-              results:
-                items:
-                  properties:
-                    detail:
-                      type: string
-                    saml_assertion_xml:
-                      type: string
-                    timestamp:
-                      type: number
-                  required:
-                  - timestamp
-                  - detail
-                  - saml_assertion_xml
-                minItems: 1
-                type: array
-                uniqueItems: true
-            required:
-            - results
-            type: object
-      description: OK
   schemas:
-    Model_object_email:
+    Installer_devices:
       properties:
-        email:
-          format: email
+        deviceprofile_name:
           type: string
-      required:
-      - email
-      title: Model_object_email
-      type: object
-      x-examples:
-        example-1:
-          email: user@example.com
-    guest:
-      description: Guest
-      properties:
-        authorized:
-          description: whether the guest is current authorized
-          type: boolean
-        authorized_expiring_time:
-          description: when the authorization would expire
-          example: 1480704955
-          type: integer
-        authorized_time:
-          description: when the guest was authorized
-          example: 1480704355
-          type: integer
-        company:
-          description: optional, the info provided by user
-          example: abc
-          type: string
-        email:
-          description: optional, the info provided by user
-          example: john@abc.com
-          format: email
-          type: string
-        field1:
-          description: optional, the info provided by user
-          type: string
-        field2:
-          type: string
-        field3:
-          type: string
-        field4:
-          type: string
-        mac:
-          description: mac
-          type: string
-        minutes:
-          description: minutes, the maximum is 259200 (180 days)
-          type: integer
-        name:
-          description: optional, the info provided by user
-          example: John Smith
-          type: string
-        ssid:
-          example: Guest-SSID
+        for_site:
           readOnly: true
+          type: boolean
+        height:
+          type: number
+        map_id:
+          format: uuid
           type: string
-        wlan_id:
-          example: 6748cfa6-4e12-11e6-9188-0242ac110007
+        name:
+          type: string
+        orientation:
+          type: number
+        replacing_mac:
+          description: Onlif this is to replace an existing device
+          type: string
+        role:
+          description: optional role for switch / gateway
+          type: string
+        site_id:
           format: uuid
           readOnly: true
           type: string
-      type: object
-      x-examples:
-        example-1:
-          authorized: true
-          authorized_expiring_time: 1480704955
-          authorized_time: 1480704355
-          company: abc
-          email: john@abc.com
-          field1: xxx
-          mac: 5684dae9ac8b
-          name: John Smith
-    license:
-      description: License
-      properties:
-        amendments:
-          items:
-            properties:
-              created_time:
-                type: number
-              end_time:
-                readOnly: true
-                type: integer
-              id:
-                readOnly: true
-                type: string
-              modified_time:
-                type: number
-              quantity:
-                readOnly: true
-                type: integer
-              start_time:
-                readOnly: true
-                type: integer
-              subscription_id:
-                readOnly: true
-                type: string
-              type:
-                enum:
-                - SUB-MAN
-                - SUB-AST
-                - SUB-VNA
-                - SUB-DATA
-                - SUB-ENG
-                - SUB-PMA
-                - SUB-EX12
-                - SUB-EX24
-                - SUB-EX48
-                - SUB-SVNA
-                - SUB-ME
-                - SUB-WAN1
-                - SUB-WAN2
-                - SUB-WVNA1
-                - SUB-WVNA2
-                - SUB-SRX1
-                - SUB-SRX2
-                readOnly: true
-                type: string
-            readOnly: true
-            type: object
-          readOnly: true
-          type: array
-          uniqueItems: true
-        entitled:
-          additionalProperties:
-            type: integer
-          description: Property key is license type (e.g. SUB-MAN)  and Property value
-            is the number of licenses entitled.
-          readOnly: true
-          type: object
-        licenses:
-          description: list of registered licenses
-          items:
-            properties:
-              created_time:
-                type: number
-              end_time:
-                description: end date of the license term
-                readOnly: true
-                type: integer
-              id:
-                format: uuid
-                type: string
-              modified_time:
-                type: number
-              order_id:
-                readOnly: true
-                type: string
-              org_id:
-                format: uuid
-                type: string
-              quantity:
-                description: number of devices entitled for this license
-                readOnly: true
-                type: integer
-              remaining_quantity:
-                description: Number of licences left in this subscription
-                type: integer
-              start_time:
-                description: start date of the license term
-                readOnly: true
-                type: integer
-              subscription_id:
-                readOnly: true
-                type: string
-              type:
-                enum:
-                - SUB-MAN
-                - SUB-AST
-                - SUB-VNA
-                - SUB-DATA
-                - SUB-ENG
-                - SUB-PMA
-                - SUB-EX12
-                - SUB-EX24
-                - SUB-EX48
-                - SUB-SVNA
-                - SUB-ME
-                - SUB-WAN1
-                - SUB-WAN2
-                - SUB-WVNA1
-                - SUB-WVNA2
-                - SUB-SRX1
-                - SUB-SRX2
-                readOnly: true
-                type: string
-            readOnly: true
-            type: object
-          readOnly: true
-          type: array
-          uniqueItems: true
-        summary:
-          additionalProperties:
-            type: integer
-          description: Property key is license type (e.g. SUB-MAN) and Property value
-            is the number of licenses consumed.
-          readOnly: true
-          type: object
-      type: object
-      x-examples:
-        example-1:
-          amendments:
-          - created_time: 1644684842
-            end_time: 1744156799
-            id: ff0a14f6-1234-5678-90ab-c8e64d4bc6c6
-            modified_time: 1644684842
-            quantity: -1
-            start_time: 1632873600
-            subscription_id: VNA-000000af
-            type: SUB-VNA
-          - created_time: 1644684842
-            end_time: 1744156799
-            id: c1c28812-1234-5678-90ab-dc95680da61e
-            modified_time: 1644684842
-            quantity: -1
-            start_time: 1632873600
-            subscription_id: MAN-000008be
-            type: SUB-MAN
-          - created_time: 1644684842
-            end_time: 1744243199
-            id: 96c0a41f-1234-5678-90ab-afe74817e9fd
-            modified_time: 1644684842
-            quantity: -1
-            start_time: 1586476800
-            subscription_id: EX24-000000bc
-            type: SUB-EX24
-          entitled:
-            SUB-ENG: 26
-            SUB-EX24: 9
-            SUB-MAN: 26
-            SUB-VNA: 26
-          licenses:
-          - created_time: 1555353534
-            end_time: 1586822399
-            id: 693a41a6-1234-5678-90ab-f53dbd3a31c0
-            modified_time: 1555353534
-            order_id: '00000000'
-            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-            quantity: 2
-            remaining_quantity: 0
-            start_time: 1555286400
-            subscription_id: VNA-000000aa
-            type: SUB-VNA
-          - created_time: 1576132516
-            end_time: 1586822399
-            id: 656607cf-1234-5678-90ab-fc9035614ea5
-            modified_time: 1576132516
-            order_id: '00000000'
-            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-            quantity: 8
-            remaining_quantity: 0
-            start_time: 1576022400
-            subscription_id: VNA-000000ab
-            type: SUB-VNA
-          - created_time: 1579204568
-            end_time: 1730764800
-            id: db50d0bc-1234-5678-90ab-e439958cb06b
-            modified_time: 1579204568
-            order_id: '00000000'
-            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-            quantity: 2
-            remaining_quantity: 2
-            start_time: 1572998400
-            subscription_id: MAN-000000ac
-            type: SUB-MAN
-          - created_time: 1579204568
-            end_time: 1730764800
-            id: 2ff9e84a-1234-5678-90ab-fb9ec0726e01
-            modified_time: 1579204568
-            order_id: '00000000'
-            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-            quantity: 2
-            remaining_quantity: 2
-            start_time: 1572998400
-            subscription_id: ENG-000000ad
-            type: SUB-ENG
-          - created_time: 1579204568
-            end_time: 1730764800
-            id: 16df7ea6-1234-5678-90ab-78018cd4024d
-            modified_time: 1579204568
-            order_id: '00000000'
-            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-            quantity: 2
-            remaining_quantity: 2
-            start_time: 1572998400
-            subscription_id: VNA-000000ae
-            type: SUB-VNA
-          - created_time: 1586237081
-            end_time: 1744243199
-            id: 1b6f68d5-1234-5678-90ab-70d3e6d18c73
-            modified_time: 1586237081
-            order_id: '00000000'
-            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-            quantity: 14
-            remaining_quantity: 14
-            start_time: 1586563200
-            subscription_id: VNA-000000af
-            type: SUB-VNA
-          - created_time: 1586237097
-            end_time: 1744243199
-            id: 1375c9bf-1234-5678-90ab-9c636708c89e
-            modified_time: 1586237097
-            order_id: '00000000'
-            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-            quantity: 14
-            remaining_quantity: 14
-            start_time: 1586563200
-            subscription_id: MAN-000000ba
-            type: SUB-MAN
-          - created_time: 1586237137
-            end_time: 1744243199
-            id: 5974e979-1234-5678-90ab-438f833ec1c9
-            modified_time: 1586237137
-            order_id: '00000000'
-            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-            quantity: 14
-            remaining_quantity: 14
-            start_time: 1586563200
-            subscription_id: ENG-000000bb
-            type: SUB-ENG
-          - created_time: 1629947267
-            end_time: 1744243199
-            id: 340a9cb3-1234-5678-90ab-b009344dbf3c
-            modified_time: 1629947267
-            order_id: '00000000'
-            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-            quantity: 10
-            remaining_quantity: 9
-            start_time: 1586476800
-            subscription_id: EX24-000000bc
-            type: SUB-EX24
-          - created_time: 1632941870
-            end_time: 1744156799
-            id: 9b599b0f-1234-5678-90ab-406081b58e7f
-            modified_time: 1632941870
-            order_id: '00000000'
-            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-            quantity: 10
-            remaining_quantity: 10
-            start_time: 1632873600
-            subscription_id: ENG-000000bd
-            type: SUB-ENG
-          - created_time: 1632941882
-            end_time: 1744156799
-            id: d6d8ead3-1234-5678-90ab-98badeac7287
-            modified_time: 1632941882
-            order_id: '00000000'
-            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-            quantity: 11
-            remaining_quantity: 9
-            start_time: 1632873600
-            subscription_id: MAN-000008be
-            type: SUB-MAN
-          summary:
-            SUB-ENG: 18
-            SUB-EX24: 3
-            SUB-MAN: 22
-            SUB-VNA: 20
-    note:
-      properties:
-        note:
-          description: Some text note describing the intent
+        site_name:
           type: string
-      title: note
+        x:
+          type: number
+        y:
+          type: number
+      required:
+      - name
+      title: Installer_devices
       type: object
       x-examples:
-        example:
-          value:
-            note: maintenance window
+        example-1:
+          deviceprofile_name: string
+          for_site: true
+          height: 0
+          map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
+          name: string
+          orientation: 0
+          site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+          site_name: string
+          x: 0
+          y: 0
+    Model_array_string:
+      description: Claim Code
+      items:
+        type: string
+      title: Model_array_string
+      type: array
+      x-examples:
+        example-1:
+        - string
+    image_upload:
+      properties:
+        file:
+          description: binary file
+          format: binary
+          type: string
+        json:
+          description: JSON string describing your upload
+          type: string
+      required:
+      - file {}
+      title: image_upload
+      type: object
+      x-examples:
+        example-1:
+          file: string
+          json: string
+    map:
+      description: Map
+      properties:
+        created_time:
+          readOnly: true
+          type: number
+        flags:
+          description: name/val pair objects for location engine to use
+          type: object
+        for_site:
+          readOnly: true
+          type: boolean
+        height:
+          description: when type=image, height of the image map
+          type: number
+        height_m:
+          type: number
+        id:
+          format: uuid
+          readOnly: true
+          type: string
+        latlng_br:
+          description: when type=google, latitude / longitude of the bottom-right
+            corner
+          properties:
+            lat:
+              type: string
+            lng:
+              type: string
+          type: object
+        latlng_tl:
+          description: when type=google, latitude / longitude of the top-left corner
+          properties:
+            lat:
+              type: string
+            lng:
+              type: string
+          type: object
+        locked:
+          default: false
+          description: whether this map is considered locked down
+          type: boolean
+        modified_time:
+          readOnly: true
+          type: number
+        name:
+          description: The name of the map
+          type: string
+        occupancy_limit:
+          type: integer
+        org_id:
+          format: uuid
+          readOnly: true
+          type: string
+        orientation:
+          default: 0
+          description: orientation of the map, 0 means up is north, 90 means up is
+            west
+          type: number
+        origin_x:
+          description: the user-annotated x origin, pixels
+          type: number
+        origin_y:
+          description: the user-annotated y origin, pixels
+          type: number
+        ppm:
+          description: when type=image, pixels per meter
+          type: number
+        site_id:
+          format: uuid
+          readOnly: true
+          type: string
+        sitesurvey_path:
+          description: sitesurvey_path
+          items:
+            properties:
+              coordinate:
+                type: string
+              id:
+                format: uuid
+                type: string
+              name:
+                type: string
+              nodes:
+                items:
+                  $ref: ./components/schemas/Model_array_string.yaml
+                minItems: 0
+                type: array
+            type: object
+          minItems: 0
+          type: array
+        thumbnail_url:
+          description: when type=image, the url for the thumbnail image / preview
+          readOnly: true
+          type: string
+        type:
+          default: image
+          enum:
+          - image
+          - google
+          type: string
+        url:
+          description: when type=image, the url
+          readOnly: true
+          type: string
+        use_auto_orientation:
+          default: false
+          description: whether this map uses autooreintation values or ignores them
+          type: boolean
+        use_auto_placement:
+          default: false
+          description: whether this map uses autoplacement values or ignores them
+          type: boolean
+        view:
+          description: when type=google
+          enum:
+          - roadmap
+          - satellite
+          - hybrid
+          - terrain
+          nullable: true
+          type: string
+        wall_path:
+          description: a JSON blob for wall definition (same format as wayfinding_path)
+          properties:
+            coordinate:
+              type: string
+            name:
+              type: string
+            nodes:
+              items:
+                $ref: ./components/schemas/Model_array_string.yaml
+              minItems: 0
+              type: array
+          type: object
+        wayfinding:
+          description: properties related to wayfinding
+          properties:
+            micello:
+              properties:
+                account_key:
+                  type: string
+                default_level_id:
+                  type: integer
+                map_id:
+                  format: uuid
+                  type: string
+              type: object
+            snap_to_path:
+              type: boolean
+          type: object
+        wayfinding_path:
+          description: "a JSON blob for wayfinding (using Dijkstra\u2019s algorithm)"
+          properties:
+            coordinate:
+              type: string
+            nodes:
+              items:
+                $ref: ./components/schemas/Model_array_string.yaml
+              minItems: 0
+              type: array
+          type: object
+        width:
+          description: when type=image, width of the image map
+          type: number
+        width_m:
+          type: number
+      type: object
+      x-examples:
+        example-1:
+          flags: {}
+          height: 0
+          latlng_br:
+            lat: string
+            lng: string
+          latlng_tl:
+            lat: string
+            lng: string
+          locked: true
+          name: string
+          orientation: 0
+          origin_x: 0
+          origin_y: 0
+          ppm: 0
+          sitesurvey_path:
+          - coordinate: string
+            id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+            name: string
+            nodes:
+            - edges:
+                N2: string
+              name: string
+              position:
+                x: 0
+                y: 0
+          thumbnail_url: string
+          type: string
+          url: string
+          view: string
+          wall_path:
+            coordinate: string
+            nodes:
+            - edges:
+                N2: string
+              name: string
+              position:
+                x: 0
+                y: 0
+          wayfinding:
+            micello:
+              account_key: string
+              default_level_id: 0
+              map_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+            snap_to_path: true
+          wayfinding_path:
+            coordinate: string
+            nodes:
+            - edges:
+                N2: string
+              name: string
+              position:
+                x: 0
+                y: 0
+          width: 0
+        example-google:
+          latlng_br:
+            lat: 37.295285
+            lng: -122.032789
+          latlng_tl:
+            lat: 37.295057
+            lng: -122.033095
+          name: Oakridge Mall
+          origin_x: -122.03301
+          origin_y: 37.29508
+          type: google
+          view: roadmap
+        example-image:
+          flags:
+            assetHoldTime: 5
+            storeTime: 10
+          height: 1500
+          locked: false
+          name: Mist Office
+          orientation: 30
+          origin_x: 35
+          origin_y: 60
+          ppm: 40.94
+          sitesurvey_path:
+          - coordinate: actual
+            id: cbdb7f0b-3be0-4872-88f9-58790b509c23-j68kows8
+            name: Default
+            nodes:
+            - edges:
+                W1: 1
+              name: W0
+              position:
+                x: 372
+                y: 192
+            - edges:
+                W2: 1
+              name: W1
+              position:
+                x: 485
+                y: 205
+            - edges:
+                W0: 1
+              name: W2
+              position:
+                x: 400
+                y: 295
+          thumbnail_url: https://url/to/image.png
+          type: image
+          url: https://url/to/image.png
+          wall_path:
+            coordinate: actual
+            nodes:
+            - edges:
+                N2: '1'
+              name: N1
+              position:
+                x: 746
+                y: 104
+            - edges:
+                N1: '1'
+              name: N2
+              position:
+                x: 740
+                y: 318
+          wayfinding:
+            micello:
+              account_key: adasdf
+              default_level_id: 5
+              map_id: c660f81dd250c
+            snap_to_path: true
+          wayfinding_path:
+            coordinate: actual
+            nodes:
+            - edges:
+                N2: '1'
+              name: N1
+              position:
+                x: 746
+                y: 104
+            - edges:
+                N1: '1'
+              name: N2
+              position:
+                x: 740
+                y: 318
+          width: 1250
+    map_node:
+      description: Nodes on maps
+      properties:
+        edges:
+          additionalProperties:
+            type: string
+          type: object
+        name:
+          type: string
+        position:
+          properties:
+            x:
+              type: number
+            y:
+              type: number
+          required:
+          - x
+          - y
+          type: object
+      required:
+      - name
+      type: object
+    site:
+      description: Site
+      properties:
+        address:
+          description: full address of the site
+          example: 1601 S. Deanza Blvd., Cupertino, CA, 95014
+          type: string
+        alarmtemplate_id:
+          description: Alarm Template ID, this takes precedence over the Org-level
+            alarmtemplate_id
+          example: 684dfc5c-fe77-2290-eb1d-ef3d677fe168
+          format: uuid
+          nullable: true
+          type: string
+        aptemplate_id:
+          description: AP Template ID, used by APs
+          example: 16bdf952-ade2-4491-80b0-85ce506c760b
+          type: string
+        country_code:
+          description: country code for the site (for AP config generation), in two-character
+          example: US
+          type: string
+        created_time:
+          readOnly: true
+          type: number
+        gatewaytemplate_id:
+          description: Gateway Template ID, used by gateways
+          example: 6f9b2e75-9b2f-b5ae-81e3-e14c76f1a90f
+          format: uuid
+          nullable: true
+          type: string
+        id:
+          format: uuid
+          readOnly: true
+          type: string
+        latlng:
+          description: site location
+          properties:
+            lat:
+              description: latitude
+              example: 37.295833
+              type: number
+            lng:
+              description: longitude
+              example: -122.032946
+              type: number
+          type: object
+        modified_time:
+          readOnly: true
+          type: number
+        name:
+          example: Mist Office
+          type: string
+        networktemplate_id:
+          description: Network Template ID, this takes precedence over Site Settings
+          example: 12ae9bd2-e0ab-107b-72e8-a7a005565ec2
+          format: uuid
+          nullable: true
+          type: string
+        notes:
+          description: optional, any notes about the site
+          type: string
+        org_id:
+          format: uuid
+          readOnly: true
+          type: string
+        rftemplate_id:
+          description: RF Template ID, this takes precedence over Site Settings
+          example: bb8a9017-1e36-5d6c-6f2b-551abe8a76a2
+          format: uuid
+          nullable: true
+          type: string
+        secpolicy_id:
+          description: SecPolicy ID
+          example: 3bcd0beb-5d0a-4cbd-92c1-14aea91e98ef
+          format: uuid
+          nullable: true
+          type: string
+        sitegroup_ids:
+          description: sitegroups this site belongs to
+          items:
+            format: uuid
+            type: string
+          type: array
+        sitetemplate_id:
+          description: Site Template ID
+          format: uuid
+          type: string
+        timezone:
+          description: Timezone the site is at
+          example: America/Los_Angeles
+          type: string
+      required:
+      - name
+      type: object
+      x-examples:
+        example-1:
+          address: 1601 S. Deanza Blvd., Cupertino, CA, 95014
+          alarmtemplate_id: 684dfc5c-fe77-2290-eb1d-ef3d677fe168
+          apporttemplate_id: string
+          aptemplate_id: 16bdf952-ade2-4491-80b0-85ce506c760b
+          country_code: US
+          created_time: 0
+          gatewaytemplate_id: 6f9b2e75-9b2f-b5ae-81e3-e14c76f1a90f
+          id: 497f6eca-6276-5018-bfeb-53cbbbba6f21
+          latlng:
+            lat: 37.295833
+            lng: -122.032946
+          modified_time: 0
+          name: Mist Office
+          networktemplate_id: 12ae9bd2-e0ab-107b-72e8-a7a005565ec2
+          notes: string
+          org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+          rftemplate_id: bb8a9017-1e36-5d6c-6f2b-551abe8a76a2
+          secpolicy_id: 3bcd0beb-5d0a-4cbd-92c1-14aea91e98ef
+          sitegroup_ids:
+          - 497f6eca-6276-5019-bfeb-53cbbbba6f22
+          timezone: America/Los_Angeles
 x-tagGroups:
 - name: Account
   tags:
