@@ -411,7 +411,7 @@ if __name__ == "__main__":
 
 ```
 
-# Rate Limit
+## Rate Limit
 
 The current rate limiting is 5000 API calls per hour and is reset at the hourly boundary. If you need more, please contact our support about your use case. It is possible that there are other APIs that can better serve you or new APIs we could have created to do what you’re trying to do.
 
