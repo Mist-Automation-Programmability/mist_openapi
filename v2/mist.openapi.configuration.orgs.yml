@@ -328,6 +328,162 @@ tags:
 - name: Account
 - name: Webhook Samples
 paths:
+  /api/v1/invite/verify/{token}:
+    parameters:
+    - $ref: '#/components/parameters/token'
+    post:
+      description: '**Note**: another call to ```GET /api/v1/self``` is required to
+        see the new set of privileges'
+      operationId: verifyAdminInvite
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                invalid secret:
+                  value:
+                    detail: invalid secret
+                invite created by self:
+                  value:
+                    detail: invite created by self
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not Found
+      summary: verifyAdminInvite
+      tags:
+      - Orgs Admins
+      - Configuration
+  /api/v1/mobile/verify/{secret}:
+    parameters:
+    - $ref: '#/components/parameters/secret'
+    post:
+      description: Verify secret
+      operationId: activateSdkInvite
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  device_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+            schema:
+              $ref: ./components/schemas/Model_object_device_id.yaml
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    name: Macy's
+                    org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                    secret: device-specific-secret
+              schema:
+                properties:
+                  name:
+                    type: string
+                  org_id:
+                    format: uuid
+                    type: string
+                  secret:
+                    type: string
+                required:
+                - name
+                - org_id
+                - secret
+                type: object
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: activateSdkInvite
+      tags:
+      - Orgs SDK Clients
+      - Configuration
   /api/v1/orgs:
     post:
       description: "Org admin can invite people to manage the org. Furthermore, he\
@@ -349,7 +505,7 @@ paths:
                   - 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
                   session_expiry: 0
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/Org'
@@ -404,7 +560,7 @@ paths:
       summary: createOrg
       tags:
       - Orgs
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}:
     delete:
       description: Delete Org
@@ -463,7 +619,7 @@ paths:
       summary: deleteOrg
       tags:
       - Orgs
-      - Operational
+      - Configuration
     get:
       description: Get Organization information
       operationId: getOrgInfo
@@ -485,7 +641,7 @@ paths:
                     name: Org
                     session_expiry: 1440
               schema:
-                $ref: ./components/schemas/org.yaml
+                $ref: ./components/schemas/Model_object_device_id.yaml
           description: OK
         '400':
           content:
@@ -538,7 +694,7 @@ paths:
       summary: getOrg
       tags:
       - Orgs
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     put:
@@ -560,7 +716,7 @@ paths:
                   orggroup_ids: []
                   session_expiry: 1440
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -616,7 +772,7 @@ paths:
       summary: updateOrg
       tags:
       - Orgs
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/128routers/register_cmd:
     get:
       description: 128T devices can be managed/adopted by Mist.
@@ -692,7 +848,7 @@ paths:
       summary: getOrg128TRegistrationCommands
       tags:
       - Orgs 128T
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/admins:
@@ -753,7 +909,7 @@ paths:
       summary: listOrgAdmins
       tags:
       - Orgs Admins
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/admins/{admin_id}:
@@ -814,7 +970,7 @@ paths:
       summary: revokeOrgAdmin
       tags:
       - Orgs Admins
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/admin_id'
@@ -837,7 +993,7 @@ paths:
                     scope: org
                     site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -893,7 +1049,7 @@ paths:
       summary: updateOrgAdmin
       tags:
       - Orgs Admins
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/alarms/ack:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -978,7 +1134,7 @@ paths:
       summary: multiAckOrgAlarms
       tags:
       - Orgs Alarms
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/alarms/ack_all:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -996,7 +1152,7 @@ paths:
                 value:
                   note: string
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -1051,7 +1207,7 @@ paths:
       summary: ackOrgAllAlarms
       tags:
       - Orgs Alarms
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/alarms/unack:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -1136,7 +1292,7 @@ paths:
       summary: multiUnackOrgAlarms
       tags:
       - Orgs Alarms
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/alarms/unack_all:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -1155,7 +1311,7 @@ paths:
                 value:
                   note: maintenance window
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -1211,7 +1367,7 @@ paths:
       summary: unackOrgAllArlarms
       tags:
       - Orgs Alarms
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/alarms/{alarm_id}/ack:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -1227,7 +1383,7 @@ paths:
                 value:
                   note: maintenance window
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -1283,7 +1439,7 @@ paths:
       summary: ackOrgAlarm
       tags:
       - Orgs Alarms
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/alarmtemplates:
     get:
       description: Get List of Org Alarm Templates
@@ -1342,7 +1498,7 @@ paths:
       summary: listOrgAlarmTemplates
       tags:
       - Orgs Alarm Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -1356,7 +1512,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -1412,7 +1568,7 @@ paths:
       summary: createOrgAlarmTemplate
       tags:
       - Orgs Alarm Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/alarmtemplates/suppress:
     delete:
       description: Un-Suppress Suppressed Alarms
@@ -1471,7 +1627,7 @@ paths:
       summary: unsuppressOrgSuppressedAlarms
       tags:
       - Orgs Alarms
-      - Operational
+      - Configuration
     get:
       description: Get List of Org Alarms Currently Suppressed
       operationId: listOrgSuppressedAlarms
@@ -1556,7 +1712,7 @@ paths:
       summary: listOrgSuppressedAlarms
       tags:
       - Orgs Alarms
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -1677,7 +1833,7 @@ paths:
       summary: suppressOrgAlarm
       tags:
       - Orgs Alarms
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/alarmtemplates/{alarmtemplate_id}:
     delete:
       description: Delete Org Alarm Template
@@ -1736,7 +1892,7 @@ paths:
       summary: deleteOrgAlarmTemplate
       tags:
       - Orgs Alarm Templates
-      - Operational
+      - Configuration
     get:
       description: Get Org Alarm Template Details
       operationId: getOrgAlarmTemplate
@@ -1794,7 +1950,7 @@ paths:
       summary: getOrgAlarmTemplate
       tags:
       - Orgs Alarm Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/alarmtemplate_id'
@@ -2130,7 +2286,7 @@ paths:
                         to_site_admins: true
                       enabled: true
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -2186,7 +2342,7 @@ paths:
       summary: updateOrgAlarmTemplate
       tags:
       - Orgs Alarm Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/apitokens:
     get:
       description: Get List of Org API Tokens
@@ -2245,7 +2401,7 @@ paths:
       summary: listOrgApiTokens
       tags:
       - Orgs API Tokens
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -2366,7 +2522,7 @@ paths:
       summary: createOrgApiToken
       tags:
       - Orgs API Tokens
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/apitokens/{apitoken_id}:
     delete:
       description: Delete Org API Token
@@ -2425,7 +2581,7 @@ paths:
       summary: deleteOrgApiToken
       tags:
       - Orgs API Tokens
-      - Operational
+      - Configuration
     get:
       description: Get Org API Token
       operationId: getOrgApiToken
@@ -2483,7 +2639,7 @@ paths:
       summary: getOrgApiToken
       tags:
       - Orgs API Tokens
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/apitoken_id'
@@ -2501,7 +2657,7 @@ paths:
                   name: string
                   org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -2557,7 +2713,7 @@ paths:
       summary: updateOrgApiToken
       tags:
       - Orgs API Tokens
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/aptemplates:
     get:
       description: Get List of Org AP Templates
@@ -2616,7 +2772,7 @@ paths:
       summary: listOrgAptemplates
       tags:
       - Orgs AP Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -2762,7 +2918,7 @@ paths:
                     mesh_enabled: true
                     proxy_arp: false
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/Aptemplate'
@@ -2817,7 +2973,7 @@ paths:
       summary: createOrgAptemplate
       tags:
       - Orgs AP Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/aptemplates/{aptemplate_id}:
     delete:
       description: Delete existing AP Template
@@ -2876,7 +3032,7 @@ paths:
       summary: deleteOrgAptemplate
       tags:
       - Orgs AP Templates
-      - Operational
+      - Configuration
     get:
       description: Get AP Template
       operationId: getOrgAptemplate
@@ -2934,7 +3090,7 @@ paths:
       summary: getOrgAptemplate
       tags:
       - Orgs AP Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/aptemplate_id'
@@ -3081,7 +3237,7 @@ paths:
                     mesh_enabled: true
                     proxy_arp: false
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/Aptemplate'
@@ -3136,7 +3292,7 @@ paths:
       summary: updateOrgAptemplate
       tags:
       - Orgs AP Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/assetfilters:
     get:
       description: "Get List of Org BLE asset filters. \nEach asset filter in the\
@@ -3200,7 +3356,7 @@ paths:
       summary: listOrgAssetFilters
       tags:
       - Orgs Asset Filters
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -3229,7 +3385,7 @@ paths:
                   org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
                   site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/Assetfilter'
@@ -3284,7 +3440,7 @@ paths:
       summary: createOrgAssetFilters
       tags:
       - Orgs Asset Filters
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/assetfilters/{assetfilter_id}:
     delete:
       description: Deletes an existing BLE asset filter for the given site.
@@ -3343,7 +3499,7 @@ paths:
       summary: deleteOrgAssetFilter
       tags:
       - Orgs Asset Filters
-      - Operational
+      - Configuration
     get:
       description: Get Org Asset Filter Details
       operationId: getOrgAssetFilter
@@ -3401,7 +3557,7 @@ paths:
       summary: getOrgAssetFilter
       tags:
       - Orgs Asset Filters
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/assetfilter_id'
@@ -3422,7 +3578,7 @@ paths:
                   mfg_company_id: 0
                   name: string
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -3478,7 +3634,7 @@ paths:
       summary: updateOrgAssetFilters
       tags:
       - Orgs Asset Filters
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/assets:
     get:
       description: Get List of Org Assets
@@ -3537,7 +3693,7 @@ paths:
       summary: listOrgAssets
       tags:
       - Orgs Assets
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -3547,7 +3703,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -3603,7 +3759,7 @@ paths:
       summary: createOrgAsset
       tags:
       - Orgs Assets
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/assets/import:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -3708,7 +3864,7 @@ paths:
       summary: importOrgAssets
       tags:
       - Orgs Assets
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/assets/{asset_id}:
     delete:
       description: Delete Org Asset
@@ -3769,7 +3925,7 @@ paths:
       summary: deleteOrgAsset
       tags:
       - Orgs Assets
-      - Operational
+      - Configuration
     get:
       description: Get Org Asset Details
       operationId: getOrgAsset
@@ -3827,7 +3983,7 @@ paths:
       summary: getOrgAsset
       tags:
       - Orgs Assets
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/asset_id'
@@ -3838,7 +3994,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -3894,7 +4050,7 @@ paths:
       summary: updateOrgAsset
       tags:
       - Orgs Assets
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/cert:
     get:
       description: Get Org Certificates
@@ -3953,7 +4109,7 @@ paths:
       summary: getOrgCertificates
       tags:
       - Orgs Cert
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/cert/regenerate:
@@ -4016,7 +4172,7 @@ paths:
       summary: clearOrgCertificates
       tags:
       - Orgs Cert
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/claim:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -4097,7 +4253,7 @@ paths:
       summary: claimOrgLicense
       tags:
       - Orgs Licenses
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/clone:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -4174,7 +4330,7 @@ paths:
       summary: cloneOrg
       tags:
       - Orgs
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/crl:
     get:
       description: Get Org CRL File
@@ -4233,7 +4389,7 @@ paths:
       summary: getOrgCrlFile
       tags:
       - Orgs CRL
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/crl/truncate:
@@ -4311,7 +4467,7 @@ paths:
       summary: truncateOrgCrlFile
       tags:
       - Orgs Cert
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/deviceprofiles:
     get:
       description: Get List of Org Device Profiles
@@ -4382,7 +4538,7 @@ paths:
       summary: listOrgDeviceProfiles
       tags:
       - Orgs Device Profiles
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -4875,7 +5031,7 @@ paths:
                   x: 0
                   y: 0
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -4931,7 +5087,7 @@ paths:
       summary: createOrgDeviceProfiles
       tags:
       - Orgs Device Profiles
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/deviceprofiles/{deviceprofile_id}:
     delete:
       description: Delete Org Device Profile
@@ -4990,7 +5146,7 @@ paths:
       summary: deleteOrgDeviceProfile
       tags:
       - Orgs Device Profiles
-      - Operational
+      - Configuration
     get:
       description: Get Org device Profile Details
       operationId: getOrgDeviceProfile
@@ -5048,7 +5204,7 @@ paths:
       summary: getOrgDeviceProfile
       tags:
       - Orgs Device Profiles
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/deviceprofile_id'
@@ -5983,7 +6139,7 @@ paths:
                       version: '2'
                   type: standalone
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -6039,7 +6195,7 @@ paths:
       summary: updateOrgDeviceProfiles
       tags:
       - Orgs Device Profiles
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/deviceprofiles/{deviceprofile_id}/assign:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -6057,7 +6213,7 @@ paths:
                   - 5c5b350e0001
                   - 5c5b350e0003
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -6113,7 +6269,7 @@ paths:
       summary: assignOrgDeviceProfile
       tags:
       - Orgs Device Profiles
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/deviceprofiles/{deviceprofile_id}/unassign:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -6131,7 +6287,7 @@ paths:
                   - 5c5b350e0001
                   - 5c5b350e0003
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -6187,7 +6343,7 @@ paths:
       summary: unassignOrgDeviceProfiles
       tags:
       - Orgs Device Profiles
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/devices:
     get:
       description: Get List of Org Devices
@@ -6246,7 +6402,7 @@ paths:
       summary: listOrgDevices
       tags:
       - Orgs Devices
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/devices/radio_macs:
@@ -6352,7 +6508,7 @@ paths:
       summary: listOrgApsMacs
       tags:
       - Orgs Devices
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/devices/upgrade:
@@ -6460,7 +6616,7 @@ paths:
       summary: listOrgMultiSitesDevicesUpgrades
       tags:
       - Orgs Devices Upgrades
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -6470,7 +6626,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/Id'
@@ -6525,7 +6681,7 @@ paths:
       summary: upgradeOrgMultiSitesDevices
       tags:
       - Orgs Devices Upgrades
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/devices/upgrade/{upgrade_id}:
     get:
       description: Get Multi Site Upgrade
@@ -6584,7 +6740,7 @@ paths:
       summary: getOrgMultiSitesUpgrade
       tags:
       - Orgs Devices Upgrades
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - in: path
@@ -6678,7 +6834,7 @@ paths:
       summary: clearOrgTunnel
       tags:
       - Orgs Tunnels
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/devices/{device_id}/provision_tunnels:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -6899,7 +7055,7 @@ paths:
       summary: provisionOrgTunnel
       tags:
       - Orgs Tunnels
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/evpn_topologies:
     get:
       description: Get List of the existing Org EVPN topologies
@@ -6958,7 +7114,7 @@ paths:
       summary: listOrgEvpnTopologies
       tags:
       - Orgs EVPN Topologies
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -7000,7 +7156,7 @@ paths:
                   - mac: 5c5b35000004
                     role: collapsed-core
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: ''
       responses:
         '200':
@@ -7056,7 +7212,7 @@ paths:
       summary: createOrgEvpnTopology
       tags:
       - Orgs EVPN Topologies
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/evpn_topologies/{evpn_topology_id}:
     delete:
       description: Delete the Org EVPN Topology
@@ -7115,7 +7271,7 @@ paths:
       summary: deleteOrgEvpnTopology
       tags:
       - Orgs EVPN Topologies
-      - Operational
+      - Configuration
     get:
       description: Get One EVPN Topology Detail
       operationId: getOrgEvpnTolopogy
@@ -7173,7 +7329,7 @@ paths:
       summary: getOrgEvpnTolopogy
       tags:
       - Orgs EVPN Topologies
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/evpn_topology_id'
@@ -7193,7 +7349,7 @@ paths:
                   - mac: 5c5b35000004
                     role: none
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/EvpnTopology'
@@ -7248,7 +7404,7 @@ paths:
       summary: updateOrgEvpnTopology
       tags:
       - Orgs EVPN Topologies
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/gatewaytemplates:
     get:
       description: Get List of Org Gateway Templates
@@ -7307,7 +7463,7 @@ paths:
       summary: listOrgGatewayTemplates
       tags:
       - Orgs Gateway Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -8070,7 +8226,7 @@ paths:
                       version: '2'
                   type: standalone
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Gateway Template
       responses:
         '200':
@@ -8126,7 +8282,7 @@ paths:
       summary: createOrgGatewayTemplate
       tags:
       - Orgs Gateway Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/gatewaytemplates/{gatewaytemplate_id}:
     delete:
       description: Delete Organization Gateway Template
@@ -8185,7 +8341,7 @@ paths:
       summary: deleteOrgGatewayTemplate
       tags:
       - Orgs Gateway Templates
-      - Operational
+      - Configuration
     get:
       description: Get Organization Gateway Template details
       operationId: getOrgGatewayTemplate
@@ -8243,7 +8399,7 @@ paths:
       summary: getOrgGatewayTemplate
       tags:
       - Orgs Gateway Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/gatewaytemplate_id'
@@ -9007,7 +9163,7 @@ paths:
                       version: '2'
                   type: standalone
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Gateway Template
       responses:
         '200':
@@ -9063,7 +9219,7 @@ paths:
       summary: updateOrgGatewayTemplate
       tags:
       - Orgs Gateway Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/guests/{guest_mac}:
     delete:
       description: Delete Guest Authorization
@@ -9122,7 +9278,7 @@ paths:
       summary: deleteOrgGuestAuthorization
       tags:
       - Orgs Guests
-      - Operational
+      - Configuration
     get:
       description: Get Guest Authorization
       operationId: getOrgGuestAuthorization
@@ -9180,7 +9336,7 @@ paths:
       summary: getOrgGuestAuthorization
       tags:
       - Orgs Guests
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/guest_mac'
@@ -9206,7 +9362,7 @@ paths:
                   minutes: 0
                   name: string
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/Guest'
@@ -9261,7 +9417,7 @@ paths:
       summary: updateOrgGuestAuthorization
       tags:
       - Orgs Guests
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/inventory:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -9341,7 +9497,7 @@ paths:
       summary: addOrgInventory
       tags:
       - Orgs Inventory
-      - Operational
+      - Configuration
     put:
       description: Update Org Inventory
       operationId: updateOrgInventoryAssignment
@@ -9476,7 +9632,7 @@ paths:
       summary: updateOrgInventoryAssignment
       tags:
       - Orgs Inventory
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/inventory/reevaluate_auto_assignment:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -9543,7 +9699,7 @@ paths:
       summary: reevaluateOrgAutoAssignment
       tags:
       - Orgs Inventory
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/inventory/replace:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -9644,7 +9800,7 @@ paths:
       summary: replaceOrgDevices
       tags:
       - Orgs Inventory
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/invites:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -9675,7 +9831,7 @@ paths:
                     sitegroup_ids:
                     - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -9731,7 +9887,7 @@ paths:
       summary: inviteOrgAdmin
       tags:
       - Orgs Admins
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/invites/{invite_id}:
     delete:
       description: Delete Admin Invite
@@ -9790,7 +9946,7 @@ paths:
       summary: uninviteOrgAdmin
       tags:
       - Orgs Admins
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/invite_id'
@@ -9820,7 +9976,7 @@ paths:
                     sitegroup_ids:
                     - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -9876,7 +10032,7 @@ paths:
       summary: updateOrgAdminInvite
       tags:
       - Orgs Admins
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/jsi/devices/outbound_ssh_cmd:
     get:
       description: 'Adopt JSI devices
@@ -9959,7 +10115,7 @@ paths:
       summary: adoptOrgJsiDevice
       tags:
       - Orgs JSI
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/jsi/devices/{device_mac}/shell:
@@ -10041,7 +10197,7 @@ paths:
       summary: createOrgJsiDeviceShellSession
       tags:
       - Orgs JSI
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/jsi/devices/{device_mac}/upgrade:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -10118,7 +10274,7 @@ paths:
       summary: upgradeOrgJsiDevice
       tags:
       - Orgs Devices Upgrades
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/licenses:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -10239,7 +10395,7 @@ paths:
       summary: moveOrDeleteOrgLicenseToAnotherOrg
       tags:
       - Orgs Licenses
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/maps/import:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -10482,7 +10638,7 @@ paths:
       summary: importOrgMaps
       tags:
       - Orgs Maps
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/mxclusters:
     get:
       description: Get List of Org MxEdge Clusters
@@ -10541,7 +10697,7 @@ paths:
       summary: listOrgMxEdgeClusters
       tags:
       - Orgs MxClusters
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -10565,7 +10721,7 @@ paths:
                   tunterm_hosts:
                   - string
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -10621,7 +10777,7 @@ paths:
       summary: createOrgMxEdgeCluster
       tags:
       - Orgs MxClusters
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/mxclusters/{mxcluster_id}:
     delete:
       description: Delete Org MXEdge Cluster
@@ -10680,7 +10836,7 @@ paths:
       summary: deleteOrgMxEdgeCluster
       tags:
       - Orgs MxClusters
-      - Operational
+      - Configuration
     get:
       description: Get Org MxEdge Cluster Details
       operationId: getOrgMxEdgeCluster
@@ -10738,7 +10894,7 @@ paths:
       summary: getOrgMxEdgeCluster
       tags:
       - Orgs MxClusters
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/mxcluster_id'
@@ -10763,7 +10919,7 @@ paths:
                   tunterm_hosts:
                   - string
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -10819,7 +10975,7 @@ paths:
       summary: updateOrgMxEdgeCluster
       tags:
       - Orgs MxClusters
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/mxedges:
     get:
       description: Get List of Org MxEdges
@@ -10891,7 +11047,7 @@ paths:
       summary: listOrgMxEdges
       tags:
       - Orgs MxEdges
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -10940,7 +11096,7 @@ paths:
                     mxagent: 2.4.194
                     tunterm: 0.1.928-1
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -10996,7 +11152,7 @@ paths:
       summary: createOrgMxEdge
       tags:
       - Orgs MxEdges
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/mxedges/assign:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -11079,7 +11235,7 @@ paths:
       summary: assignOrgMxEdgeToSite
       tags:
       - Orgs MxEdges
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/mxedges/claim:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -11156,7 +11312,7 @@ paths:
       summary: claimOrgMxEdge
       tags:
       - Orgs MxEdges
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/mxedges/unassign:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -11235,7 +11391,7 @@ paths:
       summary: unassignOrgMxEdgeFromSite
       tags:
       - Orgs MxEdges
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/mxedges/upgrade:
     get:
       description: Get List of Org Mist Edge Upgrades
@@ -11294,7 +11450,7 @@ paths:
       summary: listOrgMxEdgeUpgrades
       tags:
       - Orgs Devices Upgrades
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -11441,7 +11597,7 @@ paths:
       summary: upgradeOrgMxEdges
       tags:
       - Orgs Devices Upgrades
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/mxedges/upgrade/{upgrade_id}:
     get:
       description: Get Mist Edge Upgrade
@@ -11500,7 +11656,7 @@ paths:
       summary: getOrgMxEdgeUpgrade
       tags:
       - Orgs Devices Upgrades
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/upgrade_id'
@@ -11573,7 +11729,7 @@ paths:
       summary: getOrgMxEdgeUpgradeInfo
       tags:
       - Orgs MxEdges
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/mxedges/{mxedge_id}:
@@ -11634,7 +11790,7 @@ paths:
       summary: deleteOrgMxEdge
       tags:
       - Orgs MxEdges
-      - Operational
+      - Configuration
     get:
       description: Get Org MxEdge details
       operationId: getOrgMxEdge
@@ -11692,7 +11848,7 @@ paths:
       summary: getOrgMxEdge
       tags:
       - Orgs MxEdges
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/mxedge_id'
@@ -11729,7 +11885,7 @@ paths:
                     upstream_ports:
                     - string
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -11785,7 +11941,7 @@ paths:
       summary: updateOrgMxEdge
       tags:
       - Orgs MxEdges
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/mxedges/{mxedge_id}/restart:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -11849,7 +12005,7 @@ paths:
       summary: restartOrgMxEdge
       tags:
       - Orgs MxEdges
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/mxedges/{mxedge_id}/services/tunterm/bounce_port:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -11939,7 +12095,7 @@ paths:
       summary: bounceOrgMxEdgeDataPorts
       tags:
       - Orgs MxEdges
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/mxedges/{mxedge_id}/services/{name}/{action}:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -12022,7 +12178,7 @@ paths:
       summary: controlOrgMxEdgeServices
       tags:
       - Orgs MxEdges
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/mxedges/{mxedge_id}/support:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -12084,7 +12240,7 @@ paths:
       summary: uploadOrgMxEdgeSupportFiles
       tags:
       - Orgs MxEdges
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/mxedges/{mxedge_id}/unregister:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -12148,7 +12304,7 @@ paths:
       summary: unregisterOrgMxEdge
       tags:
       - Orgs MxEdges
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/mxedges/{mxedge_id}/upgrade:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -12251,7 +12407,7 @@ paths:
       summary: upgradeOrgMxEdge
       tags:
       - Orgs Devices Upgrades
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/mxtunnels:
     get:
       description: Get List of Org MxTunnels
@@ -12310,7 +12466,7 @@ paths:
       summary: listOrgMxTunnels
       tags:
       - Orgs MxTunnels
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -12344,7 +12500,7 @@ paths:
                   vlan_ids:
                   - 0
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -12400,7 +12556,7 @@ paths:
       summary: createOrgMxTunnel
       tags:
       - Orgs MxTunnels
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/mxtunnels/{mxtunnel_id}:
     delete:
       description: Delete Org MxTunnel
@@ -12459,7 +12615,7 @@ paths:
       summary: deleteOrgMxTunnel
       tags:
       - Orgs MxTunnels
-      - Operational
+      - Configuration
     get:
       description: Get Org MxTunnel Details
       operationId: getOrgMxTunnel
@@ -12517,7 +12673,7 @@ paths:
       summary: getOrgMxTunnel
       tags:
       - Orgs MxTunnels
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/mxtunnel_id'
@@ -12528,7 +12684,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -12584,7 +12740,7 @@ paths:
       summary: updateOrgMxTunnel
       tags:
       - Orgs MxTunnels
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/nacrules:
     get:
       description: Get List of Org NAC Rules
@@ -12643,7 +12799,7 @@ paths:
       summary: listOrgNacRules
       tags:
       - Orgs NAC Rules
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -12675,7 +12831,7 @@ paths:
                   not_matching: {}
                   order: 1
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/NacRule'
@@ -12730,7 +12886,7 @@ paths:
       summary: createOrgNacRule
       tags:
       - Orgs NAC Rules
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/nacrules/{nacrule_id}:
     delete:
       description: Delete Org NAC Rule
@@ -12789,7 +12945,7 @@ paths:
       summary: deleteOrgNacRule
       tags:
       - Orgs NAC Rules
-      - Operational
+      - Configuration
     get:
       description: Get Org NAC Rule
       operationId: getOrgNacRule
@@ -12847,7 +13003,7 @@ paths:
       summary: getOrgNacRule
       tags:
       - Orgs NAC Rules
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/nacrule_id'
@@ -12858,7 +13014,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/NacRule'
@@ -12913,7 +13069,7 @@ paths:
       summary: updateOrgNacRule
       tags:
       - Orgs NAC Rules
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/nactags:
     get:
       description: Get List of Org NAC Tags
@@ -12972,7 +13128,7 @@ paths:
       summary: listOrgNacTags
       tags:
       - Orgs NAC Tags
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -13085,7 +13241,7 @@ paths:
                   session_timeout: 86400
                   type: session_timeout
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/NacTag'
@@ -13140,7 +13296,7 @@ paths:
       summary: createOrgNacTag
       tags:
       - Orgs NAC Tags
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/nactags/{nactag_id}:
     delete:
       description: Delete Org NAC Tag
@@ -13199,7 +13355,7 @@ paths:
       summary: deleteOrgNacTag
       tags:
       - Orgs NAC Tags
-      - Operational
+      - Configuration
     get:
       description: Get Org NAC Tag
       operationId: getOrgNacTag
@@ -13257,7 +13413,7 @@ paths:
       summary: getOrgNacTag
       tags:
       - Orgs NAC Tags
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/nactag_id'
@@ -13268,7 +13424,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/NacTag'
@@ -13323,7 +13479,7 @@ paths:
       summary: updateOrgNacTag
       tags:
       - Orgs NAC Tags
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/networks:
     get:
       description: Get List of Org Networks
@@ -13382,7 +13538,7 @@ paths:
       summary: listOrgNetworks
       tags:
       - Orgs Networks
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -13486,7 +13642,7 @@ paths:
                           name: pos-station-1
                       summarized_subnet: 172.16.0.0/16
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/Network'
@@ -13541,7 +13697,7 @@ paths:
       summary: createOrgNetwork
       tags:
       - Orgs Networks
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/networks/{network_id}:
     delete:
       description: Delete Organization Network
@@ -13600,7 +13756,7 @@ paths:
       summary: deleteOrgNetwork
       tags:
       - Orgs Networks
-      - Operational
+      - Configuration
     get:
       description: Get Organization Network Details
       operationId: getOrgNetwork
@@ -13658,7 +13814,7 @@ paths:
       summary: getOrgNetwork
       tags:
       - Orgs Gateway Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/network_id'
@@ -13763,7 +13919,7 @@ paths:
                           name: pos-station-1
                       summarized_subnet: 172.16.0.0/16
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/Network'
@@ -13818,7 +13974,7 @@ paths:
       summary: updateOrgNetwork
       tags:
       - Orgs Networks
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/networktemplates:
     get:
       description: Get List of Org Network Templates
@@ -13877,7 +14033,7 @@ paths:
       summary: listOrgNetworkTemplates
       tags:
       - Orgs Network Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -14150,7 +14306,7 @@ paths:
                         mxedge_proxy_port: 2222
                         use_mxedge_proxy: false
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -14206,7 +14362,7 @@ paths:
       summary: createOrgNetworkTemplate
       tags:
       - Orgs Network Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/networktemplates/{networktemplate_id}:
     delete:
       description: Delete Org Network Template
@@ -14265,7 +14421,7 @@ paths:
       summary: deleteOrgNetworkTemplate
       tags:
       - Orgs Network Templates
-      - Operational
+      - Configuration
     get:
       description: Get Org Network Templates Details
       operationId: getOrgNetworkTemplate
@@ -14274,7 +14430,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ./components/schemas/org.yaml
+                $ref: ./components/schemas/Model_object_device_id.yaml
           description: OK
         '400':
           content:
@@ -14327,7 +14483,7 @@ paths:
       summary: getOrgNetworkTemplate
       tags:
       - Orgs Network Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/networktemplate_id'
@@ -14602,14 +14758,14 @@ paths:
                         mxedge_proxy_port: 2222
                         use_mxedge_proxy: false
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: ./components/schemas/org.yaml
+                $ref: ./components/schemas/Model_object_device_id.yaml
           description: OK
         '400':
           content:
@@ -14662,7 +14818,7 @@ paths:
       summary: updateOrgNetworkTemplates
       tags:
       - Orgs Network Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/ocdevices/outbound_ssh_cmd:
     get:
       description: 'Get Org Juniper Devices command
@@ -14752,7 +14908,7 @@ paths:
       summary: getOrgJuniperDevicesCommand
       tags:
       - Orgs Devices
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/otherdevices:
@@ -14836,7 +14992,7 @@ paths:
       summary: listOrgOtherDevices
       tags:
       - Orgs Devices Others
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     put:
@@ -14928,7 +15084,7 @@ paths:
       summary: updateOrgOtherDevices
       tags:
       - Orgs Devices Others
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/otherdevices/{device_mac}:
     delete:
       description: Delete OtherDevice
@@ -14987,7 +15143,7 @@ paths:
       summary: deleteOrgOtherDevice
       tags:
       - Orgs Devices Others
-      - Operational
+      - Configuration
     get:
       description: Get Org other device (3rd party device)
       operationId: getOrgOtherDevice
@@ -15045,7 +15201,7 @@ paths:
       summary: getOrgOtherDevice
       tags:
       - Orgs Devices Others
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/device_mac'
@@ -15127,7 +15283,7 @@ paths:
       summary: updateOrgOtherDevice
       tags:
       - Orgs Devices Others
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/pma/dashboards:
     get:
       description: Get List of premium analytics dashboards for this Org
@@ -15219,7 +15375,7 @@ paths:
       summary: listOrgPmaDashboards
       tags:
       - Orgs Premium Analytics
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/pskportals:
@@ -15280,7 +15436,7 @@ paths:
       summary: listOrgPskPortals
       tags:
       - Orgs Psk Portals
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -15317,7 +15473,7 @@ paths:
                   type: byod
                   vlan_id: 0
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/PskPortal'
@@ -15372,7 +15528,7 @@ paths:
       summary: createOrgPskPortal
       tags:
       - Orgs Psk Portals
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/pskportals/{pskportal_id}:
     delete:
       description: Delete Org Psk Portal
@@ -15431,7 +15587,7 @@ paths:
       summary: deleteOrgPskPortal
       tags:
       - Orgs Psk Portals
-      - Operational
+      - Configuration
     get:
       description: get Org Psk Portal Details
       operationId: getOrgPskPortal
@@ -15489,7 +15645,7 @@ paths:
       summary: getOrgPskPortal
       tags:
       - Orgs Psk Portals
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/pskportal_id'
@@ -15527,7 +15683,7 @@ paths:
                   type: byod
                   vlan_id: 0
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/PskPortal'
@@ -15582,7 +15738,7 @@ paths:
       summary: updateOrgPskPortal
       tags:
       - Orgs Psk Portals
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/psks:
     get:
       description: Get List of Org Psks
@@ -15657,7 +15813,7 @@ paths:
       summary: listOrgPsks
       tags:
       - Orgs Psks
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -15674,7 +15830,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -15730,7 +15886,7 @@ paths:
       summary: createOrgPsk
       tags:
       - Orgs Psks
-      - Operational
+      - Configuration
     put:
       description: Update multi PSKs
       operationId: updateOrgMultiPsks
@@ -15755,7 +15911,7 @@ paths:
                   vlan_id: 0
             schema:
               items:
-                $ref: ./components/schemas/org.yaml
+                $ref: ./components/schemas/Model_object_device_id.yaml
               type: array
       responses:
         '200':
@@ -15811,7 +15967,7 @@ paths:
       summary: updateOrgMultiPsks
       tags:
       - Orgs Psks
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/psks/import:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -15844,7 +16000,7 @@ paths:
             schema:
               description: ''
               items:
-                $ref: ./components/schemas/org.yaml
+                $ref: ./components/schemas/Model_object_device_id.yaml
               minItems: 1
               type: array
               uniqueItems: true
@@ -15927,7 +16083,7 @@ paths:
       summary: importOrgPsks
       tags:
       - Orgs Psks
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/psks/{psk_id}:
     delete:
       description: Delete Org PSK
@@ -15986,7 +16142,7 @@ paths:
       summary: deleteOrgPsk
       tags:
       - Orgs Psks
-      - Operational
+      - Configuration
     get:
       description: Get Org PSK Details
       operationId: getOrgPsk
@@ -16044,7 +16200,7 @@ paths:
       summary: getOrgPsk
       tags:
       - Orgs Psks
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/psk_id'
@@ -16055,7 +16211,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -16111,7 +16267,7 @@ paths:
       summary: updateOrgPsk
       tags:
       - Orgs Psks
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/psks/{psk_id}/delete_old_passphrase:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -16180,7 +16336,7 @@ paths:
       summary: deleteOrgPskOldPassphrase
       tags:
       - Orgs Psks
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/rftemplates:
     get:
       description: Get List of Org RF Template
@@ -16239,7 +16395,7 @@ paths:
       summary: listOrgRfTemplates
       tags:
       - Orgs RF Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -16249,7 +16405,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -16305,7 +16461,7 @@ paths:
       summary: createOrgRfTemplate
       tags:
       - Orgs RF Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/rftemplates/{rftemplate_id}:
     delete:
       description: Delete Org RF Template
@@ -16364,7 +16520,7 @@ paths:
       summary: deleteOrgRfTemplate
       tags:
       - Orgs RF Templates
-      - Operational
+      - Configuration
     get:
       description: Get Org RF Template Details
       operationId: getOrgRfTemplate
@@ -16422,7 +16578,7 @@ paths:
       summary: getOrgRfTemplate
       tags:
       - Orgs RF Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/rftemplate_id'
@@ -16433,7 +16589,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -16489,7 +16645,7 @@ paths:
       summary: updateOrgRfTemplate
       tags:
       - Orgs RF Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/sdkclients/{sdkclient_id}:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -16564,7 +16720,7 @@ paths:
       summary: updateSdkClient
       tags:
       - Orgs SDK Clients
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/sdkinvites:
     get:
       description: Get List of Org SDK Invites
@@ -16623,7 +16779,7 @@ paths:
       summary: listSdkInvites
       tags:
       - Orgs SDK Clients
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -16640,7 +16796,7 @@ paths:
                   quota: 0
                   quota_limited: true
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -16696,7 +16852,7 @@ paths:
       summary: createSdkInvite
       tags:
       - Orgs SDK Clients
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/sdkinvites/{sdkinvite_id}:
     delete:
       description: Revoke SDK Invite
@@ -16755,7 +16911,7 @@ paths:
       summary: revokeSdkInvite
       tags:
       - Orgs SDK Clients
-      - Operational
+      - Configuration
     get:
       description: Get SDK Invite Details
       operationId: getSdkInvite
@@ -16813,7 +16969,7 @@ paths:
       summary: getSdkInvite
       tags:
       - Orgs SDK Clients
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/sdkinvite_id'
@@ -16824,7 +16980,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -16880,7 +17036,7 @@ paths:
       summary: updateSdkInvite
       tags:
       - Orgs SDK Clients
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/sdkinvites/{sdkinvite_id}/email:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -16896,7 +17052,7 @@ paths:
                 value:
                   email: test@abc.com
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -16952,7 +17108,7 @@ paths:
       summary: sendSdkInviteEmail
       tags:
       - Orgs SDK Clients
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/sdkinvites/{sdkinvite_id}/qrcode:
     get:
       description: Revoke SDK Invite
@@ -17011,7 +17167,7 @@ paths:
       summary: getSdkInviteQrCode
       tags:
       - Orgs SDK Clients
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/sdkinvite_id'
@@ -17091,7 +17247,7 @@ paths:
       summary: sendSdkInviteSms
       tags:
       - Orgs SDK Clients
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/sdktemplates:
     get:
       description: Get List of Org SDK Templates
@@ -17150,7 +17306,7 @@ paths:
       summary: listSdkTemplates
       tags:
       - Orgs SDK Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -17160,7 +17316,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -17216,7 +17372,7 @@ paths:
       summary: createSdkTemplate
       tags:
       - Orgs SDK Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/sdktemplates/{sdktemplate_id}:
     delete:
       description: Delete SDK Template
@@ -17275,7 +17431,7 @@ paths:
       summary: deleteSdkTemplate
       tags:
       - Orgs SDK Templates
-      - Operational
+      - Configuration
     get:
       description: Get SDK Template Details
       operationId: getSdkTemplate
@@ -17333,7 +17489,7 @@ paths:
       summary: getSdkTemplate
       tags:
       - Orgs SDK Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/sdktemplate_id'
@@ -17344,7 +17500,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -17400,7 +17556,7 @@ paths:
       summary: updateSdkTemplate
       tags:
       - Orgs SDK Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/secpolicies:
     get:
       description: Get List of Org Security Policies
@@ -17459,7 +17615,7 @@ paths:
       summary: listOrgSecPolicies
       tags:
       - Orgs SecPolicies
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -17707,7 +17863,7 @@ paths:
                     wxtunnel_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                     wxtunnel_remote_id: string
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/Secpolicy'
@@ -17762,7 +17918,7 @@ paths:
       summary: createOrgSecPolicies
       tags:
       - Orgs SecPolicies
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/secpolicies/{secpolicy_id}:
     delete:
       description: Delete Org Security Policy
@@ -17821,7 +17977,7 @@ paths:
       summary: deleteOrgSecPolicy
       tags:
       - Orgs SecPolicies
-      - Operational
+      - Configuration
     get:
       description: Get Org Security Policy
       operationId: getOrgSecPolicy
@@ -17879,7 +18035,7 @@ paths:
       summary: getOrgSecPolicy
       tags:
       - Orgs SecPolicies
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/secpolicy_id'
@@ -17890,7 +18046,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -17946,7 +18102,7 @@ paths:
       summary: updateOrgSecPolicies
       tags:
       - Orgs SecPolicies
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/servicepolicies:
     get:
       description: Get List of Org Service Policies
@@ -18005,7 +18161,7 @@ paths:
       summary: listOrgServicePolicies
       tags:
       - Orgs Service Policies
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -18024,7 +18180,7 @@ paths:
                   tenants:
                   - string
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: ''
       responses:
         '200':
@@ -18080,7 +18236,7 @@ paths:
       summary: createOrgServicePolicy
       tags:
       - Orgs Service Policies
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/servicepolicies/{servicepolicy_id}:
     delete:
       description: Delete Org Service Policuy
@@ -18139,7 +18295,7 @@ paths:
       summary: deleteOrgServicePolicy
       tags:
       - Orgs Service Policies
-      - Operational
+      - Configuration
     get:
       description: Get Org Service Policy Details
       operationId: getOrgServicePolicy
@@ -18197,7 +18353,7 @@ paths:
       summary: getOrgServicePolicy
       tags:
       - Orgs Service Policies
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/servicepolicy_id'
@@ -18217,7 +18373,7 @@ paths:
                   tenants:
                   - string
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: ''
       responses:
         '200':
@@ -18273,7 +18429,7 @@ paths:
       summary: updateOrgServicePolicy
       tags:
       - Orgs Service Policies
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/services:
     get:
       description: Get List of Org Services
@@ -18332,7 +18488,7 @@ paths:
       summary: listOrgServices
       tags:
       - Orgs Services
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -18354,7 +18510,7 @@ paths:
                   subnet: string
                   type: custom
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/Service'
@@ -18409,7 +18565,7 @@ paths:
       summary: createOrgService
       tags:
       - Orgs Services
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/services/{service_id}:
     delete:
       description: deleteOrgService
@@ -18468,7 +18624,7 @@ paths:
       summary: deleteOrgService
       tags:
       - Orgs Services
-      - Operational
+      - Configuration
     get:
       description: Get Org Service
       operationId: getOrgService
@@ -18526,7 +18682,7 @@ paths:
       summary: getOrgService
       tags:
       - Orgs Services
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/service_id'
@@ -18562,7 +18718,7 @@ paths:
                   type: custom
                   vpn_name: addresses
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/Service'
@@ -18617,7 +18773,7 @@ paths:
       summary: updateOrgService
       tags:
       - Orgs Services
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/setting:
     get:
       description: Get Org Settings
@@ -18676,7 +18832,7 @@ paths:
       summary: getOrgSettings
       tags:
       - Orgs Setting
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     put:
@@ -18686,7 +18842,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -18777,7 +18933,7 @@ paths:
                     - string
                     ui_idle_timeout: 0
               schema:
-                $ref: ./components/schemas/org.yaml
+                $ref: ./components/schemas/Model_object_device_id.yaml
           description: OK
         '400':
           content:
@@ -18830,7 +18986,7 @@ paths:
       summary: updateOrgSettings
       tags:
       - Orgs Setting
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/setting/blacklist:
     delete:
       description: Delete Org Blacklist Station Clients
@@ -18889,7 +19045,7 @@ paths:
       summary: deleteOrgWirelessClientsBlocklist
       tags:
       - Orgs Setting
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -18908,7 +19064,7 @@ paths:
                   - 18-65-90-de-f4-c6
                   - 84-89-ad-5d-69-0d
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -18964,7 +19120,7 @@ paths:
       summary: createOrgWirelessClientsBlocklist
       tags:
       - Orgs Setting
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/setting/cradlepoint/setup:
     delete:
       description: This deletes the Cradlepoint integration in Mist
@@ -19023,7 +19179,7 @@ paths:
       summary: deleteOrgCradlepointConnection
       tags:
       - Orgs Devices Others
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -19108,7 +19264,7 @@ paths:
       summary: setupOrgCradlepointConnectionToMist
       tags:
       - Orgs Devices Others
-      - Operational
+      - Configuration
     put:
       description: This updates the Cradlepoint integration settings in Mist
       operationId: updateOrgCradlepointConnectionToMist
@@ -19194,7 +19350,7 @@ paths:
       summary: updateOrgCradlepointConnectionToMist
       tags:
       - Orgs Devices Others
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/setting/cradlepoint/sync:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -19257,7 +19413,7 @@ paths:
       summary: syncOrgCradlepointRouters
       tags:
       - Orgs Devices Others
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/setting/jamf/link_accounts:
     delete:
       description: Delete Jamf Authorization With Mist Portal
@@ -19332,7 +19488,7 @@ paths:
       summary: deleteOrgJamfAppAuthorization
       tags:
       - Orgs OAuth
-      - Operational
+      - Configuration
     get:
       description: 'Get Jamf Application Linked Status
 
@@ -19392,7 +19548,7 @@ paths:
       summary: getOrgJamfAppLinkedStatus
       tags:
       - Orgs OAuth
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -19494,7 +19650,7 @@ paths:
       summary: addOrgJamfAppAuthorization
       tags:
       - Orgs OAuth
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/setting/jse/setup:
     delete:
       description: Delete JSE credential
@@ -19553,7 +19709,7 @@ paths:
       summary: deleteOrgJsecCredential
       tags:
       - Orgs JSE
-      - Operational
+      - Configuration
     get:
       description: Get Org JSE Credential
       operationId: getOrgJsecCredential
@@ -19631,7 +19787,7 @@ paths:
       summary: getOrgJsecCredential
       tags:
       - Orgs JSE
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -19743,7 +19899,7 @@ paths:
       summary: setupOrgJsecCredential
       tags:
       - Orgs JSE
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/setting/juniper/link_accounts:
     parameters:
     - in: path
@@ -19860,7 +20016,7 @@ paths:
       summary: linkOrgToJuniperJuniperAccount
       tags:
       - Orgs
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/setting/juniper/linked_account:
     delete:
       description: Unlink Juniper Customer ID
@@ -19941,7 +20097,7 @@ paths:
       summary: unlinkOrgFromJuniperCustomerId
       tags:
       - Orgs
-      - Operational
+      - Configuration
     parameters:
     - in: path
       name: org_id
@@ -20044,7 +20200,7 @@ paths:
       summary: setOrgCustomBucket
       tags:
       - Orgs Setting
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/setting/pcap_bucket/verify:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -20125,7 +20281,7 @@ paths:
       summary: verifyOrgCustomBucket
       tags:
       - Orgs Setting
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/setting/zscaler/setup:
     delete:
       description: 'To delete Zscaler credential
@@ -20186,7 +20342,7 @@ paths:
       summary: deleteOrgZscalerCredential
       tags:
       - Orgs Devices Zscaler
-      - Operational
+      - Configuration
     get:
       description: To get Zscaler credential
       operationId: getOrgZscalerCredential
@@ -20266,7 +20422,7 @@ paths:
       summary: getOrgZscalerCredential
       tags:
       - Orgs Devices Zscaler
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -20355,7 +20511,7 @@ paths:
       summary: setupOrgZscalerCredential
       tags:
       - Orgs Devices Zscaler
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/setting/{app_name}/link_accounts:
     delete:
       description: Delete Org Level OAuth Application Authorization With Mist Portal
@@ -20426,7 +20582,7 @@ paths:
       summary: deleteOrgOauthAppAuthorization
       tags:
       - Orgs OAuth
-      - Operational
+      - Configuration
     get:
       description: Get Org Level OAuth Application Linked Status
       operationId: getOrgOauthAppLinkedStatus
@@ -20491,7 +20647,7 @@ paths:
       summary: getOrgOauthAppLinkedStatus
       tags:
       - Orgs OAuth
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - description: 'OAuth application name (Example : zoom, teams, intune'
@@ -20558,7 +20714,7 @@ paths:
       summary: listOrgSiteGroups
       tags:
       - Orgs Sitegroups
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -20572,7 +20728,7 @@ paths:
                 value:
                   name: string
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -20628,7 +20784,7 @@ paths:
       summary: createOrgSiteGroup
       tags:
       - Orgs Sitegroups
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/sitegroups/{sitegroup_id}:
     delete:
       description: Delete Org Site Group
@@ -20687,7 +20843,7 @@ paths:
       summary: deleteOrgSiteGroup
       tags:
       - Orgs Sitegroups
-      - Operational
+      - Configuration
     get:
       description: Get Org Site Group
       operationId: getOrgSiteGroup
@@ -20745,7 +20901,7 @@ paths:
       summary: getOrgSiteGroup
       tags:
       - Orgs Sitegroups
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/sitegroup_id'
@@ -20826,7 +20982,7 @@ paths:
       summary: updateOrgSiteGroup
       tags:
       - Orgs Sitegroups
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/sites:
     get:
       description: Get List of Org Sites
@@ -20888,7 +21044,7 @@ paths:
       summary: listOrgSites
       tags:
       - Orgs Sites
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -20918,7 +21074,7 @@ paths:
                   - 497f6eca-6276-4997-bfeb-53cbbbba6f3b
                   timezone: America/Los_Angeles
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -20974,7 +21130,7 @@ paths:
       summary: createOrgSite
       tags:
       - Orgs Sites
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/sites/{site_name}/maps/import:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -21069,7 +21225,7 @@ paths:
       summary: importOrgMapToSite
       tags:
       - Orgs Sites
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/sitetemplates:
     get:
       description: Get List of Org Site Templates
@@ -21128,7 +21284,7 @@ paths:
       summary: listOrgSiteTemplates
       tags:
       - Orgs Site Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -21138,7 +21294,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/SiteTemplate'
@@ -21193,7 +21349,7 @@ paths:
       summary: createOrgSiteTemplates
       tags:
       - Orgs Site Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/sitetemplates/{sitetemplate_id}:
     delete:
       description: Delete Org Site Template
@@ -21252,7 +21408,7 @@ paths:
       summary: deleteOrgSiteTemplate
       tags:
       - Orgs Site Templates
-      - Operational
+      - Configuration
     get:
       description: Get Org Site Template
       operationId: getOrgSiteTemplate
@@ -21310,7 +21466,7 @@ paths:
       summary: getOrgSiteTemplate
       tags:
       - Orgs Site Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/sitetemplate_id'
@@ -21321,7 +21477,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/SiteTemplate'
@@ -21376,7 +21532,7 @@ paths:
       summary: updateOrgSiteTemplate
       tags:
       - Orgs Site Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/ssoroles:
     get:
       description: Get List of Org SSO Roles
@@ -21435,7 +21591,7 @@ paths:
       summary: listOrgSsoRoles
       tags:
       - Orgs SSO Roles
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -21462,7 +21618,7 @@ paths:
                     sitegroup_ids:
                     - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -21518,7 +21674,7 @@ paths:
       summary: createOrgSsoRole
       tags:
       - Orgs SSO Roles
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/ssoroles/{ssorole_id}:
     delete:
       description: Delete Org SSO Role
@@ -21577,7 +21733,7 @@ paths:
       summary: deleteOrgSsoRole
       tags:
       - Orgs SSO Roles
-      - Operational
+      - Configuration
     get:
       description: Get Org SSO Role Details
       operationId: getOrgSsoRole
@@ -21635,7 +21791,7 @@ paths:
       summary: getOrgSsoRole
       tags:
       - Orgs SSO Roles
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/ssorole_id'
@@ -21663,7 +21819,7 @@ paths:
                     sitegroup_ids:
                     - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -21719,7 +21875,7 @@ paths:
       summary: updateOrgSsoRole
       tags:
       - Orgs SSO Roles
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/ssos:
     get:
       description: Get List of Org SSO Configuration
@@ -21778,7 +21934,7 @@ paths:
       summary: listOrgSsos
       tags:
       - Orgs SSO
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -21799,7 +21955,7 @@ paths:
                   name: string
                   nameid_format: email
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -21855,7 +22011,7 @@ paths:
       summary: createOrgSso
       tags:
       - Orgs SSO
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/ssos/{sso_id}:
     delete:
       description: Delete Org SSO Configuration
@@ -21914,7 +22070,7 @@ paths:
       summary: deleteOrgSso
       tags:
       - Orgs SSO
-      - Operational
+      - Configuration
     get:
       description: Get Org SSO Configuration Details
       operationId: getOrgSso
@@ -21972,7 +22128,7 @@ paths:
       summary: getOrgSso
       tags:
       - Orgs SSO
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/sso_id'
@@ -21983,7 +22139,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -22039,7 +22195,7 @@ paths:
       summary: updateOrgSso
       tags:
       - Orgs SSO
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/ssos/{sso_id}/metadata:
     get:
       description: Get Org SSO SAML Metadata
@@ -22098,7 +22254,7 @@ paths:
       summary: getOrgSsoSamlMetadata
       tags:
       - Orgs SSO
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/sso_id'
@@ -22179,7 +22335,7 @@ paths:
       summary: downloadOrgSsoSamlMetadata
       tags:
       - Orgs SSO
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/sso_id'
@@ -22241,7 +22397,7 @@ paths:
       summary: listOrgSsrUpgrades
       tags:
       - Orgs Devices Upgrades
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -22365,7 +22521,7 @@ paths:
       summary: upgradeOrgSsrs
       tags:
       - Orgs Devices Upgrades
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/ssr/upgrade/{upgrade_id}/cancel:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -22434,7 +22590,7 @@ paths:
       summary: cancelOrgSsrUpgrade
       tags:
       - Orgs Devices Upgrades
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/ssr/versions:
     get:
       description: Get Org SSD Ugprade information
@@ -22542,7 +22698,7 @@ paths:
       summary: getOrgSsrUpgradeInfo
       tags:
       - Orgs Devices Upgrades
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/subscriptions:
@@ -22605,7 +22761,7 @@ paths:
       summary: unsubscribeOrgAlarmsReports
       tags:
       - Orgs Subscriptions
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -22667,7 +22823,7 @@ paths:
       summary: subscribeOrgAlarmsReports
       tags:
       - Orgs Subscriptions
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/templates:
     get:
       description: Get List of Org Templates
@@ -22726,7 +22882,7 @@ paths:
       summary: listOrgTemplates
       tags:
       - Orgs Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -22736,7 +22892,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -22792,7 +22948,7 @@ paths:
       summary: createOrgTemplate
       tags:
       - Orgs Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/templates/{template_id}:
     delete:
       description: Delete Org Template
@@ -22851,7 +23007,7 @@ paths:
       summary: deleteOrgTemplate
       tags:
       - Orgs Templates
-      - Operational
+      - Configuration
     get:
       description: Get Org Template Details
       operationId: getOrgTemplate
@@ -22909,7 +23065,7 @@ paths:
       summary: getOrgTemplate
       tags:
       - Orgs Templates
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/template_id'
@@ -22920,7 +23076,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -22976,7 +23132,7 @@ paths:
       summary: updateOrgTemplate
       tags:
       - Orgs Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/templates/{template_id}/clone:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -23051,7 +23207,7 @@ paths:
       summary: cloneOrgTemplate
       tags:
       - Orgs Templates
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/tickets:
     get:
       description: Get List of Tickets of an Org
@@ -23114,7 +23270,7 @@ paths:
       summary: listOrgTickets
       tags:
       - Orgs Tickets
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -23130,7 +23286,7 @@ paths:
                   subject: string
                   type: question
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -23186,7 +23342,7 @@ paths:
       summary: createOrgTicket
       tags:
       - Orgs Tickets
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/tickets/{ticket_id}:
     get:
       description: Get support ticket details
@@ -23245,7 +23401,7 @@ paths:
       summary: getOrgTicket
       tags:
       - Orgs Tickets
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/ticket_id'
@@ -23262,7 +23418,7 @@ paths:
                   subject: string
                   type: question
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -23318,7 +23474,7 @@ paths:
       summary: updateOrgTicket
       tags:
       - Orgs Tickets
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/tickets/{ticket_id}/comments:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -23409,7 +23565,7 @@ paths:
       summary: addOrgTicketComment
       tags:
       - Orgs Tickets
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/vpns:
     get:
       description: Get List of Org VPNs
@@ -23468,7 +23624,7 @@ paths:
       summary: listOrgsVpns
       tags:
       - Orgs VPNs
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -23489,7 +23645,7 @@ paths:
                       bfd_profile: lte
                       ip: string
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/Vpn'
@@ -23544,7 +23700,7 @@ paths:
       summary: createOrgVpns
       tags:
       - Orgs VPNs
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/vpns/{vpn_id}:
     delete:
       description: delete Org Vpn
@@ -23603,7 +23759,7 @@ paths:
       summary: deleteOrgVpn
       tags:
       - Orgs VPNs
-      - Operational
+      - Configuration
     get:
       description: getOrgVpn
       operationId: getOrgVpn
@@ -23661,7 +23817,7 @@ paths:
       summary: getOrgVpn
       tags:
       - Orgs VPNs
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/vpn_id'
@@ -23683,7 +23839,7 @@ paths:
                       bfd_profile: broadband
                       ip: string
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
       responses:
         '200':
           $ref: '#/components/responses/Vpn'
@@ -23738,7 +23894,7 @@ paths:
       summary: updateOrgVpn
       tags:
       - Orgs VPNs
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/webhooks:
     get:
       description: Get List of Org Webhooks
@@ -23797,7 +23953,7 @@ paths:
       summary: listOrgWebhooks
       tags:
       - Orgs Webhooks
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -23811,7 +23967,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -23867,7 +24023,7 @@ paths:
       summary: createOrgWebhook
       tags:
       - Orgs Webhooks
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/webhooks/{webhook_id}:
     delete:
       description: Delete Org Webhook
@@ -23926,7 +24082,7 @@ paths:
       summary: deleteOrgWebhook
       tags:
       - Orgs Webhooks
-      - Operational
+      - Configuration
     get:
       description: Get Org Webhook Details
       operationId: getOrgWebhook
@@ -23984,7 +24140,7 @@ paths:
       summary: getOrgWebhook
       tags:
       - Orgs Webhooks
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/webhook_id'
@@ -23995,7 +24151,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -24051,7 +24207,7 @@ paths:
       summary: updateOrgWebhook
       tags:
       - Orgs Webhooks
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/wlans:
     get:
       description: Get List of Org Wlans
@@ -24110,7 +24266,7 @@ paths:
       summary: listOrgWlans
       tags:
       - Orgs Wlans
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -24120,7 +24276,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -24176,7 +24332,7 @@ paths:
       summary: createOrgWlan
       tags:
       - Orgs Wlans
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/wlans/derived:
     get:
       description: Get Org WLAN Derived
@@ -24242,7 +24398,7 @@ paths:
       summary: getOrgWlanDerived
       tags:
       - Orgs Wlans
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/wlans/{wlan_id}:
@@ -24303,7 +24459,7 @@ paths:
       summary: deleteOrgWlan
       tags:
       - Orgs Wlans
-      - Operational
+      - Configuration
     get:
       description: Get Org Wlan Detail
       operationId: getOrgWLAN
@@ -24361,7 +24517,7 @@ paths:
       summary: getOrgWLAN
       tags:
       - Orgs Wlans
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/wlan_id'
@@ -24612,7 +24768,7 @@ paths:
                   wxtunnel_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                   wxtunnel_remote_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -24668,7 +24824,7 @@ paths:
       summary: updateOrgWlan
       tags:
       - Orgs Wlans
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/wlans/{wlan_id}/portal_image:
     delete:
       description: Delete Org WLAN Portal Image
@@ -24727,7 +24883,7 @@ paths:
       summary: deleteOrgWlanPortalImage
       tags:
       - Orgs Wlans
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/wlan_id'
@@ -24738,7 +24894,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -24794,7 +24950,7 @@ paths:
       summary: uploadOrgWlanPortalImage
       tags:
       - Orgs Wlans
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/wlans/{wlan_id}/portal_template:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -24840,7 +24996,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -24896,7 +25052,7 @@ paths:
       summary: updateOrgWlanPortalTemplate
       tags:
       - Orgs Wlans
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/wxrules:
     get:
       description: Get List of Org WxRules
@@ -24955,7 +25111,7 @@ paths:
       summary: listOrgWxRules
       tags:
       - Orgs WxRules
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -24965,7 +25121,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -25021,7 +25177,7 @@ paths:
       summary: createOrgWxRule
       tags:
       - Orgs WxRules
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/wxrules/derived:
     get:
       description: Get Derived Org WxRule
@@ -25080,7 +25236,7 @@ paths:
       summary: getOrgWxRulesDerived
       tags:
       - Orgs WxRules
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/wxrules/{wxrules_id}:
@@ -25141,7 +25297,7 @@ paths:
       summary: deleteOrgWxRule
       tags:
       - Orgs WxRules
-      - Operational
+      - Configuration
     get:
       description: Get Org WxRule Details
       operationId: getOrgWxRule
@@ -25199,7 +25355,7 @@ paths:
       summary: getOrgWxRule
       tags:
       - Orgs WxRules
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/wxrules_id'
@@ -25210,7 +25366,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -25266,7 +25422,7 @@ paths:
       summary: updateOrgWxRule
       tags:
       - Orgs WxRules
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/wxtags:
     get:
       description: Get List of Org WxLAN Tags
@@ -25325,7 +25481,7 @@ paths:
       summary: listOrgWxTags
       tags:
       - Orgs WxTags
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -25335,7 +25491,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -25391,7 +25547,7 @@ paths:
       summary: createOrgWxTag
       tags:
       - Orgs WxTags
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/wxtags/apps:
     get:
       description: Get Application List
@@ -25450,7 +25606,7 @@ paths:
       summary: getOrgApplicationList
       tags:
       - Orgs WxTags
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/wxtags/{wxtag_id}:
@@ -25511,7 +25667,7 @@ paths:
       summary: deleteOrgWxTag
       tags:
       - Orgs WxTags
-      - Operational
+      - Configuration
     get:
       description: Get WxLAN Tag Details
       operationId: getOrgWxTag
@@ -25569,7 +25725,7 @@ paths:
       summary: getOrgWxTag
       tags:
       - Orgs WxTags
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/wxtag_id'
@@ -25580,7 +25736,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -25636,7 +25792,7 @@ paths:
       summary: updateOrgWxTag
       tags:
       - Orgs WxTags
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/wxtags/{wxtag_id}/clients:
     get:
       description: Get Current Matching Clients of a WXLAN Tag
@@ -25695,7 +25851,7 @@ paths:
       summary: getOrgMatchingClients
       tags:
       - Orgs WxTags
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/wxtag_id'
@@ -25757,7 +25913,7 @@ paths:
       summary: listOrgWxTunnels
       tags:
       - Orgs WxTunnels
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -25767,7 +25923,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -25823,7 +25979,7 @@ paths:
       summary: createOrgWxTunnel
       tags:
       - Orgs WxTunnels
-      - Operational
+      - Configuration
   /api/v1/orgs/{org_id}/wxtunnels/{wxtunnel_id}:
     delete:
       description: Delete Org WxLAN Tunnel
@@ -25882,7 +26038,7 @@ paths:
       summary: deleteOrgWxTunnel
       tags:
       - Orgs WxTunnels
-      - Operational
+      - Configuration
     get:
       description: Get Org WxLAN Tunnel Details
       operationId: getOrgWxTunnel
@@ -25940,7 +26096,7 @@ paths:
       summary: getOrgWxTunnel
       tags:
       - Orgs WxTunnels
-      - Operational
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/wxtunnel_id'
@@ -25951,7 +26107,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
         description: Request Body
       responses:
         '200':
@@ -26007,136 +26163,54 @@ paths:
       summary: updateOrgWxTunnel
       tags:
       - Orgs WxTunnels
-      - Operational
-  /api/v1/utils/test_telstra:
-    get:
-      description: 'Allows validation of Telstra sms gateway credentials.
-
-
-        In case of success, a text message confirming successful setup should be received.
-        In case of error, telstra error message are returned.'
-      operationId: testSiteWlanTelstraSetup
-      requestBody:
-        content:
-          application/json:
-            examples:
-              Example 1:
-                value:
-                  telstra_client_id: '123456'
-                  telstra_client_secret: abcdef
-                  to: '+911122334455'
-            schema:
-              properties:
-                telstra_client_id:
-                  description: Telstra client id
-                  type: string
-                telstra_client_secret:
-                  description: Telstra client secret
-                  type: string
-                to:
-                  description: Phone number of the recipient of SMS with country code
-                  type: string
-              required:
-              - telstra_client_id
-              - telstra_client_secret
-              - to
-              type: object
-              x-examples:
-                Example 1:
-                  telstra_client_id: '123456'
-                  telstra_client_secret: abcdef
-                  to: '+911122334455'
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: testSiteWlanTelstraSetup
-      tags:
-      - Sites Wlans
-      - Operational
-  /api/v1/utils/test_twilio:
+      - Configuration
+  /api/v1/register:
     post:
-      description: 'Allows validation of twilio setup
+      description: 'Register a new admin and his/her org
 
-        In case of success, a text message confirming successful setup should be received.
-        In case of error, twilio error code and message are returned.'
-      operationId: testSiteWlanTwilioSetup
+        An email will also be sent to the user with a link to https://manage.mist.com/verify/register?token=:token'
+      operationId: registerNewAdmin
       requestBody:
         content:
           application/json:
-            examples:
-              example-1:
-                value:
-                  from: '+185051234567'
-                  to: '+19999999999'
-                  twilio_auth_token: 2135be04736a1a0a314bce432d61721a
-                  twilio_sid: AC5f4366878d193fb4865ab151739999eb
             schema:
               properties:
-                from:
-                  description: One of the numbers you have in your Twilio account
+                account_only:
+                  default: false
+                  description: skip creating initial setup if true
+                  type: boolean
+                allow_mist:
+                  default: false
+                  description: whether to allow Mist to look at this org
+                  type: boolean
+                email:
                   type: string
-                to:
-                  description: Phone number of the recipient of SMS
+                first_name:
                   type: string
-                twilio_auth_token:
-                  description: Auth Token associated with twilio account
+                invite_code:
+                  description: required initially
                   type: string
-                twilio_sid:
-                  description: Twilio Account SID
+                last_name:
+                  type: string
+                org_name:
+                  type: string
+                password:
+                  type: string
+                recaptcha:
+                  type: string
+                referer_invite_token:
+                  description: the invite token to apply after account creation
+                  type: string
+                return_to:
+                  description: the url the user should be redirected back to
                   type: string
               required:
-              - twilio_sid
-              - twilio_auth_token
-              - from
-              - to
+              - email
+              - password
+              - first_name
+              - last_name
+              - org_name
+              - recaptcha
               type: object
         description: Request Body
       responses:
@@ -26190,10 +26264,110 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: testSiteWlanTwilioSetup
+      summary: registerNewAdmin
       tags:
-      - Sites Wlans
-      - Operational
+      - Orgs Admins
+      - Configuration
+  /api/v1/register/verify/{token}:
+    parameters:
+    - $ref: '#/components/parameters/token'
+    post:
+      description: Verify registration
+      operationId: verifyRegistration
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                Response if successful:
+                  value:
+                    return_to: http://mist.zendesk.com/hc/quickstart.pdf
+                Response if successful but failed to apply the invitation automatically:
+                  value:
+                    detail: password policy not met
+                    invite_not_applied: true
+                    min_length: 8
+              schema:
+                properties:
+                  detail:
+                    type: string
+                  invite_not_applied:
+                    type: boolean
+                  min_length:
+                    type: integer
+                  return_to:
+                    type: string
+                type: object
+          description: OK
+          headers:
+            Set-Cookie:
+              schema:
+                example: csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue,
+                  15-Mar-2016 19:47:20 GMT; Max-Age=31449600; Path=/
+                type: string
+        '400':
+          content:
+            application/json:
+              examples:
+                already registered:
+                  value:
+                    detail: already registered
+                verification expired:
+                  value:
+                    detail: expired
+              schema:
+                properties:
+                  detail:
+                    type: string
+                required:
+                - detail
+                type: object
+          description: Response if verification expired or already registered
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                required:
+                - detail
+                type: object
+          description: Response if secret is invalid
+      summary: verifyRegistration
+      tags:
+      - Orgs Admins
+      - Configuration
 components:
   parameters:
     admin_id:
@@ -26463,6 +26637,12 @@ components:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
         format: uuid
         type: string
+    secret:
+      in: path
+      name: secret
+      required: true
+      schema:
+        type: string
     service_id:
       in: path
       name: service_id
@@ -26539,6 +26719,12 @@ components:
       schema:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
         format: uuid
+        type: string
+    token:
+      in: path
+      name: token
+      required: true
+      schema:
         type: string
     upgrade_id:
       in: path
@@ -26621,7 +26807,7 @@ components:
                   sitegroup_ids:
                   - 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     AdminsArray:
       content:
@@ -26663,7 +26849,7 @@ components:
                   - 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             minItems: 0
             type: array
             uniqueItems: true
@@ -27001,7 +27187,7 @@ components:
                       to_site_admins: true
                     enabled: true
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     AlarmtemplatesArray:
       content:
@@ -27337,7 +27523,7 @@ components:
                     enabled: true
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Apitoken:
@@ -27374,7 +27560,7 @@ components:
                 name: string
                 org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     ApitokensArray:
       content:
@@ -27411,7 +27597,7 @@ components:
                 org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Aptemplate:
@@ -27511,7 +27697,7 @@ components:
                 org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
                 site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: Example response
     AptemplatesArray:
       content:
@@ -27654,7 +27840,7 @@ components:
                   proxy_arp: false
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: Example response
     Asset:
@@ -27673,7 +27859,7 @@ components:
                 site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                 tag_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     Assetfilter:
       content:
@@ -27695,14 +27881,14 @@ components:
                 org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                 site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     AssetfiltersArray:
       content:
         application/json:
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     AssetsArray:
@@ -27710,7 +27896,7 @@ components:
         application/json:
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Certificate:
@@ -27750,7 +27936,7 @@ components:
                 site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
                 vendor: cradlepoint
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: Example response
     DeviceOtherArray:
       content:
@@ -27771,7 +27957,7 @@ components:
                 vendor: cradlepoint
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: Example response
     Deviceprofile:
@@ -28702,7 +28888,7 @@ components:
                     version: '2'
                 type: standalone
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     DeviceprofilesArray:
       content:
@@ -29781,7 +29967,7 @@ components:
                 type: standalone
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: Example response
     EvpnTopology:
@@ -29810,7 +29996,7 @@ components:
                   - 5c5b35000005
                   - 5c5b35000006
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: Example response
     File:
       content:
@@ -29825,7 +30011,7 @@ components:
         application/json:
           examples: {}
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     GatewaytemplatesArray:
       content:
@@ -29833,7 +30019,7 @@ components:
           examples: {}
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Guest:
@@ -29865,7 +30051,7 @@ components:
                 mac: 5684dae9ac8b
                 name: John Smith
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     Id:
       content:
@@ -30050,14 +30236,14 @@ components:
       content:
         application/json:
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: Example response
     MxEdgeUpgradesArray:
       content:
         application/json:
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: Example response
     Mxcluster:
@@ -30116,7 +30302,7 @@ components:
                   protocol: arp
                   timeout: 300
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     MxclustersArray:
       content:
@@ -30175,7 +30361,7 @@ components:
                   timeout: 300
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Mxedge:
@@ -30248,7 +30434,7 @@ components:
                     - 3055
                   enabled: true
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     MxedgeUpdateInfo:
       content:
@@ -30362,7 +30548,7 @@ components:
                 virtualization_type: VirtualizationVMware
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Mxtunnel:
@@ -30393,7 +30579,7 @@ components:
                 vlan_ids:
                 - 0
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     MxtunnelsArray:
       content:
@@ -30421,14 +30607,14 @@ components:
                 - 5
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     NacRule:
       content:
         application/json:
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: Example response
     NacRulesArray:
       content:
@@ -30467,7 +30653,7 @@ components:
                 org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: Example response
     NacTag:
@@ -30585,14 +30771,14 @@ components:
                 session_timeout: 86400
                 type: session_timeout
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: Example response
     NacTagsArray:
       content:
         application/json:
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: Example response
     Network:
@@ -30693,7 +30879,7 @@ components:
                         name: pos-station-1
                     summarized_subnet: 172.16.0.0/16
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     NetworksArray:
       content:
@@ -30794,7 +30980,7 @@ components:
                     summarized_subnet: 172.16.0.0/16
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Networktemplate:
@@ -31064,7 +31250,7 @@ components:
                       mxedge_proxy_port: 2222
                       use_mxedge_proxy: false
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     NetworktemplatesArray:
       content:
@@ -31334,7 +31520,7 @@ components:
                       use_mxedge_proxy: false
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     OK:
@@ -31368,7 +31554,7 @@ components:
                   name: Test Compay3 Ltd
                 linked: true
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     Org:
       content:
@@ -31387,7 +31573,7 @@ components:
                 - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                 session_expiry: 0
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     OrgDeviceUpgrade:
       content:
@@ -31422,7 +31608,7 @@ components:
                       skipped:
                       - 459f6eca-6276-4993-bfeb-53cbbbba6ff8
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     OrgDevices:
       content:
@@ -31477,7 +31663,7 @@ components:
                   serial: FXLH2015150027
                   type: ap
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: "OK - if any of entries are valid or there\u2019s no errors"
     OrgInventoryChanges:
       content:
@@ -31710,7 +31896,7 @@ components:
                 - beta
                 ui_idle_timeout: 10
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     Portaltemplate:
       content:
@@ -31827,26 +32013,26 @@ components:
                 tosLink: string
                 tosText: string
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     Psk:
       content:
         application/json:
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     PskPortal:
       content:
         application/json:
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: Example response
     PskPortalsArray:
       content:
         application/json:
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: Example response
     PsksArray:
@@ -31868,7 +32054,7 @@ components:
                 vlan_id: 1
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Rftemplate:
@@ -31923,7 +32109,7 @@ components:
                 name: Lab
                 org_id: 203d3d02-dbc0-4c1b-9f41-76896a3330f4
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     RftemplatesArray:
       content:
@@ -31978,7 +32164,7 @@ components:
                 org_id: 203d3d02-dbc0-4c1b-9f41-76896a3330f4
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Sdkinvite:
@@ -31994,7 +32180,7 @@ components:
                 name: Macy's
                 quota: -1
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     SdkinvitesArray:
       content:
@@ -32010,7 +32196,7 @@ components:
                 quota: -1
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Sdktemplate:
@@ -32027,7 +32213,7 @@ components:
                 search_txtcolor: '#282828'
                 welcome_msg: Welcome to Mist
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     SdktemplatesArray:
       content:
@@ -32044,7 +32230,7 @@ components:
                 welcome_msg: Welcome to Mist
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: Example response
     SecpoliciesArray:
@@ -32329,7 +32515,7 @@ components:
                   ssid: office-guest
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Secpolicy:
@@ -32613,7 +32799,7 @@ components:
                   band: '5'
                   ssid: office-guest
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     Service:
       content:
@@ -32648,21 +32834,21 @@ components:
                 type: custom
                 vpn_name: addresses
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     ServicePoliciesArray:
       content:
         application/json:
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: Example response
     ServicePolicy:
       content:
         application/json:
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: Example response
     ServicesArray:
       content:
@@ -32690,7 +32876,7 @@ components:
                 vpn_name: addresses
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Site:
@@ -32721,7 +32907,7 @@ components:
                 - 497f6eca-6276-5006-bfeb-53cbbbba6f18
                 timezone: America/Los_Angeles
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     SiteTemplate:
       content:
@@ -32739,7 +32925,7 @@ components:
                   SSID_STR: string
                   VLAN_ID: string
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: Example response
     SiteTemplatesArray:
       content:
@@ -32758,7 +32944,7 @@ components:
                   VLAN_ID: string
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: Example response
     Sitegroup:
@@ -32775,7 +32961,7 @@ components:
                 site_ids:
                 - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     SitegroupsArray:
       content:
@@ -32792,7 +32978,7 @@ components:
                 - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             minItems: 1
             type: array
             uniqueItems: true
@@ -32826,7 +33012,7 @@ components:
                 timezone: America/Los_Angeles
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Sso:
@@ -32853,7 +33039,7 @@ components:
                 site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                 type: string
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     SsoSamlMetadata:
       content:
@@ -32927,14 +33113,14 @@ components:
                   - 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
                 site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     SsorolesArray:
       content:
         application/json:
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: Example response
     SsosArray:
@@ -32962,7 +33148,7 @@ components:
                 type: string
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     SsrUpgrade:
@@ -32983,7 +33169,7 @@ components:
                 strategy: serial
                 versions: {}
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: Example response
     SsrUpgradesArray:
       content:
@@ -33004,7 +33190,7 @@ components:
                 versions: {}
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: Example response
     Template:
@@ -33033,7 +33219,7 @@ components:
                 name: string
                 org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     TemplatesArray:
       content:
@@ -33062,7 +33248,7 @@ components:
                 org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Ticket:
@@ -33087,7 +33273,7 @@ components:
                 type: string
                 updated_at: 0
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     TicketsArray:
       content:
@@ -33112,7 +33298,7 @@ components:
                 updated_at: 0
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Vpn:
@@ -33134,7 +33320,7 @@ components:
                     bfd_profile: broadband
                     ip: string
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: Example response
     VpnsArray:
       content:
@@ -33152,7 +33338,7 @@ components:
                     ip: string
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: Example response
     Webhook:
@@ -33177,7 +33363,7 @@ components:
                 url: string
                 verify_cert: true
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     WebhooksArray:
       content:
@@ -33202,7 +33388,7 @@ components:
                 verify_cert: true
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Wlan:
@@ -33489,7 +33675,7 @@ components:
                 wxtunnel_id: string
                 wxtunnel_remote_id: string
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     WlansArray:
       content:
@@ -33751,7 +33937,7 @@ components:
                 wxtunnel_remote_id: string
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Wxrule:
@@ -33778,7 +33964,7 @@ components:
                 src_wxtags:
                 - string
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     WxruleArray:
       content:
@@ -33805,7 +33991,7 @@ components:
                 - string
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     Wxtag:
@@ -33838,7 +34024,7 @@ components:
                 values:
                 - string
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     WxtagApps:
       content:
@@ -33898,7 +34084,7 @@ components:
                 - string
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             type: array
       description: OK
     WxtagClients:
@@ -33967,7 +34153,7 @@ components:
                 udp_port: 0
                 use_udp: true
           schema:
-            $ref: ./components/schemas/org.yaml
+            $ref: ./components/schemas/Model_object_device_id.yaml
       description: OK
     WxtunnelArray:
       content:
@@ -34013,7 +34199,7 @@ components:
                 use_udp: true
           schema:
             items:
-              $ref: ./components/schemas/org.yaml
+              $ref: ./components/schemas/Model_object_device_id.yaml
             minItems: 0
             type: array
       description: OK
