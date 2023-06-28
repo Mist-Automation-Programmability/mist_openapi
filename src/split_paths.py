@@ -38,7 +38,6 @@ cat_params = {
     "monitor": [],
     "operational": [],
     "installer": [],
-    "installer": [],
 }
 cat_responses = {
     "constants": [],
