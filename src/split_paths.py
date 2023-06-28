@@ -11,7 +11,7 @@ with open("mist.openapi.yml", "r") as f:
 cat = [ "Constants", "Authentication", "Monitor", "Configuration", "Installer"]
 verbs = ["get", "post", "put", "delete"]
 order = ["openapi", "info", "servers", "security",
-         "tags", "paths", "components", "x-tagGroups"]
+         "tags", "paths", "components"]
 
 parts = {
     "openapi" : data.get("openapi"),
@@ -99,6 +99,32 @@ cat_schemas = {
     "webhook": [],
 }
 
+cat_tags = {
+    "constants": [],
+    "authentication": [],
+    "monitor": {
+        "msps": [],
+        "orgs": [],
+        "sites": [],
+        "admins": []
+    },
+    "configuration": {
+        "msps": [],
+        "orgs": [],
+        "sites": [],
+        "admins": []
+    },
+    "installer": [],
+    "webhook": [],
+}
+
+endpoints_count = {
+    "get": 0,
+    "post": 0,
+    "put": 0,
+    "delete": 0
+}
+
 missing = []
 
 def add_endpoint(category:str, path:str, parameters:dict, verb:str, endpoint:dict, scope:str=None):
@@ -107,11 +133,13 @@ def add_endpoint(category:str, path:str, parameters:dict, verb:str, endpoint:dic
         cat_schema = cat_schemas[category][scope]
         cat_param = cat_params[category][scope]
         cat_response = cat_responses[category][scope]
+        cat_tag = cat_tags[category][scope]
     else:
         cat_path = cat_paths[category]
         cat_schema = cat_schemas[category]
         cat_param = cat_params[category]
         cat_response = cat_responses[category]
+        cat_tag = cat_tags[category]
     if not path in cat_path:
         if parameters:
             for parameter in parameters:
@@ -135,6 +163,10 @@ def add_endpoint(category:str, path:str, parameters:dict, verb:str, endpoint:dic
     re_responses = "\$ref'*: '#/components/responses/([0-9a-zA-Z._-]+)'"
     for entry in re.findall(re_responses, endpoint_str):
         if not entry in cat_response: cat_response.append(entry)
+
+    for tag in endpoint.get("tags",[]):
+        if not tag in cat_tag: cat_tag.append(tag)
+
 
     cat_path[path][verb] = endpoint
 
@@ -178,6 +210,7 @@ def split():
         parameters = properties.get("parameters")
         for verb in properties:
             if verb in verbs:
+                endpoints_count[verb]+=1
                 print(f'>>>>>>>>>>>>>>>>>>>>>{verb} {path}')
                 if path.startswith("/api/v1/installer/"):
                     add_endpoint("installer", path, parameters, verb, properties[verb])
@@ -212,7 +245,7 @@ def get_schemas(src_schemas, schemas):
     #if dst_parameters: components["schemas"] = dst_schemas
     return dst_schemas
 
-def save_file(filename:str, cat_path:dict, cat_schema: dict, cat_param:list, cat_response:list):  
+def save_file(filename:str, cat_path:dict, cat_schema: dict, cat_param:list, cat_response:list, cat_tag:list):  
         components = {}
         additional_schemas = []
 
@@ -238,18 +271,22 @@ def save_file(filename:str, cat_path:dict, cat_schema: dict, cat_param:list, cat
         dst_schemas = get_schemas(parts.get("components", {}).get("schemas"), schemas)
         if dst_parameters: components["schemas"] = dst_schemas
 
+        tags = []
+        for tag in parts.get("tags"):
+            if tag.get("name") in cat_tag:
+                tags.append(tag)
+
         data = {
             "openapi" : parts.get("openapi"),
             "info" : parts.get("info"),
             "servers" : parts.get("servers"),
             "security" : parts.get("security"),
-            "tags" : parts.get("tags"),
+            "tags" : tags,
             "paths" : cat_path,
             "components" : {
                 "parameters": dst_parameters,
                 "responses": dst_responses
-            },
-            "x-tagGroups" : parts.get("x-tagGroups"),
+            }
         }    
 
 
@@ -273,19 +310,28 @@ def save():
                 cat_schema = cat_schemas[category][scope]
                 cat_param = cat_params[category][scope]
                 cat_response = cat_responses[category][scope]
+                cat_tag = cat_tags[category][scope]
                 filename = f"../v2/mist.openapi.{category}.{scope}.yml"
-                save_file(filename, cat_path, cat_schema, cat_param, cat_response)
+                save_file(filename, cat_path, cat_schema, cat_param, cat_response, cat_tag)
         else:
             cat_path = cat_paths[category]
             cat_schema = cat_schemas[category]
             cat_param = cat_params[category]
             cat_response = cat_responses[category]
+            cat_tag = cat_tags[category]
             filename = f"../v2/mist.openapi.{category}.yml"
-            save_file(filename, cat_path, cat_schema, cat_param, cat_response)
+            save_file(filename, cat_path, cat_schema, cat_param, cat_response, cat_tag)
 
 
 
 
 if __name__ == "__main__":
     split()
-    save()                
+    save()        
+    print("".center(80, "-"))
+    print(f"GET   : {endpoints_count['get']}")
+    print(f"POST  : {endpoints_count['post']}")
+    print(f"PUT   : {endpoints_count['put']}")
+    print(f"DELETE: {endpoints_count['delete']}")
+    print()
+    print(f"TOTAL : {endpoints_count['get'] + endpoints_count['post'] +endpoints_count['put'] +endpoints_count['delete'] }")
