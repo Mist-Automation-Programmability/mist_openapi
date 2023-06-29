@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2306.1.6**
+  description: '> Version: **2306.2.0**
 
     >
 
-    > Date: **June 21, 2023**
+    > Date: **June 29, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2306.1.6
+  version: 2306.2.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -163,6 +163,7 @@ tags:
 - description: Gateway Template is applied to a site for gateway(s) in a site.
   name: Orgs Gateway Templates
 - name: Orgs Guests
+- name: Orgs IDP Profiles
 - name: Orgs Inventory
 - name: Orgs Invites
 - name: Orgs JSE
@@ -16367,311 +16368,6 @@ paths:
       schema:
         format: uuid
         type: string
-  /api/v1/orgs/{org_id}/devices/{device_id}/clear_tunnels:
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    - $ref: '#/components/parameters/device_id'
-    post:
-      description: Remove Tunnel for a gateway
-      operationId: clearOrgTunnel
-      requestBody:
-        content:
-          application/json:
-            examples:
-              Example 1:
-                value:
-                  name: tunnel-name
-                  provider: zscaler-ipsec
-            schema:
-              properties:
-                name:
-                  example: tunnel-name
-                  type: string
-                provider:
-                  enum:
-                  - zscaler-ipsec
-                  - zscaler-gre
-                  - jse-ipsec
-                  type: string
-              type: object
-              x-examples:
-                Example 1:
-                  name: tunnel-name
-                  provider: zscaler-ipsec
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: clearOrgTunnel
-      tags:
-      - Orgs Tunnels
-  /api/v1/orgs/{org_id}/devices/{device_id}/provision_tunnels:
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    - $ref: '#/components/parameters/device_id'
-    post:
-      description: "Create credential for gateways\n\nOn the zscaler side, we\u2019\
-        ll use `<mac>-primary-1` as FQDN or descriptions for Location / VPN Credential\
-        \ / GRE that we created. Those objects will also be marked as partner-created.\n"
-      operationId: provisionOrgTunnel
-      requestBody:
-        content:
-          application/json:
-            examples:
-              Example 1:
-                value:
-                  latlng:
-                    lat: 37.295833
-                    lng: -122.032946
-                  name: tunnel-name
-                  num_users: 100
-                  primary:
-                    num_hosts: 1
-                    wan_names:
-                    - wan0
-                  protected_net: 192.168.200.0/20
-                  provider: zscaler-ipsec
-                  region: auto
-                  vars_only: false
-            schema:
-              properties:
-                latlng:
-                  description: by default, we'll use the Site lat/lng
-                  properties:
-                    lat:
-                      example: 37.295833
-                      type: number
-                    lng:
-                      example: -122.032946
-                      type: number
-                  type: object
-                name:
-                  example: tunnel-name
-                  type: string
-                num_users:
-                  description: 'JSE only, overwrite the # of tunnel users configured
-                    at Site setting'
-                  example: 100
-                  type: integer
-                primary:
-                  properties:
-                    num_hosts:
-                      description: 1 for JSE, supports 1 primary, 1 secondary
-                      example: 1
-                      type: integer
-                    wan_names:
-                      description: optional, only needed if `vars_only`==`false`
-                      items:
-                        example: wan0
-                        type: string
-                      type: array
-                  required:
-                  - num_hosts
-                  type: object
-                protected_net:
-                  description: JSE only
-                  example: 192.168.200.0/20
-                  type: string
-                provider:
-                  enum:
-                  - zscaler-ipsec
-                  - zscaler-gre
-                  - jse-ipsec
-                  example: jse-ipsec
-                  type: string
-                region:
-                  default: auto
-                  enum:
-                  - auto
-                  - EMEA
-                  - Americas
-                  - APAC
-                  example: auto
-                  type: string
-                secondary:
-                  nullable: true
-                  properties:
-                    num_hosts:
-                      description: 1 for JSE, supports 1 primary, 1 secondary
-                      type: integer
-                    wan_names:
-                      description: optional, only needed if `vars_only`==`false`
-                      items:
-                        type: string
-                      type: array
-                  required:
-                  - num_hosts
-                  type: object
-                vars_only:
-                  default: false
-                  description: if false, we'd generate the config inline
-                  type: boolean
-              required:
-              - provider
-              - name
-              type: object
-              x-examples:
-                Example 1:
-                  latlng:
-                    lat: 37.295833
-                    lng: -122.032946
-                  name: tunnel-name
-                  num_users: 100
-                  primary:
-                    num_hosts: 2
-                    wan_names:
-                    - wan0
-                    - wan1
-                  protected_net: 192.168.200.0/20
-                  provider: zscaler-ipsec
-                  region: auto
-                  secondary: null
-                  vars_only: true
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                JSE:
-                  value:
-                    vars:
-                      JSE_IPSEC_LOCAL_ID: local_id
-                      JSE_IPSEC_PRIMARY_HOST_1_TUNNEL-NAME: host1
-                      JSE_IPSEC_PSK: psk
-                      JSE_IPSEC_SECONDARY_HOST_1_TUNNEL-NAME: host2
-                Zscaler:
-                  value:
-                    vars:
-                      ZSCALER_IPSEC_LOCAL_ID: local_id
-                      ZSCALER_IPSEC_PRIMARY_HOST_1_TUNNEL-NAME: host1
-                      ZSCALER_IPSEC_PRIMARY_HOST_2_TUNNEL-NAME: host2
-                      ZSCALER_IPSEC_PSK: psk
-              schema:
-                oneOf:
-                - properties:
-                    vars:
-                      additionalProperties:
-                        type: string
-                      properties:
-                        ZSCALER_IPSEC_LOCAL_ID:
-                          example: local_id
-                          type: string
-                        ZSCALER_IPSEC_PSK:
-                          example: local_id
-                          type: string
-                      type: object
-                - properties:
-                    vars:
-                      additionalProperties:
-                        type: string
-                      properties:
-                        JSE_IPSEC_LOCAL_ID:
-                          example: local_id
-                          type: string
-                        JSE_IPSEC_PSK:
-                          example: psk
-                          type: string
-                      type: object
-                type: object
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: provisionOrgTunnel
-      tags:
-      - Orgs Tunnels
   /api/v1/orgs/{org_id}/evpn_topologies:
     get:
       description: Get List of the existing Org EVPN topologies
@@ -19235,6 +18931,337 @@ paths:
       summary: updateOrgGuestAuthorization
       tags:
       - Orgs Guests
+  /api/v1/orgs/{org_id}/idpprofiles:
+    get:
+      description: get the list of Org IDP Profiles
+      operationId: listOrgIdpProfiles
+      responses:
+        '200':
+          $ref: '#/components/responses/IdpProfileArray'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listOrgIdpProfiles
+      tags:
+      - Orgs IDP Profiles
+    parameters:
+    - $ref: '#/components/parameters/idpprofile_id'
+    post:
+      description: Create Org IDP Profile
+      operationId: createOrgIdpProfile
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  base_profile: strict
+                  name: relaxed
+                  overwrites:
+                  - action: alert
+                    matching:
+                      attack_name:
+                      - HTTP:INVALID:HDR-FIELD
+                      dst_subnet:
+                      - 63.1.2.0/24
+                      severity:
+                      - major
+            schema:
+              $ref: '#/components/schemas/idpprofile'
+        description: ''
+      responses:
+        '200':
+          $ref: '#/components/responses/IdpProfile'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: createOrgIdpProfile
+      tags:
+      - Orgs IDP Profiles
+  /api/v1/orgs/{org_id}/idpprofiles/{idpprofile_id}:
+    delete:
+      description: Delete Org IDP Profile
+      operationId: deleteOrgIdpProfile
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: deleteOrgIdpProfile
+      tags:
+      - Orgs IDP Profiles
+    get:
+      description: Get Org IDP Profile
+      operationId: getOrgIdpProfile
+      responses:
+        '200':
+          $ref: '#/components/responses/IdpProfile'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: getOrgIdpProfile
+      tags:
+      - Orgs IDP Profiles
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/idpprofile_id'
+    put:
+      description: Update Org IDP Profile
+      operationId: updateOrgIdpProfile
+      requestBody:
+        content:
+          application/json:
+            examples:
+              idpprofile:
+                value:
+                  base_profile: strict
+                  name: relaxed
+                  overwrites:
+                  - action: alert
+                    matching:
+                      attack_name:
+                      - HTTP:INVALID:HDR-FIELD
+                      dst_subnet:
+                      - 63.1.2.0/24
+                      severity:
+                      - major
+            schema:
+              $ref: '#/components/schemas/idpprofile'
+      responses:
+        '200':
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: updateOrgIdpProfile
+      tags:
+      - Orgs IDP Profiles
   /api/v1/orgs/{org_id}/insights/sites-sle:
     get:
       description: Get Org Sites SLE
@@ -22671,6 +22698,134 @@ paths:
       summary: updateOrgMxEdge
       tags:
       - Orgs MxEdges
+  /api/v1/orgs/{org_id}/mxedges/{mxedge_id}//image{image_number}:
+    delete:
+      description: Remove MxEdge Image
+      operationId: deleteOrgMxEdgeImage
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: deleteOrgMxEdgeImage
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/mxedge_id'
+    - in: path
+      name: image_number
+      required: true
+      schema:
+        maximum: 3
+        minimum: 1
+        type: number
+    post:
+      description: Attach up to 3 images to a mxedge
+      operationId: addOrgMxEdgeImage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/image_upload'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: addOrgMxEdgeImage
+      tags:
+      - Orgs MxEdges
   /api/v1/orgs/{org_id}/mxedges/{mxedge_id}/restart:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -25709,14 +25864,24 @@ paths:
             schema:
               properties:
                 device_mac:
+                  description: List of otherdevice mac addresses.
                   type: string
                 macs:
+                  description: The mac address of the peer device.
                   items:
                     type: string
                   type: array
+                op:
+                  description: The operation being performed
+                  enum:
+                  - assign
+                  - unassign
+                  type: string
                 site_id:
                   description: Either a site_id OR a device_mac must be provided
                   type: string
+              required:
+              - op
               type: object
               x-examples:
                 Example 1:
@@ -26385,6 +26550,251 @@ paths:
       summary: createOrgPskPortal
       tags:
       - Orgs Psk Portals
+  /api/v1/orgs/{org_id}/pskportals/logs:
+    get:
+      description: Get the list of PSK Portals Logs
+      operationId: listOrgPskPortalLogs
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/PskPortalLogsArray'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listOrgPskPortalLogs
+      tags:
+      - Orgs Psk Portals
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/pskportals/logs/count:
+    get:
+      description: Count by Distinct Attributes of PskPortal Logs
+      operationId: countOrgPskPortalLogs
+      parameters:
+      - in: query
+        name: distinct
+        schema:
+          default: pskportal_id
+          enum:
+          - admin_id
+          - admin_name
+          - psk_name
+          - psk_id
+          - pskportail_id
+          - user_id
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: countOrgPskPortalLogs
+      tags:
+      - Orgs Psk Portals
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/pskportals/logs/search:
+    get:
+      description: Search Org PSK Portal Logs
+      operationId: searchOrgPskPortalLogs
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      - in: query
+        name: psk_name
+        schema:
+          type: string
+      - in: query
+        name: psk_id
+        schema:
+          format: uuid
+          type: string
+      - in: query
+        name: pskportal_id
+        schema:
+          format: uuid
+          type: string
+      - description: audit_id
+        in: query
+        name: id
+        schema:
+          format: uuid
+          type: string
+      - in: query
+        name: admin_name
+        schema:
+          type: string
+      - in: query
+        name: admin_id
+        schema:
+          format: uuid
+          type: string
+      - description: name_id used in SSO
+        in: query
+        name: name_id
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/PskPortalLogsArray'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: searchOrgPskPortalLogs
+      tags:
+      - Orgs Psk Portals
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/pskportals/{pskportal_id}:
     delete:
       description: Delete Org Psk Portal
@@ -34308,7 +34718,7 @@ paths:
           type: string
       responses:
         '200':
-          $ref: '#/components/responses/DevicesArrayStats'
+          $ref: '#/components/responses/DevicesArrayStatsOrg'
         '400':
           content:
             application/json:
@@ -41289,6 +41699,103 @@ paths:
       - Self
     parameters:
     - $ref: '#/components/parameters/token'
+  /api/v1/sites/{org_id}/webhooks/{webhook_id}/events/search:
+    get:
+      description: 'Search webhooks deliveries
+
+        '
+      operationId: searchOrgWebhooksDeliveries
+      parameters:
+      - in: query
+        name: org_id
+        schema:
+          format: uuid
+          type: string
+      - in: query
+        name: site_id
+        schema:
+          format: uuid
+          type: string
+      - in: query
+        name: webhook_id
+        schema:
+          format: uuid
+          type: string
+      - in: query
+        name: status_code
+        schema:
+          type: integer
+      - description: webhook topic
+        in: query
+        name: topic
+        schema:
+          enum:
+          - alarms
+          - audits
+          - device-updowns
+          - ping
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookDeliverySearch'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: searchOrgWebhooksDeliveries
+      tags:
+      - Sites Webhooks
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/webhook_id'
   /api/v1/sites/{site_id}:
     delete:
       description: Delete Site
@@ -50227,14 +50734,17 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Support / Upload device support files\n\n#### Info Param\n**Parameter**|**Type**|**Description**\
-        \ \n :-------------: |:-------------: |:-------------: \nprocess|string|Upload\
-        \ 1 file with output of show system processes extensive\noutbound-ssh|string|Upload\
-        \ 1 file that concatenates all /var/log/outbound-ssh.log* files\nmessages|string|Upload\
-        \ 1 to 10 /var/log/messages* files\ncore-dumps|string|Upload all core dump\
-        \ files, if any\nfull|string|Upload 1 file with output of request support\
-        \ information, 1 file that concatenates all /var/log/outbound-ssh.log files,\
-        \ all core dump files, and the 3 most recent /var/log/messages files"
+      description: "Support / Upload device support files\n\n#### Info Param\n**Parameter**|**Description**\
+        \ \n :-------------: |:-------------: |:-------------: \nprocess|Upload 1\
+        \ file with output of show system processes extensive\noutbound-ssh|Upload\
+        \ 1 file that concatenates all /var/log/outbound-ssh.log* files\nmessages|Upload\
+        \ 1 to 10 /var/log/messages* files\ncore-dumps|Upload all core dump files,\
+        \ if any\nfull|string|Upload 1 file with output of request support information,\
+        \ 1 file that concatenates all /var/log/outbound-ssh.log files, all core dump\
+        \ files, the 3 most recent /var/log/messages files, and Mist agent logs (for\
+        \ Junos devices running the Mist agent)\nvar-logs|Upload all non-empty files\
+        \ in the /var/log/ directory\njma-logs|Upload Mist agent logs (for Junos devices\
+        \ running the Mist agent only)"
       operationId: uploadSiteDeviceSupportFile
       requestBody:
         content:
@@ -50251,7 +50761,11 @@ paths:
                   enum:
                   - process
                   - outbound-ssh
+                  - messages
+                  - code-dumps
                   - full
+                  - var-logs
+                  - jma-logs
                   type: string
                 node:
                   description: 'optional: for SSR, if node is not present, both nodes
@@ -50441,6 +50955,7 @@ paths:
                   example: 1.1.1.1
                   type: string
                 network:
+                  default: internal
                   description: 'optional
 
                     for gateway only
@@ -63722,7 +64237,7 @@ paths:
                 items:
                   anyOf:
                   - $ref: '#/components/schemas/stats_device_ap'
-                  - $ref: '#/components/schemas/stats_device_switch'
+                  - $ref: '#/components/schemas/stats_device_switch_site'
                   - $ref: '#/components/schemas/stats_device_gateway'
                 type: array
           description: OK
@@ -64165,7 +64680,7 @@ paths:
               schema:
                 oneOf:
                 - $ref: '#/components/schemas/stats_device_ap'
-                - $ref: '#/components/schemas/stats_device_switch'
+                - $ref: '#/components/schemas/stats_device_switch_site'
                 - $ref: '#/components/schemas/stats_device_gateway'
           description: OK
         '400':
@@ -66300,6 +66815,18 @@ paths:
         name: mac
         schema:
           type: string
+      - description: device type
+        in: query
+        name: type
+        schema:
+          enum:
+          - ap
+          - ble
+          - switch
+          - gateway
+          - mxedge
+          - nac
+          type: string
       - description: Chassis identifier of the chassis type listed
         in: query
         name: neighbor_mac
@@ -66423,6 +66950,26 @@ paths:
         name: up
         schema:
           type: boolean
+      - description: indicates if interface is active/inactive
+        in: query
+        name: active
+        schema:
+          type: boolean
+      - description: Last sampled jitter of the interface
+        in: query
+        name: jitter
+        schema:
+          type: number
+      - description: Last sampled loss of the interface
+        in: query
+        name: loss
+        schema:
+          type: number
+      - description: Last sampled latency of the interface
+        in: query
+        name: latency
+        schema:
+          type: number
       - description: if `up`==`true`
         in: query
         name: stp_state
@@ -66459,6 +67006,21 @@ paths:
           - authenticated
           - authenticating
           - held
+          type: string
+      - description: LTE IMSI value, Check for null/empty
+        in: query
+        name: lte_imsi
+        schema:
+          type: string
+      - description: LTE ICCID value, Check for null/empty
+        in: query
+        name: lte_iccid
+        schema:
+          type: string
+      - description: LTE IMEI value, Check for null/empty
+        in: query
+        name: lte_imei
+        schema:
           type: string
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
@@ -67227,135 +67789,49 @@ paths:
       - Sites Devices Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/stats/switch_wired_clients/{device_id}/search:
+  /api/v1/sites/{site_id}/stats/switches/metrics:
     get:
-      description: This API is used to get recent wired clients mac and parent interface
-        names for a switch device
-      operationId: getSiteWiredClientAndParentInterface
+      description: 'Get version compliance metrics for managed or monitored switches
+
+        '
+      operationId: getSiteSwitchesMetrics
       parameters:
       - in: query
-        name: port_id
+        name: type
         schema:
-          example: eth-0/0/0
+          enum:
+          - active_ports_summary
+          type: string
+      - in: query
+        name: scope
+        schema:
+          enum:
+          - site
+          - switch
+          type: string
+      - description: switch mac, used only with metric `type`==`active_ports_summary`
+        in: query
+        name: switch_mac
+        schema:
           type: string
       responses:
         '200':
           content:
             application/json:
               examples:
-                Example 1:
+                '`scope`==`site`':
                   value:
-                  - device_mac: dc38e1dbf3cd
-                    hostname: test-sw1
-                    mac: b0c4e7001544
-                    org_id: a16fdfc0-8540-47ab-be59-9dd2d00e7c84
-                    port_ids:
-                    - eth-0/0/0
-                    - ge-0/0/1
-                    site_id: a16fdfc0-8540-47ab-be59-9dd2d00e7c84
-              schema:
-                items:
-                  properties:
-                    _ttl:
-                      description: TTL of the validity of the stat
-                      type: integer
-                    device_mac:
-                      description: switch mac
-                      type: string
-                    hostname:
-                      description: switch hostname
-                      type: string
-                    mac:
-                      type: string
-                    org_id:
-                      type: string
-                    port_ids:
-                      description: ports on switch where the wired client is connected
-                      items:
-                        type: string
-                      type: array
-                    site_id:
-                      type: string
-                  type: object
-                type: array
-                x-examples:
-                  Example 1:
-                  - device_mac: dc38e1dbf3cd
-                    hostname: test-sw1
-                    mac: b0c4e7001544
-                    org_id: a16fdfc0-8540-47ab-be59-9dd2d00e7c84
-                    port_ids:
-                    - eth-0/0/0
-                    - ge-0/0/1
-                    site_id: a16fdfc0-8540-47ab-be59-9dd2d00e7c84
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: getSiteWiredClientAndParentInterface
-      tags:
-      - Sites Clients - Wired
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/device_id'
-  /api/v1/sites/{site_id}/stats/switches/metrics:
-    get:
-      description: 'Get version compliance metrics for managed or monitored switches
-
-        '
-      operationId: getSiteAdoptedSwitchesComplianceMetrics
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                Example 1:
-                  value:
+                    active_ports_summary:
+                      details:
+                        active_port_count: 4
+                        total_port_count: 4
+                      score: 100
+                      total_switch_count: 2
+                    config_success:
+                      details:
+                        config_success_count: 2
+                      score: 100
+                      total_switch_count: 2
                     version_compliance:
                       details:
                         major_versions:
@@ -67369,8 +67845,43 @@ paths:
                           system_names: []
                       score: 100
                       total_switch_count: 2
+                '`scope`==`switch`':
+                  value:
+                    active_ports_summary:
+                      details:
+                        active_port_count: 1
+                        total_port_count: 2
+                      score: 50
+                      switch_id: 67970e46-4e12-11e6-9188-0242ac110007_fc334262ef00
+                      total_switch_count: 1
               schema:
                 properties:
+                  active_ports_summary:
+                    properties:
+                      details:
+                        properties:
+                          active_port_count:
+                            type: integer
+                          total_port_count:
+                            type: integer
+                        type: object
+                      score:
+                        type: integer
+                      total_switch_count:
+                        type: integer
+                    type: object
+                  config_success:
+                    properties:
+                      details:
+                        properties:
+                          config_success_count:
+                            type: integer
+                        type: object
+                      score:
+                        type: integer
+                      total_switch_count:
+                        type: integer
+                    type: object
                   version_compliance:
                     properties:
                       details:
@@ -67400,6 +67911,17 @@ paths:
                 type: object
                 x-examples:
                   Example 1:
+                    active_ports_summary:
+                      details:
+                        active_port_count: 4
+                        total_port_count: 4
+                      score: 100
+                      total_switch_count: 2
+                    config_success:
+                      details:
+                        config_success_count: 2
+                      score: 100
+                      total_switch_count: 2
                     version_compliance:
                       details:
                         major_versions:
@@ -67462,7 +67984,7 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: getSiteAdoptedSwitchesComplianceMetrics
+      summary: getSiteSwitchesMetrics
       tags:
       - Sites Devices Switches
     parameters:
@@ -69884,6 +70406,104 @@ paths:
       summary: updateSiteWebhook
       tags:
       - Sites Webhooks
+  /api/v1/sites/{site_id}/webhooks/{webhook_id}/events/search:
+    get:
+      description: 'Search webhooks deliveries
+
+        '
+      operationId: searchSiteWebhooksDeliveries
+      parameters:
+      - in: query
+        name: org_id
+        schema:
+          format: uuid
+          type: string
+      - in: query
+        name: site_id
+        schema:
+          format: uuid
+          type: string
+      - in: query
+        name: webhook_id
+        schema:
+          format: uuid
+          type: string
+      - in: query
+        name: status_code
+        schema:
+          type: integer
+      - description: webhook topic
+        in: query
+        name: topic
+        schema:
+          enum:
+          - alarms
+          - audits
+          - device-updowns
+          - occupancy-alerts
+          - ping
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookDeliverySearch'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: searchSiteWebhooksDeliveries
+      tags:
+      - Sites Webhooks
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/webhook_id'
   /api/v1/sites/{site_id}/webhooks/{webhook_id}/ping:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -74026,6 +74646,14 @@ components:
       schema:
         example: 0000000000ab
         pattern: ^[0-9a-fA-F]{12}$
+        type: string
+    idpprofile_id:
+      in: path
+      name: idpprofile_id
+      required: true
+      schema:
+        example: 000000ab-00ab-00ab-00ab-0000000000ab
+        format: uuid
         type: string
     image_name:
       in: path
@@ -80194,7 +80822,7 @@ components:
               - $ref: '#/components/schemas/device_gateway'
             type: array
       description: OK
-    DevicesArrayStats:
+    DevicesArrayStatsOrg:
       content:
         application/json:
           examples:
@@ -80732,7 +81360,549 @@ components:
             items:
               anyOf:
               - $ref: '#/components/schemas/stats_device_ap'
-              - $ref: '#/components/schemas/stats_device_switch'
+              - $ref: '#/components/schemas/stats_device_switch_org'
+              - $ref: '#/components/schemas/stats_device_gateway'
+            type: array
+      description: OK
+    DevicesArrayStatsSite:
+      content:
+        application/json:
+          examples:
+            AP:
+              value:
+              - ble_config:
+                  beacon_rate: 3
+                  beacon_rate_model: custom
+                  beam_disabled:
+                  - 1
+                  - 3
+                  - 6
+                  power: 10
+                  power_mode: custom
+                ble_stat:
+                  beacon_rate: 3
+                  eddystone_uid_enabled: false
+                  eddystone_uid_freq_msec: 200
+                  eddystone_uid_instance: 5c5b35000001
+                  eddystone_uid_namespace: 2818e3868dec25629ede
+                  eddystone_url_enabled: true
+                  eddystone_url_freq_msec: 100
+                  eddystone_url_url: https://www.abc.com
+                  ibeacon_enabled: true
+                  ibeacon_major: 13
+                  ibeacon_minor: 138
+                  ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
+                  major: 12345
+                  minors:
+                  - 201
+                  - 202
+                  - 203
+                  - 204
+                  - 205
+                  - 206
+                  - 207
+                  - 208
+                  power: 10
+                  rx_bytes: 135
+                  rx_pkts: 135
+                  tx_bytes: 5231513353
+                  tx_pkts: 135135135
+                  tx_resets: 0
+                  uuid: ada72f8f-1643-e5c6-94db-f2a5636f1a64
+                cert_expiry: 1534534392
+                ext_ip: 73.92.124.103
+                fwupdate:
+                  progress: 10
+                  status: inprogress
+                  status_id: 5
+                  timestamp: 1428949501
+                iot_stat:
+                  DI2:
+                    value: 0
+                ip: 10.2.9.159
+                ip_config:
+                  dns:
+                  - 8.8.8.8
+                  - 4.4.4.4
+                  dns_suffix:
+                  - .mist.local
+                  - .mist.com
+                  gateway: 10.2.1.254
+                  ip: 10.2.1.1
+                  netmask: 255.255.255.0
+                  type: static
+                ip_stat:
+                  dns:
+                  - 8.8.8.8
+                  - 4.4.4.4
+                  dns_suffix:
+                  - .mist.local
+                  - .mist.com
+                  gateway: 10.2.1.254
+                  gateway6: 2607:f8b0:4005:808::1
+                  ip: 10.2.1.1
+                  ip6: 2607:f8b0:4005:808::2004
+                  ips:
+                    vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
+                    vlan193: 10.73.1.31/16
+                    vlan3157: 10.72.11.14/24
+                  netmask: 255.255.255.0
+                  netmask6: /32
+                l2tp_stat:
+                  7dae216d-7c98-a51b-e068-dd7d477b7216:
+                    sessions:
+                    - local_sid: 31
+                      remote_id: vpn1
+                      remote_sid: 13
+                      state: established
+                    state: established_with_sessions
+                    uptime: 135
+                    wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
+                last_seen: 1470417522
+                last_trouble:
+                  code: '03'
+                  timestamp: 1428949501
+                led:
+                  brightness: 255
+                  enabled: true
+                lldp_stat:
+                  chassis_id: 63:68:61:73:73:69
+                  lldp_med_supported: false
+                  mgmt_addr: 10.1.5.2
+                  port_desc: 2/26
+                  power_allocated: 15500
+                  power_draw: 15000
+                  power_request_count: 3
+                  power_requested: 25500
+                  system_desc: HP J9729A 2920-48G-POE+ Switch
+                  system_name: TC2-OWL-Stack-01
+                locating: false
+                mac: 5c5b35000010
+                map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
+                mesh_downlinks:
+                  00000000-0000-0000-1000-5c5b356be59f:
+                    band: '24'
+                    channel: 7
+                    idle_time: 3
+                    last_seen: 1470417522
+                    proto: a
+                    rssi: -65
+                    rx_bps: 12
+                    rx_bytes: 217416
+                    rx_packets: 2337
+                    rx_rate: 65
+                    rx_retries: 5
+                    snr: 31
+                    tx_bps: 6
+                    tx_bytes: 175132
+                    tx_packets: 1566
+                    tx_rate: 65
+                    tx_retries: 500
+                mesh_uplink:
+                  band: '24'
+                  channel: 7
+                  idle_time: 3
+                  last_seen: 1470417522
+                  proto: a
+                  rssi: -65
+                  rx_bps: 12
+                  rx_bytes: 217416
+                  rx_packets: 2337
+                  rx_rate: 65
+                  rx_retries: 5
+                  snr: 31
+                  tx_bps: 6
+                  tx_bytes: 175132
+                  tx_packets: 1566
+                  tx_rate: 65
+                  tx_retries: 500
+                  uplink_ap_id: 00000000-0000-0000-1000-5c5b35000010
+                model: AP200
+                name: conference room
+                num_clients: 10
+                port_stat:
+                  eth0:
+                    full_duplex: true
+                    rx_bytes: 2056
+                    rx_errors: 0
+                    rx_pkts: 670
+                    speed: 1000
+                    tx_bytes: 2056
+                    tx_pkts: 670
+                    up: true
+                  eth1:
+                    up: false
+                  module:
+                    up: false
+                power_budget: -12000
+                power_src: PoE 802.3af
+                radio_config:
+                  band_24:
+                    bandwidth: 20
+                    channel: 0
+                    dynamic_chaining_enabled: false
+                    power: 0
+                    rx_chain: 4
+                    tx_chain: 4
+                  band_5:
+                    bandwidth: 40
+                    channel: 0
+                    dynamic_chaining_enabled: false
+                    power: 0
+                    rx_chain: 4
+                    tx_chain: 1
+                  scanning_enabled: true
+                radio_stat:
+                  band_24:
+                    bandwidth: 20
+                    channel: 6
+                    mac: 5c5b350004a0
+                    num_clients: 6
+                    power: 19
+                    rx_bytes: 8504737800
+                    rx_pkts: 57731964
+                    tx_bytes: 211166512114
+                    tx_pkts: 812058566
+                  band_5:
+                    bandwidth: 80
+                    channel: 44
+                    mac: 5c5b350004b0
+                    num_clients: 4
+                    power: 15
+                    rx_bytes: 10366616
+                    rx_pkts: 38603
+                    tx_bytes: 50877568
+                    tx_pkts: 145496
+                rx_bps: 60003
+                rx_bytes: 8515104416
+                rx_pkts: 57770567
+                serial: FXLH2015170017
+                status: connected
+                tx_bps: 634301
+                tx_bytes: 211217389682
+                tx_pkts: 812204062
+                type: ap
+                uptime: 13500
+                usb_stat:
+                  channel: 3
+                  connected: true
+                  last_activity: 1586873254
+                  type: imagotag
+                  up: true
+                version: 1.0.0
+                x: 53.5
+                y: 173.1
+            Gateway:
+              value:
+              - cluster_stat:
+                  node0:
+                    status: ''
+                  node1: {}
+                cpu2_stat: ''
+                cpu_stat:
+                  idle: 28
+                  interrupt: 8
+                  load_avg:
+                  - 0.9700000286102295
+                  - 1.0499999523162842
+                  - 1.0199999809265137
+                  system: 41
+                  user: 23
+                hostname: sj1
+                ip: 10.2.11.137
+                ip_stat:
+                  dns:
+                  - 8.8.8.8
+                  - 4.4.4.4
+                  dns_suffix:
+                  - .mist.local
+                  - .mist.com
+                  gateway: 10.2.1.1
+                  gateway6: 2607:f8b0:4005:808::1
+                  ip: 10.2.11.137
+                  ip6: 2607:f8b0:4005:808::2004
+                  ips:
+                    vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
+                    vlan193: 10.73.1.31/16
+                    vlan3157: 10.72.11.14/24
+                  netmask: 255.255.192.0
+                  netmask6: /32
+                last_seen: 1553203563
+                mac: dc38e1dbf3cd
+                memory_stat:
+                  usage: 35
+                model: SRX320
+                module2_stat: ''
+                module_stat:
+                - fans:
+                  - name: Fan 0
+                    status: absent
+                  - airflow: out
+                    name: Fan 1
+                    status: ok
+                  model: EX4300-48P
+                  poe:
+                    max_power: 250
+                    power_draw: 120.3
+                  psus:
+                  - name: Power Supply 0
+                    status: ok
+                  - name: Power Supply 1
+                    status: failed
+                  serial: PX8716230021
+                  temperatures:
+                  - celsius: 45
+                    name: CPU
+                    status: ok
+                  vc_links:
+                  - neighbor_module_idx: 1
+                    neighbor_port_id: vcp-255/1/0
+                    port_id: vcp-255/1/0
+                  vc_role: master
+                name: sj1
+                serial: TC3714190003
+                spu2_stat: ''
+                spu_stat:
+                  cpu: 15
+                  memory: 32
+                  sessions:
+                    current: 41
+                    max: 65535
+                    pending: 12
+                    valid: 15
+                status: connected
+                type: gateway
+                uptime: 13500
+                version: 18.4R1.8
+            Switch:
+              value:
+              - ble_config:
+                  beacon_rate: 3
+                  beacon_rate_model: custom
+                  beam_disabled:
+                  - 1
+                  - 3
+                  - 6
+                  power: 10
+                  power_mode: custom
+                ble_stat:
+                  beacon_rate: 3
+                  eddystone_uid_enabled: false
+                  eddystone_uid_freq_msec: 200
+                  eddystone_uid_instance: 5c5b35000001
+                  eddystone_uid_namespace: 2818e3868dec25629ede
+                  eddystone_url_enabled: true
+                  eddystone_url_freq_msec: 100
+                  eddystone_url_url: https://www.abc.com
+                  ibeacon_enabled: true
+                  ibeacon_major: 13
+                  ibeacon_minor: 138
+                  ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
+                  major: 12345
+                  minors:
+                  - 201
+                  - 202
+                  - 203
+                  - 204
+                  - 205
+                  - 206
+                  - 207
+                  - 208
+                  power: 10
+                  rx_bytes: 135
+                  rx_pkts: 135
+                  tx_bytes: 5231513353
+                  tx_pkts: 135135135
+                  tx_resets: 0
+                  uuid: ada72f8f-1643-e5c6-94db-f2a5636f1a64
+                cert_expiry: 1534534392
+                ext_ip: 73.92.124.103
+                fwupdate:
+                  progress: 10
+                  status: inprogress
+                  status_id: 5
+                  timestamp: 1428949501
+                iot_stat:
+                  DI2:
+                    value: 0
+                ip: 10.2.9.159
+                ip_config:
+                  dns:
+                  - 8.8.8.8
+                  - 4.4.4.4
+                  dns_suffix:
+                  - .mist.local
+                  - .mist.com
+                  gateway: 10.2.1.254
+                  ip: 10.2.1.1
+                  netmask: 255.255.255.0
+                  type: static
+                ip_stat:
+                  dns:
+                  - 8.8.8.8
+                  - 4.4.4.4
+                  dns_suffix:
+                  - .mist.local
+                  - .mist.com
+                  gateway: 10.2.1.254
+                  gateway6: 2607:f8b0:4005:808::1
+                  ip: 10.2.1.1
+                  ip6: 2607:f8b0:4005:808::2004
+                  ips:
+                    vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
+                    vlan193: 10.73.1.31/16
+                    vlan3157: 10.72.11.14/24
+                  netmask: 255.255.255.0
+                  netmask6: /32
+                l2tp_stat:
+                  7dae216d-7c98-a51b-e068-dd7d477b7216:
+                    sessions:
+                    - local_sid: 31
+                      remote_id: vpn1
+                      remote_sid: 13
+                      state: established
+                    state: established_with_sessions
+                    uptime: 135
+                    wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
+                last_seen: 1470417522
+                last_trouble:
+                  code: '03'
+                  timestamp: 1428949501
+                led:
+                  brightness: 255
+                  enabled: true
+                lldp_stat:
+                  chassis_id: 63:68:61:73:73:69
+                  lldp_med_supported: false
+                  mgmt_addr: 10.1.5.2
+                  port_desc: 2/26
+                  power_allocated: 15500
+                  power_draw: 15000
+                  power_request_count: 3
+                  power_requested: 25500
+                  system_desc: HP J9729A 2920-48G-POE+ Switch
+                  system_name: TC2-OWL-Stack-01
+                locating: false
+                mac: 5c5b35000010
+                map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
+                mesh_downlinks:
+                  00000000-0000-0000-1000-5c5b356be59f:
+                    band: '24'
+                    channel: 7
+                    idle_time: 3
+                    last_seen: 1470417522
+                    proto: a
+                    rssi: -65
+                    rx_bps: 12
+                    rx_bytes: 217416
+                    rx_packets: 2337
+                    rx_rate: 65
+                    rx_retries: 5
+                    snr: 31
+                    tx_bps: 6
+                    tx_bytes: 175132
+                    tx_packets: 1566
+                    tx_rate: 65
+                    tx_retries: 500
+                mesh_uplink:
+                  band: '24'
+                  channel: 7
+                  idle_time: 3
+                  last_seen: 1470417522
+                  proto: a
+                  rssi: -65
+                  rx_bps: 12
+                  rx_bytes: 217416
+                  rx_packets: 2337
+                  rx_rate: 65
+                  rx_retries: 5
+                  snr: 31
+                  tx_bps: 6
+                  tx_bytes: 175132
+                  tx_packets: 1566
+                  tx_rate: 65
+                  tx_retries: 500
+                  uplink_ap_id: 00000000-0000-0000-1000-5c5b35000010
+                model: AP200
+                name: conference room
+                num_clients: 10
+                port_stat:
+                  eth0:
+                    full_duplex: true
+                    rx_bytes: 2056
+                    rx_errors: 0
+                    rx_pkts: 670
+                    speed: 1000
+                    tx_bytes: 2056
+                    tx_pkts: 670
+                    up: true
+                  eth1:
+                    up: false
+                  module:
+                    up: false
+                power_budget: -12000
+                power_src: PoE 802.3af
+                radio_config:
+                  band_24:
+                    bandwidth: 20
+                    channel: 0
+                    dynamic_chaining_enabled: false
+                    power: 0
+                    rx_chain: 4
+                    tx_chain: 4
+                  band_5:
+                    bandwidth: 40
+                    channel: 0
+                    dynamic_chaining_enabled: false
+                    power: 0
+                    rx_chain: 4
+                    tx_chain: 1
+                  scanning_enabled: true
+                radio_stat:
+                  band_24:
+                    bandwidth: 20
+                    channel: 6
+                    mac: 5c5b350004a0
+                    num_clients: 6
+                    power: 19
+                    rx_bytes: 8504737800
+                    rx_pkts: 57731964
+                    tx_bytes: 211166512114
+                    tx_pkts: 812058566
+                  band_5:
+                    bandwidth: 80
+                    channel: 44
+                    mac: 5c5b350004b0
+                    num_clients: 4
+                    power: 15
+                    rx_bytes: 10366616
+                    rx_pkts: 38603
+                    tx_bytes: 50877568
+                    tx_pkts: 145496
+                rx_bps: 60003
+                rx_bytes: 8515104416
+                rx_pkts: 57770567
+                serial: FXLH2015170017
+                status: connected
+                tx_bps: 634301
+                tx_bytes: 211217389682
+                tx_pkts: 812204062
+                type: ap
+                uptime: 13500
+                usb_stat:
+                  channel: 3
+                  connected: true
+                  last_activity: 1586873254
+                  type: imagotag
+                  up: true
+                version: 1.0.0
+                x: 53.5
+                y: 173.1
+          schema:
+            items:
+              anyOf:
+              - $ref: '#/components/schemas/stats_device_ap'
+              - $ref: '#/components/schemas/stats_device_switch_site'
               - $ref: '#/components/schemas/stats_device_gateway'
             type: array
       description: OK
@@ -81307,6 +82477,54 @@ components:
                 type: string
             type: object
       description: OK
+    IdpProfile:
+      content:
+        application/json:
+          examples:
+            idpprofile:
+              value:
+                base_profile: strict
+                created_time: 0
+                id: 874ca978-d736-4d4b-bc90-a49a29eec133
+                modified_time: 0
+                name: relaxed
+                overwrites:
+                - action: alert
+                  matching:
+                    attack_name:
+                    - HTTP:INVALID:HDR-FIELD
+                    dst_subnet:
+                    - 63.1.2.0/24
+                    severity:
+                    - major
+          schema:
+            $ref: '#/components/schemas/idpprofile'
+      description: Example response
+    IdpProfileArray:
+      content:
+        application/json:
+          examples:
+            idpprofiles:
+              value:
+              - base_profile: strict
+                created_time: 0
+                id: 874ca978-d736-4d4b-bc90-a49a29eec133
+                modified_time: 0
+                name: relaxed
+                overwrites:
+                - action: alert
+                  matching:
+                    attack_name:
+                    - HTTP:INVALID:HDR-FIELD
+                    dst_subnet:
+                    - 63.1.2.0/24
+                    severity:
+                    - major
+          schema:
+            items:
+              $ref: '#/components/schemas/idpprofile'
+            type: array
+      description: Example response
     InsightMetric:
       content:
         application/json:
@@ -84896,6 +86114,89 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/psk_portal'
+      description: Example response
+    PskPortalLogsArray:
+      content:
+        application/json:
+          examples:
+            psk portal logs:
+              value:
+                end: 1428954000
+                limit: 100
+                results:
+                - id: 8a3dcaa7-80e3-4bb0-a75b-7bc6322cfd09
+                  message: Rotate PSK test@mist.com
+                  name_id: test@mist.com
+                  org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                  psk_id: 608fe603-f9f0-4ce9-9473-04ef6c6ea749
+                  psk_name: test@mist.com
+                  pskportal_id: c1742c09-af35-4161-96ef-7dc65c6d5674
+                  timestamp: 1686346104.096
+                start: 1428939600
+                total: 135
+          schema:
+            properties:
+              end:
+                example: 1428954000
+                type: integer
+              limit:
+                example: 100
+                type: integer
+              results:
+                items:
+                  properties:
+                    id:
+                      example: 8a3dcaa7-80e3-4bb0-a75b-7bc6322cfd09
+                      format: uuid
+                      type: string
+                    message:
+                      example: Rotate PSK test@mist.com
+                      type: string
+                    name_id:
+                      example: test@mist.com
+                      type: string
+                    org_id:
+                      example: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                      format: uuid
+                      type: string
+                    psk_id:
+                      example: 608fe603-f9f0-4ce9-9473-04ef6c6ea749
+                      format: uuid
+                      type: string
+                    psk_name:
+                      example: test@mist.com
+                      type: string
+                    pskportal_id:
+                      example: c1742c09-af35-4161-96ef-7dc65c6d5674
+                      format: uuid
+                      type: string
+                    timestamp:
+                      example: 1686346104.096
+                      type: number
+                  type: object
+                type: array
+              start:
+                example: 1428939600
+                type: integer
+              total:
+                example: 135
+                type: integer
+            type: object
+            x-examples:
+              Example 1:
+                end: 1428954000
+                limit: 100
+                results:
+                - id: 8a3dcaa7-80e3-4bb0-a75b-7bc6322cfd09
+                  message: Rotate PSK test@mist.com
+                  name_id: test@mist.com
+                  org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                  psk_id: 608fe603-f9f0-4ce9-9473-04ef6c6ea749
+                  psk_name: test@mist.com
+                  pskportal_id: c1742c09-af35-4161-96ef-7dc65c6d5674
+                  timestamp: 1686346104.096
+                start: 1428939600
+                total: 135
       description: Example response
     PskPortalsArray:
       content:
@@ -88564,6 +89865,81 @@ components:
           schema:
             $ref: '#/components/schemas/webhook'
       description: OK
+    WebhookDeliverySearch:
+      content:
+        application/json:
+          examples:
+            webhook_deliveries:
+              value:
+                end: 1688035193
+                limit: 10
+                results:
+                - error: string
+                  id: 55b0f02f-ebf6-4ad2-8b10-200508a97581
+                  org_id: fc7e2967-e7ef-41e6-b007-1217713de05a
+                  req_headers: '{"Content-Type":["application/json"],"User-Agent":["Mist-webhook"]}'
+                  req_payload: '{"topic":"audits","events":[{"admin_name":"John Doe
+                    john.doe@juniper.net","after":"{\"radio_config\": {\"band_24\":
+                    {\"disabled\": false, \"allow_rrm_disable\": false, \"power_min\":
+                    null, \"power_max\": null, \"power\": 10, \"preamble\": \"short\",
+                    \"channels\": [1, 10], \"bandwidth\": 20}}}","before":"{\"radio_config\":
+                    {\"band_24\": {\"disabled\": false, \"allow_rrm_disable\": false,
+                    \"power_min\": 8, \"power_max\": 18, \"power\": null, \"preamble\":
+                    \"long\", \"channels\": [1, 10], \"bandwidth\": 20}}}","id":"737909a2-04ff-4aeb-b9da-cc924e74a4dd","message":"Update
+                    Site Settings","org_id":"fc7e2967-e7ef-41e6-b007-1217713de05a","site_id":"256c3a35-9cb7-436e-bc6d-314972645d95","site_name":"Test
+                    Site","src_ip":"1.2.3.4","timestamp":1685956576.923601,"user_agent":"Mozilla/5.0
+                    (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
+                    like Gecko) Chrome/112.0.0.0 Safari/537.36"}]}'
+                  req_url: http://example.com
+                  resp_body: Ok
+                  resp_headers: string
+                  site_id: 256c3a35-9cb7-436e-bc6d-314972645d95
+                  status_code: 200
+                  timestamp: 1687962508.583656
+                  topic: audits
+                  webhook_id: 7a11b901-f719-4c91-8aef-deb8699a6364
+                start: 1687948793
+                total: 0
+          schema:
+            properties:
+              end:
+                example: 1688035193
+                type: integer
+              limit:
+                example: 10
+                type: integer
+              results:
+                items:
+                  $ref: '#/components/schemas/webhook_delivery'
+                type: array
+              start:
+                example: 1687948793
+                type: integer
+              total:
+                type: integer
+            type: object
+            x-examples:
+              Example 1:
+                end: 1688035193
+                limit: 10
+                results:
+                - id: 488689ab-72de-4fe4-b324-92de808931d9
+                  org_id: 203d3d02-dbc0-4c1b-9f41-76896a3330f4
+                  req_headers: '{"Content-Type":["application/json"],"User-Agent":["Mist-webhook"],"X-Mist-Signature":["1f3d5942bd85e30713ea73aff6bf2f035fae339a"],"X-Mist-Signature-V2":["2ab9a2ebe0843cc2646114a4487189736a9cc8a912b12f81b560bbfc049e98d9"]}'
+                  req_payload: '{"topic":"audits","events":[{"admin_name":"Thomas
+                    Munzer tmunzer@juniper.net","id":"5f0baf12-b81c-41ff-b042-7fa0aecda95c","message":"Accessed
+                    Org \"TM-LAB\"","org_id":"203d3d02-dbc0-4c1b-9f41-76896a3330f4","src_ip":"15.237.122.52","timestamp":1687962507.292103,"user_agent":"python-requests/2.28.2"}]}'
+                  req_url: https://mwtt.stag.one:43215/
+                  resp_body: ok
+                  resp_headers: '{"Content-Length":["2"],"Content-Type":["text/plain"]}'
+                  site_id: 00000000-0000-0000-0000-000000000000
+                  status_code: 200
+                  timestamp: 1687962508.583656
+                  topic: audits
+                  webhook_id: 032b9cb1-80af-4edc-98e7-bf41069c9a50
+                start: 1687948793
+                total: 1
+      description: Example response
     WebhooksArray:
       content:
         application/json:
@@ -88907,7 +90283,8 @@ components:
                 msp_id: c0cf23fc-d82f-4219-988c-82fb61d8c875
                 mxtunnel: {}
                 mxtunnel_id: 6741baab-cbd6-45bd-9e5b-93e8eede3c80
-                mxtunnel_name: default
+                mxtunnel_name:
+                - default
                 no_static_dns: false
                 no_static_ip: false
                 org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
@@ -90976,6 +92353,21 @@ components:
           items:
             type: integer
           type: array
+        custom_ble_packet_enabled:
+          default: false
+          description: can be enabled if `beacon_enabled`==`true`, whether to send
+            custom packet
+          type: boolean
+        custom_ble_packet_frame:
+          description: The custom frame to be sent out in this beacon. The frame must
+            be a hexstring
+          example: 0x........
+          type: string
+        custom_ble_packet_freq_msec:
+          description: Frequency (msec) of data emitted by custom ble beacon
+          example: 300
+          minimum: 0
+          type: integer
         eddystone_uid_adv_power:
           description: advertised TX Power, -100 to 20 (dBm), omit this attribute
             to use default
@@ -91008,7 +92400,7 @@ components:
             is enabled
           type: boolean
         eddystone_url_freq_msec:
-          description: Frequency (msec) of data emmit by Eddystone-UID beacon
+          description: Frequency (msec) of data emit by Eddystone-UID beacon
           type: integer
         eddystone_url_url:
           description: URL pointed by Eddystone-URL beacon
@@ -91292,13 +92684,21 @@ components:
           type: string
       type: object
     ap_port_config:
-      description: ''
       properties:
         additional_vlan_ids:
           description: additional VLAN IDs, only valid in mesh base mode
           items:
             type: integer
           type: array
+        authentication_protocol:
+          default: pap
+          description: if `enable_mac_auth`==`true`, allows user to select an authentication
+            protocol
+          enum:
+          - pap
+          - eap-peap
+          - eap-md5
+          type: string
         disabled:
           type: boolean
         dynamic_vlan:
@@ -91316,7 +92716,6 @@ components:
               type: object
           type: object
         enable_mac_auth:
-          description: ''
           type: boolean
         forwarding:
           default: all
@@ -91470,9 +92869,17 @@ components:
             \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
             \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
             \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
-            \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n to make an outdoor operate\
-            \ indoor.\n for an outdoor-ap, some channels are disallowed by default,\
-            \ this allows the user to use it as an indoor-ap"
+            \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+            \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+            \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+            \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+            \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+            \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+            \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+            \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+            \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n to make an outdoor\
+            \ operate indoor.\n for an outdoor-ap, some channels are disallowed by\
+            \ default, this allows the user to use it as an indoor-ap"
           type: boolean
         scanning_enabled:
           description: whether scanning radio is enabled
@@ -96701,6 +98108,11 @@ components:
           format: uuid
           readOnly: true
           type: string
+        idp_profiles:
+          additionalProperties:
+            $ref: '#/components/schemas/idpprofile'
+            description: Property key is the profile name
+          type: object
         ip_configs:
           additionalProperties:
             properties:
@@ -98038,6 +99450,84 @@ components:
           field1: xxx
           mac: 5684dae9ac8b
           name: John Smith
+    idpprofile:
+      properties:
+        base_profile:
+          enum:
+          - strict
+          - standard
+          example: strict
+          type: string
+        created_time:
+          readOnly: true
+          type: integer
+        id:
+          example: 874ca978-d736-4d4b-bc90-a49a29eec133
+          format: uuid
+          readOnly: true
+          type: string
+        modified_time:
+          readOnly: true
+          type: integer
+        name:
+          example: relaxed
+          type: string
+        overwrites:
+          items:
+            properties:
+              action:
+                default: alert
+                description: "- alert (default) \n- drop: siliently dropping packets\n\
+                  - close: notify client/server to close connection"
+                enum:
+                - alert
+                - drop
+                - close
+                example: alert
+                type: string
+              matching:
+                properties:
+                  attack_name:
+                    items:
+                      example: HTTP:INVALID:HDR-FIELD
+                      type: string
+                    type: array
+                  dst_subnet:
+                    items:
+                      example: 63.1.2.0/24
+                      type: string
+                    type: array
+                  severity:
+                    items:
+                      enum:
+                      - critical
+                      - major
+                      - minor
+                      - info
+                      example: major
+                      type: string
+                    type: array
+                type: object
+            type: object
+          type: array
+      required:
+      - id
+      - created_time
+      - modified_time
+      type: object
+      x-examples:
+        Example 1:
+          base_profile: strict
+          name: relaxed
+          overwrites:
+          - action: alert
+            matching:
+              attack_name:
+              - HTTP:INVALID:HDR-FIELD
+              dst_subnet:
+              - 63.1.2.0/24
+              severity:
+              - major
     image_upload:
       properties:
         file:
@@ -98831,18 +100321,21 @@ components:
             uplinks:
             - string
     junos_idp_config:
-      description: ''
       properties:
         alert_only:
           type: string
         enabled:
           default: false
           type: boolean
+        idpprofile_id:
+          description: org-level IDP Profile can be used, this takes precedence over
+            `profile`
+          example: 89b9d208-84a4-fa8f-af57-78f92c639cf2
+          format: uuid
+          type: string
         profile:
           default: strict
-          enum:
-          - strict
-          - standard
+          description: '`strict` (default) / `standard` / or keys from from idp_profiles'
           type: string
       type: object
     junos_ip_config:
@@ -99075,7 +100568,7 @@ components:
           - dynamic
           type: string
         use_mgmt_vrf:
-          default: false
+          default: true
           description: if supported on the platform. If enabled, DNS will be using
             this routing-instance, too
           type: boolean
@@ -99446,9 +100939,6 @@ components:
                 - lte
                 - broadband
                 type: string
-              bfd_udp_transform:
-                default: false
-                type: boolean
               bfd_use_tunnel_mode:
                 default: false
                 description: whether to use tunnel mode. SSR only
@@ -99631,6 +101121,14 @@ components:
             \nWhen it is not defined, it means using the system\u2019s default setting\
             \ which depends on whether the port is a access or trunk port."
           type: boolean
+        authentication_protocol:
+          default: pap
+          description: can be set for non-mist-nac config when `enable_mac_auth`==`true`
+          enum:
+          - pap
+          - eap-peap
+          - eap-md5
+          type: string
         bypass_auth_when_server_down:
           description: if `port_auth`==`dot1x`, whether to allow the device to connect
             if RADIUS server is down
@@ -101484,6 +102982,9 @@ components:
         name:
           example: Guest
           type: string
+        note:
+          example: note for mxedge
+          type: string
         ntp_servers:
           items:
             type: string
@@ -102182,6 +103683,12 @@ components:
             format: uuid
             type: string
           type: array
+        vendor:
+          description: list of vendors to match
+          items:
+            example: cisc
+            type: string
+          type: array
       title: nac_rule_matching
       type: object
       x-examples:
@@ -102233,7 +103740,6 @@ components:
           - realm
           - ssid
           - user_name
-          - vendor
           minLength: 1
           type: string
         modified_time:
@@ -103504,6 +105010,14 @@ components:
                 the value from site/setting will be used.
               example: 10
               type: integer
+          type: object
+        synthetic_test:
+          properties:
+            urls:
+              items:
+                example: https://internal_app:8080/path
+                type: string
+              type: array
           type: object
         tags:
           description: list of tags
@@ -104835,6 +106349,16 @@ components:
             Org mxedge(s) identified by mxcluster_ids'
           items:
             format: uuid
+            type: string
+          type: array
+        proxy_hosts:
+          description: 'default is site.mxedge.radsec.proxy_hosts which must be a
+            superset of all wlans[*].radsec.proxy_hosts
+
+            when radsec.proxy_hosts are not used, tunnel peers (org or site mxedges)
+            are used irrespective of use_site_mxedge'
+          items:
+            example: mxedge1.local
             type: string
           type: array
         server_name:
@@ -113623,7 +115147,7 @@ components:
           vendor: cradlepoint
           vendor_specific: {}
           version: 7.22.70
-    stats_device_switch:
+    stats_device_switch_org:
       description: Switch statistics
       properties:
         cpu_stat:
@@ -113917,6 +115441,335 @@ components:
           type: switch
           uptime: 13500
           version: 18.4R1.8
+      x-stoplight:
+        id: 706110de4398a
+    stats_device_switch_site:
+      description: Switch statistics
+      properties:
+        clients:
+          items:
+            properties:
+              device_mac:
+                type: string
+              hostname:
+                type: string
+              mac:
+                type: string
+              port_id:
+                type: string
+            type: object
+          type: array
+        cpu_stat:
+          properties:
+            idle:
+              description: Percentage of CPU time that is idle
+              type: integer
+            interrupt:
+              description: Percentage of CPU time being used by interrupts
+              type: integer
+            load_avg:
+              description: Load averages for the last 1, 5, and 15 minutes
+              items:
+                type: object
+              type: array
+            system:
+              description: Percentage of CPU time being used by system processes
+              type: integer
+            user:
+              description: Percentage of CPU time being used by user processe
+              type: integer
+          type: object
+        hostname:
+          description: hostname reported by the device
+          type: string
+        if_stat:
+          additionalProperties:
+            properties:
+              ips:
+                items:
+                  type: string
+                type: array
+              port_id:
+                type: string
+              rx_bytes:
+                type: integer
+              rx_pkts:
+                type: integer
+              tx_bytes:
+                type: integer
+              tx_pkts:
+                type: integer
+              up:
+                type: boolean
+            type: object
+          description: Property key is the interface name
+          type: object
+        ip:
+          type: string
+        ip_stat:
+          properties:
+            dns:
+              items:
+                type: object
+              type: array
+            dns_suffix:
+              items:
+                type: object
+              type: array
+            gateway:
+              type: string
+            gateway6:
+              type: string
+            ip:
+              type: string
+            ip6:
+              type: string
+            ips:
+              properties:
+                vlan1:
+                  type: string
+                vlan193:
+                  type: string
+                vlan3157:
+                  type: string
+              type: object
+            netmask:
+              type: string
+            netmask6:
+              type: string
+          type: object
+        last_seen:
+          type: number
+        last_trouble:
+          description: last trouble code of switch
+          properties:
+            code:
+              description: 'Codes:
+
+                - 102   No DHCP lease received on any interface
+
+                - 103   No default gateway
+
+                - 104   Gateway unreachable
+
+                - 105   No DNS server
+
+                - 106   DNS lookup failed
+
+                - 108   Agent cannot connect to controller
+
+                - 109   Authentication failed
+
+                - 110   Underlying service (i.e. Netconf/SSH/HTTPS) is down
+
+                - 113   DNS failure with Mist cloud
+
+                - 114   Empty DNS response with Mist cloud'
+              type: string
+            timestamp:
+              type: integer
+          type: object
+        mac:
+          type: string
+        memory_stat:
+          description: memory usage stat (for virtual chassis, memory usage of master
+            RE)
+          properties:
+            usage:
+              type: number
+          type: object
+        model:
+          type: string
+        module_stat:
+          items:
+            properties:
+              fans:
+                items:
+                  properties:
+                    airflow:
+                      type: string
+                    name:
+                      type: string
+                    status:
+                      type: string
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+              model:
+                type: string
+              pics:
+                properties:
+                  idx:
+                    type: integer
+                  port_groups:
+                    items:
+                      properties:
+                        count:
+                          type: integer
+                        type:
+                          type: string
+                      type: object
+                    type: array
+                type: object
+              poe:
+                properties:
+                  max_power:
+                    type: number
+                  power_draw:
+                    type: number
+                type: object
+              psus:
+                items:
+                  properties:
+                    name:
+                      type: string
+                    status:
+                      type: string
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+              serial:
+                type: string
+              temperatures:
+                items:
+                  properties:
+                    celsius:
+                      type: number
+                    name:
+                      type: string
+                    status:
+                      type: string
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+              vc_links:
+                items:
+                  properties:
+                    neighbor_module_idx:
+                      type: integer
+                    neighbor_port_id:
+                      type: string
+                    port_id:
+                      type: string
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+              vc_role:
+                type: string
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+        name:
+          description: device name if configured
+          type: string
+        num_clients:
+          properties:
+            total:
+              additionalProperties:
+                description: propery key is the FPC number
+                properties:
+                  num_aps:
+                    type: string
+                  num_clients:
+                    type: string
+                type: object
+              properties:
+                num_aps:
+                  type: string
+                num_clients:
+                  type: string
+              type: object
+          type: object
+        serial:
+          type: string
+        status:
+          type: string
+        type:
+          type: string
+        uptime:
+          type: number
+        version:
+          type: string
+      type: object
+      x-examples:
+        example-1:
+          cpu_stat:
+            idle: 28
+            interrupt: 8
+            load_avg:
+            - 0.9700000286102295
+            - 1.0499999523162842
+            - 1.0199999809265137
+            system: 41
+            user: 23
+          hostname: sj-sw1
+          ip: 10.2.11.137
+          ip_stat:
+            dns:
+            - 8.8.8.8
+            - 4.4.4.4
+            dns_suffix:
+            - .mist.local
+            - .mist.com
+            gateway: 10.2.1.1
+            gateway6: 2607:f8b0:4005:808::1
+            ip: 10.2.11.137
+            ip6: 2607:f8b0:4005:808::2004
+            ips:
+              vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
+              vlan193: 10.73.1.31/16
+              vlan3157: 10.72.11.14/24
+            netmask: 255.255.192.0
+            netmask6: /32
+          last_seen: 1553203563
+          mac: dc38e1dbf3cd
+          memory_stat:
+            usage: 35
+          model: EX4600
+          module_stat:
+          - fans:
+            - name: Fan 0
+              status: absent
+            - airflow: out
+              name: Fan 1
+              status: ok
+            model: EX4300-48P
+            poe:
+              max_power: 250
+              power_draw: 120.3
+            psus:
+            - name: Power Supply 0
+              status: ok
+            - name: Power Supply 1
+              status: failed
+            serial: PX8716230021
+            temperatures:
+            - celsius: 45
+              name: CPU
+              status: ok
+            vc_links:
+            - neighbor_module_idx: 1
+              neighbor_port_id: vcp-255/1/0
+              port_id: vcp-255/1/0
+            vc_role: master
+          name: xg50b
+          pics:
+          - idx: 0
+            port_groups:
+            - count: 12
+              type: sfp+
+          serial: TC3714190003
+          status: connected
+          type: switch
+          uptime: 13500
+          version: 18.4R1.8
+      x-stoplight:
+        id: d99fa9ad5d90d
     stats_mxedge:
       description: ''
       properties:
@@ -116465,6 +118318,99 @@ components:
           topic: client-sessions
       x-stoplight:
         id: d5d78718f958f
+    webhook_delivery:
+      properties:
+        error:
+          description: error message, if there is one
+          type: string
+        id:
+          description: delivery ID
+          example: 55b0f02f-ebf6-4ad2-8b10-200508a97581
+          format: uuid
+          type: string
+        org_id:
+          example: fc7e2967-e7ef-41e6-b007-1217713de05a
+          format: uuid
+          type: string
+        req_headers:
+          description: HTTP request headers
+          example: '{"Content-Type":["application/json"],"User-Agent":["Mist-webhook"]}'
+          type: string
+        req_payload:
+          description: HTTP request payload
+          example: '{"topic":"audits","events":[{"admin_name":"John Doe john.doe@juniper.net","after":"{\"radio_config\":
+            {\"band_24\": {\"disabled\": false, \"allow_rrm_disable\": false, \"power_min\":
+            null, \"power_max\": null, \"power\": 10, \"preamble\": \"short\", \"channels\":
+            [1, 10], \"bandwidth\": 20}}}","before":"{\"radio_config\": {\"band_24\":
+            {\"disabled\": false, \"allow_rrm_disable\": false, \"power_min\": 8,
+            \"power_max\": 18, \"power\": null, \"preamble\": \"long\", \"channels\":
+            [1, 10], \"bandwidth\": 20}}}","id":"737909a2-04ff-4aeb-b9da-cc924e74a4dd","message":"Update
+            Site Settings","org_id":"fc7e2967-e7ef-41e6-b007-1217713de05a","site_id":"256c3a35-9cb7-436e-bc6d-314972645d95","site_name":"Test
+            Site","src_ip":"1.2.3.4","timestamp":1685956576.923601,"user_agent":"Mozilla/5.0
+            (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)
+            Chrome/112.0.0.0 Safari/537.36"}]}'
+          type: string
+        req_url:
+          description: HTTP request URL
+          example: http://example.com
+          type: string
+        resp_body:
+          description: HTTP response body
+          example: Ok
+          type: string
+        resp_headers:
+          description: HTTP response headers
+          type: string
+        site_id:
+          example: 256c3a35-9cb7-436e-bc6d-314972645d95
+          format: uuid
+          type: string
+        status_code:
+          example: 200
+          type: integer
+        timestamp:
+          example: 1687962508.583656
+          type: number
+        topic:
+          description: webhook topic
+          enum:
+          - alarms
+          - audits
+          - device-updowns
+          - occupancy-alerts
+          - ping
+          example: audits
+          type: string
+        webhook_id:
+          example: 7a11b901-f719-4c91-8aef-deb8699a6364
+          format: uuid
+          type: string
+      type: object
+      x-examples:
+        webhook_delivery:
+          error: string
+          id: 55b0f02f-ebf6-4ad2-8b10-200508a97581
+          org_id: fc7e2967-e7ef-41e6-b007-1217713de05a
+          req_headers: '{"Content-Type":["application/json"],"User-Agent":["Mist-webhook"]}'
+          req_payload: '{"topic":"audits","events":[{"admin_name":"John Doe john.doe@juniper.net","after":"{\"radio_config\":
+            {\"band_24\": {\"disabled\": false, \"allow_rrm_disable\": false, \"power_min\":
+            null, \"power_max\": null, \"power\": 10, \"preamble\": \"short\", \"channels\":
+            [1, 10], \"bandwidth\": 20}}}","before":"{\"radio_config\": {\"band_24\":
+            {\"disabled\": false, \"allow_rrm_disable\": false, \"power_min\": 8,
+            \"power_max\": 18, \"power\": null, \"preamble\": \"long\", \"channels\":
+            [1, 10], \"bandwidth\": 20}}}","id":"737909a2-04ff-4aeb-b9da-cc924e74a4dd","message":"Update
+            Site Settings","org_id":"fc7e2967-e7ef-41e6-b007-1217713de05a","site_id":"256c3a35-9cb7-436e-bc6d-314972645d95","site_name":"Test
+            Site","src_ip":"1.2.3.4","timestamp":1685956576.923601,"user_agent":"Mozilla/5.0
+            (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)
+            Chrome/112.0.0.0 Safari/537.36"}]}'
+          req_url: http://example.com
+          resp_body: Ok
+          resp_headers: string
+          site_id: 256c3a35-9cb7-436e-bc6d-314972645d95
+          status_code: 200
+          timestamp: 0
+          topic: alarms
+          webhook_id: 7a11b901-f719-4c91-8aef-deb8699a6364
     webhook_device_events:
       description: device event  webhook
       properties:
@@ -117385,6 +119331,11 @@ components:
         portal_template, please query portal_template_url. To update portal_template,
         use Wlan Portal Template.'
       properties:
+        acct_immediate_update:
+          default: false
+          description: enable coa-immediate-update and address-change-immediate-update
+            on the access profile.
+          type: boolean
         acct_interim_interval:
           default: 0
           description: how frequently should interim accounting be reported, 60-65535.
@@ -117781,17 +119732,21 @@ components:
           description: when `interface`=`site_medge`, the definition of the Mist Tunnels
             (key is the name)
           type: object
-        mxtunnel_id:
+        mxtunnel_ids:
           description: when `interface`=`mxtunnel`, id of the Mist Tunnel
           format: uuid
-          nullable: true
-          type: string
+          items:
+            example: 08cd7499-5841-51c8-e663-fb16b6f3b45e
+            type: string
+          type: array
         mxtunnel_name:
-          default: default
           description: when `interface`=`site_medge`, name of the mxtunnel that in
             mxtunnels under Site Setting
-          nullable: true
-          type: string
+          items:
+            default: default
+            example: default
+            type: string
+          type: array
         no_static_dns:
           default: false
           description: "whether to only allow client to use DNS that we\u2019ve learned\
@@ -120047,6 +122002,7 @@ x-tagGroups:
   - Orgs EVPN Topologies
   - Orgs Gateway Templates
   - Orgs Guests
+  - Orgs IDP Profiles
   - Orgs Inventory
   - Orgs Invites
   - Orgs JSE
