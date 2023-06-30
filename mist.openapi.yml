@@ -3,7 +3,7 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2306.2.2**
+  description: '> Version: **2306.2.3**
 
     >
 
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2306.2.2
+  version: 2306.2.3
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -18990,7 +18990,7 @@ paths:
       tags:
       - Orgs IDP Profiles
     parameters:
-    - $ref: '#/components/parameters/idpprofile_id'
+    - $ref: '#/components/parameters/org_id'
     post:
       description: Create Org IDP Profile
       operationId: createOrgIdpProfile
@@ -22754,6 +22754,8 @@ paths:
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
       summary: deleteOrgMxEdgeImage
+      tags:
+      - Orgs MxEdges
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/mxedge_id'
@@ -24076,13 +24078,6 @@ paths:
                   values:
                   - bob
                   - steve
-              matches_vendor:
-                value:
-                  match: vendor
-                  name: guest-wlan
-                  type: match
-                  values:
-                  - cisco
               matches_vlan:
                 value:
                   name: vlan-user
@@ -25860,6 +25855,7 @@ paths:
                   macs:
                   - 5c5b350e0001
                   - 5c5b350e0003
+                  op: assign
                   site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
             schema:
               properties:
@@ -26630,7 +26626,7 @@ paths:
           - admin_name
           - psk_name
           - psk_id
-          - pskportail_id
+          - pskportal_id
           - user_id
           type: string
       - $ref: '#/components/parameters/start'
@@ -38088,6 +38084,98 @@ paths:
       summary: updateOrgWebhook
       tags:
       - Orgs Webhooks
+  /api/v1/orgs/{org_id}/webhooks/{webhook_id}/events/search:
+    get:
+      description: 'Search webhooks deliveries
+
+
+        To get a list of webhook deliveries in error, use the query parameter `?error=*`'
+      operationId: searchOrgWebhooksDeliveries
+      parameters:
+      - in: query
+        name: site_id
+        schema:
+          format: uuid
+          type: string
+      - in: query
+        name: error
+        schema:
+          type: string
+      - in: query
+        name: status_code
+        schema:
+          type: integer
+      - description: webhook topic
+        in: query
+        name: topic
+        schema:
+          enum:
+          - alarms
+          - audits
+          - device-updowns
+          - ping
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookDeliverySearch'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: searchOrgWebhooksDeliveries
+      tags:
+      - Sites Webhooks
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/webhook_id'
   /api/v1/orgs/{org_id}/wired_clients/count:
     get:
       description: 'Count by Distinct Attributes of Clients
@@ -41699,93 +41787,6 @@ paths:
       - Self
     parameters:
     - $ref: '#/components/parameters/token'
-  /api/v1/sites/{org_id}/webhooks/{webhook_id}/events/search:
-    get:
-      description: 'Search webhooks deliveries
-
-        '
-      operationId: searchOrgWebhooksDeliveries
-      parameters:
-      - in: query
-        name: site_id
-        schema:
-          format: uuid
-          type: string
-      - in: query
-        name: status_code
-        schema:
-          type: integer
-      - description: webhook topic
-        in: query
-        name: topic
-        schema:
-          enum:
-          - alarms
-          - audits
-          - device-updowns
-          - ping
-          type: string
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/limit'
-      responses:
-        '200':
-          $ref: '#/components/responses/WebhookDeliverySearch'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: searchOrgWebhooksDeliveries
-      tags:
-      - Sites Webhooks
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    - $ref: '#/components/parameters/webhook_id'
   /api/v1/sites/{site_id}:
     delete:
       description: Delete Site
@@ -63690,547 +63691,7 @@ paths:
       - $ref: '#/components/parameters/limit'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                AP:
-                  value:
-                  - ble_config:
-                      beacon_rate: 3
-                      beacon_rate_model: custom
-                      beam_disabled:
-                      - 1
-                      - 3
-                      - 6
-                      power: 10
-                      power_mode: custom
-                    ble_stat:
-                      beacon_rate: 3
-                      eddystone_uid_enabled: false
-                      eddystone_uid_freq_msec: 200
-                      eddystone_uid_instance: 5c5b35000001
-                      eddystone_uid_namespace: 2818e3868dec25629ede
-                      eddystone_url_enabled: true
-                      eddystone_url_freq_msec: 100
-                      eddystone_url_url: https://www.abc.com
-                      ibeacon_enabled: true
-                      ibeacon_major: 13
-                      ibeacon_minor: 138
-                      ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
-                      major: 12345
-                      minors:
-                      - 201
-                      - 202
-                      - 203
-                      - 204
-                      - 205
-                      - 206
-                      - 207
-                      - 208
-                      power: 10
-                      rx_bytes: 135
-                      rx_pkts: 135
-                      tx_bytes: 5231513353
-                      tx_pkts: 135135135
-                      tx_resets: 0
-                      uuid: ada72f8f-1643-e5c6-94db-f2a5636f1a64
-                    cert_expiry: 1534534392
-                    ext_ip: 73.92.124.103
-                    fwupdate:
-                      progress: 10
-                      status: inprogress
-                      status_id: 5
-                      timestamp: 1428949501
-                    iot_stat:
-                      DI2:
-                        value: 0
-                    ip: 10.2.9.159
-                    ip_config:
-                      dns:
-                      - 8.8.8.8
-                      - 4.4.4.4
-                      dns_suffix:
-                      - .mist.local
-                      - .mist.com
-                      gateway: 10.2.1.254
-                      ip: 10.2.1.1
-                      netmask: 255.255.255.0
-                      type: static
-                    ip_stat:
-                      dns:
-                      - 8.8.8.8
-                      - 4.4.4.4
-                      dns_suffix:
-                      - .mist.local
-                      - .mist.com
-                      gateway: 10.2.1.254
-                      gateway6: 2607:f8b0:4005:808::1
-                      ip: 10.2.1.1
-                      ip6: 2607:f8b0:4005:808::2004
-                      ips:
-                        vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
-                        vlan193: 10.73.1.31/16
-                        vlan3157: 10.72.11.14/24
-                      netmask: 255.255.255.0
-                      netmask6: /32
-                    l2tp_stat:
-                      7dae216d-7c98-a51b-e068-dd7d477b7216:
-                        sessions:
-                        - local_sid: 31
-                          remote_id: vpn1
-                          remote_sid: 13
-                          state: established
-                        state: established_with_sessions
-                        uptime: 135
-                        wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
-                    last_seen: 1470417522
-                    last_trouble:
-                      code: '03'
-                      timestamp: 1428949501
-                    led:
-                      brightness: 255
-                      enabled: true
-                    lldp_stat:
-                      chassis_id: 63:68:61:73:73:69
-                      lldp_med_supported: false
-                      mgmt_addr: 10.1.5.2
-                      port_desc: 2/26
-                      power_allocated: 15500
-                      power_draw: 15000
-                      power_request_count: 3
-                      power_requested: 25500
-                      system_desc: HP J9729A 2920-48G-POE+ Switch
-                      system_name: TC2-OWL-Stack-01
-                    locating: false
-                    mac: 5c5b35000010
-                    map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
-                    mesh_downlinks:
-                      00000000-0000-0000-1000-5c5b356be59f:
-                        band: '24'
-                        channel: 7
-                        idle_time: 3
-                        last_seen: 1470417522
-                        proto: a
-                        rssi: -65
-                        rx_bps: 12
-                        rx_bytes: 217416
-                        rx_packets: 2337
-                        rx_rate: 65
-                        rx_retries: 5
-                        snr: 31
-                        tx_bps: 6
-                        tx_bytes: 175132
-                        tx_packets: 1566
-                        tx_rate: 65
-                        tx_retries: 500
-                    mesh_uplink:
-                      band: '24'
-                      channel: 7
-                      idle_time: 3
-                      last_seen: 1470417522
-                      proto: a
-                      rssi: -65
-                      rx_bps: 12
-                      rx_bytes: 217416
-                      rx_packets: 2337
-                      rx_rate: 65
-                      rx_retries: 5
-                      snr: 31
-                      tx_bps: 6
-                      tx_bytes: 175132
-                      tx_packets: 1566
-                      tx_rate: 65
-                      tx_retries: 500
-                      uplink_ap_id: 00000000-0000-0000-1000-5c5b35000010
-                    model: AP200
-                    name: conference room
-                    num_clients: 10
-                    port_stat:
-                      eth0:
-                        full_duplex: true
-                        rx_bytes: 2056
-                        rx_errors: 0
-                        rx_pkts: 670
-                        speed: 1000
-                        tx_bytes: 2056
-                        tx_pkts: 670
-                        up: true
-                      eth1:
-                        up: false
-                      module:
-                        up: false
-                    power_budget: -12000
-                    power_src: PoE 802.3af
-                    radio_config:
-                      band_24:
-                        bandwidth: 20
-                        channel: 0
-                        dynamic_chaining_enabled: false
-                        power: 0
-                        rx_chain: 4
-                        tx_chain: 4
-                      band_5:
-                        bandwidth: 40
-                        channel: 0
-                        dynamic_chaining_enabled: false
-                        power: 0
-                        rx_chain: 4
-                        tx_chain: 1
-                      scanning_enabled: true
-                    radio_stat:
-                      band_24:
-                        bandwidth: 20
-                        channel: 6
-                        mac: 5c5b350004a0
-                        num_clients: 6
-                        power: 19
-                        rx_bytes: 8504737800
-                        rx_pkts: 57731964
-                        tx_bytes: 211166512114
-                        tx_pkts: 812058566
-                      band_5:
-                        bandwidth: 80
-                        channel: 44
-                        mac: 5c5b350004b0
-                        num_clients: 4
-                        power: 15
-                        rx_bytes: 10366616
-                        rx_pkts: 38603
-                        tx_bytes: 50877568
-                        tx_pkts: 145496
-                    rx_bps: 60003
-                    rx_bytes: 8515104416
-                    rx_pkts: 57770567
-                    serial: FXLH2015170017
-                    status: connected
-                    tx_bps: 634301
-                    tx_bytes: 211217389682
-                    tx_pkts: 812204062
-                    type: ap
-                    uptime: 13500
-                    usb_stat:
-                      channel: 3
-                      connected: true
-                      last_activity: 1586873254
-                      type: imagotag
-                      up: true
-                    version: 1.0.0
-                    x: 53.5
-                    y: 173.1
-                Gateway:
-                  value:
-                  - cluster_stat:
-                      node0:
-                        status: ''
-                      node1: {}
-                    cpu2_stat: ''
-                    cpu_stat:
-                      idle: 28
-                      interrupt: 8
-                      load_avg:
-                      - 0.9700000286102295
-                      - 1.0499999523162842
-                      - 1.0199999809265137
-                      system: 41
-                      user: 23
-                    hostname: sj1
-                    ip: 10.2.11.137
-                    ip_stat:
-                      dns:
-                      - 8.8.8.8
-                      - 4.4.4.4
-                      dns_suffix:
-                      - .mist.local
-                      - .mist.com
-                      gateway: 10.2.1.1
-                      gateway6: 2607:f8b0:4005:808::1
-                      ip: 10.2.11.137
-                      ip6: 2607:f8b0:4005:808::2004
-                      ips:
-                        vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
-                        vlan193: 10.73.1.31/16
-                        vlan3157: 10.72.11.14/24
-                      netmask: 255.255.192.0
-                      netmask6: /32
-                    last_seen: 1553203563
-                    mac: dc38e1dbf3cd
-                    memory_stat:
-                      usage: 35
-                    model: SRX320
-                    module2_stat: ''
-                    module_stat:
-                    - fans:
-                      - name: Fan 0
-                        status: absent
-                      - airflow: out
-                        name: Fan 1
-                        status: ok
-                      model: EX4300-48P
-                      poe:
-                        max_power: 250
-                        power_draw: 120.3
-                      psus:
-                      - name: Power Supply 0
-                        status: ok
-                      - name: Power Supply 1
-                        status: failed
-                      serial: PX8716230021
-                      temperatures:
-                      - celsius: 45
-                        name: CPU
-                        status: ok
-                      vc_links:
-                      - neighbor_module_idx: 1
-                        neighbor_port_id: vcp-255/1/0
-                        port_id: vcp-255/1/0
-                      vc_role: master
-                    name: sj1
-                    serial: TC3714190003
-                    spu2_stat: ''
-                    spu_stat:
-                      cpu: 15
-                      memory: 32
-                      sessions:
-                        current: 41
-                        max: 65535
-                        pending: 12
-                        valid: 15
-                    status: connected
-                    type: gateway
-                    uptime: 13500
-                    version: 18.4R1.8
-                Switch:
-                  value:
-                  - ble_config:
-                      beacon_rate: 3
-                      beacon_rate_model: custom
-                      beam_disabled:
-                      - 1
-                      - 3
-                      - 6
-                      power: 10
-                      power_mode: custom
-                    ble_stat:
-                      beacon_rate: 3
-                      eddystone_uid_enabled: false
-                      eddystone_uid_freq_msec: 200
-                      eddystone_uid_instance: 5c5b35000001
-                      eddystone_uid_namespace: 2818e3868dec25629ede
-                      eddystone_url_enabled: true
-                      eddystone_url_freq_msec: 100
-                      eddystone_url_url: https://www.abc.com
-                      ibeacon_enabled: true
-                      ibeacon_major: 13
-                      ibeacon_minor: 138
-                      ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
-                      major: 12345
-                      minors:
-                      - 201
-                      - 202
-                      - 203
-                      - 204
-                      - 205
-                      - 206
-                      - 207
-                      - 208
-                      power: 10
-                      rx_bytes: 135
-                      rx_pkts: 135
-                      tx_bytes: 5231513353
-                      tx_pkts: 135135135
-                      tx_resets: 0
-                      uuid: ada72f8f-1643-e5c6-94db-f2a5636f1a64
-                    cert_expiry: 1534534392
-                    ext_ip: 73.92.124.103
-                    fwupdate:
-                      progress: 10
-                      status: inprogress
-                      status_id: 5
-                      timestamp: 1428949501
-                    iot_stat:
-                      DI2:
-                        value: 0
-                    ip: 10.2.9.159
-                    ip_config:
-                      dns:
-                      - 8.8.8.8
-                      - 4.4.4.4
-                      dns_suffix:
-                      - .mist.local
-                      - .mist.com
-                      gateway: 10.2.1.254
-                      ip: 10.2.1.1
-                      netmask: 255.255.255.0
-                      type: static
-                    ip_stat:
-                      dns:
-                      - 8.8.8.8
-                      - 4.4.4.4
-                      dns_suffix:
-                      - .mist.local
-                      - .mist.com
-                      gateway: 10.2.1.254
-                      gateway6: 2607:f8b0:4005:808::1
-                      ip: 10.2.1.1
-                      ip6: 2607:f8b0:4005:808::2004
-                      ips:
-                        vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
-                        vlan193: 10.73.1.31/16
-                        vlan3157: 10.72.11.14/24
-                      netmask: 255.255.255.0
-                      netmask6: /32
-                    l2tp_stat:
-                      7dae216d-7c98-a51b-e068-dd7d477b7216:
-                        sessions:
-                        - local_sid: 31
-                          remote_id: vpn1
-                          remote_sid: 13
-                          state: established
-                        state: established_with_sessions
-                        uptime: 135
-                        wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
-                    last_seen: 1470417522
-                    last_trouble:
-                      code: '03'
-                      timestamp: 1428949501
-                    led:
-                      brightness: 255
-                      enabled: true
-                    lldp_stat:
-                      chassis_id: 63:68:61:73:73:69
-                      lldp_med_supported: false
-                      mgmt_addr: 10.1.5.2
-                      port_desc: 2/26
-                      power_allocated: 15500
-                      power_draw: 15000
-                      power_request_count: 3
-                      power_requested: 25500
-                      system_desc: HP J9729A 2920-48G-POE+ Switch
-                      system_name: TC2-OWL-Stack-01
-                    locating: false
-                    mac: 5c5b35000010
-                    map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
-                    mesh_downlinks:
-                      00000000-0000-0000-1000-5c5b356be59f:
-                        band: '24'
-                        channel: 7
-                        idle_time: 3
-                        last_seen: 1470417522
-                        proto: a
-                        rssi: -65
-                        rx_bps: 12
-                        rx_bytes: 217416
-                        rx_packets: 2337
-                        rx_rate: 65
-                        rx_retries: 5
-                        snr: 31
-                        tx_bps: 6
-                        tx_bytes: 175132
-                        tx_packets: 1566
-                        tx_rate: 65
-                        tx_retries: 500
-                    mesh_uplink:
-                      band: '24'
-                      channel: 7
-                      idle_time: 3
-                      last_seen: 1470417522
-                      proto: a
-                      rssi: -65
-                      rx_bps: 12
-                      rx_bytes: 217416
-                      rx_packets: 2337
-                      rx_rate: 65
-                      rx_retries: 5
-                      snr: 31
-                      tx_bps: 6
-                      tx_bytes: 175132
-                      tx_packets: 1566
-                      tx_rate: 65
-                      tx_retries: 500
-                      uplink_ap_id: 00000000-0000-0000-1000-5c5b35000010
-                    model: AP200
-                    name: conference room
-                    num_clients: 10
-                    port_stat:
-                      eth0:
-                        full_duplex: true
-                        rx_bytes: 2056
-                        rx_errors: 0
-                        rx_pkts: 670
-                        speed: 1000
-                        tx_bytes: 2056
-                        tx_pkts: 670
-                        up: true
-                      eth1:
-                        up: false
-                      module:
-                        up: false
-                    power_budget: -12000
-                    power_src: PoE 802.3af
-                    radio_config:
-                      band_24:
-                        bandwidth: 20
-                        channel: 0
-                        dynamic_chaining_enabled: false
-                        power: 0
-                        rx_chain: 4
-                        tx_chain: 4
-                      band_5:
-                        bandwidth: 40
-                        channel: 0
-                        dynamic_chaining_enabled: false
-                        power: 0
-                        rx_chain: 4
-                        tx_chain: 1
-                      scanning_enabled: true
-                    radio_stat:
-                      band_24:
-                        bandwidth: 20
-                        channel: 6
-                        mac: 5c5b350004a0
-                        num_clients: 6
-                        power: 19
-                        rx_bytes: 8504737800
-                        rx_pkts: 57731964
-                        tx_bytes: 211166512114
-                        tx_pkts: 812058566
-                      band_5:
-                        bandwidth: 80
-                        channel: 44
-                        mac: 5c5b350004b0
-                        num_clients: 4
-                        power: 15
-                        rx_bytes: 10366616
-                        rx_pkts: 38603
-                        tx_bytes: 50877568
-                        tx_pkts: 145496
-                    rx_bps: 60003
-                    rx_bytes: 8515104416
-                    rx_pkts: 57770567
-                    serial: FXLH2015170017
-                    status: connected
-                    tx_bps: 634301
-                    tx_bytes: 211217389682
-                    tx_pkts: 812204062
-                    type: ap
-                    uptime: 13500
-                    usb_stat:
-                      channel: 3
-                      connected: true
-                      last_activity: 1586873254
-                      type: imagotag
-                      up: true
-                    version: 1.0.0
-                    x: 53.5
-                    y: 173.1
-              schema:
-                items:
-                  anyOf:
-                  - $ref: '#/components/schemas/stats_device_ap'
-                  - $ref: '#/components/schemas/stats_device_switch_site'
-                  - $ref: '#/components/schemas/stats_device_gateway'
-                type: array
-          description: OK
+          $ref: '#/components/responses/DevicesArrayStatsSite'
         '400':
           content:
             application/json:
@@ -70400,13 +69861,18 @@ paths:
     get:
       description: 'Search webhooks deliveries
 
-        '
+
+        To get a list of webhook deliveries in error, use the query parameter `?error=*`'
       operationId: searchSiteWebhooksDeliveries
       parameters:
       - in: query
         name: status_code
         schema:
           type: integer
+      - in: query
+        name: error
+        schema:
+          type: string
       - description: webhook topic
         in: query
         name: topic
@@ -84149,13 +83615,6 @@ components:
                 values:
                 - bob
                 - steve
-            matches_vendor:
-              value:
-                match: vendor
-                name: guest-wlan
-                type: match
-                values:
-                - cisco
             matches_vlan:
               value:
                 name: guest_vlan
@@ -92852,9 +92311,9 @@ components:
             \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
             \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
             \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
-            \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n to make\
-            \ an outdoor operate indoor.\n for an outdoor-ap, some channels are disallowed\
-            \ by default, this allows the user to use it as an indoor-ap"
+            \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
+            \n to make an outdoor operate indoor.\n for an outdoor-ap, some channels\
+            \ are disallowed by default, this allows the user to use it as an indoor-ap"
           type: boolean
         scanning_enabled:
           description: whether scanning radio is enabled
@@ -98084,9 +97543,10 @@ components:
           readOnly: true
           type: string
         idp_profiles:
-          additionalProperties:
-            $ref: '#/components/schemas/idpprofile'
-            description: Property key is the profile name
+          description: Property key is the profile name
+          properties:
+            additionalProperties:
+              $ref: '#/components/schemas/idpprofile'
           type: object
         ip_configs:
           additionalProperties:
@@ -99485,10 +98945,6 @@ components:
                 type: object
             type: object
           type: array
-      required:
-      - id
-      - created_time
-      - modified_time
       type: object
       x-examples:
         Example 1:
