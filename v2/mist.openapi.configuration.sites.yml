@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2306.1.6**
+  description: '> Version: **2306.2.3**
 
     >
 
-    > Date: **June 21, 2023**
+    > Date: **June 30, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2306.1.6
+  version: 2306.2.3
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -59,15 +59,11 @@ security:
 - apiToken: []
 - basicAuth: []
 tags:
-- name: Orgs Webhooks
 - description: A site represents a project, a deployment. For MSP, it can be as small
     as a coffee shop or a five-star 600-room hotel. A site contains a set of Maps,
     Wlans, Policies, Zones.
   name: Sites
 - name: Sites Alarms
-- description: Applications contains a list of applications users are interested in
-    monitoring / routing / policying
-  name: Sites Applications
 - name: Sites Asset Filters
 - name: Sites Assets
 - name: Sites Beacons
@@ -80,13 +76,13 @@ tags:
     Device > Device Profile > RFTemplate (for AP only) > DeviceType-specific Template
     > Site Template > Site Setting'
   name: Sites Devices
-- name: Sites Devices - Wireless
+- name: Sites Devices APs
 - description: API Call for 3rd party devices
   name: Sites Devices Others
-- name: Sites Devices - Wired
-- name: Sites Devices - Wired Virtual Chassis
-- name: Sites Devices - WAN
-- name: Sites Devices - WAN HA
+- name: Sites Devices Switches
+- name: Sites Devices Switches Virtual Chassis
+- name: Sites Devices WAN Edges
+- name: Sites Devices WAN Edges HA
 - name: Sites Devices Upgrades
 - name: Sites Devices Utilities
 - description: 'EVPN allows an alternative but more efficient LAN architecture utilizing
@@ -96,6 +92,7 @@ tags:
     In our implementation, following the steps to deploy EVPN topologies in a Site '
   name: Sites EVPN Topologies
 - name: Sites Guests
+- name: Sites Insights
 - name: Sites Location
 - name: Sites Maps
 - name: Sites Maps Auto-orientation
@@ -125,68 +122,6 @@ tags:
 - name: Sites WxTunnels
 - name: Sites Zones
 paths:
-  /api/v1/sites/{org_id}/webhooks/{webhook_id}/ping:
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    - $ref: '#/components/parameters/webhook_id'
-    post:
-      description: send a Ping event to the webhook
-      operationId: pingOrgWebhook
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: pingOrgWebhook
-      tags:
-      - Orgs Webhooks
-      - Configuration
   /api/v1/sites/{site_id}:
     delete:
       description: Delete Site
@@ -850,101 +785,6 @@ paths:
       tags:
       - Sites Alarms
       - Configuration
-  /api/v1/sites/{site_id}/apps:
-    get:
-      description: Get List of Site Applications
-      operationId: listSiteApps
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                  - group: string
-                    key: string
-                    name: string
-              schema:
-                description: ''
-                items:
-                  properties:
-                    group:
-                      minLength: 1
-                      type: string
-                    key:
-                      minLength: 1
-                      type: string
-                    name:
-                      minLength: 1
-                      type: string
-                  required:
-                  - key
-                  - name
-                  - group
-                  type: object
-                minItems: 1
-                type: array
-                uniqueItems: true
-                x-examples:
-                  example-1:
-                  - group: Emails
-                    key: gmail
-                    name: Gmail - web/app
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: listSiteApps
-      tags:
-      - Sites Applications
-      - Configuration
-    parameters:
-    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/assetfilters:
     get:
       description: Get List of Site Asset Filters
@@ -2444,67 +2284,6 @@ paths:
       - Configuration
     parameters:
     - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/devices/export:
-    get:
-      description: To download the exported device information
-      operationId: exportSiteDevices
-      responses:
-        '200':
-          $ref: '#/components/responses/File'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: exportSiteDevices
-      tags:
-      - Sites Devices
-      - Configuration
-    parameters:
-    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/devices/import:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -2977,7 +2756,7 @@ paths:
             exist
       summary: reprovisionSiteAllAps
       tags:
-      - Sites Devices - Wireless
+      - Sites Devices APs
       - Configuration
   /api/v1/sites/{site_id}/devices/reset_radio_config:
     parameters:
@@ -3065,7 +2844,7 @@ paths:
             exist
       summary: resetSiteAllApsToUseRrm
       tags:
-      - Sites Devices - Wireless
+      - Sites Devices APs
       - Configuration
   /api/v1/sites/{site_id}/devices/restart:
     parameters:
@@ -3596,7 +3375,7 @@ paths:
             exist
       summary: zeroizeSiteFipsAllAps
       tags:
-      - Sites Devices - Wireless
+      - Sites Devices APs
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}:
     delete:
@@ -4360,7 +4139,7 @@ paths:
             exist
       summary: portsBounceFromSwitch
       tags:
-      - Sites Devices - Wired
+      - Sites Devices Switches
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/cable_test:
     parameters:
@@ -4446,7 +4225,7 @@ paths:
             exist
       summary: cableTestFromSwitch
       tags:
-      - Sites Devices - Wired
+      - Sites Devices Switches
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/check_radius_server:
     parameters:
@@ -4656,7 +4435,7 @@ paths:
             exist
       summary: clearSiteSsrArpCache
       tags:
-      - Sites Devices - WAN
+      - Sites Devices WAN Edges
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/clear_bgp:
     parameters:
@@ -4749,7 +4528,7 @@ paths:
             exist
       summary: clearSiteSsrBgpRoutes
       tags:
-      - Sites Devices - WAN
+      - Sites Devices WAN Edges
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/clear_bpdu_error:
     parameters:
@@ -4817,7 +4596,7 @@ paths:
             exist
       summary: clearBpduErrosFromPortsOnSwitch
       tags:
-      - Sites Devices - Wired
+      - Sites Devices Switches
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/clear_macs:
     parameters:
@@ -4897,7 +4676,7 @@ paths:
             exist
       summary: clearAllLearnedMacsFromPortOnSwitch
       tags:
-      - Sites Devices - Wired
+      - Sites Devices Switches
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/config_cmd:
     get:
@@ -5037,7 +4816,7 @@ paths:
             exist
       summary: deleteSiteDeviceHaCluster
       tags:
-      - Sites Devices - WAN HA
+      - Sites Devices WAN Edges HA
       - Configuration
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -5198,7 +4977,7 @@ paths:
             exist
       summary: createSiteDeviceHaCluster
       tags:
-      - Sites Devices - WAN HA
+      - Sites Devices WAN Edges HA
       - Configuration
     put:
       deprecated: true
@@ -5280,7 +5059,7 @@ paths:
             exist
       summary: swapSiteDeviceHaClusterNode
       tags:
-      - Sites Devices - WAN HA
+      - Sites Devices WAN Edges HA
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/image{image_number}:
     delete:
@@ -5471,7 +5250,7 @@ paths:
             exist
       summary: getSiteDeviceIotPort
       tags:
-      - Sites Devices - Wireless
+      - Sites Devices APs
       - Configuration
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -5550,7 +5329,7 @@ paths:
             exist
       summary: setSiteDeviceIotPort
       tags:
-      - Sites Devices - Wireless
+      - Sites Devices APs
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/local_port_config:
     delete:
@@ -5609,7 +5388,7 @@ paths:
             exist
       summary: deleteSiteLocalSwitchPortConfig
       tags:
-      - Sites Devices - Wired
+      - Sites Devices Switches
       - Configuration
     parameters:
     - in: path
@@ -5701,7 +5480,7 @@ paths:
             exist
       summary: updateSiteLocalSwitchPortConfig
       tags:
-      - Sites Devices - Wired
+      - Sites Devices Switches
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/locate:
     parameters:
@@ -5764,7 +5543,7 @@ paths:
             exist
       summary: startSiteLocateDevice
       tags:
-      - Sites Devices - Wireless
+      - Sites Devices APs
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/ping:
     parameters:
@@ -5873,6 +5652,70 @@ paths:
       tags:
       - Sites Devices Utilities
       - Configuration
+  /api/v1/sites/{site_id}/devices/{device_id}/poll_stats:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: This API can be used to poll statistics from the Switch proactively
+        once. After it is called, the statistics will be pushed back to the cloud
+        within the statistics interval.
+      operationId: pollSiteSwitchStats
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: pollSiteSwitchStats
+      tags:
+      - Sites Devices Switches
+      - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/release_dhcp:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -5955,7 +5798,7 @@ paths:
             exist
       summary: releaseSiteSsrDhcpLease
       tags:
-      - Sites Devices - WAN
+      - Sites Devices WAN Edges
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/request_ztp_password:
     parameters:
@@ -6108,7 +5951,7 @@ paths:
             exist
       summary: testSiteSsrDnsResolution
       tags:
-      - Sites Devices - WAN
+      - Sites Devices WAN Edges
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/restart:
     parameters:
@@ -6290,7 +6133,7 @@ paths:
             exist
       summary: servicePingFromSsr
       tags:
-      - Sites Devices - WAN
+      - Sites Devices WAN Edges
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/show_route:
     parameters:
@@ -6420,7 +6263,7 @@ paths:
             exist
       summary: getSiteSsrAndSrxRoutes
       tags:
-      - Sites Devices - WAN
+      - Sites Devices WAN Edges
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/show_service_path:
     parameters:
@@ -6523,7 +6366,123 @@ paths:
             exist
       summary: getSiteSsrServicePath
       tags:
-      - Sites Devices - WAN
+      - Sites Devices WAN Edges
+      - Configuration
+  /api/v1/sites/{site_id}/devices/{device_id}/show_session:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - in: path
+      name: device_id
+      required: true
+      schema:
+        type: string
+    post:
+      description: "Get active sessions passing through the Device. The output will\
+        \ be available through websocket. As there can be multiple command issued\
+        \ against the same device at the same time and the output all goes through\
+        \ the same websocket stream, session is introduced for demux.\n\n#### Subscribe\
+        \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
+        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n##### Example\
+        \ output from ws stream\n```\nadmin@ssr.node# show sessions\nFri 2020-04-17\
+        \ 16:55:34 UTC\n\nNode: node1\n\n====================================== =====\
+        \ ============= =========== ========== ====== ======= ================= ==========\
+        \ ================= =========== ================= ========== ===================\
+        \ ========= =================\n Session Id                             Dir\
+        \   Service       Tenant      Dev Name   VLAN   Proto   Src IP           \
+        \ Src Port   Dest IP           Dest Port   NAT IP            NAT Port   Payload\
+        \ Encrypted   Timeout   Uptime\n====================================== =====\
+        \ ============= =========== ========== ====== ======= ================= ==========\
+        \ ================= =========== ================= ========== ===================\
+        \ ========= =================\n 01187fb8-765a-45e5-ae90-37d77f15e292   fwd\
+        \   Internet      lanSubnet   lan           0   udp     192.168.0.28     \
+        \    44674   35.166.173.18          9930   96.230.191.130       19569   false\
+        \                   154   0 days  0:00:28\n 01187fb8-765a-45e5-ae90-37d77f15e292\
+        \   rev   Internet      lanSubnet   wan           0   udp     35.166.173.18\
+        \         9930   96.230.191.130        19569   0.0.0.0                  0\
+        \   false                   154   0 days  0:00:28\n 0859a4ae-bcff-4aa6-b812-79a5236a6c13\
+        \   fwd   Internet      lanSubnet   lan           0   tcp     192.168.0.41\
+        \         60843   17.249.171.246          443   96.230.191.130       51941\
+        \   false                     2   0 days  0:00:10\n\n```"
+      operationId: getSiteSsrAndSrxSessions
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  node: node0
+                  service_name: any
+            schema:
+              properties:
+                node:
+                  description: 'only for '
+                  enum:
+                  - node0
+                  - node1
+                  type: string
+                service_name:
+                  description: The exact service name for which to display the active
+                    sessions
+                  example: any
+                  type: string
+              type: object
+              x-examples:
+                example-1:
+                  service_name: any
+      responses:
+        '200':
+          $ref: '#/components/responses/Session'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: getSiteSsrAndSrxSessions
+      tags:
+      - Sites Devices WAN Edges
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/snapshot:
     parameters:
@@ -6620,14 +6579,17 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Support / Upload device support files\n\n#### Info Param\n**Parameter**|**Type**|**Description**\
-        \ \n :-------------: |:-------------: |:-------------: \nprocess|string|Upload\
-        \ 1 file with output of show system processes extensive\noutbound-ssh|string|Upload\
-        \ 1 file that concatenates all /var/log/outbound-ssh.log* files\nmessages|string|Upload\
-        \ 1 to 10 /var/log/messages* files\ncore-dumps|string|Upload all core dump\
-        \ files, if any\nfull|string|Upload 1 file with output of request support\
-        \ information, 1 file that concatenates all /var/log/outbound-ssh.log files,\
-        \ all core dump files, and the 3 most recent /var/log/messages files"
+      description: "Support / Upload device support files\n\n#### Info Param\n**Parameter**|**Description**\
+        \ \n :-------------: |:-------------: |:-------------: \nprocess|Upload 1\
+        \ file with output of show system processes extensive\noutbound-ssh|Upload\
+        \ 1 file that concatenates all /var/log/outbound-ssh.log* files\nmessages|Upload\
+        \ 1 to 10 /var/log/messages* files\ncore-dumps|Upload all core dump files,\
+        \ if any\nfull|string|Upload 1 file with output of request support information,\
+        \ 1 file that concatenates all /var/log/outbound-ssh.log files, all core dump\
+        \ files, the 3 most recent /var/log/messages files, and Mist agent logs (for\
+        \ Junos devices running the Mist agent)\nvar-logs|Upload all non-empty files\
+        \ in the /var/log/ directory\njma-logs|Upload Mist agent logs (for Junos devices\
+        \ running the Mist agent only)"
       operationId: uploadSiteDeviceSupportFile
       requestBody:
         content:
@@ -6644,7 +6606,11 @@ paths:
                   enum:
                   - process
                   - outbound-ssh
+                  - messages
+                  - code-dumps
                   - full
+                  - var-logs
+                  - jma-logs
                   type: string
                 node:
                   description: 'optional: for SSR, if node is not present, both nodes
@@ -6836,6 +6802,7 @@ paths:
                   example: 1.1.1.1
                   type: string
                 network:
+                  default: internal
                   description: 'optional
 
                     for gateway only
@@ -6980,7 +6947,7 @@ paths:
             exist
       summary: stopSiteLocateDevice
       tags:
-      - Sites Devices - Wireless
+      - Sites Devices APs
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/upgrade:
     parameters:
@@ -7133,7 +7100,7 @@ paths:
             exist
       summary: deleteSiteVirtualChassis
       tags:
-      - Sites Devices - Wired Virtual Chassis
+      - Sites Devices Switches Virtual Chassis
       - Configuration
     get:
       description: 'Get VC Status
@@ -7195,7 +7162,7 @@ paths:
             exist
       summary: getSiteDeviceVirtualChassis
       tags:
-      - Sites Devices - Wired Virtual Chassis
+      - Sites Devices Switches Virtual Chassis
       - Configuration
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -7288,7 +7255,7 @@ paths:
             exist
       summary: createSiteVirtualChassis
       tags:
-      - Sites Devices - Wired Virtual Chassis
+      - Sites Devices Switches Virtual Chassis
       - Configuration
     put:
       description: "The VC creation and adding member switch API will update the device\u2019\
@@ -7434,7 +7401,7 @@ paths:
             exist
       summary: updateSiteVirtualChassisMember
       tags:
-      - Sites Devices - Wired Virtual Chassis
+      - Sites Devices Switches Virtual Chassis
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/vc/vc_port:
     parameters:
@@ -7558,7 +7525,7 @@ paths:
             exist
       summary: setSiteVcPort
       tags:
-      - Sites Devices - Wired Virtual Chassis
+      - Sites Devices Switches Virtual Chassis
       - Configuration
   /api/v1/sites/{site_id}/evpn_topologies:
     get:
@@ -8097,6 +8064,215 @@ paths:
       tags:
       - Sites Guests
       - Configuration
+  /api/v1/sites/{site_id}/insights/rogues:
+    get:
+      description: Get List of Site Rogue/Neighbor APs
+      operationId: listSiteRogueAPs
+      parameters:
+      - $ref: '#/components/parameters/rogue_type'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/interval'
+      responses:
+        '200':
+          $ref: '#/components/responses/InsightRogue'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listSiteRogueAPs
+      tags:
+      - Sites Insights
+      - Configuration
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/insights/rogues/clients:
+    get:
+      description: Get List of Site Rogue Clients
+      operationId: listSiteRogueClients
+      parameters:
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/interval'
+      responses:
+        '200':
+          $ref: '#/components/responses/InsightRogueClients'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listSiteRogueClients
+      tags:
+      - Sites Insights
+      - Configuration
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/location/ml/current:
+    get:
+      description: 'Get Machine Learning Current Stat
+
+        For each VBLE AP, it has ML model parameters (e.g. Path-loss-estimate, Intercept)
+        as well as completion indicators (Level and PercentageComplete). For the completeness,
+        ML takes N sample to finish its first level and use N*0.25 samples to complete
+        each successive level. When a device is moved, the completeness will be reset
+        as it has to re-learn.'
+      operationId: getSiteMachineLearningCurrentStat
+      parameters:
+      - description: map_id (as filter, optional)
+        example: 00000000-0000-0000-0000-000000000000
+        in: query
+        name: map_id
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Ml'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: getSiteMachineLearningCurrentStat
+      tags:
+      - Sites Location
+      - Configuration
+    parameters:
+    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/location/ml/defaults:
     get:
       description: Get Default PLF for Models
@@ -12507,6 +12683,86 @@ paths:
       tags:
       - Sites Rfdiags
       - Configuration
+  /api/v1/sites/{site_id}/rogues/{rogue_bssid}:
+    get:
+      description: Get Rogue AP Details
+      operationId: getSiteRogueAP
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    manufacture: Intel Corporate
+                    seen_as_client: true
+              schema:
+                properties:
+                  manufacture:
+                    type: string
+                  seen_as_client:
+                    type: boolean
+                required:
+                - seen_as_client
+                - manufacture
+                type: object
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: getSiteRogueAP
+      tags:
+      - Sites Rogues
+      - Configuration
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/rogue_bssid'
   /api/v1/sites/{site_id}/rogues/{rogue_bssid}/deauth_clients:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -14474,17 +14730,13 @@ paths:
       tags:
       - Sites Setting
       - Configuration
-  /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/classifier/{classifier}/summary:
+  /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/threshold:
     get:
-      description: Get SLE classifier details
-      operationId: getSiteSleClassifierDetails
-      parameters:
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
+      description: Get the SLE threshold
+      operationId: getSiteSleThreshold
       responses:
         '200':
-          $ref: '#/components/responses/SleClassifierSummary'
+          $ref: '#/components/responses/SleThreshold'
         '400':
           content:
             application/json:
@@ -14533,45 +14785,10 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: getSiteSleClassifierDetails
+      summary: getSiteSleThreshold
       tags:
       - Sites SLEs
       - Configuration
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - in: path
-      name: scope
-      required: true
-      schema:
-        enum:
-        - site
-        - ap
-        - switch
-        - gateway
-        - client
-        type: string
-    - description: '* site_id if `scope`==`site`
-
-        * device_id if `scope`==`ap`, `scope`==`switch` or `scope`==`gateway`
-
-        * mac if `scope`==`client`'
-      in: path
-      name: scope_id
-      required: true
-      schema:
-        type: string
-    - description: values from /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metrics
-      in: path
-      name: metric
-      required: true
-      schema:
-        type: string
-    - in: path
-      name: classifier
-      required: true
-      schema:
-        type: string
-  /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/threshold:
     parameters:
     - $ref: '#/components/parameters/site_id'
     - in: path
@@ -14974,77 +15191,10 @@ paths:
       tags:
       - Sites Devices Upgrades
       - Configuration
-  /api/v1/sites/{site_id}/stats/filtered_assets:
-    get:
-      description: Get a list of BLE beacons that matches Asset or AssetFilter
-      operationId: getSiteAssetsOfInterest
-      parameters:
-      - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/page'
-      - $ref: '#/components/parameters/limit'
-      responses:
-        '200':
-          $ref: '#/components/responses/AssetOfInterestArray'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: getSiteAssetsOfInterest
-      tags:
-      - Sites Assets
-      - Configuration
-    parameters:
-    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/subscriptions:
     delete:
       description: Unsubscribe to Site Alarms
-      operationId: UnsubscribeSiteAlarms
+      operationId: UnsubscribeSite
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -15096,7 +15246,7 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: UnsubscribeSiteAlarms
+      summary: UnsubscribeSite
       tags:
       - Sites Subscriptions
       - Configuration
@@ -15104,7 +15254,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     post:
       description: Subscribe to Site Alarms
-      operationId: SubscribeSiteAlarms
+      operationId: SubscribeSite
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -15156,7 +15306,7 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: SubscribeSiteAlarms
+      summary: SubscribeSite
       tags:
       - Sites Subscriptions
       - Configuration
@@ -19811,6 +19961,15 @@ components:
         example: 0000000000ab
         pattern: ^[0-9a-fA-F]{12}$
         type: string
+    interval:
+      description: Aggregation works by giving a time range plus interval (e.g. 1d,
+        1h, 10m) where aggregation function would be applied to.
+      in: query
+      name: interval
+      required: false
+      schema:
+        example: 10m
+        type: string
     limit:
       in: query
       name: limit
@@ -19841,14 +20000,6 @@ components:
       required: false
       schema:
         default: ''
-        type: string
-    org_id:
-      in: path
-      name: org_id
-      required: true
-      schema:
-        example: 000000ab-00ab-00ab-00ab-0000000000ab
-        format: uuid
         type: string
     page:
       in: query
@@ -19889,6 +20040,16 @@ components:
       schema:
         example: 0000000000ab
         pattern: ^[0-9a-fA-F]{12}$
+        type: string
+    rogue_type:
+      in: query
+      name: type
+      schema:
+        enum:
+        - honeypot
+        - lan
+        - others
+        - spoof
         type: string
     rssizone_id:
       in: path
@@ -20004,35 +20165,6 @@ components:
           schema:
             $ref: ./components/schemas/asset.yaml
       description: OK
-    AssetOfInterestArray:
-      content:
-        application/json:
-          examples:
-            example-1:
-              value:
-              - _checkpoint_prep: 0
-                _checkpoint_preparer: 0
-                _checkpoint_scan: 0
-                _id: string
-                _timestamp: 0
-                _ttl: 0
-                ap_mac: string
-                beam: 0
-                by: string
-                curr_site: string
-                device_name: string
-                id: string
-                last_seen: 0
-                mac: string
-                manufacture: string
-                map_id: string
-                name: string
-                rssi: 0
-          schema:
-            items:
-              $ref: ./components/schemas/AssetOfInterest.yaml
-            type: array
-      description: Example response
     Assetfilter:
       content:
         application/json:
@@ -22078,6 +22210,154 @@ components:
           schema:
             $ref: ./components/schemas/guest.yaml
       description: OK
+    InsightRogue:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                end: 1428954000
+                limit: 100
+                next: /api/v1/sites/a3eda150-ab3f-11e4-aa18-13e21dd250cc/rogues?start=1498482000&end=1498485600&limit=10&interval=1h&type=others
+                results:
+                - ap_mac: 5c5b350e021c
+                  avg_rssi: -72
+                  bssid: d8-97-ba-76-b5-aa
+                  channel: '11'
+                  num_aps: 4
+                  ssid: xfinitywifi
+                  times_heard: 8
+                start: 1428939600
+          schema:
+            properties:
+              end:
+                type: integer
+              limit:
+                type: integer
+              next:
+                description: "link to next set of results. If more results aren\u2019\
+                  t present, next is null."
+                type: string
+              results:
+                items:
+                  properties:
+                    ap_mac:
+                      description: mac of the device that had strongest signal strength
+                        for ssid/bssid pair
+                      type: string
+                    avg_rssi:
+                      description: average signal strength of ap_mac for ssid/bssid
+                        pair
+                      type: number
+                    bssid:
+                      description: bssid of the network detected as threat
+                      type: string
+                    channel:
+                      description: channel over which ap_mac heard ssid/bssid pair
+                      type: string
+                    delta_x:
+                      description: X position relative to the reporting AP (`ap_mac`)
+                      type: number
+                    delta_y:
+                      description: Y position relative to the reporting AP (`ap_mac`)
+                      type: number
+                    num_aps:
+                      description: num of aps that heard the ssid/bssid pair
+                      type: integer
+                    seen_on_lan:
+                      description: whether the reporting AP see a wireless client
+                        (on LAN) connecting to it
+                      type: boolean
+                    ssid:
+                      description: ssid of the network detected as threat
+                      type: string
+                    times_heard:
+                      description: represents number of times the pair was heard in
+                        the interval. Each count roughly corresponds to a minute.
+                      type: integer
+                  required:
+                  - ap_mac
+                  - avg_rssi
+                  - bssid
+                  - channel
+                  - num_aps
+                  type: object
+                minItems: 0
+                type: array
+                uniqueItems: true
+              start:
+                type: integer
+            required:
+            - end
+            - limit
+            - results
+            - start
+            type: object
+      description: OK
+    InsightRogueClients:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                end: 1428954000
+                limit: 100
+                next: /api/v1/sites/a3eda150-ab3f-11e4-aa18-13e21dd250cc/rogues/clients?start=1498482000&end=1498485600&limit=10&interval=1h
+                results:
+                - annotation: whitelist
+                  ap_mac: 5c-5b-35-0e-02-1c
+                  avg_rssi: -63.9
+                  band: '5'
+                  bssid: d8-97-ba-76-b5-aa
+                  client_mac: 34-f8-32-13-57-c2
+                  num_aps: 2
+                start: 1428939600
+          schema:
+            properties:
+              end:
+                type: integer
+              limit:
+                type: integer
+              next:
+                type: string
+              results:
+                items:
+                  properties:
+                    annotation:
+                      type: string
+                    ap_mac:
+                      type: string
+                    avg_rssi:
+                      type: number
+                    band:
+                      type: string
+                    bssid:
+                      type: string
+                    client_mac:
+                      type: string
+                    num_aps:
+                      type: integer
+                  required:
+                  - bssid
+                  - ap_mac
+                  - client_mac
+                  - num_aps
+                  - band
+                  - avg_rssi
+                  - annotation
+                minItems: 1
+                type: array
+                uniqueItems: true
+              start:
+                type: integer
+            required:
+            - start
+            - end
+            - limit
+            - next
+            - results
+            type: object
+      description: OK
     MacsArray:
       content:
         application/json:
@@ -23557,108 +23837,6 @@ components:
           schema:
             $ref: ./components/schemas/site_setting.yaml
       description: OK
-    SleClassifierSummary:
-      content:
-        application/json:
-          examples:
-            example-1:
-              value:
-                classifier:
-                  impact:
-                    num_aps: 2
-                    num_users: 17
-                  interval: 3600
-                  name: wifi-interference
-                  samples:
-                    degraded:
-                    - 0
-                    - 0
-                    - 210.03334
-                    - 3.1333334
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 102.5
-                    - 108.03333
-                    - 0
-                    - 0
-                    - 201.9
-                    - 566.48334
-                    - 135.63333
-                    - 0
-                    duration:
-                    - 0
-                    - 0
-                    - 210.03334
-                    - 3.1333334
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 0
-                    - 102.5
-                    - 108.03333
-                    - 0
-                    - 0
-                    - 201.9
-                    - 566.48334
-                    - 135.63333
-                    - 0
-                    total:
-                    - 1302.3
-                    - 1289.0167
-                    - 1396.3167
-                    - 1423.6666
-                    - 1439.2167
-                    - 1414.7
-                    - 1361.0834
-                    - 1371.5834
-                    - 1372.0667
-                    - 1339.1
-                    - 1374.3667
-                    - 1369.9
-                    - 1352.4833
-                    - 1382.8
-                    - 1426.7167
-                    - 1425.6333
-                    - 1403.9333
-                    - 1420.75
-                    - 1416.8334
-                    - 1437.3334
-                    - 1425.1
-                    - 1485.3667
-                    - 1426.4333
-                    - 444.13333
-                  x_label: seconds
-                  y_label: user-minutes
-                end: 1627312871
-                failures: []
-                impact:
-                  num_aps: 2
-                  num_users: 21
-                  total_aps: 3
-                  total_users: 26
-                metric: capacity
-                start: 1627226471
-          schema:
-            $ref: ./components/schemas/sle_classifier_summary.yaml
-      description: Example response
     SleThreshold:
       content:
         application/json:
@@ -24015,7 +24193,8 @@ components:
                 msp_id: c0cf23fc-d82f-4219-988c-82fb61d8c875
                 mxtunnel: {}
                 mxtunnel_id: 6741baab-cbd6-45bd-9e5b-93e8eede3c80
-                mxtunnel_name: default
+                mxtunnel_name:
+                - default
                 no_static_dns: false
                 no_static_ip: false
                 org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b

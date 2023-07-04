@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2306.1.6**
+  description: '> Version: **2306.2.3**
 
     >
 
-    > Date: **June 21, 2023**
+    > Date: **June 30, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2306.1.6
+  version: 2306.2.3
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -59,9 +59,8 @@ security:
 - apiToken: []
 - basicAuth: []
 tags:
-- name: Monitor
+- name: Msps Inventory
 - name: Msps Logs
-- name: Msps Licenses
 - name: Msps Marvis
 - name: Msps Org Groups
 - name: Msps Orgs
@@ -235,13 +234,57 @@ paths:
       required: true
       schema:
         type: string
-  /api/v1/msps/{msp_id}/licenses:
+  /api/v1/msps/{msp_id}/inventory/{device_mac}:
     get:
-      description: Get List of Msp Licenses
-      operationId: listMspLicenses
+      description: Get Inventoy By device MAC address
+      operationId: getMspInventoryByMac
       responses:
         '200':
-          $ref: '#/components/responses/Licence'
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    mac: 5c5b35000018
+                    model: AP200
+                    org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                    serial: FXLH2015150025
+                    site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+                    type: ap
+              schema:
+                properties:
+                  for_site:
+                    readOnly: true
+                    type: boolean
+                  mac:
+                    readOnly: true
+                    type: string
+                  model:
+                    readOnly: true
+                    type: string
+                  org_id:
+                    format: uuid
+                    readOnly: true
+                    type: string
+                  serial:
+                    readOnly: true
+                    type: string
+                  site_id:
+                    format: uuid
+                    readOnly: true
+                    type: string
+                  type:
+                    readOnly: true
+                    type: string
+                required:
+                - serial
+                - model
+                - type
+                - mac
+                - org_id
+                - site_id
+                type: object
+          description: OK
         '400':
           content:
             application/json:
@@ -290,12 +333,13 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: listMspLicenses
+      summary: getMspInventoryByMac
       tags:
-      - Msps Licenses
+      - Msps Inventory
       - Monitor
     parameters:
     - $ref: '#/components/parameters/msp_id'
+    - $ref: '#/components/parameters/device_mac'
   /api/v1/msps/{msp_id}/logs:
     get:
       description: Get list of change logs for the current MSP
@@ -685,6 +729,68 @@ paths:
     parameters:
     - $ref: '#/components/parameters/msp_id'
     - $ref: '#/components/parameters/sso_id'
+  /api/v1/msps/{msp_id}/stats/licenses:
+    get:
+      description: Get List of MSP Licences
+      operationId: listMspOrgLicenses
+      parameters: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Licence'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listMspOrgLicenses
+      tags:
+      - Msps Stats
+      - Monitor
+    parameters:
+    - $ref: '#/components/parameters/msp_id'
   /api/v1/msps/{msp_id}/stats/orgs:
     get:
       description: Get List of MSP Orgs Stats
@@ -868,6 +974,71 @@ paths:
       - Monitor
     parameters:
     - $ref: '#/components/parameters/msp_id'
+  /api/v1/msps/{msp_id}/tickets:
+    get:
+      description: Get List of Tickets of a MSP
+      operationId: listMspTickets
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          $ref: '#/components/responses/TicketsArray'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listMspTickets
+      tags:
+      - Msps Tickets
+      - Monitor
+    parameters:
+    - $ref: '#/components/parameters/msp_id'
   /api/v1/msps/{msp_id}/tickets/count:
     get:
       description: Count tickets
@@ -941,6 +1112,14 @@ paths:
     - $ref: '#/components/parameters/msp_id'
 components:
   parameters:
+    device_mac:
+      in: path
+      name: device_mac
+      required: true
+      schema:
+        example: 0000000000ab
+        pattern: ^[0-9a-fA-F]{12}$
+        type: string
     duration:
       description: "For historical stats and/or logs where time range is needed, you\
         \ can specify the time range in a few different ways:\n  * ?start=1430000000&end=1430864000\t\
@@ -1555,6 +1734,32 @@ components:
             required:
             - results
             type: object
+      description: OK
+    TicketsArray:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+              - comments:
+                - attachments:
+                  - content_type: string
+                    content_url: string
+                    size: 0
+                  author: string
+                  comment: string
+                  created_at: 0
+                created_at: 0
+                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                requester: string
+                status: open
+                subject: string
+                type: string
+                updated_at: 0
+          schema:
+            items:
+              $ref: ./components/schemas/ticket.yaml
+            type: array
       description: OK
     count:
       content:

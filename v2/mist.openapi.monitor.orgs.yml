@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2306.1.6**
+  description: '> Version: **2306.2.3**
 
     >
 
-    > Date: **June 21, 2023**
+    > Date: **June 30, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2306.1.6
+  version: 2306.2.3
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -59,7 +59,6 @@ security:
 - apiToken: []
 - basicAuth: []
 tags:
-- name: Monitor
 - description: Alarms are triggered based on certain events. Alarms could be configured
     using an Alarm Template.
   name: Orgs Alarms
@@ -71,8 +70,8 @@ tags:
 - name: Orgs Devices
 - description: API Call for 3rd party devices
   name: Orgs Devices Others
+- name: Orgs Devices Stats
 - name: Orgs Guests
-- name: Orgs Inventory
 - description: "Juniper Support Insight is a free service provided to all Mist customers.\
     \ You can adopt your devices via a few lines CLI comands. Allowing you to \n*\
     \ get some basic information about the adopted devices \n* web shell into device\
@@ -81,7 +80,14 @@ tags:
 - name: Orgs Licenses
 - name: Orgs Logs
 - name: Orgs Marvis
-- name: Orgs MxEdges
+- name: Orgs Premium Analytics
+- description: "PSK Self-Service Portals are for \n  1. **WIFI users** who want to\
+    \ connect to a WLAN with personal PSK, they\u2019re told to connect to a URL where\
+    \ they can login (likely through company\u2019s SSO) and get the WIFI Name / Passphrase\
+    \ - required input fields name, email so we can generate PSK \n  2. **PSK Admins**\
+    \ (they don\u2019t have access to normal Network Admin Portal)\nWhen a PSK portal\
+    \ is created, an unique URL will be generated (e.g. https://psk.mist.com/xxxxxx)"
+  name: Orgs Psk Portals
 - name: Orgs Sites
 - name: Orgs SLEs
 - name: Orgs SSO
@@ -89,6 +95,8 @@ tags:
 - name: Orgs Tickets
 - name: Orgs Tunnels Stats
 - name: Orgs VPNs
+- name: Orgs WxTags
+- name: Sites Webhooks
 paths:
   /api/v1/orgs/{org_id}/alarms/count:
     get:
@@ -501,85 +509,6 @@ paths:
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
       summary: countOrgWirelessClients
-      tags:
-      - Orgs Clients - Wireless
-      - Monitor
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-  /api/v1/orgs/{org_id}/clients/events/count:
-    get:
-      description: GeCountt Org Clients Events
-      operationId: countOrgWirelessClientsEvents
-      parameters:
-      - in: query
-        name: disctinct
-        schema:
-          default: type
-          enum:
-          - ap
-          - band
-          - proto
-          - reason_code
-          - ssid
-          - type
-          - wlan_id
-          type: string
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      responses:
-        '200':
-          $ref: '#/components/responses/EventsSearch'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: countOrgWirelessClientsEvents
       tags:
       - Orgs Clients - Wireless
       - Monitor
@@ -1589,6 +1518,112 @@ paths:
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/devices/radio_macs:
+    get:
+      description: Get List of Org AP Device Mac and Radio MACs
+      operationId: listOrgApsMacs
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                  - mac: 5c5b35000001
+                    radio_macs:
+                    - 5c5b35000040
+                    - 5c5b35000050
+                    - 5c5b35000060
+                  - mac: 5c5b45000001
+                    radio_macs:
+                    - 5c5b45000040
+                    - 5c5b45000050
+                    - 5c5b45000060
+              schema:
+                description: ''
+                items:
+                  properties:
+                    mac:
+                      minLength: 1
+                      type: string
+                    radio_macs:
+                      items:
+                        properties: {}
+                      type: array
+                  required:
+                  - mac
+                  - radio_macs
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+                x-examples:
+                  example-1:
+                  - mac: 5c5b35000001
+                    radio_macs:
+                    - 5c5b35000040
+                    - 5c5b35000050
+                    - 5c5b35000060
+                  - mac: 5c5b45000001
+                    radio_macs:
+                    - 5c5b45000040
+                    - 5c5b45000050
+                    - 5c5b45000060
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listOrgApsMacs
+      tags:
+      - Orgs Devices
+      - Monitor
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/devices/search:
     get:
       description: Search Org Devices
@@ -1751,67 +1786,6 @@ paths:
       summary: searchOrgDevices
       tags:
       - Orgs Devices
-      - Monitor
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-  /api/v1/orgs/{org_id}/guests:
-    get:
-      description: Get List of Org Guest Authorizations
-      operationId: listOrgGuestAuthorizations
-      responses:
-        '200':
-          $ref: '#/components/responses/GuestsArray'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: listOrgGuestAuthorizations
-      tags:
-      - Orgs Guests
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -2210,229 +2184,6 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/metric'
-  /api/v1/orgs/{org_id}/inventory:
-    get:
-      description: "Get Org Inventory\n\n### VC (Virtual-Chassis) Management\nIdeally\
-        \ VC should be managed as a single device - where - one managed entity where\
-        \ config / monitoring is anchored against (with a stable identify MAC) - all\
-        \ members appears in the inventory\n\nIn our implementation, we strive to\
-        \ achieve that without manual user configurations by \n1. during claim or\
-        \ adoption a VC, we require FPC0 to exist and will use its MAC as identify\
-        \ for the entire chassis\n2. other VC members will be automatically populated\
-        \ when they\u2019re all present\n\nThe perceivable result is \n1. from `/sites/:site_id/stats/devices/:fpc0_mac`\
-        \ API, you\u2019d see the VC where module_stat contains the VC members \n\
-        2. from `/orgs/:org_id/inventory?vc=true` API, you\u2019d see all VC members\
-        \ with vc_mac pointing to the FPC0"
-      operationId: getOrgInventory
-      parameters:
-      - description: device serial
-        in: query
-        name: serial
-        schema:
-          type: string
-      - description: device model
-        in: query
-        name: model
-        schema:
-          type: string
-      - in: query
-        name: type
-        schema:
-          enum:
-          - ap
-          - switch
-          - gateway
-          type: string
-      - description: MAC address
-        in: query
-        name: mac
-        schema:
-          type: string
-      - description: site id if assigned, null if not assigned
-        in: query
-        name: site_id
-        schema:
-          type: string
-      - in: query
-        name: vc_mac
-        schema:
-          type: string
-      - in: query
-        name: vc
-        schema:
-          type: string
-      - in: query
-        name: unassigned
-        schema:
-          type: boolean
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
-      responses:
-        '200':
-          $ref: '#/components/responses/OrgInventory'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: getOrgInventory
-      tags:
-      - Orgs Inventory
-      - Monitor
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-  /api/v1/orgs/{org_id}/jsi/devices:
-    get:
-      description: Get List of Org devices that connected to JSI
-      operationId: listOrgJsiDevices
-      parameters:
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
-      - in: query
-        name: model
-        schema:
-          type: string
-      - in: query
-        name: serial
-        schema:
-          type: string
-      - in: query
-        name: mac
-        schema:
-          type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                  - ext_ip: 73.92.124.103
-                    last_seen: 1654636867
-                    mac: c15353123096
-                    model: EX2300-C-12P
-                    serial: DGCOO0015
-              schema:
-                items:
-                  properties:
-                    ext_ip:
-                      description: when available
-                      type: string
-                    last_seen:
-                      type: integer
-                    mac:
-                      type: string
-                    model:
-                      type: string
-                    serial:
-                      type: string
-                  type: object
-                type: array
-                x-examples:
-                  example-1:
-                  - ext_ip: 73.92.124.103
-                    last_seen: 1654636867
-                    mac: c15353123096
-                    model: EX2300-C-12P
-                    serial: DGCOO0015
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: listOrgJsiDevices
-      tags:
-      - Orgs JSI
-      - Monitor
-    parameters:
-    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/jsi/inventory:
     get:
       description: Get List of all devices purchased from the accounts associated
@@ -2610,67 +2361,6 @@ paths:
       summary: listOrgJsiPastPurchases
       tags:
       - Orgs JSI
-      - Monitor
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-  /api/v1/orgs/{org_id}/licenses:
-    get:
-      description: Get the list of licenses
-      operationId: getOrgLicencesSummary
-      responses:
-        '200':
-          $ref: '#/components/responses/Licence'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: getOrgLicencesSummary
-      tags:
-      - Orgs Licenses
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -3090,6 +2780,348 @@ paths:
       summary: searchOrgOtherDevicesEvents
       tags:
       - Orgs Devices Others
+      - Monitor
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/pma/dashboards:
+    get:
+      description: Get List of premium analytics dashboards for this Org
+      operationId: listOrgPmaDashboards
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                  - name: dashboard_1
+                    url: https://mist.looker.com/login/embed/%2Fembed%2Fdashboards%2F1?group_ids=%5B3%5D&last_name=%22%22&models=%5B%22generic%22%5D&.....
+              schema:
+                items:
+                  properties:
+                    description:
+                      description: description of the dashboard
+                      example: Dashboard 1 description
+                      type: string
+                    label:
+                      description: group label name
+                      example: Wireless
+                      type: string
+                    name:
+                      description: name of the dashboard
+                      example: dashboard_1
+                      type: string
+                    url:
+                      description: url to access dashboard. Url will redirect the
+                        user to the dashboard
+                      example: https://api.mist.com/api/v1/forward/looker?jwt=...
+                      type: string
+                  type: object
+                type: array
+                x-examples:
+                  example-1:
+                  - name: dashboard_1
+                    url: https://mist.looker.com/login/embed/%2Fembed%2Fdashboards%2F1?group_ids=%5B3%5D&last_name=%22%22&models=%5B%22generic%22%5D&.....
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listOrgPmaDashboards
+      tags:
+      - Orgs Premium Analytics
+      - Monitor
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/pskportals/logs:
+    get:
+      description: Get the list of PSK Portals Logs
+      operationId: listOrgPskPortalLogs
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/PskPortalLogsArray'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listOrgPskPortalLogs
+      tags:
+      - Orgs Psk Portals
+      - Monitor
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/pskportals/logs/count:
+    get:
+      description: Count by Distinct Attributes of PskPortal Logs
+      operationId: countOrgPskPortalLogs
+      parameters:
+      - in: query
+        name: distinct
+        schema:
+          default: pskportal_id
+          enum:
+          - admin_id
+          - admin_name
+          - psk_name
+          - psk_id
+          - pskportal_id
+          - user_id
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: countOrgPskPortalLogs
+      tags:
+      - Orgs Psk Portals
+      - Monitor
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/pskportals/logs/search:
+    get:
+      description: Search Org PSK Portal Logs
+      operationId: searchOrgPskPortalLogs
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      - in: query
+        name: psk_name
+        schema:
+          type: string
+      - in: query
+        name: psk_id
+        schema:
+          format: uuid
+          type: string
+      - in: query
+        name: pskportal_id
+        schema:
+          format: uuid
+          type: string
+      - description: audit_id
+        in: query
+        name: id
+        schema:
+          format: uuid
+          type: string
+      - in: query
+        name: admin_name
+        schema:
+          type: string
+      - in: query
+        name: admin_id
+        schema:
+          format: uuid
+          type: string
+      - description: name_id used in SSO
+        in: query
+        name: name_id
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/PskPortalLogsArray'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: searchOrgPskPortalLogs
+      tags:
+      - Orgs Psk Portals
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -3526,14 +3558,14 @@ paths:
             exist
       summary: listOrgAssetsStats
       tags:
-      - Orgs Assets
+      - Orgs Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/stats/assets/count:
     get:
       description: Count Org Assets
-      operationId: countOrgAssets
+      operationId: countOrgAssetsByDistanceField
       parameters:
       - in: query
         name: distinct
@@ -3597,7 +3629,7 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: countOrgAssets
+      summary: countOrgAssetsByDistanceField
       tags:
       - Orgs Assets
       - Monitor
@@ -3830,7 +3862,7 @@ paths:
             exist
       summary: countOrgBgpStats
       tags:
-      - Orgs Devices
+      - Orgs Devices Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -3891,7 +3923,7 @@ paths:
             exist
       summary: searchOrgBgpStats
       tags:
-      - Orgs Devices
+      - Orgs Devices Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -3950,7 +3982,7 @@ paths:
           type: string
       responses:
         '200':
-          $ref: '#/components/responses/DevicesArrayStats'
+          $ref: '#/components/responses/DevicesArrayStatsOrg'
         '400':
           content:
             application/json:
@@ -4001,7 +4033,7 @@ paths:
             exist
       summary: listOrgDevicesStats
       tags:
-      - Orgs Devices
+      - Orgs Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -4078,7 +4110,7 @@ paths:
             exist
       summary: listOrgMxEdgesStats
       tags:
-      - Orgs MxEdges
+      - Orgs Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -4139,7 +4171,7 @@ paths:
             exist
       summary: getOrgMxEdgeStats
       tags:
-      - Orgs MxEdges
+      - Orgs Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -4501,7 +4533,7 @@ paths:
             exist
       summary: searchOrgSwOrGwPorts
       tags:
-      - Orgs Devices
+      - Orgs Devices Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -4781,7 +4813,7 @@ paths:
             exist
       summary: countOrgSwitchPorts
       tags:
-      - Orgs Devices
+      - Orgs Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -5673,7 +5705,9 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/wan_clients/events/search:
     get:
-      description: Search Org WAN Client Events
+      description: 'Search Org WAN Client Events
+
+        '
       operationId: searchOrgWanClientsEvents
       parameters:
       - description: Event type, e.g. CLIENT_IP_ASSIGNED, CLIENT_IP_RENEWED, CLIENT_IP_EXPIRED
@@ -5850,6 +5884,99 @@ paths:
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/webhooks/{webhook_id}/events/search:
+    get:
+      description: 'Search webhooks deliveries
+
+
+        To get a list of webhook deliveries in error, use the query parameter `?error=*`'
+      operationId: searchOrgWebhooksDeliveries
+      parameters:
+      - in: query
+        name: site_id
+        schema:
+          format: uuid
+          type: string
+      - in: query
+        name: error
+        schema:
+          type: string
+      - in: query
+        name: status_code
+        schema:
+          type: integer
+      - description: webhook topic
+        in: query
+        name: topic
+        schema:
+          enum:
+          - alarms
+          - audits
+          - device-updowns
+          - ping
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookDeliverySearch'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: searchOrgWebhooksDeliveries
+      tags:
+      - Sites Webhooks
+      - Monitor
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/webhook_id'
   /api/v1/orgs/{org_id}/wired_clients/count:
     get:
       description: 'Count by Distinct Attributes of Clients
@@ -5927,176 +6054,6 @@ paths:
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
       summary: countOrgWiredClients
-      tags:
-      - Orgs Clients - Wired
-      - Monitor
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-  /api/v1/orgs/{org_id}/wired_clients/events/count:
-    get:
-      description: Count Org Wired Client Events
-      operationId: countOrgWiredClientsEvents
-      parameters:
-      - in: query
-        name: distinct
-        schema:
-          default: type
-          enum:
-          - type
-          - hostname
-          - ip
-          - mfg
-          - mac
-          type: string
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
-      responses:
-        '200':
-          $ref: '#/components/responses/WanClientEventsSearch'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: countOrgWiredClientsEvents
-      tags:
-      - Orgs Clients - Wired
-      - Monitor
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-  /api/v1/orgs/{org_id}/wired_clients/events/search:
-    get:
-      description: Search Org Wired Client Events
-      operationId: searchOrgWiredClientsEvents
-      parameters:
-      - description: Event type, e.g. CLIENT_IP_ASSIGNED, CLIENT_IP_RENEWED, CLIENT_IP_EXPIRED
-        in: query
-        name: type
-        schema:
-          type: string
-      - description: partial / full MAC address
-        in: query
-        name: mac
-        schema:
-          type: string
-      - description: partial / full hostname
-        in: query
-        name: hostname
-        schema:
-          type: string
-      - description: client IP
-        in: query
-        name: ip
-        schema:
-          type: string
-      - description: Manufacture
-        in: query
-        name: mfg
-        schema:
-          type: string
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
-      responses:
-        '200':
-          $ref: '#/components/responses/WanClientEventsSearch'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: searchOrgWiredClientsEvents
       tags:
       - Orgs Clients - Wired
       - Monitor
@@ -6211,6 +6168,68 @@ paths:
       - Monitor
     parameters:
     - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/wxtags/{wxtag_id}/clients:
+    get:
+      description: Get Current Matching Clients of a WXLAN Tag
+      operationId: getOrgCurrentMatchingClientsOfAWxTag
+      responses:
+        '200':
+          $ref: '#/components/responses/WxtagClients'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: getOrgCurrentMatchingClientsOfAWxTag
+      tags:
+      - Orgs WxTags
+      - Monitor
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/wxtag_id'
 components:
   parameters:
     device_mac:
@@ -6320,6 +6339,22 @@ components:
         default: 0
         minimum: 0
         type: integer
+    webhook_id:
+      in: path
+      name: webhook_id
+      required: true
+      schema:
+        example: 000000ab-00ab-00ab-00ab-0000000000ab
+        format: uuid
+        type: string
+    wxtag_id:
+      in: path
+      name: wxtag_id
+      required: true
+      schema:
+        example: 000000ab-00ab-00ab-00ab-0000000000ab
+        format: uuid
+        type: string
   responses:
     AlarmsSearch:
       content:
@@ -6789,7 +6824,7 @@ components:
           schema:
             $ref: ./components/schemas/stats_device_other.yaml
       description: Example response
-    DevicesArrayStats:
+    DevicesArrayStatsOrg:
       content:
         application/json:
           examples:
@@ -7327,7 +7362,7 @@ components:
             items:
               anyOf:
               - $ref: ./components/schemas/stats_device_ap.yaml
-              - $ref: ./components/schemas/stats_device_switch.yaml
+              - $ref: ./components/schemas/stats_device_switch_org.yaml
               - $ref: ./components/schemas/stats_device_gateway.yaml
             type: array
       description: OK
@@ -7535,39 +7570,6 @@ components:
             - results
             type: object
       description: OK
-    GuestsArray:
-      content:
-        application/json:
-          examples:
-            example-1:
-              value:
-              - authorized: true
-                authorized_expiring_time: 0
-                authorized_time: 0
-                company: string
-                email: user@example.com
-                field1: string
-                field2: string
-                field3: string
-                field4: string
-                mac: string
-                minutes: 0
-                name: string
-            example-2:
-              value:
-              - authorized: true
-                authorized_expiring_time: 1480704955
-                authorized_time: 1480704355
-                company: abc
-                email: john@abc.com
-                field1: xxx
-                mac: 5684dae9ac8b
-                name: John Smith
-          schema:
-            items:
-              $ref: ./components/schemas/guest.yaml
-            type: array
-      description: OK
     GuestsSearch:
       content:
         application/json:
@@ -7653,172 +7655,6 @@ components:
             - start
             - total
             type: object
-      description: OK
-    Licence:
-      content:
-        application/json:
-          examples:
-            example-1:
-              value:
-                amendments:
-                - created_time: 1644684842
-                  end_time: 1744156799
-                  id: ff0a14f6-1234-5678-90ab-c8e64d4bc6c6
-                  modified_time: 1644684842
-                  quantity: -1
-                  start_time: 1632873600
-                  subscription_id: VNA-000000af
-                  type: SUB-VNA
-                - created_time: 1644684842
-                  end_time: 1744156799
-                  id: c1c28812-1234-5678-90ab-dc95680da61e
-                  modified_time: 1644684842
-                  quantity: -1
-                  start_time: 1632873600
-                  subscription_id: MAN-000008be
-                  type: SUB-MAN
-                - created_time: 1644684842
-                  end_time: 1744243199
-                  id: 96c0a41f-1234-5678-90ab-afe74817e9fd
-                  modified_time: 1644684842
-                  quantity: -1
-                  start_time: 1586476800
-                  subscription_id: EX24-000000bc
-                  type: SUB-EX24
-                entitled:
-                  SUB-ENG: 26
-                  SUB-EX24: 9
-                  SUB-MAN: 26
-                  SUB-VNA: 26
-                licenses:
-                - created_time: 1555353534
-                  end_time: 1586822399
-                  id: 693a41a6-1234-5678-90ab-f53dbd3a31c0
-                  modified_time: 1555353534
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 2
-                  remaining_quantity: 0
-                  start_time: 1555286400
-                  subscription_id: VNA-000000aa
-                  type: SUB-VNA
-                - created_time: 1576132516
-                  end_time: 1586822399
-                  id: 656607cf-1234-5678-90ab-fc9035614ea5
-                  modified_time: 1576132516
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 8
-                  remaining_quantity: 0
-                  start_time: 1576022400
-                  subscription_id: VNA-000000ab
-                  type: SUB-VNA
-                - created_time: 1579204568
-                  end_time: 1730764800
-                  id: db50d0bc-1234-5678-90ab-e439958cb06b
-                  modified_time: 1579204568
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 2
-                  remaining_quantity: 2
-                  start_time: 1572998400
-                  subscription_id: MAN-000000ac
-                  type: SUB-MAN
-                - created_time: 1579204568
-                  end_time: 1730764800
-                  id: 2ff9e84a-1234-5678-90ab-fb9ec0726e01
-                  modified_time: 1579204568
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 2
-                  remaining_quantity: 2
-                  start_time: 1572998400
-                  subscription_id: ENG-000000ad
-                  type: SUB-ENG
-                - created_time: 1579204568
-                  end_time: 1730764800
-                  id: 16df7ea6-1234-5678-90ab-78018cd4024d
-                  modified_time: 1579204568
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 2
-                  remaining_quantity: 2
-                  start_time: 1572998400
-                  subscription_id: VNA-000000ae
-                  type: SUB-VNA
-                - created_time: 1586237081
-                  end_time: 1744243199
-                  id: 1b6f68d5-1234-5678-90ab-70d3e6d18c73
-                  modified_time: 1586237081
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 14
-                  remaining_quantity: 14
-                  start_time: 1586563200
-                  subscription_id: VNA-000000af
-                  type: SUB-VNA
-                - created_time: 1586237097
-                  end_time: 1744243199
-                  id: 1375c9bf-1234-5678-90ab-9c636708c89e
-                  modified_time: 1586237097
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 14
-                  remaining_quantity: 14
-                  start_time: 1586563200
-                  subscription_id: MAN-000000ba
-                  type: SUB-MAN
-                - created_time: 1586237137
-                  end_time: 1744243199
-                  id: 5974e979-1234-5678-90ab-438f833ec1c9
-                  modified_time: 1586237137
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 14
-                  remaining_quantity: 14
-                  start_time: 1586563200
-                  subscription_id: ENG-000000bb
-                  type: SUB-ENG
-                - created_time: 1629947267
-                  end_time: 1744243199
-                  id: 340a9cb3-1234-5678-90ab-b009344dbf3c
-                  modified_time: 1629947267
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 10
-                  remaining_quantity: 9
-                  start_time: 1586476800
-                  subscription_id: EX24-000000bc
-                  type: SUB-EX24
-                - created_time: 1632941870
-                  end_time: 1744156799
-                  id: 9b599b0f-1234-5678-90ab-406081b58e7f
-                  modified_time: 1632941870
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 10
-                  remaining_quantity: 10
-                  start_time: 1632873600
-                  subscription_id: ENG-000000bd
-                  type: SUB-ENG
-                - created_time: 1632941882
-                  end_time: 1744156799
-                  id: d6d8ead3-1234-5678-90ab-98badeac7287
-                  modified_time: 1632941882
-                  order_id: '00000000'
-                  org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
-                  quantity: 11
-                  remaining_quantity: 9
-                  start_time: 1632873600
-                  subscription_id: MAN-000008be
-                  type: SUB-MAN
-                summary:
-                  SUB-ENG: 18
-                  SUB-EX24: 3
-                  SUB-MAN: 22
-                  SUB-VNA: 20
-          schema:
-            $ref: ./components/schemas/license.yaml
       description: OK
     LicenceUsage:
       content:
@@ -8245,28 +8081,6 @@ components:
               $ref: ./components/schemas/stats_mxedge.yaml
             type: array
       description: OK
-    OrgInventory:
-      content:
-        application/json:
-          examples:
-            example-1:
-              value:
-              - created_time: 1542328276
-                deviceprofile_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
-                id: 00000000-0000-0000-0000-5c5b35000018
-                mac: 5c5b35000018
-                model: AP41
-                modified_time: 1542829778
-                name: hallway
-                serial: FXLH2015150025
-                site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-                status: connected
-                type: ap
-          schema:
-            items:
-              $ref: ./components/schemas/inventory.yaml
-            type: array
-      description: OK
     OrgSiteSle:
       content:
         application/json:
@@ -8356,6 +8170,89 @@ components:
           schema:
             $ref: ./components/schemas/stats_org.yaml
       description: OK
+    PskPortalLogsArray:
+      content:
+        application/json:
+          examples:
+            psk portal logs:
+              value:
+                end: 1428954000
+                limit: 100
+                results:
+                - id: 8a3dcaa7-80e3-4bb0-a75b-7bc6322cfd09
+                  message: Rotate PSK test@mist.com
+                  name_id: test@mist.com
+                  org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                  psk_id: 608fe603-f9f0-4ce9-9473-04ef6c6ea749
+                  psk_name: test@mist.com
+                  pskportal_id: c1742c09-af35-4161-96ef-7dc65c6d5674
+                  timestamp: 1686346104.096
+                start: 1428939600
+                total: 135
+          schema:
+            properties:
+              end:
+                example: 1428954000
+                type: integer
+              limit:
+                example: 100
+                type: integer
+              results:
+                items:
+                  properties:
+                    id:
+                      example: 8a3dcaa7-80e3-4bb0-a75b-7bc6322cfd09
+                      format: uuid
+                      type: string
+                    message:
+                      example: Rotate PSK test@mist.com
+                      type: string
+                    name_id:
+                      example: test@mist.com
+                      type: string
+                    org_id:
+                      example: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                      format: uuid
+                      type: string
+                    psk_id:
+                      example: 608fe603-f9f0-4ce9-9473-04ef6c6ea749
+                      format: uuid
+                      type: string
+                    psk_name:
+                      example: test@mist.com
+                      type: string
+                    pskportal_id:
+                      example: c1742c09-af35-4161-96ef-7dc65c6d5674
+                      format: uuid
+                      type: string
+                    timestamp:
+                      example: 1686346104.096
+                      type: number
+                  type: object
+                type: array
+              start:
+                example: 1428939600
+                type: integer
+              total:
+                example: 135
+                type: integer
+            type: object
+            x-examples:
+              Example 1:
+                end: 1428954000
+                limit: 100
+                results:
+                - id: 8a3dcaa7-80e3-4bb0-a75b-7bc6322cfd09
+                  message: Rotate PSK test@mist.com
+                  name_id: test@mist.com
+                  org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                  psk_id: 608fe603-f9f0-4ce9-9473-04ef6c6ea749
+                  psk_name: test@mist.com
+                  pskportal_id: c1742c09-af35-4161-96ef-7dc65c6d5674
+                  timestamp: 1686346104.096
+                start: 1428939600
+                total: 135
+      description: Example response
     SitesSearch:
       content:
         application/json:
@@ -8654,6 +8551,81 @@ components:
                 start: 1685627565
                 total: 0
       description: Example response
+    WebhookDeliverySearch:
+      content:
+        application/json:
+          examples:
+            webhook_deliveries:
+              value:
+                end: 1688035193
+                limit: 10
+                results:
+                - error: string
+                  id: 55b0f02f-ebf6-4ad2-8b10-200508a97581
+                  org_id: fc7e2967-e7ef-41e6-b007-1217713de05a
+                  req_headers: '{"Content-Type":["application/json"],"User-Agent":["Mist-webhook"]}'
+                  req_payload: '{"topic":"audits","events":[{"admin_name":"John Doe
+                    john.doe@juniper.net","after":"{\"radio_config\": {\"band_24\":
+                    {\"disabled\": false, \"allow_rrm_disable\": false, \"power_min\":
+                    null, \"power_max\": null, \"power\": 10, \"preamble\": \"short\",
+                    \"channels\": [1, 10], \"bandwidth\": 20}}}","before":"{\"radio_config\":
+                    {\"band_24\": {\"disabled\": false, \"allow_rrm_disable\": false,
+                    \"power_min\": 8, \"power_max\": 18, \"power\": null, \"preamble\":
+                    \"long\", \"channels\": [1, 10], \"bandwidth\": 20}}}","id":"737909a2-04ff-4aeb-b9da-cc924e74a4dd","message":"Update
+                    Site Settings","org_id":"fc7e2967-e7ef-41e6-b007-1217713de05a","site_id":"256c3a35-9cb7-436e-bc6d-314972645d95","site_name":"Test
+                    Site","src_ip":"1.2.3.4","timestamp":1685956576.923601,"user_agent":"Mozilla/5.0
+                    (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
+                    like Gecko) Chrome/112.0.0.0 Safari/537.36"}]}'
+                  req_url: http://example.com
+                  resp_body: Ok
+                  resp_headers: string
+                  site_id: 256c3a35-9cb7-436e-bc6d-314972645d95
+                  status_code: 200
+                  timestamp: 1687962508.583656
+                  topic: audits
+                  webhook_id: 7a11b901-f719-4c91-8aef-deb8699a6364
+                start: 1687948793
+                total: 0
+          schema:
+            properties:
+              end:
+                example: 1688035193
+                type: integer
+              limit:
+                example: 10
+                type: integer
+              results:
+                items:
+                  $ref: ./components/schemas/webhook_delivery.yaml
+                type: array
+              start:
+                example: 1687948793
+                type: integer
+              total:
+                type: integer
+            type: object
+            x-examples:
+              Example 1:
+                end: 1688035193
+                limit: 10
+                results:
+                - id: 488689ab-72de-4fe4-b324-92de808931d9
+                  org_id: 203d3d02-dbc0-4c1b-9f41-76896a3330f4
+                  req_headers: '{"Content-Type":["application/json"],"User-Agent":["Mist-webhook"],"X-Mist-Signature":["1f3d5942bd85e30713ea73aff6bf2f035fae339a"],"X-Mist-Signature-V2":["2ab9a2ebe0843cc2646114a4487189736a9cc8a912b12f81b560bbfc049e98d9"]}'
+                  req_payload: '{"topic":"audits","events":[{"admin_name":"Thomas
+                    Munzer tmunzer@juniper.net","id":"5f0baf12-b81c-41ff-b042-7fa0aecda95c","message":"Accessed
+                    Org \"TM-LAB\"","org_id":"203d3d02-dbc0-4c1b-9f41-76896a3330f4","src_ip":"15.237.122.52","timestamp":1687962507.292103,"user_agent":"python-requests/2.28.2"}]}'
+                  req_url: https://mwtt.stag.one:43215/
+                  resp_body: ok
+                  resp_headers: '{"Content-Length":["2"],"Content-Type":["text/plain"]}'
+                  site_id: 00000000-0000-0000-0000-000000000000
+                  status_code: 200
+                  timestamp: 1687962508.583656
+                  topic: audits
+                  webhook_id: 032b9cb1-80af-4edc-98e7-bf41069c9a50
+                start: 1687948793
+                total: 1
+      description: Example response
     WiredClientsSearch:
       content:
         application/json:
@@ -8824,6 +8796,29 @@ components:
             - start
             - total
             type: object
+      description: OK
+    WxtagClients:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+              - mac: 5684dae9ac8b
+                since: 1428939600
+          schema:
+            items:
+              properties:
+                mac:
+                  type: string
+                since:
+                  type: number
+              required:
+              - mac
+              - since
+              type: object
+            minItems: 1
+            type: array
+            uniqueItems: true
       description: OK
     count:
       content:

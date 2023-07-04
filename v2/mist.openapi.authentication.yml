@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2306.1.6**
+  description: '> Version: **2306.2.3**
 
     >
 
-    > Date: **June 21, 2023**
+    > Date: **June 30, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2306.1.6
+  version: 2306.2.3
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -59,7 +59,6 @@ security:
 - apiToken: []
 - basicAuth: []
 tags:
-- name: Authentication
 - name: Login
 - description: A Mist account can be linked to OAuth2 providers:\n1. First, login
     with your Mist account\n2. Obtain the Authorization URL for Linking 1. in JSON
@@ -69,6 +68,14 @@ tags:
     the authorizaiton code by clicking / going through Authorization URL Link Mist
     Account against OAuth2 Provider by using the authorization code
   name: Login With OAuth2
+- description: "Like many other API providers, it\u2019s also possible to generate\
+    \ API Tokens to be used (in HTTP Header) for authentication. An API token ties\
+    \ to a Admin with equal or less privileges.\n\nNotes:\n* an API token generated\
+    \ for a specific admin has the same privilege as the user\n* an API token will\
+    \ be automatically removed if not used for > 90 days\n* SSO admins cannot generate\
+    \ these API tokens. Refer Org level API tokens (/api/v1/docs/Org#api-token) which\
+    \ can have privileges of a specific Org/Site for more information."
+  name: API Token
 - name: Self
 paths:
   /api/v1/login:
@@ -499,7 +506,7 @@ paths:
           description: "the user doesn\u2019t have 2FA enabled"
       summary: twoFactor
       tags:
-      - Login
+      - Login With OAuth2
       - Authentication
   /api/v1/logout:
     post:
@@ -924,6 +931,372 @@ paths:
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
       summary: updateSelf
+      tags:
+      - Self
+      - Authentication
+  /api/v1/self/apitokens:
+    get:
+      description: Get List of Current User API Tokens
+      operationId: listApiTokens
+      responses:
+        '200':
+          $ref: '#/components/responses/ApitokensArray'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listApiTokens
+      tags:
+      - API Token
+      - Authentication
+    post:
+      description: 'Create API Token
+
+        Note that the key is only available during creation time.'
+      operationId: createApiToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/Apitoken'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: createApiToken
+      tags:
+      - API Token
+      - Authentication
+  /api/v1/self/apitokens/{apitoken_id}:
+    delete:
+      description: Delete an API Token
+      operationId: deleteApiToken
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: deleteApiToken
+      tags:
+      - API Token
+      - Authentication
+    parameters:
+    - in: path
+      name: apitoken_id
+      required: true
+      schema:
+        type: string
+  /api/v1/self/logs:
+    get:
+      description: 'Get List of change logs across all Orgs for current admin
+
+        Audit logs records all administrative activities done by current admin across
+        all orgs'
+      operationId: listSelfAuditLogs
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    end: 1428954000
+                    limit: 100
+                    page: 1
+                    results:
+                    - admin_id: 72bfa2bd-e58a-4670-9d20-a1468f7a6f58
+                      admin_name: test@mistsys.com
+                      after:
+                        auth:
+                          type: open
+                      before:
+                        auth:
+                          type: psk
+                      id: c6f9347b-b0a4-4a23-b927-fa9249f2ffb2
+                      message: Update WLAN "Corporate"
+                      org_id: 423f6eca-6276-4994-bfeb-53cbbbba6f04
+                      site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+                      timestamp: 1431382121
+                    start: 1428939600
+                    total: 135
+              schema:
+                properties:
+                  end:
+                    type: integer
+                  limit:
+                    type: integer
+                  page:
+                    type: integer
+                  results:
+                    items:
+                      properties:
+                        admin_id:
+                          format: uuid
+                          type: string
+                        admin_name:
+                          type: string
+                        after:
+                          description: field values after the change
+                          properties:
+                            auth:
+                              properties:
+                                type:
+                                  type: string
+                              required:
+                              - type
+                              type: object
+                          required:
+                          - auth
+                          type: object
+                        before:
+                          description: field values prior to the change
+                          properties:
+                            auth:
+                              properties:
+                                type:
+                                  type: string
+                              required:
+                              - type
+                              type: object
+                          required:
+                          - auth
+                          type: object
+                        for_site:
+                          readOnly: true
+                          type: boolean
+                        id:
+                          format: uuid
+                          type: string
+                        message:
+                          type: string
+                        org_id:
+                          format: uuid
+                          type: string
+                        site_id:
+                          format: uuid
+                          type: string
+                        timestamp:
+                          type: number
+                      required:
+                      - admin_id
+                      - admin_name
+                      - id
+                      - message
+                      - org_id
+                      - site_id
+                      - timestamp
+                      type: object
+                    minItems: 1
+                    type: array
+                    uniqueItems: true
+                  start:
+                    type: integer
+                  total:
+                    type: integer
+                required:
+                - end
+                - limit
+                - page
+                - results
+                - start
+                - total
+                type: object
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listSelfAuditLogs
       tags:
       - Self
       - Authentication
@@ -1515,6 +1888,48 @@ paths:
     - $ref: '#/components/parameters/token'
 components:
   parameters:
+    duration:
+      description: "For historical stats and/or logs where time range is needed, you\
+        \ can specify the time range in a few different ways:\n  * ?start=1430000000&end=1430864000\t\
+        specify the start / end\n  * ?end=1430864000&duration=1d\tspecify end time\
+        \ and duration\n  * ?duration=1d\tspecify duration, end will be now() in seconds"
+      in: query
+      name: duration
+      required: false
+      schema:
+        default: 1d
+        example: 10m
+        type: string
+    end:
+      in: query
+      name: end
+      schema:
+        default: 0
+        minimum: 0
+        type: integer
+    limit:
+      in: query
+      name: limit
+      required: false
+      schema:
+        default: 100
+        minimum: 0
+        type: integer
+    page:
+      in: query
+      name: page
+      required: false
+      schema:
+        default: 1
+        minimum: 1
+        type: integer
+    start:
+      in: query
+      name: start
+      schema:
+        default: 0
+        minimum: 0
+        type: integer
     token:
       in: path
       name: token
@@ -1547,6 +1962,80 @@ components:
                   - 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
           schema:
             $ref: ./components/schemas/admin.yaml
+      description: OK
+    Apitoken:
+      content:
+        application/json:
+          examples:
+            Org API Token:
+              value:
+                created_time: 0
+                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                key: string
+                last_used: 0
+                name: string
+                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                privileges:
+                - msp_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  msp_name: string
+                  name: string
+                  org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  org_name: string
+                  orggroup_ids:
+                  - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  role: admin
+                  scope: org
+                  site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  sitegroup_ids:
+                  - 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+            User API Token:
+              value:
+                created_time: 0
+                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                key: string
+                last_used: 0
+                name: string
+                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          schema:
+            $ref: ./components/schemas/apitoken.yaml
+      description: OK
+    ApitokensArray:
+      content:
+        application/json:
+          examples:
+            Org API Tokens:
+              value:
+              - created_time: 0
+                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                key: string
+                last_used: 0
+                name: string
+                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                privileges:
+                - msp_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  msp_name: string
+                  name: string
+                  org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  org_name: string
+                  orggroup_ids:
+                  - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  role: admin
+                  scope: org
+                  site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  sitegroup_ids:
+                  - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+            User API Tokens:
+              value:
+              - created_time: 0
+                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                key: string
+                last_used: 0
+                name: string
+                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          schema:
+            items:
+              $ref: ./components/schemas/apitoken.yaml
+            type: array
       description: OK
     OK:
       content:

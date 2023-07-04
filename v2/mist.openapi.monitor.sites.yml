@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2306.1.6**
+  description: '> Version: **2306.2.3**
 
     >
 
-    > Date: **June 21, 2023**
+    > Date: **June 30, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2306.1.6
+  version: 2306.2.3
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -59,7 +59,6 @@ security:
 - apiToken: []
 - basicAuth: []
 tags:
-- name: Monitor
 - name: Sites Alarms
 - description: Applications contains a list of applications users are interested in
     monitoring / routing / policying
@@ -78,23 +77,22 @@ tags:
     Device > Device Profile > RFTemplate (for AP only) > DeviceType-specific Template
     > Site Template > Site Setting'
   name: Sites Devices
-- name: Sites Devices - Wireless
+- name: Sites Devices APs
 - description: API Call for 3rd party devices
   name: Sites Devices Others
-- name: Sites Devices - Wired
-- name: Sites Devices - WAN
+- name: Sites Devices Switches
+- name: Sites Devices Stats
 - name: Sites Events
 - name: Sites Guests
 - name: Sites Insights
 - name: Sites Licenses
 - name: Sites Location
-- name: Sites MxEdges
 - name: Sites Rogues
 - name: Sites RRM
 - name: Sites Skyatp
 - name: Sites SLEs
 - name: Sites Stats
-- name: Sites WxRules
+- name: Sites Webhooks
 - name: Sites WxTags
 - name: Sites Zones
 paths:
@@ -297,7 +295,7 @@ paths:
   /api/v1/sites/{site_id}/anomaly/client/{client_mac}/{metric}:
     get:
       description: Get Client Anomaly Events
-      operationId: getSiteClientAnomalyEvents
+      operationId: getSiteAnomalyEventsForClient
       responses:
         '200':
           $ref: '#/components/responses/AnomalyMetrics'
@@ -349,7 +347,7 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: getSiteClientAnomalyEvents
+      summary: getSiteAnomalyEventsForClient
       tags:
       - Sites Anomaly
       - Monitor
@@ -360,7 +358,7 @@ paths:
   /api/v1/sites/{site_id}/anomaly/device/{device_mac}/{metric}:
     get:
       description: Get Device Anomaly Events
-      operationId: getSiteDeviceAnomalyEvents
+      operationId: getSiteAnomalyEventsforDevice
       responses:
         '200':
           $ref: '#/components/responses/AnomalyMetrics'
@@ -412,7 +410,7 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: getSiteDeviceAnomalyEvents
+      summary: getSiteAnomalyEventsforDevice
       tags:
       - Sites Anomaly
       - Monitor
@@ -482,6 +480,101 @@ paths:
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/metric'
+  /api/v1/sites/{site_id}/apps:
+    get:
+      description: Get List of Site Applications
+      operationId: listSiteApps
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                  - group: string
+                    key: string
+                    name: string
+              schema:
+                description: ''
+                items:
+                  properties:
+                    group:
+                      minLength: 1
+                      type: string
+                    key:
+                      minLength: 1
+                      type: string
+                    name:
+                      minLength: 1
+                      type: string
+                  required:
+                  - key
+                  - name
+                  - group
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+                x-examples:
+                  example-1:
+                  - group: Emails
+                    key: gmail
+                    name: Gmail - web/app
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listSiteApps
+      tags:
+      - Sites Applications
+      - Monitor
+    parameters:
+    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/call/events/count:
     get:
       description: Count Site Call Events
@@ -1497,7 +1590,7 @@ paths:
             exist
       summary: getSiteDeviceRadioChannels
       tags:
-      - Sites Devices - Wireless
+      - Sites Devices APs
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -1573,7 +1666,7 @@ paths:
             exist
       summary: countSiteDeviceConfigHistory
       tags:
-      - Sites Devices - Wireless
+      - Sites Devices
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -1653,7 +1746,7 @@ paths:
             exist
       summary: searchSiteDeviceConfigHistory
       tags:
-      - Sites Devices - Wireless
+      - Sites Devices
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -1975,7 +2068,7 @@ paths:
             exist
       summary: countSiteDeviceEvents
       tags:
-      - Sites Devices - Wireless
+      - Sites Devices
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -2118,7 +2211,68 @@ paths:
             exist
       summary: searchSiteDevicesEvents
       tags:
-      - Sites Devices - Wireless
+      - Sites Devices
+      - Monitor
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/devices/export:
+    get:
+      description: To download the exported device information
+      operationId: exportSiteDevices
+      responses:
+        '200':
+          $ref: '#/components/responses/File'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: exportSiteDevices
+      tags:
+      - Sites Devices
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -2248,7 +2402,7 @@ paths:
             exist
       summary: countSiteDeviceLastConfig
       tags:
-      - Sites Devices - Wireless
+      - Sites Devices
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -2335,7 +2489,7 @@ paths:
             exist
       summary: searchSiteDeviceLastConfigs
       tags:
-      - Sites Devices - Wireless
+      - Sites Devices
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -2522,186 +2676,6 @@ paths:
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/devices/{device_id}/poll_stats:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/device_id'
-    post:
-      description: This API can be used to poll statistics from the Switch proactively
-        once. After it is called, the statistics will be pushed back to the cloud
-        within the statistics interval.
-      operationId: pollSiteSwitchStats
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: pollSiteSwitchStats
-      tags:
-      - Sites Devices - Wired
-      - Monitor
-  /api/v1/sites/{site_id}/devices/{device_id}/show_session:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - in: path
-      name: device_id
-      required: true
-      schema:
-        type: string
-    post:
-      description: "Get active sessions passing through the Device. The output will\
-        \ be available through websocket. As there can be multiple command issued\
-        \ against the same device at the same time and the output all goes through\
-        \ the same websocket stream, session is introduced for demux.\n\n#### Subscribe\
-        \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
-        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n##### Example\
-        \ output from ws stream\n```\nadmin@ssr.node# show sessions\nFri 2020-04-17\
-        \ 16:55:34 UTC\n\nNode: node1\n\n====================================== =====\
-        \ ============= =========== ========== ====== ======= ================= ==========\
-        \ ================= =========== ================= ========== ===================\
-        \ ========= =================\n Session Id                             Dir\
-        \   Service       Tenant      Dev Name   VLAN   Proto   Src IP           \
-        \ Src Port   Dest IP           Dest Port   NAT IP            NAT Port   Payload\
-        \ Encrypted   Timeout   Uptime\n====================================== =====\
-        \ ============= =========== ========== ====== ======= ================= ==========\
-        \ ================= =========== ================= ========== ===================\
-        \ ========= =================\n 01187fb8-765a-45e5-ae90-37d77f15e292   fwd\
-        \   Internet      lanSubnet   lan           0   udp     192.168.0.28     \
-        \    44674   35.166.173.18          9930   96.230.191.130       19569   false\
-        \                   154   0 days  0:00:28\n 01187fb8-765a-45e5-ae90-37d77f15e292\
-        \   rev   Internet      lanSubnet   wan           0   udp     35.166.173.18\
-        \         9930   96.230.191.130        19569   0.0.0.0                  0\
-        \   false                   154   0 days  0:00:28\n 0859a4ae-bcff-4aa6-b812-79a5236a6c13\
-        \   fwd   Internet      lanSubnet   lan           0   tcp     192.168.0.41\
-        \         60843   17.249.171.246          443   96.230.191.130       51941\
-        \   false                     2   0 days  0:00:10\n\n```"
-      operationId: getSiteSsrAndSrxSessions
-      requestBody:
-        content:
-          application/json:
-            examples:
-              Example 1:
-                value:
-                  node: node0
-                  service_name: any
-            schema:
-              properties:
-                node:
-                  description: 'only for '
-                  enum:
-                  - node0
-                  - node1
-                  type: string
-                service_name:
-                  description: The exact service name for which to display the active
-                    sessions
-                  example: any
-                  type: string
-              type: object
-              x-examples:
-                example-1:
-                  service_name: any
-      responses:
-        '200':
-          $ref: '#/components/responses/Session'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: getSiteSsrAndSrxSessions
-      tags:
-      - Sites Devices - WAN
-      - Monitor
   /api/v1/sites/{site_id}/events/fast_roam:
     get:
       description: Get Roaming Events data
@@ -3357,141 +3331,6 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/metric'
     - $ref: '#/components/parameters/device_mac'
-  /api/v1/sites/{site_id}/insights/rogues:
-    get:
-      description: Get List of Site Rogue/Neighbor APs
-      operationId: listSiteRogueAPs
-      parameters:
-      - $ref: '#/components/parameters/rogue_type'
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/interval'
-      responses:
-        '200':
-          $ref: '#/components/responses/InsightRogue'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: listSiteRogueAPs
-      tags:
-      - Sites Rogues
-      - Monitor
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/insights/rogues/clients:
-    get:
-      description: Get List of Site Rogue Clients
-      operationId: listSiteRogueClients
-      parameters:
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/interval'
-      responses:
-        '200':
-          $ref: '#/components/responses/InsightRogueClients'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: listSiteRogueClients
-      tags:
-      - Sites Rogues
-      - Monitor
-    parameters:
-    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/insights/{metric}:
     get:
       description: 'Get Site Insight Metrics
@@ -3789,80 +3628,6 @@ paths:
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
       summary: getSiteBeamCoverageOverview
-      tags:
-      - Sites Location
-      - Monitor
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/location/ml/current:
-    get:
-      description: 'Get Machine Learning Current Stat
-
-        For each VBLE AP, it has ML model parameters (e.g. Path-loss-estimate, Intercept)
-        as well as completion indicators (Level and PercentageComplete). For the completeness,
-        ML takes N sample to finish its first level and use N*0.25 samples to complete
-        each successive level. When a device is moved, the completeness will be reset
-        as it has to re-learn.'
-      operationId: getSiteMachineLearningCurrentStat
-      parameters:
-      - description: map_id (as filter, optional)
-        example: 00000000-0000-0000-0000-000000000000
-        in: query
-        name: map_id
-        schema:
-          type: string
-      responses:
-        '200':
-          $ref: '#/components/responses/Ml'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: getSiteMachineLearningCurrentStat
       tags:
       - Sites Location
       - Monitor
@@ -4321,86 +4086,6 @@ paths:
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/rogues/{rogue_bssid}:
-    get:
-      description: Get Rogue AP Details
-      operationId: getSiteRogueAP
-      parameters: []
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    manufacture: Intel Corporate
-                    seen_as_client: true
-              schema:
-                properties:
-                  manufacture:
-                    type: string
-                  seen_as_client:
-                    type: boolean
-                required:
-                - seen_as_client
-                - manufacture
-                type: object
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: getSiteRogueAP
-      tags:
-      - Sites Rogues
-      - Monitor
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/rogue_bssid'
   /api/v1/sites/{site_id}/rrm/current:
     get:
       description: Get Current Channel Planning
@@ -4838,6 +4523,103 @@ paths:
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/classifier/{classifier}/summary:
+    get:
+      description: Get SLE classifier details
+      operationId: getSiteSleClassifierDetails
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          $ref: '#/components/responses/SleClassifierSummary'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: getSiteSleClassifierDetails
+      tags:
+      - Sites SLEs
+      - Monitor
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - in: path
+      name: scope
+      required: true
+      schema:
+        enum:
+        - site
+        - ap
+        - switch
+        - gateway
+        - client
+        type: string
+    - description: '* site_id if `scope`==`site`
+
+        * device_id if `scope`==`ap`, `scope`==`switch` or `scope`==`gateway`
+
+        * mac if `scope`==`client`'
+      in: path
+      name: scope_id
+      required: true
+      schema:
+        type: string
+    - description: values from /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metrics
+      in: path
+      name: metric
+      required: true
+      schema:
+        type: string
+    - in: path
+      name: classifier
+      required: true
+      schema:
+        type: string
   /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/classifiers:
     get:
       description: Get the list of classifiers for a specific metric
@@ -5968,94 +5750,6 @@ paths:
       required: true
       schema:
         type: string
-  /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/threshold:
-    get:
-      description: Get the SLE threshold
-      operationId: getSiteSleThreshold
-      responses:
-        '200':
-          $ref: '#/components/responses/SleThreshold'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: getSiteSleThreshold
-      tags:
-      - Sites SLEs
-      - Monitor
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - in: path
-      name: scope
-      required: true
-      schema:
-        enum:
-        - site
-        - ap
-        - switch
-        - gateway
-        - client
-        type: string
-    - description: '* site_id if `scope`==`site`
-
-        * device_id if `scope`==`ap`, `scope`==`switch` or `scope`==`gateway`
-
-        * mac if `scope`==`client`'
-      in: path
-      name: scope_id
-      required: true
-      schema:
-        type: string
-    - description: values from /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metrics
-      in: path
-      name: metric
-      required: true
-      schema:
-        type: string
   /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metrics:
     get:
       description: Get the list of metrics for the given scope
@@ -6484,7 +6178,7 @@ paths:
             exist
       summary: listSiteAssetsStats
       tags:
-      - Sites Assets
+      - Sites Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -6549,7 +6243,7 @@ paths:
             exist
       summary: getSiteAssetStats
       tags:
-      - Sites Assets
+      - Sites Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -6895,7 +6589,7 @@ paths:
             exist
       summary: countSiteBgpStats
       tags:
-      - Sites Devices - WAN
+      - Sites Devices Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -6956,7 +6650,7 @@ paths:
             exist
       summary: searchSiteBgpStats
       tags:
-      - Sites Devices - WAN
+      - Sites Devices Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -7282,7 +6976,7 @@ paths:
             exist
       summary: listSiteWirelessClientsStats
       tags:
-      - Sites Clients - Wireless
+      - Sites Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -7441,7 +7135,7 @@ paths:
             exist
       summary: getSiteWirelessClientStats
       tags:
-      - Sites Clients - Wireless
+      - Sites Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -7474,547 +7168,7 @@ paths:
       - $ref: '#/components/parameters/limit'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                AP:
-                  value:
-                  - ble_config:
-                      beacon_rate: 3
-                      beacon_rate_model: custom
-                      beam_disabled:
-                      - 1
-                      - 3
-                      - 6
-                      power: 10
-                      power_mode: custom
-                    ble_stat:
-                      beacon_rate: 3
-                      eddystone_uid_enabled: false
-                      eddystone_uid_freq_msec: 200
-                      eddystone_uid_instance: 5c5b35000001
-                      eddystone_uid_namespace: 2818e3868dec25629ede
-                      eddystone_url_enabled: true
-                      eddystone_url_freq_msec: 100
-                      eddystone_url_url: https://www.abc.com
-                      ibeacon_enabled: true
-                      ibeacon_major: 13
-                      ibeacon_minor: 138
-                      ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
-                      major: 12345
-                      minors:
-                      - 201
-                      - 202
-                      - 203
-                      - 204
-                      - 205
-                      - 206
-                      - 207
-                      - 208
-                      power: 10
-                      rx_bytes: 135
-                      rx_pkts: 135
-                      tx_bytes: 5231513353
-                      tx_pkts: 135135135
-                      tx_resets: 0
-                      uuid: ada72f8f-1643-e5c6-94db-f2a5636f1a64
-                    cert_expiry: 1534534392
-                    ext_ip: 73.92.124.103
-                    fwupdate:
-                      progress: 10
-                      status: inprogress
-                      status_id: 5
-                      timestamp: 1428949501
-                    iot_stat:
-                      DI2:
-                        value: 0
-                    ip: 10.2.9.159
-                    ip_config:
-                      dns:
-                      - 8.8.8.8
-                      - 4.4.4.4
-                      dns_suffix:
-                      - .mist.local
-                      - .mist.com
-                      gateway: 10.2.1.254
-                      ip: 10.2.1.1
-                      netmask: 255.255.255.0
-                      type: static
-                    ip_stat:
-                      dns:
-                      - 8.8.8.8
-                      - 4.4.4.4
-                      dns_suffix:
-                      - .mist.local
-                      - .mist.com
-                      gateway: 10.2.1.254
-                      gateway6: 2607:f8b0:4005:808::1
-                      ip: 10.2.1.1
-                      ip6: 2607:f8b0:4005:808::2004
-                      ips:
-                        vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
-                        vlan193: 10.73.1.31/16
-                        vlan3157: 10.72.11.14/24
-                      netmask: 255.255.255.0
-                      netmask6: /32
-                    l2tp_stat:
-                      7dae216d-7c98-a51b-e068-dd7d477b7216:
-                        sessions:
-                        - local_sid: 31
-                          remote_id: vpn1
-                          remote_sid: 13
-                          state: established
-                        state: established_with_sessions
-                        uptime: 135
-                        wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
-                    last_seen: 1470417522
-                    last_trouble:
-                      code: '03'
-                      timestamp: 1428949501
-                    led:
-                      brightness: 255
-                      enabled: true
-                    lldp_stat:
-                      chassis_id: 63:68:61:73:73:69
-                      lldp_med_supported: false
-                      mgmt_addr: 10.1.5.2
-                      port_desc: 2/26
-                      power_allocated: 15500
-                      power_draw: 15000
-                      power_request_count: 3
-                      power_requested: 25500
-                      system_desc: HP J9729A 2920-48G-POE+ Switch
-                      system_name: TC2-OWL-Stack-01
-                    locating: false
-                    mac: 5c5b35000010
-                    map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
-                    mesh_downlinks:
-                      00000000-0000-0000-1000-5c5b356be59f:
-                        band: '24'
-                        channel: 7
-                        idle_time: 3
-                        last_seen: 1470417522
-                        proto: a
-                        rssi: -65
-                        rx_bps: 12
-                        rx_bytes: 217416
-                        rx_packets: 2337
-                        rx_rate: 65
-                        rx_retries: 5
-                        snr: 31
-                        tx_bps: 6
-                        tx_bytes: 175132
-                        tx_packets: 1566
-                        tx_rate: 65
-                        tx_retries: 500
-                    mesh_uplink:
-                      band: '24'
-                      channel: 7
-                      idle_time: 3
-                      last_seen: 1470417522
-                      proto: a
-                      rssi: -65
-                      rx_bps: 12
-                      rx_bytes: 217416
-                      rx_packets: 2337
-                      rx_rate: 65
-                      rx_retries: 5
-                      snr: 31
-                      tx_bps: 6
-                      tx_bytes: 175132
-                      tx_packets: 1566
-                      tx_rate: 65
-                      tx_retries: 500
-                      uplink_ap_id: 00000000-0000-0000-1000-5c5b35000010
-                    model: AP200
-                    name: conference room
-                    num_clients: 10
-                    port_stat:
-                      eth0:
-                        full_duplex: true
-                        rx_bytes: 2056
-                        rx_errors: 0
-                        rx_pkts: 670
-                        speed: 1000
-                        tx_bytes: 2056
-                        tx_pkts: 670
-                        up: true
-                      eth1:
-                        up: false
-                      module:
-                        up: false
-                    power_budget: -12000
-                    power_src: PoE 802.3af
-                    radio_config:
-                      band_24:
-                        bandwidth: 20
-                        channel: 0
-                        dynamic_chaining_enabled: false
-                        power: 0
-                        rx_chain: 4
-                        tx_chain: 4
-                      band_5:
-                        bandwidth: 40
-                        channel: 0
-                        dynamic_chaining_enabled: false
-                        power: 0
-                        rx_chain: 4
-                        tx_chain: 1
-                      scanning_enabled: true
-                    radio_stat:
-                      band_24:
-                        bandwidth: 20
-                        channel: 6
-                        mac: 5c5b350004a0
-                        num_clients: 6
-                        power: 19
-                        rx_bytes: 8504737800
-                        rx_pkts: 57731964
-                        tx_bytes: 211166512114
-                        tx_pkts: 812058566
-                      band_5:
-                        bandwidth: 80
-                        channel: 44
-                        mac: 5c5b350004b0
-                        num_clients: 4
-                        power: 15
-                        rx_bytes: 10366616
-                        rx_pkts: 38603
-                        tx_bytes: 50877568
-                        tx_pkts: 145496
-                    rx_bps: 60003
-                    rx_bytes: 8515104416
-                    rx_pkts: 57770567
-                    serial: FXLH2015170017
-                    status: connected
-                    tx_bps: 634301
-                    tx_bytes: 211217389682
-                    tx_pkts: 812204062
-                    type: ap
-                    uptime: 13500
-                    usb_stat:
-                      channel: 3
-                      connected: true
-                      last_activity: 1586873254
-                      type: imagotag
-                      up: true
-                    version: 1.0.0
-                    x: 53.5
-                    y: 173.1
-                Gateway:
-                  value:
-                  - cluster_stat:
-                      node0:
-                        status: ''
-                      node1: {}
-                    cpu2_stat: ''
-                    cpu_stat:
-                      idle: 28
-                      interrupt: 8
-                      load_avg:
-                      - 0.9700000286102295
-                      - 1.0499999523162842
-                      - 1.0199999809265137
-                      system: 41
-                      user: 23
-                    hostname: sj1
-                    ip: 10.2.11.137
-                    ip_stat:
-                      dns:
-                      - 8.8.8.8
-                      - 4.4.4.4
-                      dns_suffix:
-                      - .mist.local
-                      - .mist.com
-                      gateway: 10.2.1.1
-                      gateway6: 2607:f8b0:4005:808::1
-                      ip: 10.2.11.137
-                      ip6: 2607:f8b0:4005:808::2004
-                      ips:
-                        vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
-                        vlan193: 10.73.1.31/16
-                        vlan3157: 10.72.11.14/24
-                      netmask: 255.255.192.0
-                      netmask6: /32
-                    last_seen: 1553203563
-                    mac: dc38e1dbf3cd
-                    memory_stat:
-                      usage: 35
-                    model: SRX320
-                    module2_stat: ''
-                    module_stat:
-                    - fans:
-                      - name: Fan 0
-                        status: absent
-                      - airflow: out
-                        name: Fan 1
-                        status: ok
-                      model: EX4300-48P
-                      poe:
-                        max_power: 250
-                        power_draw: 120.3
-                      psus:
-                      - name: Power Supply 0
-                        status: ok
-                      - name: Power Supply 1
-                        status: failed
-                      serial: PX8716230021
-                      temperatures:
-                      - celsius: 45
-                        name: CPU
-                        status: ok
-                      vc_links:
-                      - neighbor_module_idx: 1
-                        neighbor_port_id: vcp-255/1/0
-                        port_id: vcp-255/1/0
-                      vc_role: master
-                    name: sj1
-                    serial: TC3714190003
-                    spu2_stat: ''
-                    spu_stat:
-                      cpu: 15
-                      memory: 32
-                      sessions:
-                        current: 41
-                        max: 65535
-                        pending: 12
-                        valid: 15
-                    status: connected
-                    type: gateway
-                    uptime: 13500
-                    version: 18.4R1.8
-                Switch:
-                  value:
-                  - ble_config:
-                      beacon_rate: 3
-                      beacon_rate_model: custom
-                      beam_disabled:
-                      - 1
-                      - 3
-                      - 6
-                      power: 10
-                      power_mode: custom
-                    ble_stat:
-                      beacon_rate: 3
-                      eddystone_uid_enabled: false
-                      eddystone_uid_freq_msec: 200
-                      eddystone_uid_instance: 5c5b35000001
-                      eddystone_uid_namespace: 2818e3868dec25629ede
-                      eddystone_url_enabled: true
-                      eddystone_url_freq_msec: 100
-                      eddystone_url_url: https://www.abc.com
-                      ibeacon_enabled: true
-                      ibeacon_major: 13
-                      ibeacon_minor: 138
-                      ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
-                      major: 12345
-                      minors:
-                      - 201
-                      - 202
-                      - 203
-                      - 204
-                      - 205
-                      - 206
-                      - 207
-                      - 208
-                      power: 10
-                      rx_bytes: 135
-                      rx_pkts: 135
-                      tx_bytes: 5231513353
-                      tx_pkts: 135135135
-                      tx_resets: 0
-                      uuid: ada72f8f-1643-e5c6-94db-f2a5636f1a64
-                    cert_expiry: 1534534392
-                    ext_ip: 73.92.124.103
-                    fwupdate:
-                      progress: 10
-                      status: inprogress
-                      status_id: 5
-                      timestamp: 1428949501
-                    iot_stat:
-                      DI2:
-                        value: 0
-                    ip: 10.2.9.159
-                    ip_config:
-                      dns:
-                      - 8.8.8.8
-                      - 4.4.4.4
-                      dns_suffix:
-                      - .mist.local
-                      - .mist.com
-                      gateway: 10.2.1.254
-                      ip: 10.2.1.1
-                      netmask: 255.255.255.0
-                      type: static
-                    ip_stat:
-                      dns:
-                      - 8.8.8.8
-                      - 4.4.4.4
-                      dns_suffix:
-                      - .mist.local
-                      - .mist.com
-                      gateway: 10.2.1.254
-                      gateway6: 2607:f8b0:4005:808::1
-                      ip: 10.2.1.1
-                      ip6: 2607:f8b0:4005:808::2004
-                      ips:
-                        vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
-                        vlan193: 10.73.1.31/16
-                        vlan3157: 10.72.11.14/24
-                      netmask: 255.255.255.0
-                      netmask6: /32
-                    l2tp_stat:
-                      7dae216d-7c98-a51b-e068-dd7d477b7216:
-                        sessions:
-                        - local_sid: 31
-                          remote_id: vpn1
-                          remote_sid: 13
-                          state: established
-                        state: established_with_sessions
-                        uptime: 135
-                        wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
-                    last_seen: 1470417522
-                    last_trouble:
-                      code: '03'
-                      timestamp: 1428949501
-                    led:
-                      brightness: 255
-                      enabled: true
-                    lldp_stat:
-                      chassis_id: 63:68:61:73:73:69
-                      lldp_med_supported: false
-                      mgmt_addr: 10.1.5.2
-                      port_desc: 2/26
-                      power_allocated: 15500
-                      power_draw: 15000
-                      power_request_count: 3
-                      power_requested: 25500
-                      system_desc: HP J9729A 2920-48G-POE+ Switch
-                      system_name: TC2-OWL-Stack-01
-                    locating: false
-                    mac: 5c5b35000010
-                    map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
-                    mesh_downlinks:
-                      00000000-0000-0000-1000-5c5b356be59f:
-                        band: '24'
-                        channel: 7
-                        idle_time: 3
-                        last_seen: 1470417522
-                        proto: a
-                        rssi: -65
-                        rx_bps: 12
-                        rx_bytes: 217416
-                        rx_packets: 2337
-                        rx_rate: 65
-                        rx_retries: 5
-                        snr: 31
-                        tx_bps: 6
-                        tx_bytes: 175132
-                        tx_packets: 1566
-                        tx_rate: 65
-                        tx_retries: 500
-                    mesh_uplink:
-                      band: '24'
-                      channel: 7
-                      idle_time: 3
-                      last_seen: 1470417522
-                      proto: a
-                      rssi: -65
-                      rx_bps: 12
-                      rx_bytes: 217416
-                      rx_packets: 2337
-                      rx_rate: 65
-                      rx_retries: 5
-                      snr: 31
-                      tx_bps: 6
-                      tx_bytes: 175132
-                      tx_packets: 1566
-                      tx_rate: 65
-                      tx_retries: 500
-                      uplink_ap_id: 00000000-0000-0000-1000-5c5b35000010
-                    model: AP200
-                    name: conference room
-                    num_clients: 10
-                    port_stat:
-                      eth0:
-                        full_duplex: true
-                        rx_bytes: 2056
-                        rx_errors: 0
-                        rx_pkts: 670
-                        speed: 1000
-                        tx_bytes: 2056
-                        tx_pkts: 670
-                        up: true
-                      eth1:
-                        up: false
-                      module:
-                        up: false
-                    power_budget: -12000
-                    power_src: PoE 802.3af
-                    radio_config:
-                      band_24:
-                        bandwidth: 20
-                        channel: 0
-                        dynamic_chaining_enabled: false
-                        power: 0
-                        rx_chain: 4
-                        tx_chain: 4
-                      band_5:
-                        bandwidth: 40
-                        channel: 0
-                        dynamic_chaining_enabled: false
-                        power: 0
-                        rx_chain: 4
-                        tx_chain: 1
-                      scanning_enabled: true
-                    radio_stat:
-                      band_24:
-                        bandwidth: 20
-                        channel: 6
-                        mac: 5c5b350004a0
-                        num_clients: 6
-                        power: 19
-                        rx_bytes: 8504737800
-                        rx_pkts: 57731964
-                        tx_bytes: 211166512114
-                        tx_pkts: 812058566
-                      band_5:
-                        bandwidth: 80
-                        channel: 44
-                        mac: 5c5b350004b0
-                        num_clients: 4
-                        power: 15
-                        rx_bytes: 10366616
-                        rx_pkts: 38603
-                        tx_bytes: 50877568
-                        tx_pkts: 145496
-                    rx_bps: 60003
-                    rx_bytes: 8515104416
-                    rx_pkts: 57770567
-                    serial: FXLH2015170017
-                    status: connected
-                    tx_bps: 634301
-                    tx_bytes: 211217389682
-                    tx_pkts: 812204062
-                    type: ap
-                    uptime: 13500
-                    usb_stat:
-                      channel: 3
-                      connected: true
-                      last_activity: 1586873254
-                      type: imagotag
-                      up: true
-                    version: 1.0.0
-                    x: 53.5
-                    y: 173.1
-              schema:
-                items:
-                  anyOf:
-                  - $ref: ./components/schemas/stats_device_ap.yaml
-                  - $ref: ./components/schemas/stats_device_switch.yaml
-                  - $ref: ./components/schemas/stats_device_gateway.yaml
-                type: array
-          description: OK
+          $ref: '#/components/responses/DevicesArrayStatsSite'
         '400':
           content:
             application/json:
@@ -8065,7 +7219,7 @@ paths:
             exist
       summary: listSiteDevicesStats
       tags:
-      - Sites Devices
+      - Sites Devices Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -8455,7 +7609,7 @@ paths:
               schema:
                 oneOf:
                 - $ref: ./components/schemas/stats_device_ap.yaml
-                - $ref: ./components/schemas/stats_device_switch.yaml
+                - $ref: ./components/schemas/stats_device_switch_site.yaml
                 - $ref: ./components/schemas/stats_device_gateway.yaml
           description: OK
         '400':
@@ -8508,7 +7662,7 @@ paths:
             exist
       summary: getSiteDeviceStats
       tags:
-      - Sites Devices
+      - Sites Devices Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -8635,7 +7789,7 @@ paths:
             exist
       summary: getSiteAllClientsStatsByDevice
       tags:
-      - Sites Clients - Wireless
+      - Sites Devices Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -8710,7 +7864,7 @@ paths:
             exist
       summary: listSiteDiscoveredAssets
       tags:
-      - Sites Assets
+      - Sites Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -8867,7 +8021,7 @@ paths:
             exist
       summary: searchSiteDiscoveredSwitchesMetrics
       tags:
-      - Sites Devices - Wired
+      - Sites Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -8996,7 +8150,7 @@ paths:
             exist
       summary: countSiteDiscoveredSwitches
       tags:
-      - Sites Devices - Wired
+      - Sites Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -9192,7 +8346,7 @@ paths:
             exist
       summary: getSiteDiscoveredSwitchesMetrics
       tags:
-      - Sites Devices - Wired
+      - Sites Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -9391,7 +8545,74 @@ paths:
             exist
       summary: searchSiteDiscoveredSwitches
       tags:
-      - Sites Devices - Wired
+      - Sites Stats
+      - Monitor
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/stats/filtered_assets:
+    get:
+      description: Get a list of BLE beacons that matches Asset or AssetFilter
+      operationId: getSiteAssetsOfInterest
+      parameters:
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/AssetOfInterestArray'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: getSiteAssetsOfInterest
+      tags:
+      - Sites Assets
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -9500,7 +8721,7 @@ paths:
             exist
       summary: getSiteGatewayMetrics
       tags:
-      - Sites Devices - WAN
+      - Sites Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -9631,7 +8852,7 @@ paths:
             exist
       summary: getSiteWirelessClientsStatsByMap
       tags:
-      - Sites Clients - Wireless
+      - Sites Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -9718,7 +8939,7 @@ paths:
             exist
       summary: getSiteDiscoveredAssetByMap
       tags:
-      - Sites Assets
+      - Sites Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -9880,7 +9101,7 @@ paths:
             exist
       summary: listSiteUnconnectedClientStats
       tags:
-      - Sites Clients - Wireless
+      - Sites Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -10061,7 +9282,7 @@ paths:
             exist
       summary: listSiteMxEdgesStats
       tags:
-      - Sites MxEdges
+      - Sites Devices Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -10239,7 +9460,7 @@ paths:
             exist
       summary: getSiteMxEdgeStats
       tags:
-      - Sites MxEdges
+      - Sites Devices Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -10520,7 +9741,7 @@ paths:
             exist
       summary: countSiteSwOrGwPorts
       tags:
-      - Sites Devices
+      - Sites Devices Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -10538,6 +9759,18 @@ paths:
         in: query
         name: mac
         schema:
+          type: string
+      - description: device type
+        in: query
+        name: type
+        schema:
+          enum:
+          - ap
+          - ble
+          - switch
+          - gateway
+          - mxedge
+          - nac
           type: string
       - description: Chassis identifier of the chassis type listed
         in: query
@@ -10662,6 +9895,26 @@ paths:
         name: up
         schema:
           type: boolean
+      - description: indicates if interface is active/inactive
+        in: query
+        name: active
+        schema:
+          type: boolean
+      - description: Last sampled jitter of the interface
+        in: query
+        name: jitter
+        schema:
+          type: number
+      - description: Last sampled loss of the interface
+        in: query
+        name: loss
+        schema:
+          type: number
+      - description: Last sampled latency of the interface
+        in: query
+        name: latency
+        schema:
+          type: number
       - description: if `up`==`true`
         in: query
         name: stp_state
@@ -10698,6 +9951,21 @@ paths:
           - authenticated
           - authenticating
           - held
+          type: string
+      - description: LTE IMSI value, Check for null/empty
+        in: query
+        name: lte_imsi
+        schema:
+          type: string
+      - description: LTE ICCID value, Check for null/empty
+        in: query
+        name: lte_iccid
+        schema:
+          type: string
+      - description: LTE IMEI value, Check for null/empty
+        in: query
+        name: lte_imei
+        schema:
           type: string
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
@@ -10822,7 +10090,7 @@ paths:
             exist
       summary: searchSiteSwOrGwPorts
       tags:
-      - Sites Devices
+      - Sites Devices Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -11189,7 +10457,7 @@ paths:
             exist
       summary: countSiteSwitchPorts
       tags:
-      - Sites Devices
+      - Sites Devices Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -11466,140 +10734,53 @@ paths:
             exist
       summary: searchSiteSwitchPorts
       tags:
-      - Sites Devices
+      - Sites Devices Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/stats/switch_wired_clients/{device_id}/search:
+  /api/v1/sites/{site_id}/stats/switches/metrics:
     get:
-      description: This API is used to get recent wired clients mac and parent interface
-        names for a switch device
-      operationId: getSiteWiredClientAndParentInterface
+      description: 'Get version compliance metrics for managed or monitored switches
+
+        '
+      operationId: getSiteSwitchesMetrics
       parameters:
       - in: query
-        name: port_id
+        name: type
         schema:
-          example: eth-0/0/0
+          enum:
+          - active_ports_summary
+          type: string
+      - in: query
+        name: scope
+        schema:
+          enum:
+          - site
+          - switch
+          type: string
+      - description: switch mac, used only with metric `type`==`active_ports_summary`
+        in: query
+        name: switch_mac
+        schema:
           type: string
       responses:
         '200':
           content:
             application/json:
               examples:
-                Example 1:
+                '`scope`==`site`':
                   value:
-                  - device_mac: dc38e1dbf3cd
-                    hostname: test-sw1
-                    mac: b0c4e7001544
-                    org_id: a16fdfc0-8540-47ab-be59-9dd2d00e7c84
-                    port_ids:
-                    - eth-0/0/0
-                    - ge-0/0/1
-                    site_id: a16fdfc0-8540-47ab-be59-9dd2d00e7c84
-              schema:
-                items:
-                  properties:
-                    _ttl:
-                      description: TTL of the validity of the stat
-                      type: integer
-                    device_mac:
-                      description: switch mac
-                      type: string
-                    hostname:
-                      description: switch hostname
-                      type: string
-                    mac:
-                      type: string
-                    org_id:
-                      type: string
-                    port_ids:
-                      description: ports on switch where the wired client is connected
-                      items:
-                        type: string
-                      type: array
-                    site_id:
-                      type: string
-                  type: object
-                type: array
-                x-examples:
-                  Example 1:
-                  - device_mac: dc38e1dbf3cd
-                    hostname: test-sw1
-                    mac: b0c4e7001544
-                    org_id: a16fdfc0-8540-47ab-be59-9dd2d00e7c84
-                    port_ids:
-                    - eth-0/0/0
-                    - ge-0/0/1
-                    site_id: a16fdfc0-8540-47ab-be59-9dd2d00e7c84
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: getSiteWiredClientAndParentInterface
-      tags:
-      - Sites Clients - Wired
-      - Monitor
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/device_id'
-  /api/v1/sites/{site_id}/stats/switches/metrics:
-    get:
-      description: 'Get version compliance metrics for managed or monitored switches
-
-        '
-      operationId: getSiteAdoptedSwitchesComplianceMetrics
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                Example 1:
-                  value:
+                    active_ports_summary:
+                      details:
+                        active_port_count: 4
+                        total_port_count: 4
+                      score: 100
+                      total_switch_count: 2
+                    config_success:
+                      details:
+                        config_success_count: 2
+                      score: 100
+                      total_switch_count: 2
                     version_compliance:
                       details:
                         major_versions:
@@ -11613,8 +10794,43 @@ paths:
                           system_names: []
                       score: 100
                       total_switch_count: 2
+                '`scope`==`switch`':
+                  value:
+                    active_ports_summary:
+                      details:
+                        active_port_count: 1
+                        total_port_count: 2
+                      score: 50
+                      switch_id: 67970e46-4e12-11e6-9188-0242ac110007_fc334262ef00
+                      total_switch_count: 1
               schema:
                 properties:
+                  active_ports_summary:
+                    properties:
+                      details:
+                        properties:
+                          active_port_count:
+                            type: integer
+                          total_port_count:
+                            type: integer
+                        type: object
+                      score:
+                        type: integer
+                      total_switch_count:
+                        type: integer
+                    type: object
+                  config_success:
+                    properties:
+                      details:
+                        properties:
+                          config_success_count:
+                            type: integer
+                        type: object
+                      score:
+                        type: integer
+                      total_switch_count:
+                        type: integer
+                    type: object
                   version_compliance:
                     properties:
                       details:
@@ -11644,6 +10860,17 @@ paths:
                 type: object
                 x-examples:
                   Example 1:
+                    active_ports_summary:
+                      details:
+                        active_port_count: 4
+                        total_port_count: 4
+                      score: 100
+                      total_switch_count: 2
+                    config_success:
+                      details:
+                        config_success_count: 2
+                      score: 100
+                      total_switch_count: 2
                     version_compliance:
                       details:
                         major_versions:
@@ -11706,9 +10933,9 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: getSiteAdoptedSwitchesComplianceMetrics
+      summary: getSiteSwitchesMetrics
       tags:
-      - Sites Devices - Wired
+      - Sites Devices Switches
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -11803,7 +11030,7 @@ paths:
             exist
       summary: getSiteWxRulesUsage
       tags:
-      - Sites WxRules
+      - Sites Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -11951,7 +11178,7 @@ paths:
             exist
       summary: listSiteZonesStats
       tags:
-      - Sites Zones
+      - Sites Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -12033,7 +11260,7 @@ paths:
             exist
       summary: getSiteZoneStats
       tags:
-      - Sites Zones
+      - Sites Stats
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -12041,7 +11268,9 @@ paths:
     - $ref: '#/components/parameters/zone_id'
   /api/v1/sites/{site_id}/wan_client/events/count:
     get:
-      description: Count by Distinct Attributes of Site WAN Client-Events
+      description: 'Count by Distinct Attributes of Site WAN Client-Events
+
+        '
       operationId: countSiteWanClientEvents
       parameters:
       - in: query
@@ -12368,25 +11597,40 @@ paths:
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/wired_client/events/count:
+  /api/v1/sites/{site_id}/webhooks/{webhook_id}/events/search:
     get:
-      description: Count by Distinct Attributes of Site Wired Client-Events
-      operationId: countSiteWiredClientEvents
+      description: 'Search webhooks deliveries
+
+
+        To get a list of webhook deliveries in error, use the query parameter `?error=*`'
+      operationId: searchSiteWebhooksDeliveries
       parameters:
       - in: query
-        name: distinct
+        name: status_code
         schema:
-          default: type
-          enum:
-          - type
-          - hostname
-          - ip
-          - mfg
-          - mac
+          type: integer
+      - in: query
+        name: error
+        schema:
           type: string
+      - description: webhook topic
+        in: query
+        name: topic
+        schema:
+          enum:
+          - alarms
+          - audits
+          - device-updowns
+          - occupancy-alerts
+          - ping
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
-          $ref: '#/components/responses/count'
+          $ref: '#/components/responses/WebhookDeliverySearch'
         '400':
           content:
             application/json:
@@ -12435,12 +11679,13 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: countSiteWiredClientEvents
+      summary: searchSiteWebhooksDeliveries
       tags:
-      - Sites Clients - Wired
+      - Sites Webhooks
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/webhook_id'
   /api/v1/sites/{site_id}/wired_clients/count:
     get:
       description: Count by Distinct Attributes of Clients
@@ -12532,98 +11777,6 @@ paths:
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
       summary: countSiteClientsWired
-      tags:
-      - Sites Clients - Wired
-      - Monitor
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/wired_clients/events/search:
-    get:
-      description: Search Site Wired Client Events
-      operationId: searchSiteWiredClientsEvents
-      parameters:
-      - description: Event type, e.g. CLIENT_IP_ASSIGNED, CLIENT_IP_RENEWED, CLIENT_IP_EXPIRED
-        in: query
-        name: type
-        schema:
-          type: string
-      - description: partial / full MAC address
-        in: query
-        name: mac
-        schema:
-          type: string
-      - description: partial / full hostname
-        in: query
-        name: hostname
-        schema:
-          type: string
-      - description: client IP
-        in: query
-        name: ip
-        schema:
-          type: string
-      - description: Manufacture
-        in: query
-        name: mfg
-        schema:
-          type: string
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
-      responses:
-        '200':
-          $ref: '#/components/responses/WanClientEventsSearch'
-        '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
-        '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
-        '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
-        '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
-      summary: searchSiteWiredClientsEvents
       tags:
       - Sites Clients - Wired
       - Monitor
@@ -13236,14 +12389,6 @@ components:
         - default
         - fine
         type: string
-    rogue_bssid:
-      in: path
-      name: rogue_bssid
-      required: true
-      schema:
-        example: 0000000000ab
-        pattern: ^[0-9a-fA-F]{12}$
-        type: string
     rogue_type:
       in: query
       name: type
@@ -13277,6 +12422,14 @@ components:
         default: 0
         minimum: 0
         type: integer
+    webhook_id:
+      in: path
+      name: webhook_id
+      required: true
+      schema:
+        example: 000000ab-00ab-00ab-00ab-0000000000ab
+        format: uuid
+        type: string
     wxtag_id:
       in: path
       name: wxtag_id
@@ -13394,6 +12547,35 @@ components:
             - results
             type: object
       description: OK
+    AssetOfInterestArray:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+              - _checkpoint_prep: 0
+                _checkpoint_preparer: 0
+                _checkpoint_scan: 0
+                _id: string
+                _timestamp: 0
+                _ttl: 0
+                ap_mac: string
+                beam: 0
+                by: string
+                curr_site: string
+                device_name: string
+                id: string
+                last_seen: 0
+                mac: string
+                manufacture: string
+                map_id: string
+                name: string
+                rssi: 0
+          schema:
+            items:
+              $ref: ./components/schemas/AssetOfInterest.yaml
+            type: array
+      description: Example response
     AssetStats:
       content:
         application/json:
@@ -14271,6 +13453,548 @@ components:
             - uses
             type: object
       description: OK
+    DevicesArrayStatsSite:
+      content:
+        application/json:
+          examples:
+            AP:
+              value:
+              - ble_config:
+                  beacon_rate: 3
+                  beacon_rate_model: custom
+                  beam_disabled:
+                  - 1
+                  - 3
+                  - 6
+                  power: 10
+                  power_mode: custom
+                ble_stat:
+                  beacon_rate: 3
+                  eddystone_uid_enabled: false
+                  eddystone_uid_freq_msec: 200
+                  eddystone_uid_instance: 5c5b35000001
+                  eddystone_uid_namespace: 2818e3868dec25629ede
+                  eddystone_url_enabled: true
+                  eddystone_url_freq_msec: 100
+                  eddystone_url_url: https://www.abc.com
+                  ibeacon_enabled: true
+                  ibeacon_major: 13
+                  ibeacon_minor: 138
+                  ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
+                  major: 12345
+                  minors:
+                  - 201
+                  - 202
+                  - 203
+                  - 204
+                  - 205
+                  - 206
+                  - 207
+                  - 208
+                  power: 10
+                  rx_bytes: 135
+                  rx_pkts: 135
+                  tx_bytes: 5231513353
+                  tx_pkts: 135135135
+                  tx_resets: 0
+                  uuid: ada72f8f-1643-e5c6-94db-f2a5636f1a64
+                cert_expiry: 1534534392
+                ext_ip: 73.92.124.103
+                fwupdate:
+                  progress: 10
+                  status: inprogress
+                  status_id: 5
+                  timestamp: 1428949501
+                iot_stat:
+                  DI2:
+                    value: 0
+                ip: 10.2.9.159
+                ip_config:
+                  dns:
+                  - 8.8.8.8
+                  - 4.4.4.4
+                  dns_suffix:
+                  - .mist.local
+                  - .mist.com
+                  gateway: 10.2.1.254
+                  ip: 10.2.1.1
+                  netmask: 255.255.255.0
+                  type: static
+                ip_stat:
+                  dns:
+                  - 8.8.8.8
+                  - 4.4.4.4
+                  dns_suffix:
+                  - .mist.local
+                  - .mist.com
+                  gateway: 10.2.1.254
+                  gateway6: 2607:f8b0:4005:808::1
+                  ip: 10.2.1.1
+                  ip6: 2607:f8b0:4005:808::2004
+                  ips:
+                    vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
+                    vlan193: 10.73.1.31/16
+                    vlan3157: 10.72.11.14/24
+                  netmask: 255.255.255.0
+                  netmask6: /32
+                l2tp_stat:
+                  7dae216d-7c98-a51b-e068-dd7d477b7216:
+                    sessions:
+                    - local_sid: 31
+                      remote_id: vpn1
+                      remote_sid: 13
+                      state: established
+                    state: established_with_sessions
+                    uptime: 135
+                    wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
+                last_seen: 1470417522
+                last_trouble:
+                  code: '03'
+                  timestamp: 1428949501
+                led:
+                  brightness: 255
+                  enabled: true
+                lldp_stat:
+                  chassis_id: 63:68:61:73:73:69
+                  lldp_med_supported: false
+                  mgmt_addr: 10.1.5.2
+                  port_desc: 2/26
+                  power_allocated: 15500
+                  power_draw: 15000
+                  power_request_count: 3
+                  power_requested: 25500
+                  system_desc: HP J9729A 2920-48G-POE+ Switch
+                  system_name: TC2-OWL-Stack-01
+                locating: false
+                mac: 5c5b35000010
+                map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
+                mesh_downlinks:
+                  00000000-0000-0000-1000-5c5b356be59f:
+                    band: '24'
+                    channel: 7
+                    idle_time: 3
+                    last_seen: 1470417522
+                    proto: a
+                    rssi: -65
+                    rx_bps: 12
+                    rx_bytes: 217416
+                    rx_packets: 2337
+                    rx_rate: 65
+                    rx_retries: 5
+                    snr: 31
+                    tx_bps: 6
+                    tx_bytes: 175132
+                    tx_packets: 1566
+                    tx_rate: 65
+                    tx_retries: 500
+                mesh_uplink:
+                  band: '24'
+                  channel: 7
+                  idle_time: 3
+                  last_seen: 1470417522
+                  proto: a
+                  rssi: -65
+                  rx_bps: 12
+                  rx_bytes: 217416
+                  rx_packets: 2337
+                  rx_rate: 65
+                  rx_retries: 5
+                  snr: 31
+                  tx_bps: 6
+                  tx_bytes: 175132
+                  tx_packets: 1566
+                  tx_rate: 65
+                  tx_retries: 500
+                  uplink_ap_id: 00000000-0000-0000-1000-5c5b35000010
+                model: AP200
+                name: conference room
+                num_clients: 10
+                port_stat:
+                  eth0:
+                    full_duplex: true
+                    rx_bytes: 2056
+                    rx_errors: 0
+                    rx_pkts: 670
+                    speed: 1000
+                    tx_bytes: 2056
+                    tx_pkts: 670
+                    up: true
+                  eth1:
+                    up: false
+                  module:
+                    up: false
+                power_budget: -12000
+                power_src: PoE 802.3af
+                radio_config:
+                  band_24:
+                    bandwidth: 20
+                    channel: 0
+                    dynamic_chaining_enabled: false
+                    power: 0
+                    rx_chain: 4
+                    tx_chain: 4
+                  band_5:
+                    bandwidth: 40
+                    channel: 0
+                    dynamic_chaining_enabled: false
+                    power: 0
+                    rx_chain: 4
+                    tx_chain: 1
+                  scanning_enabled: true
+                radio_stat:
+                  band_24:
+                    bandwidth: 20
+                    channel: 6
+                    mac: 5c5b350004a0
+                    num_clients: 6
+                    power: 19
+                    rx_bytes: 8504737800
+                    rx_pkts: 57731964
+                    tx_bytes: 211166512114
+                    tx_pkts: 812058566
+                  band_5:
+                    bandwidth: 80
+                    channel: 44
+                    mac: 5c5b350004b0
+                    num_clients: 4
+                    power: 15
+                    rx_bytes: 10366616
+                    rx_pkts: 38603
+                    tx_bytes: 50877568
+                    tx_pkts: 145496
+                rx_bps: 60003
+                rx_bytes: 8515104416
+                rx_pkts: 57770567
+                serial: FXLH2015170017
+                status: connected
+                tx_bps: 634301
+                tx_bytes: 211217389682
+                tx_pkts: 812204062
+                type: ap
+                uptime: 13500
+                usb_stat:
+                  channel: 3
+                  connected: true
+                  last_activity: 1586873254
+                  type: imagotag
+                  up: true
+                version: 1.0.0
+                x: 53.5
+                y: 173.1
+            Gateway:
+              value:
+              - cluster_stat:
+                  node0:
+                    status: ''
+                  node1: {}
+                cpu2_stat: ''
+                cpu_stat:
+                  idle: 28
+                  interrupt: 8
+                  load_avg:
+                  - 0.9700000286102295
+                  - 1.0499999523162842
+                  - 1.0199999809265137
+                  system: 41
+                  user: 23
+                hostname: sj1
+                ip: 10.2.11.137
+                ip_stat:
+                  dns:
+                  - 8.8.8.8
+                  - 4.4.4.4
+                  dns_suffix:
+                  - .mist.local
+                  - .mist.com
+                  gateway: 10.2.1.1
+                  gateway6: 2607:f8b0:4005:808::1
+                  ip: 10.2.11.137
+                  ip6: 2607:f8b0:4005:808::2004
+                  ips:
+                    vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
+                    vlan193: 10.73.1.31/16
+                    vlan3157: 10.72.11.14/24
+                  netmask: 255.255.192.0
+                  netmask6: /32
+                last_seen: 1553203563
+                mac: dc38e1dbf3cd
+                memory_stat:
+                  usage: 35
+                model: SRX320
+                module2_stat: ''
+                module_stat:
+                - fans:
+                  - name: Fan 0
+                    status: absent
+                  - airflow: out
+                    name: Fan 1
+                    status: ok
+                  model: EX4300-48P
+                  poe:
+                    max_power: 250
+                    power_draw: 120.3
+                  psus:
+                  - name: Power Supply 0
+                    status: ok
+                  - name: Power Supply 1
+                    status: failed
+                  serial: PX8716230021
+                  temperatures:
+                  - celsius: 45
+                    name: CPU
+                    status: ok
+                  vc_links:
+                  - neighbor_module_idx: 1
+                    neighbor_port_id: vcp-255/1/0
+                    port_id: vcp-255/1/0
+                  vc_role: master
+                name: sj1
+                serial: TC3714190003
+                spu2_stat: ''
+                spu_stat:
+                  cpu: 15
+                  memory: 32
+                  sessions:
+                    current: 41
+                    max: 65535
+                    pending: 12
+                    valid: 15
+                status: connected
+                type: gateway
+                uptime: 13500
+                version: 18.4R1.8
+            Switch:
+              value:
+              - ble_config:
+                  beacon_rate: 3
+                  beacon_rate_model: custom
+                  beam_disabled:
+                  - 1
+                  - 3
+                  - 6
+                  power: 10
+                  power_mode: custom
+                ble_stat:
+                  beacon_rate: 3
+                  eddystone_uid_enabled: false
+                  eddystone_uid_freq_msec: 200
+                  eddystone_uid_instance: 5c5b35000001
+                  eddystone_uid_namespace: 2818e3868dec25629ede
+                  eddystone_url_enabled: true
+                  eddystone_url_freq_msec: 100
+                  eddystone_url_url: https://www.abc.com
+                  ibeacon_enabled: true
+                  ibeacon_major: 13
+                  ibeacon_minor: 138
+                  ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
+                  major: 12345
+                  minors:
+                  - 201
+                  - 202
+                  - 203
+                  - 204
+                  - 205
+                  - 206
+                  - 207
+                  - 208
+                  power: 10
+                  rx_bytes: 135
+                  rx_pkts: 135
+                  tx_bytes: 5231513353
+                  tx_pkts: 135135135
+                  tx_resets: 0
+                  uuid: ada72f8f-1643-e5c6-94db-f2a5636f1a64
+                cert_expiry: 1534534392
+                ext_ip: 73.92.124.103
+                fwupdate:
+                  progress: 10
+                  status: inprogress
+                  status_id: 5
+                  timestamp: 1428949501
+                iot_stat:
+                  DI2:
+                    value: 0
+                ip: 10.2.9.159
+                ip_config:
+                  dns:
+                  - 8.8.8.8
+                  - 4.4.4.4
+                  dns_suffix:
+                  - .mist.local
+                  - .mist.com
+                  gateway: 10.2.1.254
+                  ip: 10.2.1.1
+                  netmask: 255.255.255.0
+                  type: static
+                ip_stat:
+                  dns:
+                  - 8.8.8.8
+                  - 4.4.4.4
+                  dns_suffix:
+                  - .mist.local
+                  - .mist.com
+                  gateway: 10.2.1.254
+                  gateway6: 2607:f8b0:4005:808::1
+                  ip: 10.2.1.1
+                  ip6: 2607:f8b0:4005:808::2004
+                  ips:
+                    vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
+                    vlan193: 10.73.1.31/16
+                    vlan3157: 10.72.11.14/24
+                  netmask: 255.255.255.0
+                  netmask6: /32
+                l2tp_stat:
+                  7dae216d-7c98-a51b-e068-dd7d477b7216:
+                    sessions:
+                    - local_sid: 31
+                      remote_id: vpn1
+                      remote_sid: 13
+                      state: established
+                    state: established_with_sessions
+                    uptime: 135
+                    wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
+                last_seen: 1470417522
+                last_trouble:
+                  code: '03'
+                  timestamp: 1428949501
+                led:
+                  brightness: 255
+                  enabled: true
+                lldp_stat:
+                  chassis_id: 63:68:61:73:73:69
+                  lldp_med_supported: false
+                  mgmt_addr: 10.1.5.2
+                  port_desc: 2/26
+                  power_allocated: 15500
+                  power_draw: 15000
+                  power_request_count: 3
+                  power_requested: 25500
+                  system_desc: HP J9729A 2920-48G-POE+ Switch
+                  system_name: TC2-OWL-Stack-01
+                locating: false
+                mac: 5c5b35000010
+                map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
+                mesh_downlinks:
+                  00000000-0000-0000-1000-5c5b356be59f:
+                    band: '24'
+                    channel: 7
+                    idle_time: 3
+                    last_seen: 1470417522
+                    proto: a
+                    rssi: -65
+                    rx_bps: 12
+                    rx_bytes: 217416
+                    rx_packets: 2337
+                    rx_rate: 65
+                    rx_retries: 5
+                    snr: 31
+                    tx_bps: 6
+                    tx_bytes: 175132
+                    tx_packets: 1566
+                    tx_rate: 65
+                    tx_retries: 500
+                mesh_uplink:
+                  band: '24'
+                  channel: 7
+                  idle_time: 3
+                  last_seen: 1470417522
+                  proto: a
+                  rssi: -65
+                  rx_bps: 12
+                  rx_bytes: 217416
+                  rx_packets: 2337
+                  rx_rate: 65
+                  rx_retries: 5
+                  snr: 31
+                  tx_bps: 6
+                  tx_bytes: 175132
+                  tx_packets: 1566
+                  tx_rate: 65
+                  tx_retries: 500
+                  uplink_ap_id: 00000000-0000-0000-1000-5c5b35000010
+                model: AP200
+                name: conference room
+                num_clients: 10
+                port_stat:
+                  eth0:
+                    full_duplex: true
+                    rx_bytes: 2056
+                    rx_errors: 0
+                    rx_pkts: 670
+                    speed: 1000
+                    tx_bytes: 2056
+                    tx_pkts: 670
+                    up: true
+                  eth1:
+                    up: false
+                  module:
+                    up: false
+                power_budget: -12000
+                power_src: PoE 802.3af
+                radio_config:
+                  band_24:
+                    bandwidth: 20
+                    channel: 0
+                    dynamic_chaining_enabled: false
+                    power: 0
+                    rx_chain: 4
+                    tx_chain: 4
+                  band_5:
+                    bandwidth: 40
+                    channel: 0
+                    dynamic_chaining_enabled: false
+                    power: 0
+                    rx_chain: 4
+                    tx_chain: 1
+                  scanning_enabled: true
+                radio_stat:
+                  band_24:
+                    bandwidth: 20
+                    channel: 6
+                    mac: 5c5b350004a0
+                    num_clients: 6
+                    power: 19
+                    rx_bytes: 8504737800
+                    rx_pkts: 57731964
+                    tx_bytes: 211166512114
+                    tx_pkts: 812058566
+                  band_5:
+                    bandwidth: 80
+                    channel: 44
+                    mac: 5c5b350004b0
+                    num_clients: 4
+                    power: 15
+                    rx_bytes: 10366616
+                    rx_pkts: 38603
+                    tx_bytes: 50877568
+                    tx_pkts: 145496
+                rx_bps: 60003
+                rx_bytes: 8515104416
+                rx_pkts: 57770567
+                serial: FXLH2015170017
+                status: connected
+                tx_bps: 634301
+                tx_bytes: 211217389682
+                tx_pkts: 812204062
+                type: ap
+                uptime: 13500
+                usb_stat:
+                  channel: 3
+                  connected: true
+                  last_activity: 1586873254
+                  type: imagotag
+                  up: true
+                version: 1.0.0
+                x: 53.5
+                y: 173.1
+          schema:
+            items:
+              anyOf:
+              - $ref: ./components/schemas/stats_device_ap.yaml
+              - $ref: ./components/schemas/stats_device_switch_site.yaml
+              - $ref: ./components/schemas/stats_device_gateway.yaml
+            type: array
+      description: OK
     DevicesEventsSearch:
       content:
         application/json:
@@ -14625,6 +14349,14 @@ components:
             - results
             type: object
       description: OK
+    File:
+      content:
+        application/json:
+          schema:
+            description: File
+            format: binary
+            type: string
+      description: OK
     GuestsArray:
       content:
         application/json:
@@ -14777,200 +14509,6 @@ components:
             - start
             type: object
       description: OK
-    InsightRogue:
-      content:
-        application/json:
-          examples:
-            example-1:
-              value:
-                end: 1428954000
-                limit: 100
-                next: /api/v1/sites/a3eda150-ab3f-11e4-aa18-13e21dd250cc/rogues?start=1498482000&end=1498485600&limit=10&interval=1h&type=others
-                results:
-                - ap_mac: 5c5b350e021c
-                  avg_rssi: -72
-                  bssid: d8-97-ba-76-b5-aa
-                  channel: '11'
-                  num_aps: 4
-                  ssid: xfinitywifi
-                  times_heard: 8
-                start: 1428939600
-          schema:
-            properties:
-              end:
-                type: integer
-              limit:
-                type: integer
-              next:
-                description: "link to next set of results. If more results aren\u2019\
-                  t present, next is null."
-                type: string
-              results:
-                items:
-                  properties:
-                    ap_mac:
-                      description: mac of the device that had strongest signal strength
-                        for ssid/bssid pair
-                      type: string
-                    avg_rssi:
-                      description: average signal strength of ap_mac for ssid/bssid
-                        pair
-                      type: number
-                    bssid:
-                      description: bssid of the network detected as threat
-                      type: string
-                    channel:
-                      description: channel over which ap_mac heard ssid/bssid pair
-                      type: string
-                    delta_x:
-                      description: X position relative to the reporting AP (`ap_mac`)
-                      type: number
-                    delta_y:
-                      description: Y position relative to the reporting AP (`ap_mac`)
-                      type: number
-                    num_aps:
-                      description: num of aps that heard the ssid/bssid pair
-                      type: integer
-                    seen_on_lan:
-                      description: whether the reporting AP see a wireless client
-                        (on LAN) connecting to it
-                      type: boolean
-                    ssid:
-                      description: ssid of the network detected as threat
-                      type: string
-                    times_heard:
-                      description: represents number of times the pair was heard in
-                        the interval. Each count roughly corresponds to a minute.
-                      type: integer
-                  required:
-                  - ap_mac
-                  - avg_rssi
-                  - bssid
-                  - channel
-                  - num_aps
-                  type: object
-                minItems: 0
-                type: array
-                uniqueItems: true
-              start:
-                type: integer
-            required:
-            - end
-            - limit
-            - results
-            - start
-            type: object
-      description: OK
-    InsightRogueClients:
-      content:
-        application/json:
-          examples:
-            example-1:
-              value:
-                end: 1428954000
-                limit: 100
-                next: /api/v1/sites/a3eda150-ab3f-11e4-aa18-13e21dd250cc/rogues/clients?start=1498482000&end=1498485600&limit=10&interval=1h
-                results:
-                - annotation: whitelist
-                  ap_mac: 5c-5b-35-0e-02-1c
-                  avg_rssi: -63.9
-                  band: '5'
-                  bssid: d8-97-ba-76-b5-aa
-                  client_mac: 34-f8-32-13-57-c2
-                  num_aps: 2
-                start: 1428939600
-          schema:
-            properties:
-              end:
-                type: integer
-              limit:
-                type: integer
-              next:
-                type: string
-              results:
-                items:
-                  properties:
-                    annotation:
-                      type: string
-                    ap_mac:
-                      type: string
-                    avg_rssi:
-                      type: number
-                    band:
-                      type: string
-                    bssid:
-                      type: string
-                    client_mac:
-                      type: string
-                    num_aps:
-                      type: integer
-                  required:
-                  - bssid
-                  - ap_mac
-                  - client_mac
-                  - num_aps
-                  - band
-                  - avg_rssi
-                  - annotation
-                minItems: 1
-                type: array
-                uniqueItems: true
-              start:
-                type: integer
-            required:
-            - start
-            - end
-            - limit
-            - next
-            - results
-            type: object
-      description: OK
-    Ml:
-      content:
-        application/json:
-          examples:
-            example-1:
-              value:
-              - current:
-                  Android:
-                    completed: 36
-                    int: -6
-                    level: 3
-                    ple: -3
-                    quality: '4'
-                    src: device
-                    timestamp: 1442854794
-                  iOS:
-                    completed: 16
-                    int: -6
-                    level: 6
-                    ple: -3
-                    quality: '2'
-                    src: default
-                    timestamp: 1442854704
-                  iPod:
-                    int: -10
-                    overwrite: true
-                    ple: -5
-                    src: overwrite
-                device_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-              - beacon_id: 7913f032-aab4-c3ae-e83e-5a2756ef4d40
-                current:
-                  iOS:
-                    completed: 16
-                    int: -6
-                    level: 6
-                    ple: -3
-                    quality: last
-                    src: device
-                    timestamp: 1442854704
-          schema:
-            items:
-              type: object
-            minItems: 1
-            type: array
-            uniqueItems: true
-      description: OK
     MlEvents:
       content:
         application/json:
@@ -15037,12 +14575,6 @@ components:
             - end
             - interval
             - updates
-            type: object
-      description: OK
-    OK:
-      content:
-        application/json:
-          schema:
             type: object
       description: OK
     RogueEventsSearch:
@@ -15388,21 +14920,108 @@ components:
             - start
             type: object
       description: OK
-    Session:
+    SleClassifierSummary:
       content:
         application/json:
           examples:
             example-1:
               value:
-                session: session_id
+                classifier:
+                  impact:
+                    num_aps: 2
+                    num_users: 17
+                  interval: 3600
+                  name: wifi-interference
+                  samples:
+                    degraded:
+                    - 0
+                    - 0
+                    - 210.03334
+                    - 3.1333334
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 102.5
+                    - 108.03333
+                    - 0
+                    - 0
+                    - 201.9
+                    - 566.48334
+                    - 135.63333
+                    - 0
+                    duration:
+                    - 0
+                    - 0
+                    - 210.03334
+                    - 3.1333334
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 102.5
+                    - 108.03333
+                    - 0
+                    - 0
+                    - 201.9
+                    - 566.48334
+                    - 135.63333
+                    - 0
+                    total:
+                    - 1302.3
+                    - 1289.0167
+                    - 1396.3167
+                    - 1423.6666
+                    - 1439.2167
+                    - 1414.7
+                    - 1361.0834
+                    - 1371.5834
+                    - 1372.0667
+                    - 1339.1
+                    - 1374.3667
+                    - 1369.9
+                    - 1352.4833
+                    - 1382.8
+                    - 1426.7167
+                    - 1425.6333
+                    - 1403.9333
+                    - 1420.75
+                    - 1416.8334
+                    - 1437.3334
+                    - 1425.1
+                    - 1485.3667
+                    - 1426.4333
+                    - 444.13333
+                  x_label: seconds
+                  y_label: user-minutes
+                end: 1627312871
+                failures: []
+                impact:
+                  num_aps: 2
+                  num_users: 21
+                  total_aps: 3
+                  total_users: 26
+                metric: capacity
+                start: 1627226471
           schema:
-            properties:
-              session:
-                type: string
-            required:
-            - session
-            type: object
-      description: OK
+            $ref: ./components/schemas/sle_classifier_summary.yaml
+      description: Example response
     SleHistogram:
       content:
         application/json:
@@ -16259,22 +15878,6 @@ components:
           schema:
             $ref: ./components/schemas/sle_summary.yaml
       description: Example response
-    SleThreshold:
-      content:
-        application/json:
-          examples:
-            example-1:
-              value:
-                default: -72
-                direction: left
-                maximum: -60
-                metric: coverage
-                minimum: -90
-                threshold: '-66'
-                units: dBm
-          schema:
-            $ref: ./components/schemas/sle_threshold.yaml
-      description: Example response
     WanClientEventsSearch:
       content:
         application/json:
@@ -16357,6 +15960,81 @@ components:
                 results: []
                 start: 1685627565
                 total: 0
+      description: Example response
+    WebhookDeliverySearch:
+      content:
+        application/json:
+          examples:
+            webhook_deliveries:
+              value:
+                end: 1688035193
+                limit: 10
+                results:
+                - error: string
+                  id: 55b0f02f-ebf6-4ad2-8b10-200508a97581
+                  org_id: fc7e2967-e7ef-41e6-b007-1217713de05a
+                  req_headers: '{"Content-Type":["application/json"],"User-Agent":["Mist-webhook"]}'
+                  req_payload: '{"topic":"audits","events":[{"admin_name":"John Doe
+                    john.doe@juniper.net","after":"{\"radio_config\": {\"band_24\":
+                    {\"disabled\": false, \"allow_rrm_disable\": false, \"power_min\":
+                    null, \"power_max\": null, \"power\": 10, \"preamble\": \"short\",
+                    \"channels\": [1, 10], \"bandwidth\": 20}}}","before":"{\"radio_config\":
+                    {\"band_24\": {\"disabled\": false, \"allow_rrm_disable\": false,
+                    \"power_min\": 8, \"power_max\": 18, \"power\": null, \"preamble\":
+                    \"long\", \"channels\": [1, 10], \"bandwidth\": 20}}}","id":"737909a2-04ff-4aeb-b9da-cc924e74a4dd","message":"Update
+                    Site Settings","org_id":"fc7e2967-e7ef-41e6-b007-1217713de05a","site_id":"256c3a35-9cb7-436e-bc6d-314972645d95","site_name":"Test
+                    Site","src_ip":"1.2.3.4","timestamp":1685956576.923601,"user_agent":"Mozilla/5.0
+                    (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
+                    like Gecko) Chrome/112.0.0.0 Safari/537.36"}]}'
+                  req_url: http://example.com
+                  resp_body: Ok
+                  resp_headers: string
+                  site_id: 256c3a35-9cb7-436e-bc6d-314972645d95
+                  status_code: 200
+                  timestamp: 1687962508.583656
+                  topic: audits
+                  webhook_id: 7a11b901-f719-4c91-8aef-deb8699a6364
+                start: 1687948793
+                total: 0
+          schema:
+            properties:
+              end:
+                example: 1688035193
+                type: integer
+              limit:
+                example: 10
+                type: integer
+              results:
+                items:
+                  $ref: ./components/schemas/webhook_delivery.yaml
+                type: array
+              start:
+                example: 1687948793
+                type: integer
+              total:
+                type: integer
+            type: object
+            x-examples:
+              Example 1:
+                end: 1688035193
+                limit: 10
+                results:
+                - id: 488689ab-72de-4fe4-b324-92de808931d9
+                  org_id: 203d3d02-dbc0-4c1b-9f41-76896a3330f4
+                  req_headers: '{"Content-Type":["application/json"],"User-Agent":["Mist-webhook"],"X-Mist-Signature":["1f3d5942bd85e30713ea73aff6bf2f035fae339a"],"X-Mist-Signature-V2":["2ab9a2ebe0843cc2646114a4487189736a9cc8a912b12f81b560bbfc049e98d9"]}'
+                  req_payload: '{"topic":"audits","events":[{"admin_name":"Thomas
+                    Munzer tmunzer@juniper.net","id":"5f0baf12-b81c-41ff-b042-7fa0aecda95c","message":"Accessed
+                    Org \"TM-LAB\"","org_id":"203d3d02-dbc0-4c1b-9f41-76896a3330f4","src_ip":"15.237.122.52","timestamp":1687962507.292103,"user_agent":"python-requests/2.28.2"}]}'
+                  req_url: https://mwtt.stag.one:43215/
+                  resp_body: ok
+                  resp_headers: '{"Content-Length":["2"],"Content-Type":["text/plain"]}'
+                  site_id: 00000000-0000-0000-0000-000000000000
+                  status_code: 200
+                  timestamp: 1687962508.583656
+                  topic: audits
+                  webhook_id: 032b9cb1-80af-4edc-98e7-bf41069c9a50
+                start: 1687948793
+                total: 1
       description: Example response
     WiredClientsSearch:
       content:

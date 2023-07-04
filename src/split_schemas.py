@@ -7,7 +7,7 @@ with open("mist.openapi.yml", "r") as f:
     data = yaml.load(f, Loader=yaml.loader.SafeLoader)
 
 
-cat = [ "Constants", "Authentication", "Monitor", "Operational"]
+cat = [ "Constants", "Authentication", "Monitor", "Configuration"]
 verbs = ["get", "post", "put", "delete"]
 order = ["openapi", "info", "servers", "security",
          "tags", "paths", "components", "x-tagGroups"]
@@ -27,27 +27,27 @@ cat_paths = {
     "constants": {},
     "authentication": {},
     "monitor": {},
-    "operational": {},
+    "configuration": {},
 }
 
 cat_params = {
     "constants": [],
     "authentication": [],
     "monitor": [],
-    "operational": [],
+    "configuration": [],
 }
 cat_responses = {
     "constants": [],
     "authentication": [],
     "monitor": [],
-    "operational": [],
+    "configuration": [],
 }
 
 cat_schemas = {
     "constants": [],
     "authentication": [],
     "monitor": [],
-    "operational": [],
+    "configuration": [],
 }
 
 missing = []
@@ -67,7 +67,7 @@ def create_schema(schema_title:str, schema_data:dict):
     print(type(output_str))
     output = json.loads(output_str)
     
-    with open(f"../components/schemas/{schema_title}.yaml", "w") as f:
+    with open(f"../v2/components/schemas/{schema_title}.yaml", "w") as f:
         yaml.dump(output, f)
 
 
