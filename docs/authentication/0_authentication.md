@@ -97,7 +97,7 @@ POST /api/v1/login
 
 ```
 
-### Example
+#### Example
 
 ```json
 {
@@ -107,14 +107,14 @@ POST /api/v1/login
 
 ```
 
-### Parameter
+#### Parameter
 
 | Name | Type | Description |
 | --- | --- | --- |
 | `email` | `string` | **Required.** |
 | `password` | `string` | **Required.** |
 
-### Response if login successfully (i.e. email/password matches)
+#### Response if login successfully (i.e. email/password matches)
 
 ```
 Status: 200 OK
@@ -122,7 +122,7 @@ Set-Cookie: csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue, 15-Mar-2016
 
 ```
 
-### Response if login failed
+#### Response if login failed
 
 ```json
 Status: 400 Bad Request
@@ -143,7 +143,7 @@ POST /api/v1/login
 
 ```
 
-### Example
+#### Example
 
 ```json
 {
@@ -154,7 +154,7 @@ POST /api/v1/login
 
 ```
 
-### Parameter
+#### Parameter
 
 | Name | Type | Description |
 | --- | --- | --- |
@@ -162,7 +162,7 @@ POST /api/v1/login
 | `password` | `string` | **Required.** |
 | `two_factor` | `string` | if two-factor authentication is enabled, this can be used to skip a separate call to /login/two_factor |
 
-### Response if login successfully (i.e. email/password/two_factor matches)
+#### Response if login successfully (i.e. email/password/two_factor matches)
 
 ```
 Status: 200 OK
@@ -170,14 +170,14 @@ Set-Cookie: csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue, 15-Mar-2016
 
 ```
 
-### Response if login failed
+#### Response if login failed
 
 ```
 Status: 400 Bad Request
 
 ```
 
-### Response if email/password matches but `two_factor` doesn’t match
+#### Response if email/password matches but `two_factor` doesn’t match
 
 The session is partially created, /self reflects the pending two_factor authentication. Use /login/two_factor to login fully
 
@@ -187,7 +187,7 @@ Set-Cookie: csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue, 15-Mar-2016
 
 ```
 
-### Response if email/password matches but `two_factor` is not provided
+#### Response if email/password matches but `two_factor` is not provided
 
 The session is partially created, /self reflects the pending two_factor authentication. Use /login/two_factor to login fully
 
@@ -204,7 +204,7 @@ POST /api/v1/login/two_factor
 
 ```
 
-### Request
+#### Request
 
 ```json
 {
@@ -213,7 +213,7 @@ POST /api/v1/login/two_factor
 
 ```
 
-### Response if provided two_factor code is correct
+#### Response if provided two_factor code is correct
 
 ```
 Status: 200 OK
@@ -221,30 +221,30 @@ Set-Cookie: csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue, 15-Mar-2016
 
 ```
 
-### Response if provided two_factor code is incorrect
+#### Response if provided two_factor code is incorrect
 
 ```
 Status: 401 Unauthorized
 
 ```
 
-### Response if the user hasn’t login yet
+#### Response if the user hasn’t login yet
 
 ```
 Status: 401 Unauthorized
 
 ```
 
-### Response if the user doesn’t have 2FA enabled
+#### Response if the user doesn’t have 2FA enabled
 
 ```
 Status 404 Not Found
 
 ```
 
-## Login with OAuth2
+## OAuth2
 
-### Overview
+#### Overview
 
 A Mist account can be _linked_ to OAuth2 providers:
 
@@ -254,7 +254,7 @@ A Mist account can be _linked_ to OAuth2 providers:
 4. Link Mist Account against OAuth2 Provider by using the authorization code
     
 
-## Obtain Authorization URL for Linking
+### Obtain Authorization URL for Linking
 
 ```
 GET /api/v1/self/oauth/:provider
@@ -262,7 +262,7 @@ GET /api/v1/self/oauth/:provider?forward=http://manage.mist.com/oauth/callback.h
 
 ```
 
-### Response
+#### Response
 
 ```json
 {
@@ -272,11 +272,11 @@ GET /api/v1/self/oauth/:provider?forward=http://manage.mist.com/oauth/callback.h
 
 ```
 
-## Obtain Authorization Code
+### Obtain Authorization Code
 
 As OAuth2 flow goes through provider’s UI and back with the authorization code, there are two ways to get it 1. in JSON response, more usable for developers. Simply don’t specify the `forward` parameter when obtaining the authorization URL 2. as GET parameter, for UI where the user flow can be continued. Specify the landing page/url of your choice
 
-### Response as JSON payload
+#### Response as JSON payload
 
 ```json
 {
@@ -285,7 +285,7 @@ As OAuth2 flow goes through provider’s UI and back with the authorization code
 
 ```
 
-### Response if forward is provided
+#### Response if forward is provided
 
 ```
 HTTP/1.1 302 Found
@@ -293,14 +293,14 @@ Location: https://forwarded.host/path?code=:code
 
 ```
 
-## Link Mist account with an OAuth2 Provider
+### Link Mist account with an OAuth2 Provider
 
 ```
 POST /api/v1/self/oauth/:provider
 
 ```
 
-### Request
+#### Request
 
 ```json
 {
@@ -309,7 +309,7 @@ POST /api/v1/self/oauth/:provider
 
 ```
 
-### Response if OK
+#### Response if OK
 
 ```json
 Status: 200 OK
@@ -321,7 +321,7 @@ Status: 200 OK
 
 ```
 
-### Response if Authorization Error
+#### Response if Authorization Error
 
 ```json
 Status: 400 Bad Request
@@ -333,7 +333,7 @@ Status: 400 Bad Request
 
 ```
 
-## Obtain Authorization URL for Login
+### Obtain Authorization URL for Login
 
 ```
 GET /api/v1/login/oauth/:provider
@@ -341,7 +341,7 @@ GET /api/v1/login/oauth/:provider?forward=http://manage.mist.com/oauth/callback.
 
 ```
 
-### Response
+#### Response
 
 ```json
 {
@@ -351,14 +351,14 @@ GET /api/v1/login/oauth/:provider?forward=http://manage.mist.com/oauth/callback.
 
 ```
 
-## Login via OAuth2
+### Login via OAuth2
 
 ```
 POST /api/v1/login/oauth/:provider
 
 ```
 
-### Request
+#### Request
 
 ```json
 {
@@ -367,21 +367,21 @@ POST /api/v1/login/oauth/:provider
 
 ```
 
-## Unlink OAuth2 Provider
+### Unlink OAuth2 Provider
 
 ```
 DELETE /api/v1/self/oauth/:provider
 
 ```
 
-## See Linked OAuth2 Provider
+### See Linked OAuth2 Provider
 
 ```
 GET /api/v1/self
 
 ```
 
-### Response
+#### Response
 
 ```json
 {
