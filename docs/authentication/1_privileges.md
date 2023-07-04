@@ -89,17 +89,3 @@ Status: 200 OK
 | `site_id` | `string` | id of the site |
 | `sitegroup_ids` | `list` | list of sitegroup ids |
 | `tags` | `list` | list of strings indicating capabilities. e.g. what to show/hide/disable/enable for this user |
-
-### Response if two-factor authentication is pending
-
-```json
-Status: 200 OK
-
-{
-    "email": "test@mistsys.com",
-    "privileges": null,
-    "two_factor_required": true,
-    "two_factor_passed": false
-}
-
-```

@@ -10,10 +10,9 @@ Get ‘whoami’ and privileges (which org and which sites I have access to)
 
 ```
 GET /api/v1/self
-
 ```
 
-### Response if a valid session has been created
+#### Response if a valid session has been created
 
 ```json
 Status: 200 OK
@@ -27,10 +26,9 @@ Status: 200 OK
     "via_sso": false,
     "tags": [ "has_8021x", "mist" ]
 }
-
 ```
 
-### Definitions
+#### Definitions
 
 | Name | Type | Description |
 | --- | --- | --- |
@@ -42,44 +40,54 @@ Status: 200 OK
 | `via_sso` | `boolean` | an admin alogin via_sso is more restircted. (password and email cannot be changed) |
 | `tags` | `list` | list of strings indicating capabilities. e.g. what to show/hide/disable/enable for this user |
 
+#### Response if two-factor authentication is pending
+
+```json
+Status: 200 OK
+
+{
+    "email": "test@mistsys.com",
+    "privileges": null,
+    "two_factor_required": true,
+    "two_factor_passed": false
+}
+```
+
+
 ## Login Lookup
 
 ```
 POST /api/v1/login/lookup
-
 ```
 
-### Example
+#### Example
 
 ```json
 {
     "email": "test@mistsys.com"
 }
-
 ```
 
-### Parameter
+#### Parameter
 
 | Name | Type | Description |
 | --- | --- | --- |
 | `email` | `string` | **Required.** |
 
-### Response if user does not exist
+#### Response if user does not exist
 
 ```json
 Status: 404 Not Found
-
 ```
 
-### Response if local account exists
+#### Response if local account exists
 
 ```json
 Status: 200 OK
 
-
 ```
 
-### Response if SSO user exists
+#### Response if SSO user exists
 
 ```json
 Status: 200 OK
@@ -87,14 +95,12 @@ Status: 200 OK
 {
     "sso_url": "https://my.sso/idp_sso_url"
 }
-
 ```
 
 ## Login
 
 ```
 POST /api/v1/login
-
 ```
 
 #### Example
@@ -104,7 +110,6 @@ POST /api/v1/login
     "email": "test@mistsys.com",
     "password": "foryoureyesonly"
 }
-
 ```
 
 #### Parameter
@@ -119,7 +124,6 @@ POST /api/v1/login
 ```
 Status: 200 OK
 Set-Cookie: csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue, 15-Mar-2016 19:47:20 GMT; Max-Age=31449600; Path=/
-
 ```
 
 #### Response if login failed
@@ -131,7 +135,6 @@ Status: 400 Bad Request
     "detail": "sso admin login needs to be initiated by IdP",
     "forward_url": "https://my.sso/idp_sso_url"
 }
-
 ```
 
 ## Login with 2FA
@@ -140,7 +143,6 @@ When 2FA is enabled, there are two ways to login. 1. login with two_factor token
 
 ```
 POST /api/v1/login
-
 ```
 
 #### Example
@@ -151,7 +153,6 @@ POST /api/v1/login
     "password": "foryoureyesonly",
     "two_factor": "123456"
 }
-
 ```
 
 #### Parameter
@@ -167,14 +168,12 @@ POST /api/v1/login
 ```
 Status: 200 OK
 Set-Cookie: csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue, 15-Mar-2016 19:47:20 GMT; Max-Age=31449600; Path=/
-
 ```
 
 #### Response if login failed
 
 ```
 Status: 400 Bad Request
-
 ```
 
 #### Response if email/password matches but `two_factor` doesn’t match
@@ -184,7 +183,6 @@ The session is partially created, /self reflects the pending two_factor authenti
 ```
 Status: 401 Unauthorized
 Set-Cookie: csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue, 15-Mar-2016 19:47:20 GMT; Max-Age=31449600; Path=/
-
 ```
 
 #### Response if email/password matches but `two_factor` is not provided
@@ -194,14 +192,12 @@ The session is partially created, /self reflects the pending two_factor authenti
 ```
 Status: 200 OK
 Set-Cookie: csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue, 15-Mar-2016 19:47:20 GMT; Max-Age=31449600; Path=/
-
 ```
 
 ## Perform Two-Factor Authentication
 
 ```
 POST /api/v1/login/two_factor
-
 ```
 
 #### Request
@@ -210,7 +206,6 @@ POST /api/v1/login/two_factor
 {
     "two_factor": "123456"
 }
-
 ```
 
 #### Response if provided two_factor code is correct
@@ -218,33 +213,29 @@ POST /api/v1/login/two_factor
 ```
 Status: 200 OK
 Set-Cookie: csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue, 15-Mar-2016 19:47:20 GMT; Max-Age=31449600; Path=/
-
 ```
 
 #### Response if provided two_factor code is incorrect
 
 ```
 Status: 401 Unauthorized
-
 ```
 
 #### Response if the user hasn’t login yet
 
 ```
 Status: 401 Unauthorized
-
 ```
 
 #### Response if the user doesn’t have 2FA enabled
 
 ```
 Status 404 Not Found
-
 ```
 
 ## OAuth2
 
-#### Overview
+### Process Overview
 
 A Mist account can be _linked_ to OAuth2 providers:
 
@@ -259,7 +250,6 @@ A Mist account can be _linked_ to OAuth2 providers:
 ```
 GET /api/v1/self/oauth/:provider
 GET /api/v1/self/oauth/:provider?forward=http://manage.mist.com/oauth/callback.html
-
 ```
 
 #### Response
@@ -269,7 +259,6 @@ GET /api/v1/self/oauth/:provider?forward=http://manage.mist.com/oauth/callback.h
     "linked": false,
     "authorization_url": "https://accounts.google.com/o/oauth2/v2/auth?....."
 }
-
 ```
 
 ### Obtain Authorization Code
@@ -282,7 +271,6 @@ As OAuth2 flow goes through provider’s UI and back with the authorization code
 {
     "code": "4/S9tegDeLkrYg0L9pWNXV4cgMVbbr3SR9t693A2kSHzw"
 }
-
 ```
 
 #### Response if forward is provided
@@ -290,14 +278,12 @@ As OAuth2 flow goes through provider’s UI and back with the authorization code
 ```
 HTTP/1.1 302 Found
 Location: https://forwarded.host/path?code=:code
-
 ```
 
 ### Link Mist account with an OAuth2 Provider
 
 ```
 POST /api/v1/self/oauth/:provider
-
 ```
 
 #### Request
@@ -306,7 +292,6 @@ POST /api/v1/self/oauth/:provider
 {
     "code": "4/S9tegDeLkrYg0L9pWNXV4cgMVbbr3SR9t693A2kSHzw"
 }
-
 ```
 
 #### Response if OK
@@ -318,7 +303,6 @@ Status: 200 OK
     "action": "oauth account linked",
     "id": "google-user-id"
 }
-
 ```
 
 #### Response if Authorization Error
@@ -330,7 +314,6 @@ Status: 400 Bad Request
     "error": "access_denied",
     "error_description": "The resource owner or authorization server denied the request."
 }
-
 ```
 
 ### Obtain Authorization URL for Login
@@ -338,7 +321,6 @@ Status: 400 Bad Request
 ```
 GET /api/v1/login/oauth/:provider
 GET /api/v1/login/oauth/:provider?forward=http://manage.mist.com/oauth/callback.html
-
 ```
 
 #### Response
@@ -348,14 +330,12 @@ GET /api/v1/login/oauth/:provider?forward=http://manage.mist.com/oauth/callback.
     "client_id": "173131512-mpbnju32.apps.googleusercontent.com",
     "authorization_url": "https://accounts.google.com/o/oauth2/v2/auth?....."
 }
-
 ```
 
 ### Login via OAuth2
 
 ```
 POST /api/v1/login/oauth/:provider
-
 ```
 
 #### Request
@@ -364,21 +344,18 @@ POST /api/v1/login/oauth/:provider
 {
     "code": "4/S9tegDeLkrYg0L9pWNXV4cgMVbbr3SR9t693A2kSHzw"
 }
-
 ```
 
 ### Unlink OAuth2 Provider
 
 ```
 DELETE /api/v1/self/oauth/:provider
-
 ```
 
 ### See Linked OAuth2 Provider
 
 ```
 GET /api/v1/self
-
 ```
 
 #### Response
@@ -389,7 +366,6 @@ GET /api/v1/self
 
     "oauth_google": true
 }
-
 ```
 
 ## Basic Auth
@@ -400,10 +376,9 @@ While our current UI uses Session / Cookie-based authentication, it’s also pos
 
 ```
 POST /api/v1/logout
-
 ```
 
-### Response
+#### Response
 
 ```json
 Status: 200 OK
@@ -412,5 +387,4 @@ Status: 200 OK
     // if configured in SSO as custom_logout_url
     "forward_url": "https://my.sso/custom_logout_url"
 }
-
 ```
