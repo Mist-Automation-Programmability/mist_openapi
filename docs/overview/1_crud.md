@@ -29,7 +29,7 @@ GET /api/v1/sites/:site_id/:collection
 
 ```
 
-### Response:
+#### Response:
 
 ```json
 Status: 200 OK
@@ -56,7 +56,7 @@ POST /api/v1/sites/:site_id/collection
 
 ```
 
-### Parameters
+#### Parameters
 
 | Name | Type | Description |
 | --- | --- | --- |
@@ -65,7 +65,7 @@ POST /api/v1/sites/:site_id/collection
 | `object` | `object` | a nested object can be used. it will be shallow (at most 3 level, including list) |
 | `list` | `list` | list of lucky numbers |
 
-### Example
+#### Example
 
 ```json
 Status: 200 OK
@@ -81,7 +81,7 @@ Status: 200 OK
 
 ```
 
-### Response
+#### Response
 
 ```json
 Status: 200 OK
@@ -105,7 +105,7 @@ GET /api/v1/sites/:site_id/:collection/:object_id
 
 ```
 
-### Response
+#### Response
 
 ```json
 Status: 200 OK
@@ -130,7 +130,7 @@ POST /api/v1/sites/:site_id/wlans/:object_id
 
 ```
 
-### Parameters
+#### Parameters
 
 | Name | Type | Description |
 | --- | --- | --- |
@@ -139,7 +139,7 @@ POST /api/v1/sites/:site_id/wlans/:object_id
 | `object` | `object` | a nested object can be used. it will be shallow (at most 3 level, including list) |
 | `list` | `list` | list of lucky numbers |
 
-### Response:
+#### Response:
 
 ```json
 Status: 200 OK
@@ -163,7 +163,7 @@ DELETE /api/v1/sites/:site_id/:collection/:object_id
 
 ```
 
-### Response
+#### Response
 
 ```
 Status: 200 OK

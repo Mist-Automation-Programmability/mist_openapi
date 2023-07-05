@@ -10,14 +10,14 @@ Some of the queries supports pagination. Many of them are also time-based
 
 ```
 
-### Parameters
+#### Parameters
 
 | Name | Type | Description |
 | --- | --- | --- |
 | `limit` | `int` | max number of results, default = 100 |
 | `page` | `int` | page number (> 1), default is 1 |
 
-### Response
+#### Response
 
 ```json
 {
@@ -33,7 +33,7 @@ Some of the queries supports pagination. Many of them are also time-based
 
 ```
 
-### Response Definitions
+#### Response Definitions
 
 | Name | Type | Description |
 | --- | --- | --- |
@@ -46,14 +46,14 @@ Some of the queries supports pagination. Many of them are also time-based
 
 Many APIs provides an array as response for simplicity. When the amount of data is huge and pagination is desired, one can use HTTP Header in the GET request. And the `limit`, `page`, `total` will be returned in the HTTP Response Header as well.
 
-### Request
+#### Request
 
 | Name | Type | Description |
 | --- | --- | --- |
 | `X-Page-Limit` | `int` | the limit |
 | `X-Page-Page` | `int` | the page number, default is 1 |
 
-### Response
+#### Response
 
 | Name | Type | Description |
 | --- | --- | --- |

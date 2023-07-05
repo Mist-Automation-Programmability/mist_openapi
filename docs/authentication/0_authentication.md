@@ -240,7 +240,7 @@ Status 404 Not Found
 A Mist account can be _linked_ to OAuth2 providers:
 
 1. First, login with your Mist account
-2. [Obtain the Authorization URL for Linking](https://api.mist.com/api/v1/docs/Auth#obtain-the-authorization-url)
+2. Obtain the Authorization URL for Linking
 3. Obtain the authorizaiton code by clicking / going through Authorization URL
 4. Link Mist Account against OAuth2 Provider by using the authorization code
     

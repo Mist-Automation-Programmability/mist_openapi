@@ -4,7 +4,7 @@ The current rate limiting is 5000 API calls per hour and is reset at the hourly 
 
 NOTE: `/api/v1/login` is rate-limited much sooner (after 3 login failures) to prevent brute-force attack
 
-### Response when the request is rate-limited
+#### Response when the request is rate-limited
 
 ```
 Status: 429 Too Many Requests
