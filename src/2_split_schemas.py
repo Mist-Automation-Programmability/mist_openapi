@@ -53,9 +53,9 @@ cat_schemas = {
 missing = []
 
 
-def create_schema(schema_title:str, schema_data:dict):
+def create_schema(title:str, schema_data:dict):
     output = {
-        "title":schema_title
+        "title":title
     }
     for key in schema_data:
         output[key]=schema_data[key]
@@ -63,11 +63,9 @@ def create_schema(schema_title:str, schema_data:dict):
     re_schema = "\$ref\"*: \"#/components/schemas/([0-9a-zA-Z_.-]+)\""
     for entry in re.findall(re_schema, output_str):
         output_str = re.sub(re_schema, f"$ref\": \"./{entry}.yaml\"", output_str)
-    print(output_str)
-    print(type(output_str))
     output = json.loads(output_str)
     
-    with open(f"../v2/components/schemas/{schema_title}.yaml", "w") as f:
+    with open(f"../v2/components/schemas/{title}.yaml", "w") as f:
         yaml.dump(output, f)
 
 

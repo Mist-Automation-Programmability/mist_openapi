@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2306.2.3**
+  description: '> Version: **2306.2.4**
 
     >
 
-    > Date: **June 30, 2023**
+    > Date: **July 4, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2306.2.3
+  version: 2306.2.4
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -165,7 +165,6 @@ tags:
 - name: Orgs Guests
 - name: Orgs IDP Profiles
 - name: Orgs Inventory
-- name: Orgs Invites
 - name: Orgs JSE
 - description: "Juniper Support Insight is a free service provided to all Mist customers.\
     \ You can adopt your devices via a few lines CLI comands. Allowing you to \n*\
@@ -271,13 +270,13 @@ tags:
     Device > Device Profile > RFTemplate (for AP only) > DeviceType-specific Template
     > Site Template > Site Setting'
   name: Sites Devices
-- name: Sites Devices APs
+- name: Sites Devices - Wireless
 - description: API Call for 3rd party devices
   name: Sites Devices Others
-- name: Sites Devices Switches
-- name: Sites Devices Switches Virtual Chassis
-- name: Sites Devices WAN Edges
-- name: Sites Devices WAN Edges HA
+- name: Sites Devices - Wired
+- name: Sites Devices - Wired Virtual Chassis
+- name: Sites Devices - WAN
+- name: Sites Devices - WAN HA
 - name: Sites Devices Stats
 - name: Sites Devices Upgrades
 - name: Sites Devices Utilities
@@ -7823,8 +7822,8 @@ paths:
       - Configuration
   /api/v1/msps/{msp_id}/ssos:
     get:
-      description: Get MSP SSO Config
-      operationId: getMspSso
+      description: List MSP SSO Configs
+      operationId: listMspSsos
       responses:
         '200':
           $ref: '#/components/responses/SsosArray'
@@ -7876,7 +7875,7 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: getMspSso
+      summary: listMspSsos
       tags:
       - Msps SSO
       - Configuration
@@ -8002,6 +8001,16 @@ paths:
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
       summary: deleteMspSso
+      tags:
+      - Msps SSO
+      - Configuration
+    get:
+      description: Get MSP SSO Config
+      operationId: getMspSso
+      responses:
+        '200':
+          $ref: '#/components/responses/Sso'
+      summary: getMspSso
       tags:
       - Msps SSO
       - Configuration
@@ -8595,7 +8604,7 @@ paths:
       summary: listMspTickets
       tags:
       - Msps Tickets
-      - Monitor
+      - Configuration
     parameters:
     - $ref: '#/components/parameters/msp_id'
   /api/v1/msps/{msp_id}/tickets/count:
@@ -15764,6 +15773,16 @@ paths:
         name: model
         schema:
           type: string
+      - description: device type
+        in: query
+        name: device_type
+        schema:
+          default: ap
+          enum:
+          - ap
+          - switch
+          - gateway
+          type: string
       - description: event message
         in: query
         name: text
@@ -20253,7 +20272,7 @@ paths:
             exist
       summary: inviteOrgAdmin
       tags:
-      - Orgs Invites
+      - Orgs Admins
       - Configuration
   /api/v1/orgs/{org_id}/invites/{invite_id}:
     delete:
@@ -20312,7 +20331,7 @@ paths:
             exist
       summary: uninviteOrgAdmin
       tags:
-      - Orgs Invites
+      - Orgs Admins
       - Configuration
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -20398,7 +20417,7 @@ paths:
             exist
       summary: updateOrgAdminInvite
       tags:
-      - Orgs Invites
+      - Orgs Admins
       - Configuration
   /api/v1/orgs/{org_id}/jsi/devices:
     get:
@@ -38580,6 +38599,68 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/webhook_id'
+  /api/v1/orgs/{org_id}/webhooks/{webhook_id}/ping:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/webhook_id'
+    post:
+      description: send a Ping event to the webhook
+      operationId: pingOrgWebhook
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: pingOrgWebhook
+      tags:
+      - Orgs Webhooks
+      - Configuration
   /api/v1/orgs/{org_id}/wired_clients/count:
     get:
       description: 'Count by Distinct Attributes of Clients
@@ -45894,7 +45975,7 @@ paths:
             exist
       summary: getSiteDeviceRadioChannels
       tags:
-      - Sites Devices APs
+      - Sites Devices - Wireless
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -47269,7 +47350,7 @@ paths:
             exist
       summary: reprovisionSiteAllAps
       tags:
-      - Sites Devices APs
+      - Sites Devices - Wireless
       - Configuration
   /api/v1/sites/{site_id}/devices/reset_radio_config:
     parameters:
@@ -47357,7 +47438,7 @@ paths:
             exist
       summary: resetSiteAllApsToUseRrm
       tags:
-      - Sites Devices APs
+      - Sites Devices - Wireless
       - Configuration
   /api/v1/sites/{site_id}/devices/restart:
     parameters:
@@ -47637,7 +47718,7 @@ paths:
   /api/v1/sites/{site_id}/devices/upgrade:
     get:
       description: Get all upgrades for site
-      operationId: getSiteDevicesUpgrade
+      operationId: listSiteDevicesUpgrade
       parameters:
       - in: query
         name: status
@@ -47702,7 +47783,7 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: getSiteDevicesUpgrade
+      summary: listSiteDevicesUpgrade
       tags:
       - Sites Devices Upgrades
       - Configuration
@@ -48071,7 +48152,7 @@ paths:
             exist
       summary: zeroizeSiteFipsAllAps
       tags:
-      - Sites Devices APs
+      - Sites Devices - Wireless
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}:
     delete:
@@ -48835,7 +48916,7 @@ paths:
             exist
       summary: portsBounceFromSwitch
       tags:
-      - Sites Devices Switches
+      - Sites Devices - Wired
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/cable_test:
     parameters:
@@ -48921,7 +49002,7 @@ paths:
             exist
       summary: cableTestFromSwitch
       tags:
-      - Sites Devices Switches
+      - Sites Devices - Wired
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/check_radius_server:
     parameters:
@@ -49131,7 +49212,7 @@ paths:
             exist
       summary: clearSiteSsrArpCache
       tags:
-      - Sites Devices WAN Edges
+      - Sites Devices - WAN
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/clear_bgp:
     parameters:
@@ -49224,7 +49305,7 @@ paths:
             exist
       summary: clearSiteSsrBgpRoutes
       tags:
-      - Sites Devices WAN Edges
+      - Sites Devices - WAN
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/clear_bpdu_error:
     parameters:
@@ -49292,7 +49373,7 @@ paths:
             exist
       summary: clearBpduErrosFromPortsOnSwitch
       tags:
-      - Sites Devices Switches
+      - Sites Devices - Wired
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/clear_macs:
     parameters:
@@ -49372,7 +49453,7 @@ paths:
             exist
       summary: clearAllLearnedMacsFromPortOnSwitch
       tags:
-      - Sites Devices Switches
+      - Sites Devices - Wired
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/config_cmd:
     get:
@@ -49512,7 +49593,7 @@ paths:
             exist
       summary: deleteSiteDeviceHaCluster
       tags:
-      - Sites Devices WAN Edges HA
+      - Sites Devices - WAN HA
       - Configuration
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -49673,7 +49754,7 @@ paths:
             exist
       summary: createSiteDeviceHaCluster
       tags:
-      - Sites Devices WAN Edges HA
+      - Sites Devices - WAN HA
       - Configuration
     put:
       deprecated: true
@@ -49755,7 +49836,7 @@ paths:
             exist
       summary: swapSiteDeviceHaClusterNode
       tags:
-      - Sites Devices WAN Edges HA
+      - Sites Devices - WAN HA
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/image{image_number}:
     delete:
@@ -49946,7 +50027,7 @@ paths:
             exist
       summary: getSiteDeviceIotPort
       tags:
-      - Sites Devices APs
+      - Sites Devices - Wireless
       - Configuration
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -50025,7 +50106,7 @@ paths:
             exist
       summary: setSiteDeviceIotPort
       tags:
-      - Sites Devices APs
+      - Sites Devices - Wireless
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/local_port_config:
     delete:
@@ -50084,7 +50165,7 @@ paths:
             exist
       summary: deleteSiteLocalSwitchPortConfig
       tags:
-      - Sites Devices Switches
+      - Sites Devices - Wired
       - Configuration
     parameters:
     - in: path
@@ -50176,7 +50257,7 @@ paths:
             exist
       summary: updateSiteLocalSwitchPortConfig
       tags:
-      - Sites Devices Switches
+      - Sites Devices - Wired
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/locate:
     parameters:
@@ -50239,7 +50320,7 @@ paths:
             exist
       summary: startSiteLocateDevice
       tags:
-      - Sites Devices APs
+      - Sites Devices - Wireless
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/ping:
     parameters:
@@ -50410,7 +50491,7 @@ paths:
             exist
       summary: pollSiteSwitchStats
       tags:
-      - Sites Devices Switches
+      - Sites Devices - Wired
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/release_dhcp:
     parameters:
@@ -50494,7 +50575,7 @@ paths:
             exist
       summary: releaseSiteSsrDhcpLease
       tags:
-      - Sites Devices WAN Edges
+      - Sites Devices - WAN
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/request_ztp_password:
     parameters:
@@ -50647,7 +50728,7 @@ paths:
             exist
       summary: testSiteSsrDnsResolution
       tags:
-      - Sites Devices WAN Edges
+      - Sites Devices - WAN
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/restart:
     parameters:
@@ -50829,7 +50910,7 @@ paths:
             exist
       summary: servicePingFromSsr
       tags:
-      - Sites Devices WAN Edges
+      - Sites Devices - WAN
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/show_route:
     parameters:
@@ -50959,7 +51040,7 @@ paths:
             exist
       summary: getSiteSsrAndSrxRoutes
       tags:
-      - Sites Devices WAN Edges
+      - Sites Devices - WAN
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/show_service_path:
     parameters:
@@ -51062,7 +51143,7 @@ paths:
             exist
       summary: getSiteSsrServicePath
       tags:
-      - Sites Devices WAN Edges
+      - Sites Devices - WAN
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/show_session:
     parameters:
@@ -51178,7 +51259,7 @@ paths:
             exist
       summary: getSiteSsrAndSrxSessions
       tags:
-      - Sites Devices WAN Edges
+      - Sites Devices - WAN
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/snapshot:
     parameters:
@@ -51643,7 +51724,7 @@ paths:
             exist
       summary: stopSiteLocateDevice
       tags:
-      - Sites Devices APs
+      - Sites Devices - Wireless
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/upgrade:
     parameters:
@@ -51796,7 +51877,7 @@ paths:
             exist
       summary: deleteSiteVirtualChassis
       tags:
-      - Sites Devices Switches Virtual Chassis
+      - Sites Devices - Wired Virtual Chassis
       - Configuration
     get:
       description: 'Get VC Status
@@ -51858,7 +51939,7 @@ paths:
             exist
       summary: getSiteDeviceVirtualChassis
       tags:
-      - Sites Devices Switches Virtual Chassis
+      - Sites Devices - Wired Virtual Chassis
       - Configuration
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -51951,7 +52032,7 @@ paths:
             exist
       summary: createSiteVirtualChassis
       tags:
-      - Sites Devices Switches Virtual Chassis
+      - Sites Devices - Wired Virtual Chassis
       - Configuration
     put:
       description: "The VC creation and adding member switch API will update the device\u2019\
@@ -52097,7 +52178,7 @@ paths:
             exist
       summary: updateSiteVirtualChassisMember
       tags:
-      - Sites Devices Switches Virtual Chassis
+      - Sites Devices - Wired Virtual Chassis
       - Configuration
   /api/v1/sites/{site_id}/devices/{device_id}/vc/vc_port:
     parameters:
@@ -52221,7 +52302,7 @@ paths:
             exist
       summary: setSiteVcPort
       tags:
-      - Sites Devices Switches Virtual Chassis
+      - Sites Devices - Wired Virtual Chassis
       - Configuration
   /api/v1/sites/{site_id}/events/fast_roam:
     get:
@@ -68154,7 +68235,7 @@ paths:
             exist
       summary: getSiteSwitchesMetrics
       tags:
-      - Sites Devices Switches
+      - Sites Devices - Wired
       - Monitor
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -68488,7 +68569,7 @@ paths:
   /api/v1/sites/{site_id}/subscriptions:
     delete:
       description: Unsubscribe to Site Alarms
-      operationId: UnsubscribeSite
+      operationId: UnsubscribeSiteAlarms
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -68540,7 +68621,7 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: UnsubscribeSite
+      summary: UnsubscribeSiteAlarms
       tags:
       - Sites Subscriptions
       - Configuration
@@ -68548,7 +68629,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     post:
       description: Subscribe to Site Alarms
-      operationId: SubscribeSite
+      operationId: SubscribeSiteAlarms
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -68600,7 +68681,7 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: SubscribeSite
+      summary: SubscribeSiteAlarms
       tags:
       - Sites Subscriptions
       - Configuration
@@ -70757,7 +70838,7 @@ paths:
   /api/v1/sites/{site_id}/wired_clients/count:
     get:
       description: Count by Distinct Attributes of Clients
-      operationId: countSiteClientsWired
+      operationId: countSiteWiredClients
       parameters:
       - in: query
         name: distinct
@@ -70844,7 +70925,7 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: countSiteClientsWired
+      summary: countSiteWiredClients
       tags:
       - Sites Clients - Wired
       - Monitor
@@ -70853,7 +70934,7 @@ paths:
   /api/v1/sites/{site_id}/wired_clients/search:
     get:
       description: Search Wired Clients
-      operationId: searchSiteClientsWired
+      operationId: searchSiteWiredClients
       parameters:
       - description: device mac
         in: query
@@ -70941,7 +71022,7 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: searchSiteClientsWired
+      summary: searchSiteWiredClients
       tags:
       - Sites Clients - Wired
       - Monitor
@@ -93110,8 +93191,9 @@ components:
             \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
             \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
             \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
-            \n to make an outdoor operate indoor.\n for an outdoor-ap, some channels\
-            \ are disallowed by default, this allows the user to use it as an indoor-ap"
+            \n\n\n\n\n\n to make an outdoor operate indoor.\n for an outdoor-ap, some\
+            \ channels are disallowed by default, this allows the user to use it as\
+            \ an indoor-ap"
           type: boolean
         scanning_enabled:
           description: whether scanning radio is enabled
@@ -122160,12 +122242,12 @@ x-tagGroups:
   - Sites Clients - Wired
   - Sites Clients - Wireless
   - Sites Devices
-  - Sites Devices APs
+  - Sites Devices - Wireless
+  - Sites Devices - Wired
+  - Sites Devices - Wired Virtual Chassis
+  - Sites Devices - WAN
+  - Sites Devices - WAN HA
   - Sites Devices Others
-  - Sites Devices Switches
-  - Sites Devices Switches Virtual Chassis
-  - Sites Devices WAN Edges
-  - Sites Devices WAN Edges HA
   - Sites Devices Upgrades
   - Sites Devices Utilities
   - Sites Devices Stats
@@ -122233,7 +122315,6 @@ x-tagGroups:
   - Orgs Guests
   - Orgs IDP Profiles
   - Orgs Inventory
-  - Orgs Invites
   - Orgs JSE
   - Orgs JSI
   - Orgs Licenses

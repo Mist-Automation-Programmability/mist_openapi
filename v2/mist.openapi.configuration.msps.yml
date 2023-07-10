@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2306.2.3**
+  description: '> Version: **2306.2.4**
 
     >
 
-    > Date: **June 30, 2023**
+    > Date: **July 4, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2306.2.3
+  version: 2306.2.4
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -69,6 +69,7 @@ tags:
 - name: Msps Orgs
 - name: Msps SSO Roles
 - name: Msps SSO
+- name: Msps Tickets
 paths:
   /api/v1/msps:
     post:
@@ -2057,8 +2058,8 @@ paths:
       - Configuration
   /api/v1/msps/{msp_id}/ssos:
     get:
-      description: Get MSP SSO Config
-      operationId: getMspSso
+      description: List MSP SSO Configs
+      operationId: listMspSsos
       responses:
         '200':
           $ref: '#/components/responses/SsosArray'
@@ -2110,7 +2111,7 @@ paths:
                 type: object
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
-      summary: getMspSso
+      summary: listMspSsos
       tags:
       - Msps SSO
       - Configuration
@@ -2236,6 +2237,16 @@ paths:
           description: Not found. The API endpoint doesn't exist or resource doesn't
             exist
       summary: deleteMspSso
+      tags:
+      - Msps SSO
+      - Configuration
+    get:
+      description: Get MSP SSO Config
+      operationId: getMspSso
+      responses:
+        '200':
+          $ref: '#/components/responses/Sso'
+      summary: getMspSso
       tags:
       - Msps SSO
       - Configuration
@@ -2460,6 +2471,71 @@ paths:
     parameters:
     - $ref: '#/components/parameters/msp_id'
     - $ref: '#/components/parameters/sso_id'
+  /api/v1/msps/{msp_id}/tickets:
+    get:
+      description: Get List of Tickets of a MSP
+      operationId: listMspTickets
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          $ref: '#/components/responses/TicketsArray'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+      summary: listMspTickets
+      tags:
+      - Msps Tickets
+      - Configuration
+    parameters:
+    - $ref: '#/components/parameters/msp_id'
 components:
   parameters:
     admin_id:
@@ -2470,6 +2546,25 @@ components:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
         format: uuid
         type: string
+    duration:
+      description: "For historical stats and/or logs where time range is needed, you\
+        \ can specify the time range in a few different ways:\n  * ?start=1430000000&end=1430864000\t\
+        specify the start / end\n  * ?end=1430864000&duration=1d\tspecify end time\
+        \ and duration\n  * ?duration=1d\tspecify duration, end will be now() in seconds"
+      in: query
+      name: duration
+      required: false
+      schema:
+        default: 1d
+        example: 10m
+        type: string
+    end:
+      in: query
+      name: end
+      schema:
+        default: 0
+        minimum: 0
+        type: integer
     invite_id:
       in: path
       name: invite_id
@@ -2518,6 +2613,13 @@ components:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
         format: uuid
         type: string
+    start:
+      in: query
+      name: start
+      schema:
+        default: 0
+        minimum: 0
+        type: integer
   responses:
     Admin:
       content:
@@ -2991,6 +3093,32 @@ components:
           schema:
             items:
               $ref: ./components/schemas/sso.yaml
+            type: array
+      description: OK
+    TicketsArray:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+              - comments:
+                - attachments:
+                  - content_type: string
+                    content_url: string
+                    size: 0
+                  author: string
+                  comment: string
+                  created_at: 0
+                created_at: 0
+                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                requester: string
+                status: open
+                subject: string
+                type: string
+                updated_at: 0
+          schema:
+            items:
+              $ref: ./components/schemas/ticket.yaml
             type: array
       description: OK
     claimLicense:

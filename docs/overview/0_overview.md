@@ -48,4 +48,5 @@ We currently use few HTTP response codes:
 | `401` | Unauthorized |
 | `403` | Permission Denied |
 | `404` | Not found. The API endpoint doesn’t exist or resource doesn’t exist |
+| `429` | Too Many Request. The API Token used for the request reached the 5000 API Calls per hour threshold |
 
