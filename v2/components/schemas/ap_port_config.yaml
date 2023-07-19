@@ -1,7 +1,12 @@
 properties:
   additional_vlan_ids:
     description: additional VLAN IDs, only valid in mesh base mode
+    example:
+    - 55
+    - 66
     items:
+      maximum: 409
+      minimum: 1
       type: integer
     type: array
   authentication_protocol:
@@ -19,6 +24,9 @@ properties:
     description: optional dynamic vlan
     properties:
       default_vlan_id:
+        example: 999
+        maximum: 4094
+        minimum: 1
         type: integer
       enabled:
         type: boolean
@@ -26,10 +34,15 @@ properties:
         type: string
       vlans:
         additionalProperties:
+          nullable: true
           type: string
+        example:
+          1-10: null
+          user: null
         type: object
     type: object
   enable_mac_auth:
+    default: false
     type: boolean
   forwarding:
     default: all
@@ -39,9 +52,11 @@ properties:
     - wxtunnel
     - mxtunnel
     - site_mxedge
+    example: all
     type: string
   mx_tunnel_id:
     description: if `forwarding`==`mxtunnel`, vlan_ids comes from mxtunnel
+    example: 08cd7499-5841-51c8-e663-fb16b6f3b45e
     format: uuid
     type: string
   mxtunnel_name:
@@ -54,9 +69,13 @@ properties:
     enum:
     - none
     - dot1x
+    example: none
     type: string
   port_vlan_id:
     description: if `forwrding`==`limited`
+    example: 1
+    maximum: 4094
+    minimum: 1
     type: integer
   radius_config:
     $ref: ./junos_radius_config.yaml
@@ -71,58 +90,95 @@ properties:
 
       * if forwarding == site_mxedge, vlan_ids comes from site_mxedge (`mxtunnels`
       under site setting)'
+    example: 9
+    maximum: 4094
+    minimum: 1
     type: integer
   vland_ids:
     description: if `forwrding`==`limited`
+    example:
+    - 1
+    - 10
+    - 50
     items:
+      maximum: 4094
+      minimum: 1
       type: integer
     type: array
   wxtunnel_id:
     description: if `forwarding`==`wxtunnel`, the port is bridged to the vlan of the
       session
+    example: 7dae216d-7c98-a51b-e068-dd7d477b7216
+    format: uuid
     type: string
   wxtunnel_remote_id:
     description: if `forwarding`==`wxtunnel`, the port is bridged to the vlan of the
       session
+    example: wifiguest
     type: string
 title: ap_port_config
 type: object
 x-examples:
-  example-1:
+  Example:
+    additional_vlan_ids:
+    - 55
+    - 66
+    authentication_protocol: pap
     disabled: true
     dynamic_vlan:
-      default_vlan_id: 1
+      default_vlan_id: 999
       enabled: true
-      type: string
+      type: standard
       vlans:
-        property1: string
-        property2: string
-    enable_mac_auth: true
+        1-10: null
+        user: null
+    enable_mac_auth: false
     forwarding: all
-    mx_tunnel_id: string
+    mx_tunnel_id: 08cd7499-5841-51c8-e663-fb16b6f3b45e
     mxtunnel_name: string
     port_auth: none
     port_vlan_id: 1
     radius_config:
       acct_interim_interval: 0
       acct_servers:
-      - host: string
-        port: 0
-        secret: string
+      - host: 1.2.3.4
+        keywrap_enabled: true
+        keywrap_format: hex
+        keywrap_kek: '1122334455'
+        keywrap_mack: '1122334455'
+        port: 1813
+        secret: testing123
       auth_servers:
-      - host: string
-        port: 0
-        secret: string
-      auth_servers_retries: 0
-      auth_servers_timeout: 0
+      - host: 1.2.3.4
+        keywrap_enabled: true
+        keywrap_format: hex
+        keywrap_kek: '1122334455'
+        keywrap_mack: '1122334455'
+        port: 1812
+        secret: testing123
+      auth_servers_retries: 3
+      auth_servers_timeout: 5
+      coa_enabled: false
+      coa_port: 3799
+      network: string
+      source_ip: string
     radsec:
       enabled: true
-      server_name: string
+      idle_timeout: 60
+      mxcluster_ids:
+      - 572586b7-f97b-a22b-526c-8b97a3f609c4
+      proxy_hosts:
+      - mxedge1.local
+      server_name: radsec.abc.com
       servers:
-      - host: string
-        port: 0
+      - host: 1.1.1.1
+        port: 1812
       use_mxedge: true
+      use_site_mxedge: false
+    vlan_id: 9
     vland_ids:
-    - 0
-    wxtunnel_id: string
-    wxtunnel_remote_id: string
+    - 1
+    - 10
+    - 50
+    wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
+    wxtunnel_remote_id: wifiguest
