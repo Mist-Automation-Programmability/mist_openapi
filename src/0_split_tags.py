@@ -150,6 +150,7 @@ for path in data.get("paths", {}):
                             "getSiteDerivedCurdSetting",
                             "getSiteApplicationList",
                             "listMspTickets",
+                            "listOrgAvailableSsrVersions"
                         ]:
                             properties[verb]["tags"].append("Configuration")
                         elif properties[verb]["operationId"] in [
