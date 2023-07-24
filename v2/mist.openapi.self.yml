@@ -69,10 +69,182 @@ tags:
     \ can have privileges of a specific Org/Site for more information.    "
   name: Self API Token
 - name: Self OAuth2
+- name: Recover Password
 - name: Self MFA
 - name: Self Alarms
 - name: Self Audit Logs
 paths:
+  /api/v1/recover:
+    post:
+      description: 'Recover Password
+
+        An email will also be sent to the user with a link to https://manage.mist.com/verify/recover?token=:token'
+      operationId: recoverPassword
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  email: test@mistsys.com
+                  recaptcha: see https://www.google.com/recaptcha/
+            schema:
+              properties:
+                email:
+                  type: string
+                recaptcha:
+                  type: string
+              required:
+              - email
+              - recaptcha
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: recoverPassword
+      tags:
+      - Recover Password
+  /api/v1/recover/verify/{token}:
+    parameters:
+    - $ref: '#/components/parameters/token'
+    post:
+      description: 'Verify Recover Password
+
+        With correct verification, the user will be authenticated. UI can then prompt
+        for new password'
+      operationId: verifyRecoverPasssword
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: verifyRecoverPasssword
+      tags:
+      - Recover Password
   /api/v1/self:
     delete:
       description: 'To delete ones account and every associated with it. The effects:

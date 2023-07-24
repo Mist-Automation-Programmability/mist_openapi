@@ -61,6 +61,7 @@ security:
 tags:
 - name: Msps Inventory
 - name: Msps Logs
+- name: Msps Licenses
 - name: Msps Marvis
 - name: Msps Org Groups
 - name: Msps Orgs
@@ -368,6 +369,208 @@ paths:
     parameters:
     - $ref: '#/components/parameters/msp_id'
     - $ref: '#/components/parameters/device_mac'
+  /api/v1/msps/{msp_id}/licenses:
+    get:
+      description: Get List of Msp Licenses
+      operationId: listMspLicenses
+      responses:
+        '200':
+          $ref: '#/components/responses/Licence'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: listMspLicenses
+      tags:
+      - Msps Licenses
+    parameters:
+    - $ref: '#/components/parameters/msp_id'
+    put:
+      description: Move or Delete MSP Licenses
+      operationId: moveOrDeleteMspLicenseToAnotherOrg
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Delete License:
+                value:
+                  op: delete
+                  subscription_id: SUB-0000144
+              Move License:
+                value:
+                  dst_org_id: 3eff35f7-c218-894e-bca2-24e5325601cc
+                  op: amend
+                  quantity: 10
+                  subscription_id: SUB-0000144
+              Undo the License Move:
+                value:
+                  amendment_id: 2b9116ab-cd1e-e897-6e08-31fccd88e792
+                  op: unamend
+            schema:
+              properties:
+                amendment_id:
+                  description: required if `op`==`unamend`
+                  type: string
+                dst_org_id:
+                  description: required if `op`==`amend`, destination org id
+                  minLength: 1
+                  type: string
+                notes:
+                  description: required if `op`== `annotate`
+                  type: string
+                op:
+                  enum:
+                  - amend
+                  - unamend
+                  - delete
+                  - annotate
+                  minLength: 1
+                  type: string
+                quantity:
+                  description: required if `op`==`amend`
+                  type: number
+                subscription_id:
+                  description: required if `op`== `annotate`
+                  minLength: 1
+                  type: string
+              required:
+              - op
+              type: object
+              x-examples:
+                example-1:
+                  dst_org_id: 3eff35f7-c218-894e-bca2-24e5325601cc
+                  op: amend
+                  quantity: 10
+                  subscription_id: SUB-0000144
+        description: ''
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: moveOrDeleteMspLicenseToAnotherOrg
+      tags:
+      - Msps Licenses
   /api/v1/msps/{msp_id}/logs:
     get:
       description: Get list of change logs for the current MSP
@@ -1552,6 +1755,12 @@ components:
             - results
             - start
             - total
+            type: object
+      description: OK
+    OK:
+      content:
+        application/json:
+          schema:
             type: object
       description: OK
     OrggroupsSearch:

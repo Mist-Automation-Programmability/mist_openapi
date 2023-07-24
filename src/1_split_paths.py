@@ -13,6 +13,10 @@ verbs = ["get", "post", "put", "delete"]
 order = ["openapi", "info", "servers", "security", "tags", "paths", "components"]
 
 manual_operation_ids = {
+    "self": [
+        "/api/v1/recover",
+        "/api/v1/recover/verify/{token}"
+    ],
     "configuration": [
         "/api/v1/msps/{msp_id}/admins",
         "/api/v1/msps/{msp_id}/orgs/{org_id}",
@@ -302,8 +306,15 @@ def split():
     for path in data.get("paths", {}):
         print(f"{path} ".ljust(80, "-"))
         properties = data["paths"][path]
-
-        if path.startswith("/webhook_example"):
+        
+        if path in manual_operation_ids["configuration"]:
+            split_scope("configuration", path, properties)
+        elif path in manual_operation_ids["monitor"]:
+            split_scope("monitor", path, properties)
+        elif path in manual_operation_ids["self"]:
+            do_it(path, properties, "self")
+        
+        elif path.startswith("/webhook_example"):
             do_it(path, properties, "webhook")
 
         elif path.startswith("/api/v1/self"):
@@ -350,10 +361,6 @@ def split():
             or properties["get"]["operationId"].startswith("search")
             or "Stats" in properties["get"]["operationId"]
         ):
-            split_scope("monitor", path, properties)
-        elif path in manual_operation_ids["configuration"]:
-            split_scope("configuration", path, properties)
-        elif path in manual_operation_ids["monitor"]:
             split_scope("monitor", path, properties)
 
         else:
