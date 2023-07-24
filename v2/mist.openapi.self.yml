@@ -1,0 +1,1614 @@
+openapi: 3.0.1
+info:
+  contact:
+    email: tmunzer@juniper.net
+    name: Thomas Munzer
+  description: '> Version: **2306.2.12**
+
+    >
+
+    > Date: **July 19, 2023**
+
+
+    ---
+
+
+    #### Available Documentation
+
+    * [Postman](https://documenter.getpostman.com/view/224925/SzYgQufe)
+
+    * [Open API](https://doc.mist-lab.fr/)
+
+
+    ---
+
+
+    #### Useful links
+
+    * [Mist Homepage](https://www.mist.com)
+
+    * [Mist Documentation](https://www.mist.com/documentation)
+
+    * [Official API Documentation](https://api.mist.com/api/v1/docs/Home) (Mist account
+    required)
+
+    * [Mist Blog](https://www.mist.com/news/?md_post_type=post)
+
+    * [Mist Updates](https://www.mist.com/documentation/category/product-updates/)'
+  license:
+    name: MIT
+    url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
+  title: Mist API
+  version: 2306.2.12
+  x-logo:
+    altText: Juniper-MistAI
+    backgroundColor: '#FFFFFF'
+    url: https://www.mist.com/wp-content/uploads/logo.png
+servers:
+- description: Mist Global 01
+  url: https://api.mist.com
+- description: Mist Global 02
+  url: https://api.gc1.mist.com
+- description: Mist Global 03
+  url: https://api.ac2.mist.com
+- description: Mist Global 04
+  url: https://api.gc2.mist.com
+- description: Mist Europe 01
+  url: https://api.eu.mist.com
+security:
+- apiToken: []
+- basicAuth: []
+tags:
+- description: A Mist account can be linked to OAuth2 providers:\n1. First, login
+    with your Mist account\n2. Obtain the Authorization URL for Linking 1. in JSON
+    response, more usable for developers. Simply don\'t specify the forward parameter
+    when obtaining the authorization URL 2. or as GET parameter, for UI where the
+    user flow can be continued. Specify the landing page/url of your choice 3. Obtain
+    the authorizaiton code by clicking / going through Authorization URL Link Mist
+    Account against OAuth2 Provider by using the authorization code
+  name: Login With OAuth2
+- description: "Like many other API providers, it\u2019s also possible to generate\
+    \ API Tokens to be used (in HTTP Header) for authentication. An API token ties\
+    \ to a Admin with equal or less privileges.\n\nNotes:\n* an API token generated\
+    \ for a specific admin has the same privilege as the user\n* an API token will\
+    \ be automatically removed if not used for > 90 days\n* SSO admins cannot generate\
+    \ these API tokens. Refer Org level API tokens (/api/v1/docs/Org#api-token) which\
+    \ can have privileges of a specific Org/Site for more information."
+  name: API Token
+- name: Self
+paths:
+  /api/v1/self:
+    delete:
+      description: 'To delete ones account and every associated with it. The effects:
+
+
+        the account would be deleted
+
+        any orphaned Org (that only has this account as admin) will be deleted
+
+        along with all data with Org (sites, wlans, devices) will be gone.'
+      operationId: deleteSelf
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              examples:
+                if any of the org to be deleted still has inventory:
+                  value:
+                    detail: inventory not empty
+                    org_id: 424f6eca-7276-4993-bfeb-53cbbbba6f05
+              schema:
+                properties:
+                  detail:
+                    type: string
+                  org_id:
+                    format: uuid
+                    type: string
+                required:
+                - detail
+                - org_id
+                type: object
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: deleteSelf
+      tags:
+      - Self
+    get:
+      description: "Get \u2018whoami\u2019 and privileges (which org and which sites\
+        \ I have access to)"
+      operationId: getSelf
+      responses:
+        '200':
+          $ref: '#/components/responses/Admin'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: getSelf
+      tags:
+      - Self
+    put:
+      description: update Account Information
+      operationId: updateSelf
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  email: john.smith@mycorp.net
+                  enable_two_factor: true
+                  first_name: John
+                  last_name: Smith
+                  password: foryoureyesonly
+                  persona: security
+                  phone: '14081112222'
+                  phone2: '14083334444'
+            schema:
+              $ref: ./components/schemas/admin.yaml
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/Admin'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: updateSelf
+      tags:
+      - Self
+  /api/v1/self/apitokens:
+    get:
+      description: Get List of Current User API Tokens
+      operationId: listApiTokens
+      responses:
+        '200':
+          $ref: '#/components/responses/ApitokensArray'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: listApiTokens
+      tags:
+      - API Token
+    post:
+      description: 'Create API Token
+
+        Note that the key is only available during creation time.'
+      operationId: createApiToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/Apitoken'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: createApiToken
+      tags:
+      - API Token
+  /api/v1/self/apitokens/{apitoken_id}:
+    delete:
+      description: Delete an API Token
+      operationId: deleteApiToken
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: deleteApiToken
+      tags:
+      - API Token
+    parameters:
+    - in: path
+      name: apitoken_id
+      required: true
+      schema:
+        type: string
+  /api/v1/self/logs:
+    get:
+      description: 'Get List of change logs across all Orgs for current admin
+
+        Audit logs records all administrative activities done by current admin across
+        all orgs'
+      operationId: listSelfAuditLogs
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    end: 1428954000
+                    limit: 100
+                    page: 1
+                    results:
+                    - admin_id: 72bfa2bd-e58a-4670-9d20-a1468f7a6f58
+                      admin_name: test@mistsys.com
+                      after:
+                        auth:
+                          type: open
+                      before:
+                        auth:
+                          type: psk
+                      id: c6f9347b-b0a4-4a23-b927-fa9249f2ffb2
+                      message: Update WLAN "Corporate"
+                      org_id: 423f6eca-6276-4994-bfeb-53cbbbba6f04
+                      site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+                      timestamp: 1431382121
+                    start: 1428939600
+                    total: 135
+              schema:
+                properties:
+                  end:
+                    type: integer
+                  limit:
+                    type: integer
+                  page:
+                    type: integer
+                  results:
+                    items:
+                      properties:
+                        admin_id:
+                          format: uuid
+                          type: string
+                        admin_name:
+                          type: string
+                        after:
+                          description: field values after the change
+                          properties:
+                            auth:
+                              properties:
+                                type:
+                                  type: string
+                              required:
+                              - type
+                              type: object
+                          required:
+                          - auth
+                          type: object
+                        before:
+                          description: field values prior to the change
+                          properties:
+                            auth:
+                              properties:
+                                type:
+                                  type: string
+                              required:
+                              - type
+                              type: object
+                          required:
+                          - auth
+                          type: object
+                        for_site:
+                          readOnly: true
+                          type: boolean
+                        id:
+                          format: uuid
+                          type: string
+                        message:
+                          type: string
+                        org_id:
+                          format: uuid
+                          type: string
+                        site_id:
+                          format: uuid
+                          type: string
+                        timestamp:
+                          type: number
+                      required:
+                      - admin_id
+                      - admin_name
+                      - id
+                      - message
+                      - org_id
+                      - site_id
+                      - timestamp
+                      type: object
+                    minItems: 1
+                    type: array
+                    uniqueItems: true
+                  start:
+                    type: integer
+                  total:
+                    type: integer
+                required:
+                - end
+                - limit
+                - page
+                - results
+                - start
+                - total
+                type: object
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: listSelfAuditLogs
+      tags:
+      - Self
+  /api/v1/self/oauth/{provider}:
+    get:
+      description: Obtain Authorization URL for Linking
+      operationId: getOAuth2UrlForLinking
+      parameters:
+      - in: query
+        name: forward
+        schema:
+          example: http://manage.mist.com/oauth/callback.html
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    authorization_url: https://accounts.google.com/o/oauth2/v2/auth?.....
+                    linked: false
+              schema:
+                properties:
+                  authorization_url:
+                    type: string
+                  linked:
+                    type: boolean
+                required:
+                - linked
+                - authorization_url
+                type: object
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: getOAuth2UrlForLinking
+      tags:
+      - Login With OAuth2
+    parameters:
+    - in: path
+      name: provider
+      required: true
+      schema:
+        type: string
+    post:
+      description: Link Mist account with an OAuth2 Provider
+      operationId: linkOAuth2MistAccount
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  code: 4/S9tegDeLkrYg0L9pWNXV4cgMVbbr3SR9t693A2kSHzw
+            schema:
+              properties:
+                code:
+                  type: string
+              required:
+              - code
+              type: object
+        description: Request Body
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    action: oauth account linked
+                    id: google-user-id
+              schema:
+                properties:
+                  action:
+                    type: string
+                  id:
+                    type: string
+                required:
+                - action
+                - id
+                type: object
+          description: OK
+        '400':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    error: access_denied
+                    error_description: The resource owner or authorization server
+                      denied the request.
+              schema:
+                properties:
+                  error:
+                    type: string
+                  error_description:
+                    type: string
+                required:
+                - error
+                - error_description
+                type: object
+          description: Authorization Error
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: linkOAuth2MistAccount
+      tags:
+      - Login With OAuth2
+  /api/v1/self/subscriptions:
+    get:
+      description: Get List of all the subscriptions
+      operationId: listAlarmSubscriptions
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    org_id:
+                      format: uuid
+                      type: string
+                  required:
+                  - org_id
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: listAlarmSubscriptions
+      tags:
+      - Self
+  /api/v1/self/two_factor/token:
+    get:
+      description: Generate QR code for verification
+      operationId: generateQrCodeForVerification
+      parameters:
+      - in: query
+        name: by
+        schema:
+          default: qrcode
+          enum:
+          - qrcode
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: generateQrCodeForVerification
+      tags:
+      - Self
+  /api/v1/self/two_factor/verify:
+    post:
+      description: "Verify Two-factor (OTP)\n\nTo verify two-factor authentication\
+        \ by using a code generated by app (e.g. Google Authenticator, Authy) or by\
+        \ SMS. Upon successful verification, the otp_verified will be set to true\
+        \ if it hasn\u2019t already been."
+      operationId: verifyTwoFactor
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  two_factor: '123456'
+            schema:
+              properties:
+                two_factor:
+                  type: string
+              required:
+              - two_factor
+              type: object
+        description: Request Body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: Response when 2FA verification is successful
+        '400':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: The API endpoint exists but its syntax/payload is incorrect,
+            detail may be given
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: verifyTwoFactor
+      tags:
+      - Self
+  /api/v1/self/update:
+    post:
+      description: 'Change Email
+
+        We require the user to verify that they actually own the email address they
+        intend to change it to.
+
+
+        After the API call, the user will receive an email to the new email address
+        with a link like https://manage.mist.com/verify/update?expire=:exp_time&email=:admin_email&token=:token
+
+
+        Upon clicking the link, the user is provided with a login page to authenticate
+        using existing credentials. After successful login, the email address of the
+        user gets updated
+
+
+        **Note**: The request parameter email can be used by UI to validate that the
+        current session (if any) belongs to the admin or provide a login page (by
+        pre-populating the email on login screen). UI can also use the request parameter
+        expire to validate token expiry.'
+      operationId: updateSelfEmail
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  email: new@mistsys.com
+            schema:
+              $ref: ./components/schemas/Model_object_email.yaml
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              examples:
+                invalid email address:
+                  value: {}
+                new email address already exists:
+                  value:
+                    detail: email already existed
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: invalid email address or new email address already exists
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: updateSelfEmail
+      tags:
+      - Self
+  /api/v1/self/update/verify/{token}:
+    get:
+      description: Verify Email change
+      operationId: verifySelfEmail
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties: {}
+                type: object
+          description: With correct verification, the email address of the user will
+            be updated
+        '400':
+          content:
+            application/json:
+              examples:
+                invalid or expired token:
+                  value:
+                    detail: invalid token
+                new email address already exists:
+                  value:
+                    detail: email already existed
+                request comes from authenticated users other than admin:
+                  value:
+                    detail: invalid token
+              schema:
+                properties:
+                  detail:
+                    type: string
+                required:
+                - detail
+                type: object
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Authentication credentials were not provided.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Unauthorized
+        '403':
+          content:
+            application/json:
+              examples:
+                Permission Denied:
+                  value:
+                    detail: You do not have permission to perform this action.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Permission Denied
+        '404':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Not found.
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Not found. The API endpoint doesn't exist or resource doesn't
+            exist
+        '429':
+          content:
+            application/json:
+              examples:
+                Unauthorized:
+                  value:
+                    detail: Too Many Request. The API Token used for the request reached
+                      the 5000 API Calls per hour threshold
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Too Many Request. The API Token used for the request reached
+            the 5000 API Calls per hour threshold
+      summary: verifySelfEmail
+      tags:
+      - Self
+    parameters:
+    - $ref: '#/components/parameters/token'
+components:
+  parameters:
+    duration:
+      description: "For historical stats and/or logs where time range is needed, you\
+        \ can specify the time range in a few different ways:\n  * ?start=1430000000&end=1430864000\t\
+        specify the start / end\n  * ?end=1430864000&duration=1d\tspecify end time\
+        \ and duration\n  * ?duration=1d\tspecify duration, end will be now() in seconds"
+      in: query
+      name: duration
+      required: false
+      schema:
+        default: 1d
+        example: 10m
+        type: string
+    end:
+      in: query
+      name: end
+      schema:
+        default: 0
+        minimum: 0
+        type: integer
+    limit:
+      in: query
+      name: limit
+      required: false
+      schema:
+        default: 100
+        minimum: 0
+        type: integer
+    page:
+      in: query
+      name: page
+      required: false
+      schema:
+        default: 1
+        minimum: 1
+        type: integer
+    start:
+      in: query
+      name: start
+      schema:
+        default: 0
+        minimum: 0
+        type: integer
+    token:
+      in: path
+      name: token
+      required: true
+      schema:
+        type: string
+  responses:
+    Admin:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                admin_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                email: user@example.com
+                first_name: string
+                last_name: string
+                privileges:
+                - msp_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  msp_name: string
+                  name: string
+                  org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  org_name: string
+                  orggroup_ids:
+                  - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  role: admin
+                  scope: org
+                  site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  sitegroup_ids:
+                  - 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+          schema:
+            $ref: ./components/schemas/admin.yaml
+      description: OK
+    Apitoken:
+      content:
+        application/json:
+          examples:
+            Org API Token:
+              value:
+                created_time: 0
+                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                key: string
+                last_used: 0
+                name: string
+                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                privileges:
+                - msp_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  msp_name: string
+                  name: string
+                  org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  org_name: string
+                  orggroup_ids:
+                  - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  role: admin
+                  scope: org
+                  site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  sitegroup_ids:
+                  - 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+            User API Token:
+              value:
+                created_time: 0
+                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                key: string
+                last_used: 0
+                name: string
+                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          schema:
+            $ref: ./components/schemas/apitoken.yaml
+      description: OK
+    ApitokensArray:
+      content:
+        application/json:
+          examples:
+            Org API Tokens:
+              value:
+              - created_time: 0
+                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                key: string
+                last_used: 0
+                name: string
+                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                privileges:
+                - msp_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  msp_name: string
+                  name: string
+                  org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  org_name: string
+                  orggroup_ids:
+                  - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  role: admin
+                  scope: org
+                  site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  sitegroup_ids:
+                  - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+            User API Tokens:
+              value:
+              - created_time: 0
+                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                key: string
+                last_used: 0
+                name: string
+                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          schema:
+            items:
+              $ref: ./components/schemas/apitoken.yaml
+            type: array
+      description: OK
+    OK:
+      content:
+        application/json:
+          schema:
+            type: object
+      description: OK
+  securitySchemes:
+    apiToken:
+      description: "Like many other API providers, it\u2019s also possible to generate\
+        \ API Tokens to be used (in HTTP Header) for authentication. An API token\
+        \ ties to a Admin with equal or less privileges.\n\n**Format**:\n  API Token\
+        \ value format is `Token {apitoken}`\n\n**Notes**:\n* an API token generated\
+        \ for a specific admin has the same privilege as the user\n* an API token\
+        \ will be automatically removed if not used for > 90 days\n* SSO admins cannot\
+        \ generate these API tokens. Refer Org level API tokens which can have privileges\
+        \ of a specific Org/Site for more information."
+      in: header
+      name: Authorization
+      type: apiKey
+    basicAuth:
+      description: "While our current UI uses Session / Cookie-based authentication,\
+        \ it\u2019s also possible to do Basic Auth."
+      scheme: basic
+      type: http
