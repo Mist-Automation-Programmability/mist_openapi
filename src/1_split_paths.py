@@ -5,7 +5,7 @@ import json
 schemas = {}
 paths = {}
 
-with open("src_mist.openapi.yml", "r") as f:
+with open("mist.openapi.yml", "r") as f:
     data = yaml.load(f, Loader=yaml.loader.SafeLoader)
 
 
