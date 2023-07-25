@@ -115,6 +115,7 @@ def add_default_responses(oas):
         '401': 0,
         '403': 0,
         '404': 0,
+        '429': 0,
     }
     try:
         paths = oas["paths"]
@@ -147,13 +148,6 @@ def add_default_responses(oas):
                                                     "type": "string"
                                                 }
                                             }
-                                        },
-                                        "examples": {
-                                            "Unauthorized": {
-                                                "value": {
-                                                    "detail": "Authentication credentials were not provided."
-                                                }
-                                            }
                                         }
                                     }
                                 }
@@ -169,13 +163,6 @@ def add_default_responses(oas):
                                             "properties": {
                                                 "detail": {
                                                     "type": "string"
-                                                }
-                                            }
-                                        },
-                                        "examples": {
-                                            "Permission Denied": {
-                                                "value": {
-                                                    "detail": "You do not have permission to perform this action."
                                                 }
                                             }
                                         }
@@ -194,18 +181,27 @@ def add_default_responses(oas):
                                                 "detail": {
                                                     "type": "string"
                                                 }}
-                                        },
-                                        "examples": {
-                                            "Unauthorized": {
-                                                "value": {
-                                                    "detail": "Not found."
-                                                }
-                                            }
                                         }
                                     }
                                 }
                             }
                             added["404"] += 1
+                        if '429' not in paths[endpoint][verb]["responses"]:
+                            paths[endpoint][verb]["responses"]['429'] = {
+                                "description": "Too Many Request. The API Token used for the request reached the 5000 API Calls per hour threshold",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "detail": {
+                                                    "type": "string"
+                                                }}
+                                        }
+                                    }
+                                }
+                            }
+                            added["429"] += 1
         oas['paths'] = paths
         display_success()
         print(added)
