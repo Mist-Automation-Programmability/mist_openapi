@@ -125,81 +125,27 @@ def add_default_responses(oas):
                     if verb in paths[endpoint]:
                         if '400' not in paths[endpoint][verb]["responses"]:
                             paths[endpoint][verb]["responses"]['400'] = {
-                                "description": "The API endpoint exists but its syntax/payload is incorrect, detail may be given",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {}
-                                        }
-                                    }
-                                }
+                                "$ref": '#/components/responses/HTTP400'
                             }
                             added["400"] += 1
                         if '401' not in paths[endpoint][verb]["responses"]:
                             paths[endpoint][verb]["responses"]['401'] = {
-                                "description": "Unauthorized",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "detail": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                                "$ref": '#/components/responses/HTTP401'
                             }
                             added["401"] += 1
                         if '403' not in paths[endpoint][verb]["responses"]:
                             paths[endpoint][verb]["responses"]['403'] = {
-                                "description": "Permission Denied",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "detail": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                                "$ref": '#/components/responses/HTTP403'
                             }
                             added["403"] += 1
                         if '404' not in paths[endpoint][verb]["responses"]:
                             paths[endpoint][verb]["responses"]['404'] = {
-                                "description": "Not found. The API endpoint doesn't exist or resource doesn't exist",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "detail": {
-                                                    "type": "string"
-                                                }}
-                                        }
-                                    }
-                                }
+                                "$ref": '#/components/responses/HTTP404'
                             }
                             added["404"] += 1
                         if '429' not in paths[endpoint][verb]["responses"]:
                             paths[endpoint][verb]["responses"]['429'] = {
-                                "description": "Too Many Request. The API Token used for the request reached the 5000 API Calls per hour threshold",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "type": "object",
-                                            "properties": {
-                                                "detail": {
-                                                    "type": "string"
-                                                }}
-                                        }
-                                    }
-                                }
+                                "$ref": '#/components/responses/HTTP429'
                             }
                             added["429"] += 1
         oas['paths'] = paths
