@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2306.2.19**
+  description: '> Version: **2307.1.0**
 
     >
 
-    > Date: **July 31, 2023**
+    > Date: **August 4, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2306.2.19
+  version: 2307.1.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -678,7 +678,7 @@ paths:
       summary: listMxEdgeModels
       tags:
       - Constants
-  /api/v1/const/other_device_events:
+  /api/v1/const/otherdevice_events:
     get:
       description: 'Supported Events Type
 
@@ -4031,8 +4031,9 @@ paths:
                   type: object
                 duration:
                   default: 3600
-                  description: duration, in seconds. 0 is to un-suppress alarms
-                  maximum: 86400
+                  description: duration, in seconds. Maximum duration is 86400 * 180
+                    (180 days). 0 is to un-suppress alarms
+                  maximum: 15552000
                   minimum: 0
                   type: number
                 scheduled_time:
@@ -15348,6 +15349,11 @@ paths:
         name: device_mac
         schema:
           type: string
+      - description: device model
+        in: query
+        name: model
+        schema:
+          type: string
       - description: vendor name
         in: query
         name: vendor
@@ -15462,6 +15468,35 @@ paths:
       summary: updateOrgOtherDevice
       tags:
       - Orgs Devices Others
+  /api/v1/orgs/{org_id}/otherdevices/{device_mac}/reboot:
+    get:
+      description: Reboot OtherDevice
+      operationId: rebootOrgOtherDevice
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties: {}
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: rebootOrgOtherDevice
+      tags:
+      - Orgs Devices Others
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/device_mac'
   /api/v1/orgs/{org_id}/pma/dashboards:
     get:
       description: Get List of premium analytics dashboards for this Org
@@ -22291,6 +22326,32 @@ paths:
       requestBody:
         content:
           application/json:
+            examples:
+              Example:
+                value:
+                  action: allow
+                  apply_tags:
+                  - c049dfcd-0c73-5014-1c64-062e9903f1e5
+                  blocked_apps:
+                  - mist
+                  - all-videos
+                  created_time: 0
+                  dst_allow_wxtags:
+                  - fff34466-eec0-3756-6765-381c728a6037
+                  - eee2c7b0-d1d0-5a30-f349-e35fa43dc3b3
+                  dst_deny_wxtags:
+                  - aaa34466-eec0-3756-6765-381c728a6037
+                  - bbb2c7b0-d1d0-5a30-f349-e35fa43dc3b3
+                  enabled: true
+                  for_site: true
+                  id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  modified_time: 0
+                  order: 1
+                  org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                  site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                  src_wxtags:
+                  - 8bfc2490-d726-3587-038d-cb2e71bd2330
+                  - 3aa8e73f-9f46-d827-8d6a-567bb7e67fc9
             schema:
               $ref: '#/components/schemas/wxlan_rule'
         description: Request Body
@@ -22380,6 +22441,32 @@ paths:
       requestBody:
         content:
           application/json:
+            examples:
+              Example:
+                value:
+                  action: allow
+                  apply_tags:
+                  - c049dfcd-0c73-5014-1c64-062e9903f1e5
+                  blocked_apps:
+                  - mist
+                  - all-videos
+                  created_time: 0
+                  dst_allow_wxtags:
+                  - fff34466-eec0-3756-6765-381c728a6037
+                  - eee2c7b0-d1d0-5a30-f349-e35fa43dc3b3
+                  dst_deny_wxtags:
+                  - aaa34466-eec0-3756-6765-381c728a6037
+                  - bbb2c7b0-d1d0-5a30-f349-e35fa43dc3b3
+                  enabled: true
+                  for_site: true
+                  id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  modified_time: 0
+                  order: 1
+                  org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                  site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                  src_wxtags:
+                  - 8bfc2490-d726-3587-038d-cb2e71bd2330
+                  - 3aa8e73f-9f46-d827-8d6a-567bb7e67fc9
             schema:
               $ref: '#/components/schemas/wxlan_rule'
         description: Request Body
@@ -22427,6 +22514,100 @@ paths:
       requestBody:
         content:
           application/json:
+            examples:
+              Example 1:
+                value:
+                  name: vlan-assignment
+                  type: vlan
+                  vlan_id: 1055
+              matches app:
+                value:
+                  match: app
+                  name: match app
+                  type: match
+                  values:
+                  - gmail
+                  - dropbox
+              matches client_mac(s):
+                value:
+                  match: client_mac
+                  name: file-servers
+                  type: match
+                  values:
+                  - b0c4e7001543
+                  - a0c4e7001543
+                  - 00c4e7001543
+              matches hostnames excluding http(s)://:
+                value:
+                  match: hostname
+                  name: mist
+                  type: match
+                  values:
+                  - mist.com
+              matches ip_range_subnets:
+                value:
+                  match: ip_range_subnet
+                  name: file-servers
+                  type: match
+                  values:
+                  - 10.1.2.1
+                  - 10.2.3.4/24
+                  - 10.1.2.5-10.2.3.4
+              matches ports:
+                value:
+                  match: port
+                  name: web-ports
+                  type: match
+                  values:
+                  - '80'
+                  - '8000'
+                  - '8080'
+              matches psk_name:
+                value:
+                  match: psk_name
+                  name: VIP
+                  type: match
+                  values:
+                  - test_key1
+                  - test_key2
+              matches psk_role:
+                value:
+                  match: psk_role
+                  name: VIP
+                  type: match
+                  values:
+                  - test_role
+              matches radius_group:
+                value:
+                  match: radius_group
+                  name: VIP
+                  type: match
+                  values:
+                  - vip
+              matches radius_username:
+                value:
+                  match: radius_username
+                  name: VIP
+                  type: match
+                  values:
+                  - john@abc.com
+                  - eric@abc.com
+              matches wlan_id(s):
+                value:
+                  match: wlan_id
+                  name: guest-wlan
+                  type: match
+                  values:
+                  - be22bba78e22e1cf5185b880816fe2cf
+              matching traffic spec:
+                value:
+                  name: protocol-subnet-port
+                  specs:
+                  - port_range: '80'
+                    protocol: tcp
+                    subnets:
+                    - 10.1.2.0/24
+                  type: spec
             schema:
               $ref: '#/components/schemas/wxlan_tag'
         description: Request Body
@@ -32069,14 +32250,17 @@ paths:
                   type: client
               AP Scan radio Packet Capture:
                 value:
-                  ap_mac: string
-                  client_mac: string
+                  ap_mac: null
+                  band: '24'
+                  bandwidth: 20
+                  channel: 1
+                  client_mac: 38f9d3972ff1
                   duration: 600
-                  includes_mcast: true
-                  max_pkt_len: 128
-                  num_packets: 1024
-                  ssid: string
-                  type: client
+                  format: stream
+                  max_pkt_len: 68
+                  num_packets: 100
+                  tcpdump_expression: tcp port 80
+                  type: scan
               AP Wired Packet Capture:
                 value:
                   duration: 600
@@ -37477,126 +37661,7 @@ paths:
       operationId: listSiteMxEdgesStats
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                  - cpu_stat:
-                      cpus:
-                        property1:
-                          idle: 0
-                          interrupt: 0
-                          system: 0
-                          usage: 0
-                          user: 0
-                        property2:
-                          idle: 0
-                          interrupt: 0
-                          system: 0
-                          usage: 0
-                          user: 0
-                      idle: 0
-                      interrupt: 0
-                      system: 0
-                      usage: 0
-                      user: 0
-                    created_time: 0
-                    for_site: true
-                    id: 493f6eca-6276-4993-bfeb-83cbbbb66f08
-                    ip_stat:
-                      ip: string
-                      ips:
-                        property1: string
-                        property2: string
-                    lag_stat: {}
-                    last_seen: 0
-                    mac: string
-                    memory_stat:
-                      active: 0
-                      available: 0
-                      buffers: 0
-                      cached: 0
-                      free: 0
-                      inactive: 0
-                      swap_cached: 0
-                      swap_free: 0
-                      swap_total: 0
-                      total: 0
-                      usage: 0
-                    model: string
-                    modified_time: 0
-                    mxagent_registered: true
-                    mxcluster_id: de779d5f-583c-4a9c-b212-6105ad1a78b6
-                    name: string
-                    num_tunnels: 0
-                    org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-                    port_stat:
-                      property1:
-                        full_duplex: true
-                        mac: string
-                        rx_bytes: 0
-                        rx_errors: 0
-                        rx_pkts: 0
-                        speed: 0
-                        state: string
-                        tx_bytes: 0
-                        tx_errors: 0
-                        tx_pkts: 0
-                        up: true
-                      property2:
-                        full_duplex: true
-                        mac: string
-                        rx_bytes: 0
-                        rx_errors: 0
-                        rx_pkts: 0
-                        speed: 0
-                        state: string
-                        tx_bytes: 0
-                        tx_errors: 0
-                        tx_pkts: 0
-                        up: true
-                    sensor_stat: {}
-                    service_stat:
-                      mxagent:
-                        ext_ip: string
-                        last_seen: 0
-                        package_state: string
-                        package_version: string
-                        running_state: string
-                        uptime: 0
-                      tunterm:
-                        ext_ip: string
-                        last_seen: 0
-                        package_state: string
-                        package_version: string
-                        running_state: string
-                        uptime: 0
-                    services:
-                    - {}
-                    site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
-                    status: string
-                    tunterm_id: 811edbcf-b497-4977-b6d1-40d54cf871a5
-                    tunterm_ip_config:
-                      gateway: string
-                      ip: string
-                      netmask: string
-                    tunterm_port_config:
-                      downstream_ports:
-                      - {}
-                      separate_upstream_downstream: true
-                      upstream_ports:
-                      - {}
-                    tunterm_registered: true
-                    tunterm_stat:
-                      monitoring_failed: true
-                    uptime: 0
-                    virtualization_type: string
-              schema:
-                items:
-                  $ref: '#/components/schemas/stats_mxedge'
-                type: array
-          description: OK
+          $ref: '#/components/responses/MxedgeStatsArray'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -37618,124 +37683,7 @@ paths:
       operationId: getSiteMxEdgeStats
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    cpu_stat:
-                      cpus:
-                        property1:
-                          idle: 0
-                          interrupt: 0
-                          system: 0
-                          usage: 0
-                          user: 0
-                        property2:
-                          idle: 0
-                          interrupt: 0
-                          system: 0
-                          usage: 0
-                          user: 0
-                      idle: 0
-                      interrupt: 0
-                      system: 0
-                      usage: 0
-                      user: 0
-                    created_time: 0
-                    for_site: true
-                    id: 497f6eca-6276-4993-bfeb-53cbbbba6ff8
-                    ip_stat:
-                      ip: string
-                      ips:
-                        property1: string
-                        property2: string
-                    lag_stat: {}
-                    last_seen: 0
-                    mac: string
-                    memory_stat:
-                      active: 0
-                      available: 0
-                      buffers: 0
-                      cached: 0
-                      free: 0
-                      inactive: 0
-                      swap_cached: 0
-                      swap_free: 0
-                      swap_total: 0
-                      total: 0
-                      usage: 0
-                    model: string
-                    modified_time: 0
-                    mxagent_registered: true
-                    mxcluster_id: de779d5f-583c-4a9c-b212-6105ad1a78b6
-                    name: string
-                    num_tunnels: 0
-                    org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-                    port_stat:
-                      property1:
-                        full_duplex: true
-                        mac: string
-                        rx_bytes: 0
-                        rx_errors: 0
-                        rx_pkts: 0
-                        speed: 0
-                        state: string
-                        tx_bytes: 0
-                        tx_errors: 0
-                        tx_pkts: 0
-                        up: true
-                      property2:
-                        full_duplex: true
-                        mac: string
-                        rx_bytes: 0
-                        rx_errors: 0
-                        rx_pkts: 0
-                        speed: 0
-                        state: string
-                        tx_bytes: 0
-                        tx_errors: 0
-                        tx_pkts: 0
-                        up: true
-                    sensor_stat: {}
-                    service_stat:
-                      mxagent:
-                        ext_ip: string
-                        last_seen: 0
-                        package_state: string
-                        package_version: string
-                        running_state: string
-                        uptime: 0
-                      tunterm:
-                        ext_ip: string
-                        last_seen: 0
-                        package_state: string
-                        package_version: string
-                        running_state: string
-                        uptime: 0
-                    services:
-                    - {}
-                    site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
-                    status: string
-                    tunterm_id: 811edbcf-b497-4977-b6d1-40d54cf871a5
-                    tunterm_ip_config:
-                      gateway: string
-                      ip: string
-                      netmask: string
-                    tunterm_port_config:
-                      downstream_ports:
-                      - {}
-                      separate_upstream_downstream: true
-                      upstream_ports:
-                      - {}
-                    tunterm_registered: true
-                    tunterm_stat:
-                      monitoring_failed: true
-                    uptime: 0
-                    virtualization_type: string
-              schema:
-                $ref: '#/components/schemas/stats_mxedge'
-          description: OK
+          $ref: '#/components/responses/MxedgeStats'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -37929,55 +37877,7 @@ paths:
       - $ref: '#/components/parameters/duration'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    distinct: mac
-                    end: 1513177200
-                    limit: 100
-                    results:
-                    - count: 217
-                      mac: '112233445566'
-                    - count: 35
-                      mac: '001122334455'
-                    start: 1511967600
-                    total: 20
-              schema:
-                properties:
-                  distinct:
-                    type: string
-                  end:
-                    type: integer
-                  limit:
-                    type: integer
-                  results:
-                    items:
-                      properties:
-                        count:
-                          type: integer
-                        mac:
-                          type: string
-                      required:
-                      - count
-                      - mac
-                    minItems: 1
-                    type: array
-                    uniqueItems: true
-                  start:
-                    type: integer
-                  total:
-                    type: integer
-                required:
-                - start
-                - end
-                - limit
-                - distinct
-                - total
-                - results
-                type: object
-          description: OK
+          $ref: '#/components/responses/count'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -38221,73 +38121,7 @@ paths:
       - $ref: '#/components/parameters/duration'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    end: 1513177200
-                    limit: 10
-                    results:
-                    - mac: 5c4527a96580
-                      neighbor_mac: 64d814353400
-                      neighbor_port_desc: GigabitEthernet1/0/21
-                      neighbor_system_name: CORP-D-SW-2
-                      org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
-                      poe_disabled: true
-                      port_id: me0
-                      port_mac: 5c4527a96580
-                      rx_bytes: 4563443626
-                      rx_pkts: 30360265
-                      site_id: c1698122-c14c-11e5-8e81-1258369c38a9
-                      speed: 1000
-                      tx_bytes: 11299516780
-                      tx_pkts: 14610886
-                      up: true
-                    - full_duplex: true
-                      mac: 0c8126c6ff6c
-                      neighbor_mac: 5c5b350eb361
-                      neighbor_port_desc: ETH0
-                      neighbor_system_name: kevinsap
-                      org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
-                      poe_mode: 802.3at
-                      poe_on: true
-                      port_id: ge-0/0/0
-                      port_mac: 0c8126c6ff6f
-                      power_draw: 5.4
-                      rx_bps: 1176
-                      rx_bytes: 2628451
-                      rx_pkts: 11829
-                      site_id: c1698122-c14c-11e5-8e81-1258369c38a9
-                      speed: 1000
-                      tx_bps: 14264
-                      tx_bytes: 96810192
-                      tx_pkts: 492176
-                      up: true
-                    start: 1511967600
-                    total: 100
-              schema:
-                properties:
-                  end:
-                    type: integer
-                  limit:
-                    type: integer
-                  results:
-                    items:
-                      $ref: '#/components/schemas/stats_switch_port'
-                    type: array
-                  start:
-                    type: integer
-                  total:
-                    type: integer
-                required:
-                - start
-                - end
-                - limit
-                - total
-                - results
-                type: object
-          description: OK
+          $ref: '#/components/responses/SwitchPortsSearch'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -38528,55 +38362,7 @@ paths:
       - $ref: '#/components/parameters/duration'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    distinct: mac
-                    end: 1513177200
-                    limit: 100
-                    results:
-                    - count: 217
-                      mac: '112233445566'
-                    - count: 35
-                      mac: '001122334455'
-                    start: 1511967600
-                    total: 20
-              schema:
-                properties:
-                  distinct:
-                    type: string
-                  end:
-                    type: integer
-                  limit:
-                    type: integer
-                  results:
-                    items:
-                      properties:
-                        count:
-                          type: integer
-                        mac:
-                          type: string
-                      required:
-                      - count
-                      - mac
-                    minItems: 1
-                    type: array
-                    uniqueItems: true
-                  start:
-                    type: integer
-                  total:
-                    type: integer
-                required:
-                - start
-                - end
-                - limit
-                - distinct
-                - total
-                - results
-                type: object
-          description: OK
+          $ref: '#/components/responses/count'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -38748,73 +38534,7 @@ paths:
       - $ref: '#/components/parameters/duration'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    end: 1513177200
-                    limit: 10
-                    results:
-                    - mac: 5c4527a96580
-                      neighbor_mac: 64d814353400
-                      neighbor_port_desc: GigabitEthernet1/0/21
-                      neighbor_system_name: CORP-D-SW-2
-                      org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
-                      poe_disabled: true
-                      port_id: me0
-                      port_mac: 5c4527a96580
-                      rx_bytes: 4563443626
-                      rx_pkts: 30360265
-                      site_id: c1698122-c14c-11e5-8e81-1258369c38a9
-                      speed: 1000
-                      tx_bytes: 11299516780
-                      tx_pkts: 14610886
-                      up: true
-                    - full_duplex: true
-                      mac: 0c8126c6ff6c
-                      neighbor_mac: 5c5b350eb361
-                      neighbor_port_desc: ETH0
-                      neighbor_system_name: kevinsap
-                      org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
-                      poe_mode: 802.3at
-                      poe_on: true
-                      port_id: ge-0/0/0
-                      port_mac: 0c8126c6ff6f
-                      power_draw: 5.4
-                      rx_bps: 1176
-                      rx_bytes: 2628451
-                      rx_pkts: 11829
-                      site_id: c1698122-c14c-11e5-8e81-1258369c38a9
-                      speed: 1000
-                      tx_bps: 14264
-                      tx_bytes: 96810192
-                      tx_pkts: 492176
-                      up: true
-                    start: 1511967600
-                    total: 100
-              schema:
-                properties:
-                  end:
-                    type: integer
-                  limit:
-                    type: integer
-                  results:
-                    items:
-                      $ref: '#/components/schemas/stats_switch_port'
-                    type: array
-                  start:
-                    type: integer
-                  total:
-                    type: integer
-                required:
-                - start
-                - end
-                - limit
-                - total
-                - results
-                type: object
-          description: OK
+          $ref: '#/components/responses/SwitchPortsSearch'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -39159,11 +38879,11 @@ paths:
       - Sites Synthetic Tests
   /api/v1/sites/{site_id}/uisettings:
     get:
-      description: CURD site UI settings
-      operationId: listSiteCurdSettings
+      description: Site UI settings
+      operationId: listSiteUiSettings
       responses:
         '200':
-          $ref: '#/components/responses/CurdUiSettingsArray'
+          $ref: '#/components/responses/UiSettingsArray'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -39174,14 +38894,14 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: listSiteCurdSettings
+      summary: listSiteUiSettings
       tags:
       - Sites UI Settings
     parameters:
     - $ref: '#/components/parameters/site_id'
     post:
-      description: CURD site UI settings
-      operationId: createSiteCurdSettings
+      description: Site UI settings
+      operationId: createSiteUiSettings
       requestBody:
         content:
           application/json:
@@ -39239,11 +38959,11 @@ paths:
                     trendType: line
                     vizType: averageTimeSeriesChart
             schema:
-              $ref: '#/components/schemas/curd_ui_settings'
+              $ref: '#/components/schemas/ui_settings'
         description: Request Body
       responses:
         '200':
-          $ref: '#/components/responses/CurdUiSettings'
+          $ref: '#/components/responses/UiSettings'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -39254,16 +38974,16 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: createSiteCurdSettings
+      summary: createSiteUiSettings
       tags:
       - Sites UI Settings
   /api/v1/sites/{site_id}/uisettings/derived:
     get:
       description: Get both site UI settings(for_site=true) and org UI settings (for_site=false)
-      operationId: getSiteCurdSettingDerived
+      operationId: getSiteUiSettingDerived
       responses:
         '200':
-          $ref: '#/components/responses/CurdUiSettings'
+          $ref: '#/components/responses/UiSettings'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -39274,15 +38994,15 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteCurdSettingDerived
+      summary: getSiteUiSettingDerived
       tags:
       - Sites UI Settings
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/uisettings/{uisetting_id}:
     delete:
-      description: CURD site UI settings
-      operationId: deleteSiteCurdSetting
+      description: Site UI settings
+      operationId: deleteSiteUiSetting
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -39296,15 +39016,15 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: deleteSiteCurdSetting
+      summary: deleteSiteUiSetting
       tags:
       - Sites UI Settings
     get:
-      description: CURD site UI settings
-      operationId: getSiteCurdSetting
+      description: Site UI settings
+      operationId: getSiteUiSetting
       responses:
         '200':
-          $ref: '#/components/responses/CurdUiSettingsArray'
+          $ref: '#/components/responses/UiSettingsArray'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -39315,15 +39035,15 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteCurdSetting
+      summary: getSiteUiSetting
       tags:
       - Sites UI Settings
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/uisetting_id'
     post:
-      description: CURD site UI settings
-      operationId: updateSiteCurdSetting
+      description: Site UI settings
+      operationId: updateSiteUiSetting
       requestBody:
         content:
           application/json:
@@ -39381,11 +39101,11 @@ paths:
                     trendType: line
                     vizType: averageTimeSeriesChart
             schema:
-              $ref: '#/components/schemas/curd_ui_settings'
+              $ref: '#/components/schemas/ui_settings'
         description: Request Body
       responses:
         '200':
-          $ref: '#/components/responses/CurdUiSettings'
+          $ref: '#/components/responses/UiSettings'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -39396,7 +39116,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: updateSiteCurdSetting
+      summary: updateSiteUiSetting
       tags:
       - Sites UI Settings
   /api/v1/sites/{site_id}/vbeacons:
@@ -41181,20 +40901,31 @@ paths:
         content:
           application/json:
             examples:
-              example-1:
+              Example:
                 value:
                   action: allow
+                  apply_tags:
+                  - c049dfcd-0c73-5014-1c64-062e9903f1e5
                   blocked_apps:
-                  - string
+                  - mist
+                  - all-videos
+                  created_time: 0
                   dst_allow_wxtags:
-                  - string
+                  - fff34466-eec0-3756-6765-381c728a6037
+                  - eee2c7b0-d1d0-5a30-f349-e35fa43dc3b3
                   dst_deny_wxtags:
-                  - string
+                  - aaa34466-eec0-3756-6765-381c728a6037
+                  - bbb2c7b0-d1d0-5a30-f349-e35fa43dc3b3
                   enabled: true
-                  name: string
-                  order: 0
+                  for_site: true
+                  id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  modified_time: 0
+                  order: 1
+                  org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                  site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
                   src_wxtags:
-                  - string
+                  - 8bfc2490-d726-3587-038d-cb2e71bd2330
+                  - 3aa8e73f-9f46-d827-8d6a-567bb7e67fc9
             schema:
               $ref: '#/components/schemas/wxlan_rule'
         description: Request Body
@@ -41284,6 +41015,32 @@ paths:
       requestBody:
         content:
           application/json:
+            examples:
+              Example:
+                value:
+                  action: allow
+                  apply_tags:
+                  - c049dfcd-0c73-5014-1c64-062e9903f1e5
+                  blocked_apps:
+                  - mist
+                  - all-videos
+                  created_time: 0
+                  dst_allow_wxtags:
+                  - fff34466-eec0-3756-6765-381c728a6037
+                  - eee2c7b0-d1d0-5a30-f349-e35fa43dc3b3
+                  dst_deny_wxtags:
+                  - aaa34466-eec0-3756-6765-381c728a6037
+                  - bbb2c7b0-d1d0-5a30-f349-e35fa43dc3b3
+                  enabled: true
+                  for_site: true
+                  id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  modified_time: 0
+                  order: 1
+                  org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                  site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                  src_wxtags:
+                  - 8bfc2490-d726-3587-038d-cb2e71bd2330
+                  - 3aa8e73f-9f46-d827-8d6a-567bb7e67fc9
             schema:
               $ref: '#/components/schemas/wxlan_rule'
         description: Request Body
@@ -41332,26 +41089,99 @@ paths:
         content:
           application/json:
             examples:
-              example-1:
+              Example 1:
                 value:
-                  last_ips:
-                  - string
-                  mac: string
-                  match: wlan_id
-                  name: string
-                  op: in
-                  resource_mac: string
-                  services:
-                  - string
-                  specs:
-                  - port_range: string
-                    protocol: tcp
-                    subnet:
-                    - string
-                  subnet: string
+                  name: vlan-assignment
+                  type: vlan
+                  vlan_id: 1055
+              matches app:
+                value:
+                  match: app
+                  name: match app
                   type: match
                   values:
-                  - string
+                  - gmail
+                  - dropbox
+              matches client_mac(s):
+                value:
+                  match: client_mac
+                  name: file-servers
+                  type: match
+                  values:
+                  - b0c4e7001543
+                  - a0c4e7001543
+                  - 00c4e7001543
+              matches hostnames excluding http(s)://:
+                value:
+                  match: hostname
+                  name: mist
+                  type: match
+                  values:
+                  - mist.com
+              matches ip_range_subnets:
+                value:
+                  match: ip_range_subnet
+                  name: file-servers
+                  type: match
+                  values:
+                  - 10.1.2.1
+                  - 10.2.3.4/24
+                  - 10.1.2.5-10.2.3.4
+              matches ports:
+                value:
+                  match: port
+                  name: web-ports
+                  type: match
+                  values:
+                  - '80'
+                  - '8000'
+                  - '8080'
+              matches psk_name:
+                value:
+                  match: psk_name
+                  name: VIP
+                  type: match
+                  values:
+                  - test_key1
+                  - test_key2
+              matches psk_role:
+                value:
+                  match: psk_role
+                  name: VIP
+                  type: match
+                  values:
+                  - test_role
+              matches radius_group:
+                value:
+                  match: radius_group
+                  name: VIP
+                  type: match
+                  values:
+                  - vip
+              matches radius_username:
+                value:
+                  match: radius_username
+                  name: VIP
+                  type: match
+                  values:
+                  - john@abc.com
+                  - eric@abc.com
+              matches wlan_id(s):
+                value:
+                  match: wlan_id
+                  name: guest-wlan
+                  type: match
+                  values:
+                  - be22bba78e22e1cf5185b880816fe2cf
+              matching traffic spec:
+                value:
+                  name: protocol-subnet-port
+                  specs:
+                  - port_range: '80'
+                    protocol: tcp
+                    subnets:
+                    - 10.1.2.0/24
+                  type: spec
             schema:
               $ref: '#/components/schemas/wxlan_tag'
         description: Request Body
@@ -42399,6 +42229,48 @@ paths:
                   topic: location
             schema:
               $ref: '#/components/schemas/webhook_location'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: location
+      tags:
+      - Webhook Samples
+  /webhook_example/_nac_accounting_:
+    parameters: []
+    post:
+      description: 'Webhook sample for `nac-accounting` topic
+
+
+        **Note**: The server host will be your own server FQDN where the Mist Cloud
+        is sending the webhook messages
+
+        '
+      operationId: location
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example 1:
+                value:
+                  events:
+                  - ap: 5c5b355005be
+                    auth_type: 802.1X
+                    bssid: 5c5b35546bb4
+                    client_ip: 172.16.87.4
+                    client_type: wireless
+                    mac: 6e795836d5f9
+                    nas_vendor: juniper-mist
+                    org_id: 625aba64-fe72-4b14-8985-cbf31ec3d78a
+                    rx_pkts: 9523
+                    site_id: ec9d1e85-af24-43f9-8d65-d620580e8631
+                    ssid: Test-CMR SSID
+                    timestamp: 1547235620.89
+                    tx_pkts: 5233
+                    type: NAC_ACCOUNTING_STOP
+                    username: hi
+                  topic: nac-accounting
+            schema:
+              $ref: '#/components/schemas/webhoook_nac_accounting'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -46598,126 +46470,6 @@ components:
               $ref: '#/components/schemas/const_traffic_type'
             type: array
       description: List of Traffic Types
-    CurdUiSettings:
-      content:
-        application/json:
-          examples:
-            Example:
-              value:
-                created_time: 1508823803
-                defaultScopeId: 67970e46-4e12-11e6-9188-0242ad112847
-                defaultScopeType: site
-                defaultTimeRange:
-                  end: 1508828400
-                  endDate: 10/23/2017
-                  interval: 1d
-                  name: This Week
-                  shortName: thisWeek
-                  start: 1508655600
-                  usePreset: true
-                description: Description of the databoard
-                for_site: true
-                id: 3bdcc7e8-c04d-4512-b4fc-093da9057eb0
-                isCustomDataboard: true
-                isScopeLinked: true
-                isTimeRangeLinked: true
-                modified_time: 0
-                name: New Databoard
-                org_id: cc079380-5029-4d4a-9125-858de85731ff
-                purpose: databoard
-                site_id: 67970e46-4e12-11e6-9188-0242ad112847
-                tiles:
-                - chartBand: 2.4 ghz
-                  chartColor: '#00B4AD'
-                  chartDirection: tx + rx
-                  chartRankBy: string
-                  chartType: timeSeries
-                  colspan: 5
-                  column: 1
-                  hideEmptyRows: true
-                  id: 7a9ab38c-cfc3-483d-b51a-0aec571fadc0
-                  metric:
-                    apiName: client-dhcp-latency
-                  name: New Analysis
-                  row: 1
-                  rowspan: 2
-                  scopeId: e0c767834b4c
-                  scopeType: client
-                  sortedColumns: null
-                  timeRange:
-                    end: 1508823743
-                    endDate: 10/23/2017
-                    interval: 1d
-                    name: Past 7 Days
-                    shortName: 7d
-                    start: 1508223600
-                    usePreset: true
-                  trendType: line
-                  vizType: averageTimeSeriesChart
-          schema:
-            $ref: '#/components/schemas/curd_ui_settings'
-      description: Example response
-    CurdUiSettingsArray:
-      content:
-        application/json:
-          examples:
-            Example:
-              value:
-              - created_time: 1508823803
-                defaultScopeId: 67970e46-4e12-11e6-9188-0242ad112847
-                defaultScopeType: site
-                defaultTimeRange:
-                  end: 1508828400
-                  endDate: 10/23/2017
-                  interval: 1d
-                  name: This Week
-                  shortName: thisWeek
-                  start: 1508655600
-                  usePreset: true
-                description: Description of the databoard
-                for_site: true
-                id: 3bdcc7e8-c04d-4512-b4fc-093da9057eb0
-                isCustomDataboard: true
-                isScopeLinked: true
-                isTimeRangeLinked: true
-                modified_time: 0
-                name: New Databoard
-                org_id: cc079380-5029-4d4a-9125-858de85731ff
-                purpose: databoard
-                site_id: 67970e46-4e12-11e6-9188-0242ad112847
-                tiles:
-                - chartBand: 2.4 ghz
-                  chartColor: '#00B4AD'
-                  chartDirection: tx + rx
-                  chartRankBy: string
-                  chartType: timeSeries
-                  colspan: 5
-                  column: 1
-                  hideEmptyRows: true
-                  id: 7a9ab38c-cfc3-483d-b51a-0aec571fadc0
-                  metric:
-                    apiName: client-dhcp-latency
-                  name: New Analysis
-                  row: 1
-                  rowspan: 2
-                  scopeId: e0c767834b4c
-                  scopeType: client
-                  sortedColumns: null
-                  timeRange:
-                    end: 1508823743
-                    endDate: 10/23/2017
-                    interval: 1d
-                    name: Past 7 Days
-                    shortName: 7d
-                    start: 1508223600
-                    usePreset: true
-                  trendType: line
-                  vizType: averageTimeSeriesChart
-          schema:
-            items:
-              $ref: '#/components/schemas/curd_ui_settings'
-            type: array
-      description: List of CURD UI Setting
     Device:
       content:
         application/json:
@@ -47388,11 +47140,13 @@ components:
       content:
         application/json:
           examples:
-            Example 1:
+            Otherdevice Stats:
               value:
+                config_status: synced
                 last_config: 1675392788
                 last_seen: 1675843629
                 mac: 5c5b35000018
+                status: online
                 uptime: 20296
                 vendor: cradlepoint
                 vendor_specific: {}
@@ -52943,179 +52697,296 @@ components:
       content:
         application/json:
           examples:
-            example-1:
+            Example:
               value:
                 cpu_stat:
                   cpus:
                     cpu0:
-                      idle: 79
+                      idle: 89
                       interrupt: 0
-                      system: 4
-                      usage: 20
-                      user: 16
-                    cpu1:
-                      idle: 93
-                      interrupt: 0
-                      system: 4
-                      usage: 6
+                      system: 8
+                      usage: 10
                       user: 1
-                  idle: 87
-                  interrupt: 0
-                  system: 5
-                  usage: 12
-                  user: 7
-                ext_ip: 116.187.144.16
-                id: 387804a7-3474-85ce-15a2-f9a9684c9c90
-                ip_stat:
-                  ip: 172.16.5.3
-                  ips:
-                    ens192: 172.16.5.3/24,fe81::20c:29ff:fef8:d18e/64
-                  tunterm_stat:
-                    monitoring_failed: false
-                lag_stat:
-                  lag0:
-                    active_ports:
-                    - '0'
-                    - '1'
-                last_seen: 1547437078
-                magic: ExNpT5gi-ADR8WTFd4EiQPY3cP5WdSoD
-                memory_stats:
-                  active: 1061085184
-                  available: 4124860416
-                  buffers: 789495808
-                  cached: 718016512
-                  free: 2818838528
-                  inactive: 458158080
-                  swap_cached: 0
-                  swap_free: 8161062912
-                  swap_total: 8161062912
-                  total: 7947616256
-                  usage: 65
-                model: ME-S2019
-                mxagent_registered: false
-                mxcluster_id: 572586b7-f97b-a22b-526c-8b97a3f609c4
-                name: Guest
-                num_tunnels: 31
-                port_stat:
-                  eth0:
-                    full_duplex: true
-                    lldp_stats:
-                      mgmt_addr: 122.16.3.11
-                      port_desc: GigabitEthernet4/0/16
-                      port_id: "\x05Gi4/0/16"
-                      system_desc: Cisco IOS Software
-                      system_name: ME-DC2-DIS-SW
-                    rx_bytes: 2056
-                    rx_errors: 0
-                    rx_pkts: 670
-                    speed: 1000
-                    tx_bytes: 2056
-                    tx_pkts: 670
-                    up: true
-                  eth1:
-                    up: false
-                  module:
-                    up: false
-                status: connected
-                tunterm_registered: false
-                uptime: 884221
-                version: 0.1.2
-                virtualization_type: VirtualizationVMware
-            example-2:
-              value:
-                cpu_stat:
-                  cpus:
-                    property1:
-                      idle: 0
+                    cpu1:
+                      idle: 81
                       interrupt: 0
-                      system: 0
-                      usage: 0
-                      user: 0
-                    property2:
-                      idle: 0
+                      system: 4
+                      usage: 18
+                      user: 13
+                    cpu2:
+                      idle: 81
                       interrupt: 0
-                      system: 0
-                      usage: 0
-                      user: 0
-                  idle: 0
+                      system: 4
+                      usage: 18
+                      user: 13
+                    cpu3:
+                      idle: 2
+                      interrupt: 0
+                      system: 50
+                      usage: 97
+                      user: 46
+                  idle: 62
                   interrupt: 0
-                  system: 0
-                  usage: 0
-                  user: 0
-                ext_ip: string
-                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  system: 17
+                  usage: 37
+                  user: 19
+                created_time: 1632684398
+                for_site: false
+                id: 00000000-0000-0000-1000-020000a80cb4
                 ip_stat:
-                  ip: string
+                  ip: 192.168.1.244
                   ips:
-                    property1: string
-                    property2: string
+                    ens18: 192.168.1.244/24,fe80::104c:ffff:fee0:caf8/64
+                  macs:
+                    ens18: e4434b217044
                 lag_stat:
-                  property1:
+                  lacp0:
                     active_ports:
-                    - string
-                  property2:
-                    active_ports:
-                    - string
-                last_seen: 0
-                magic: string
-                memory_stats:
-                  active: 0
-                  available: 0
-                  buffers: 0
-                  cached: 0
-                  free: 0
-                  inactive: 0
+                    - port0
+                    - port1
+                last_seen: 1633721215
+                mac: 020000a80cb4
+                memory_stat:
+                  active: 394936320
+                  available: 4699291648
+                  buffers: 107646976
+                  cached: 478060544
+                  free: 4330659840
+                  inactive: 211980288
                   swap_cached: 0
-                  swap_free: 0
-                  swap_total: 0
-                  total: 0
-                  usage: 0
-                model: string
+                  swap_free: 1022357504
+                  swap_total: 1022357504
+                  total: 8365957120
+                  usage: 48
+                model: ME-VM
+                modified_time: 1633643629
                 mxagent_registered: true
-                mxcluster_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                name: string
+                mxcluster_id: 678bc339-7635-4556-bbc0-e77ad493ef8b
+                name: me-vm-1
                 num_tunnels: 0
+                oob_ip_config:
+                  dns:
+                  - 8.8.8.8
+                  - 1.1.1.1
+                  gateway: 10.0.0.1
+                  ip: 10.0.0.10
+                  netmask: 255.255.255.0
+                  type: static
+                org_id: 11b08247-b1ee-4152-9b25-312b323ce480
                 port_stat:
-                  property1:
+                  port0:
                     full_duplex: true
-                    lldp_stats:
-                      mgmt_addr: string
-                      port_desc: string
-                      port_id: string
-                      system_desc: string
-                      system_name: string
-                    rx_bytes: 0
+                    mac: 9e294e49091d
+                    rx_bytes: 646898375700
                     rx_errors: 0
-                    rx_pkts: 0
-                    speed: 0
-                    tx_bytes: 0
-                    tx_pkts: 0
+                    rx_pkts: 8784449574
+                    speed: 10000
+                    state: forwarding
+                    tx_bytes: 647200748038
+                    tx_errors: 0
+                    tx_pkts: 8788647466
                     up: true
-                  property2:
+                  port1:
                     full_duplex: true
-                    lldp_stats:
-                      mgmt_addr: string
-                      port_desc: string
-                      port_id: string
-                      system_desc: string
-                      system_name: string
-                    rx_bytes: 0
+                    mac: a270fe53437e
+                    rx_bytes: 647200437652
                     rx_errors: 0
-                    rx_pkts: 0
-                    speed: 0
-                    tx_bytes: 0
-                    tx_pkts: 0
+                    rx_pkts: 8788644886
+                    speed: 10000
+                    state: forwarding
+                    tx_bytes: 646898681650
+                    tx_errors: 0
+                    tx_pkts: 8784452092
                     up: true
-                status: string
+                sensor_stat: {}
+                serial: string
+                service_stat:
+                  mxagent:
+                    ext_ip: 99.0.86.164
+                    last_seen: 1633721215
+                    package_state: Installed
+                    package_version: 3.1.1037-1
+                    running_state: Running
+                    uptime: 21240
+                  tunterm:
+                    ext_ip: 99.0.86.164
+                    last_seen: 1633721203
+                    package_state: Installed
+                    package_version: 0.1.2449+deb10
+                    running_state: Running
+                    uptime: 76261
+                services:
+                - tunterm
+                site_id: 00000000-0000-0000-0000-000000000000
+                status: connected
+                tunterm_ip_config:
+                  gateway: 192.168.11.1
+                  ip: 192.168.11.91
+                  netmask: 255.255.255.0
+                tunterm_port_config:
+                  downstream_ports:
+                  - '0'
+                  - '1'
+                  separate_upstream_downstream: false
+                  upstream_ports:
+                  - '0'
+                  - '1'
                 tunterm_registered: true
                 tunterm_stat:
-                  monitoring_failed: true
-                uptime: 0
-                version: string
-                virtualization_type: string
+                  monitoring_failed: false
+                uptime: 76281
+                virtualization_type: KVM
           schema:
             $ref: '#/components/schemas/stats_mxedge'
-      description: OK
+      description: MxEdge Stats
+    MxedgeStatsArray:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+              - cpu_stat:
+                  cpus:
+                    cpu0:
+                      idle: 89
+                      interrupt: 0
+                      system: 8
+                      usage: 10
+                      user: 1
+                    cpu1:
+                      idle: 81
+                      interrupt: 0
+                      system: 4
+                      usage: 18
+                      user: 13
+                    cpu2:
+                      idle: 81
+                      interrupt: 0
+                      system: 4
+                      usage: 18
+                      user: 13
+                    cpu3:
+                      idle: 2
+                      interrupt: 0
+                      system: 50
+                      usage: 97
+                      user: 46
+                  idle: 62
+                  interrupt: 0
+                  system: 17
+                  usage: 37
+                  user: 19
+                created_time: 1632684398
+                for_site: false
+                id: 00000000-0000-0000-1000-020000a80cb4
+                ip_stat:
+                  ip: 192.168.1.244
+                  ips:
+                    ens18: 192.168.1.244/24,fe80::104c:ffff:fee0:caf8/64
+                  macs:
+                    ens18: e4434b217044
+                lag_stat:
+                  lacp0:
+                    active_ports:
+                    - port0
+                    - port1
+                last_seen: 1633721215
+                mac: 020000a80cb4
+                memory_stat:
+                  active: 394936320
+                  available: 4699291648
+                  buffers: 107646976
+                  cached: 478060544
+                  free: 4330659840
+                  inactive: 211980288
+                  swap_cached: 0
+                  swap_free: 1022357504
+                  swap_total: 1022357504
+                  total: 8365957120
+                  usage: 48
+                model: ME-VM
+                modified_time: 1633643629
+                mxagent_registered: true
+                mxcluster_id: 678bc339-7635-4556-bbc0-e77ad493ef8b
+                name: me-vm-1
+                num_tunnels: 0
+                oob_ip_config:
+                  dns:
+                  - 8.8.8.8
+                  - 1.1.1.1
+                  gateway: 10.0.0.1
+                  ip: 10.0.0.10
+                  netmask: 255.255.255.0
+                  type: static
+                org_id: 11b08247-b1ee-4152-9b25-312b323ce480
+                port_stat:
+                  port0:
+                    full_duplex: true
+                    mac: 9e294e49091d
+                    rx_bytes: 646898375700
+                    rx_errors: 0
+                    rx_pkts: 8784449574
+                    speed: 10000
+                    state: forwarding
+                    tx_bytes: 647200748038
+                    tx_errors: 0
+                    tx_pkts: 8788647466
+                    up: true
+                  port1:
+                    full_duplex: true
+                    mac: a270fe53437e
+                    rx_bytes: 647200437652
+                    rx_errors: 0
+                    rx_pkts: 8788644886
+                    speed: 10000
+                    state: forwarding
+                    tx_bytes: 646898681650
+                    tx_errors: 0
+                    tx_pkts: 8784452092
+                    up: true
+                sensor_stat: {}
+                serial: string
+                service_stat:
+                  mxagent:
+                    ext_ip: 99.0.86.164
+                    last_seen: 1633721215
+                    package_state: Installed
+                    package_version: 3.1.1037-1
+                    running_state: Running
+                    uptime: 21240
+                  tunterm:
+                    ext_ip: 99.0.86.164
+                    last_seen: 1633721203
+                    package_state: Installed
+                    package_version: 0.1.2449+deb10
+                    running_state: Running
+                    uptime: 76261
+                services:
+                - tunterm
+                site_id: 00000000-0000-0000-0000-000000000000
+                status: connected
+                tunterm_ip_config:
+                  gateway: 192.168.11.1
+                  ip: 192.168.11.91
+                  netmask: 255.255.255.0
+                tunterm_port_config:
+                  downstream_ports:
+                  - '0'
+                  - '1'
+                  separate_upstream_downstream: false
+                  upstream_ports:
+                  - '0'
+                  - '1'
+                tunterm_registered: true
+                tunterm_stat:
+                  monitoring_failed: false
+                uptime: 76281
+                virtualization_type: KVM
+          schema:
+            items:
+              $ref: '#/components/schemas/stats_mxedge'
+            type: array
+      description: List of MxEdge Stats
     MxedgeUpdateInfo:
       content:
         application/json:
@@ -58629,6 +58500,86 @@ components:
               $ref: '#/components/schemas/ssr_upgrade_response'
             type: array
       description: Example response
+    SwitchPortsSearch:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                end: 1513177200
+                limit: 10
+                results:
+                - active: true
+                  auth_state: init
+                  for_site: true
+                  full_duplex: true
+                  jitter: 0
+                  latency: 0
+                  loss: 0
+                  lte_iccid: string
+                  lte_imei: string
+                  lte_imsi: string
+                  mac: 5c4527a96580
+                  mac_count: 0
+                  mac_limit: 0
+                  neighbor_mac: 64d814353400
+                  neighbor_port_desc: GigabitEthernet1/0/21
+                  neighbor_system_name: CORP-D-SW-2
+                  org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
+                  poe_disabled: true
+                  poe_mode: 802.3af
+                  poe_on: true
+                  port_id: ge-0/0/0
+                  port_mac: 5c4527a96580
+                  port_usage: lan
+                  power_draw: 0
+                  rx_bcast_pkts: 0
+                  rx_bps: 0
+                  rx_bytes: 4563443626
+                  rx_errors: 0
+                  rx_mcast_pkts: 0
+                  rx_pkts: 0
+                  site_id: c1698122-c14c-11e5-8e81-1258369c38a9
+                  speed: 1000
+                  stp_role: designated
+                  stp_state: orwarding
+                  tx_bcast_pkts: 0
+                  tx_bps: 0
+                  tx_bytes: 11299516780
+                  tx_errors: 0
+                  tx_mcast_pkts: 0
+                  tx_pkts: 492176
+                  type: gateway
+                  up: true
+                  xcvr_part_number: string
+                start: 1511967600
+                total: 100
+          schema:
+            properties:
+              end:
+                example: 1513177200
+                type: integer
+              limit:
+                example: 10
+                type: integer
+              results:
+                items:
+                  $ref: '#/components/schemas/stats_switch_port'
+                type: array
+              start:
+                example: 1511967600
+                type: integer
+              total:
+                example: 100
+                type: integer
+            required:
+            - start
+            - end
+            - limit
+            - total
+            - results
+            type: object
+      description: List of Switch Ports Stats
     SyntheticTest:
       content:
         application/json:
@@ -58937,6 +58888,126 @@ components:
             - total
             type: object
       description: OK
+    UiSettings:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                created_time: 1508823803
+                defaultScopeId: 67970e46-4e12-11e6-9188-0242ad112847
+                defaultScopeType: site
+                defaultTimeRange:
+                  end: 1508828400
+                  endDate: 10/23/2017
+                  interval: 1d
+                  name: This Week
+                  shortName: thisWeek
+                  start: 1508655600
+                  usePreset: true
+                description: Description of the databoard
+                for_site: true
+                id: 3bdcc7e8-c04d-4512-b4fc-093da9057eb0
+                isCustomDataboard: true
+                isScopeLinked: true
+                isTimeRangeLinked: true
+                modified_time: 0
+                name: New Databoard
+                org_id: cc079380-5029-4d4a-9125-858de85731ff
+                purpose: databoard
+                site_id: 67970e46-4e12-11e6-9188-0242ad112847
+                tiles:
+                - chartBand: 2.4 ghz
+                  chartColor: '#00B4AD'
+                  chartDirection: tx + rx
+                  chartRankBy: string
+                  chartType: timeSeries
+                  colspan: 5
+                  column: 1
+                  hideEmptyRows: true
+                  id: 7a9ab38c-cfc3-483d-b51a-0aec571fadc0
+                  metric:
+                    apiName: client-dhcp-latency
+                  name: New Analysis
+                  row: 1
+                  rowspan: 2
+                  scopeId: e0c767834b4c
+                  scopeType: client
+                  sortedColumns: null
+                  timeRange:
+                    end: 1508823743
+                    endDate: 10/23/2017
+                    interval: 1d
+                    name: Past 7 Days
+                    shortName: 7d
+                    start: 1508223600
+                    usePreset: true
+                  trendType: line
+                  vizType: averageTimeSeriesChart
+          schema:
+            $ref: '#/components/schemas/ui_settings'
+      description: Example response
+    UiSettingsArray:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+              - created_time: 1508823803
+                defaultScopeId: 67970e46-4e12-11e6-9188-0242ad112847
+                defaultScopeType: site
+                defaultTimeRange:
+                  end: 1508828400
+                  endDate: 10/23/2017
+                  interval: 1d
+                  name: This Week
+                  shortName: thisWeek
+                  start: 1508655600
+                  usePreset: true
+                description: Description of the databoard
+                for_site: true
+                id: 3bdcc7e8-c04d-4512-b4fc-093da9057eb0
+                isCustomDataboard: true
+                isScopeLinked: true
+                isTimeRangeLinked: true
+                modified_time: 0
+                name: New Databoard
+                org_id: cc079380-5029-4d4a-9125-858de85731ff
+                purpose: databoard
+                site_id: 67970e46-4e12-11e6-9188-0242ad112847
+                tiles:
+                - chartBand: 2.4 ghz
+                  chartColor: '#00B4AD'
+                  chartDirection: tx + rx
+                  chartRankBy: string
+                  chartType: timeSeries
+                  colspan: 5
+                  column: 1
+                  hideEmptyRows: true
+                  id: 7a9ab38c-cfc3-483d-b51a-0aec571fadc0
+                  metric:
+                    apiName: client-dhcp-latency
+                  name: New Analysis
+                  row: 1
+                  rowspan: 2
+                  scopeId: e0c767834b4c
+                  scopeType: client
+                  sortedColumns: null
+                  timeRange:
+                    end: 1508823743
+                    endDate: 10/23/2017
+                    interval: 1d
+                    name: Past 7 Days
+                    shortName: 7d
+                    start: 1508223600
+                    usePreset: true
+                  trendType: line
+                  vizType: averageTimeSeriesChart
+          schema:
+            items:
+              $ref: '#/components/schemas/ui_settings'
+            type: array
+      description: List of UI Setting
     UpgradeStatus:
       content:
         application/json:
@@ -60221,56 +60292,68 @@ components:
       content:
         application/json:
           examples:
-            example-1:
+            Example:
               value:
                 action: allow
+                apply_tags:
+                - c049dfcd-0c73-5014-1c64-062e9903f1e5
                 blocked_apps:
-                - string
+                - mist
+                - all-videos
                 created_time: 0
                 dst_allow_wxtags:
-                - string
+                - fff34466-eec0-3756-6765-381c728a6037
+                - eee2c7b0-d1d0-5a30-f349-e35fa43dc3b3
                 dst_deny_wxtags:
-                - string
+                - aaa34466-eec0-3756-6765-381c728a6037
+                - bbb2c7b0-d1d0-5a30-f349-e35fa43dc3b3
                 enabled: true
-                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                for_site: true
+                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
                 modified_time: 0
-                name: string
-                order: 0
-                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                order: 1
+                org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
                 src_wxtags:
-                - string
+                - 8bfc2490-d726-3587-038d-cb2e71bd2330
+                - 3aa8e73f-9f46-d827-8d6a-567bb7e67fc9
           schema:
             $ref: '#/components/schemas/wxlan_rule'
-      description: OK
+      description: Wrule
     WxruleArray:
       content:
         application/json:
           examples:
-            example-1:
+            Example:
               value:
               - action: allow
+                apply_tags:
+                - c049dfcd-0c73-5014-1c64-062e9903f1e5
                 blocked_apps:
-                - string
+                - mist
+                - all-videos
                 created_time: 0
                 dst_allow_wxtags:
-                - string
+                - fff34466-eec0-3756-6765-381c728a6037
+                - eee2c7b0-d1d0-5a30-f349-e35fa43dc3b3
                 dst_deny_wxtags:
-                - string
+                - aaa34466-eec0-3756-6765-381c728a6037
+                - bbb2c7b0-d1d0-5a30-f349-e35fa43dc3b3
                 enabled: true
-                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                for_site: true
+                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
                 modified_time: 0
-                name: string
-                order: 0
-                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                order: 1
+                org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
                 src_wxtags:
-                - string
+                - 8bfc2490-d726-3587-038d-cb2e71bd2330
+                - 3aa8e73f-9f46-d827-8d6a-567bb7e67fc9
           schema:
             items:
               $ref: '#/components/schemas/wxlan_rule'
             type: array
-      description: OK
+      description: List of WxRules
     WxruleStatsArray:
       content:
         application/json:
@@ -60979,28 +61062,31 @@ components:
       content:
         application/json:
           examples:
-            example-1:
+            Example:
               value:
                 org_entitled:
                   SUB-LOC: 30
                   SUB-MAN: 60
-                svna_enabled: false
-                trial_enabled: false
+                svna_enabled: true
+                trial_enabled: true
                 usages:
                   SUB-LOC: 30
                   SUB-MAN: 60
-                vna_enabled: false
-                wvna_enabled: false
+                vna_eligible: true
+                vna_ui: true
+                wvna_eligible: true
           schema:
             properties:
               org_entitled:
                 additionalProperties:
                   type: integer
                 description: license entitlement for the entire org
+                example:
+                  SUB-LOC: 30
+                  SUB-MAN: 60
                 type: object
               svna_enabled:
-                description: license entitlement for the Switch device whether SVNA
-                  enabled
+                description: eligibility for the Switch SLE
                 type: boolean
               trial_enabled:
                 type: boolean
@@ -61008,23 +61094,29 @@ components:
                 additionalProperties:
                   type: integer
                 description: subscriptions and their quantities
+                example:
+                  SUB-LOC: 30
+                  SUB-MAN: 60
                 type: object
-              vna_enabled:
-                description: license entitlement for the AP device whether VNA enabled
+              vna_eligible:
+                description: eligibility for the AP/Client SLE
                 type: boolean
-              wvna_enabled:
-                description: license entitlement for the Gateway device whether WVNA
-                  enabled
+              vna_ui:
+                description: if True, Conversational Assistant and Marvis Action available
+                type: boolean
+              wvna_eligible:
+                description: eligibility for the WAN SLE
                 type: boolean
             required:
-            - usages
             - org_entitled
-            - trial_enabled
-            - vna_enabled
             - svna_enabled
-            - wvna_enabled
+            - trial_enabled
+            - usages
+            - vna_eligible
+            - wvna_eligible
+            - vna_ui
             type: object
-      description: OK
+      description: License Usage
   schemas:
     AssetOfInterest:
       properties:
@@ -63592,7 +63684,7 @@ components:
       properties:
         duration:
           default: 600
-          description: duration of the cpture, in seconds
+          description: duration of the capture, in seconds
           example: 600
           maximum: 86400
           minimum: 0
@@ -63748,7 +63840,7 @@ components:
           type: string
         duration:
           default: 600
-          description: duration of the cpture, in seconds
+          description: duration of the capture, in seconds
           example: 600
           maximum: 86400
           type: integer
@@ -63832,7 +63924,7 @@ components:
           type: string
         duration:
           default: 600
-          description: duration of the cpture, in seconds
+          description: duration of the capture, in seconds
           example: 600
           maximum: 86400
           type: integer
@@ -63940,10 +64032,15 @@ components:
                 description: specify the bandwidth value with respect to the channel.
                 type: string
             type: object
+          description: "dictionary key is AP mac and value is a dictionary which contains\
+            \ key \u201Cband\u201D, \u201Cbandwidth\u201D, \u201Cchannel\u201D and\
+            \ \u201Ctcpdump_expression\u201D. In case keys are missed we will take\
+            \ parent value if parent values are not set we will use default value"
           type: object
         band:
-          default: '24'
-          description: Only Single value allowed
+          default: '5'
+          description: Only Single value allowed, default value gets applied when
+            user provides wrong values
           enum:
           - '24'
           - '5'
@@ -63953,14 +64050,20 @@ components:
           type: string
         bandwidth:
           default: 20
+          description: "channel width for the band, 20 / 40 / 80 / 160, 80 is only\
+            \ applicable for band_5 and 160 is only for band_6, defaults to \u2018\
+            20\u2019 when user provides wrong values"
           enum:
           - 20
           - 40
+          - 80
+          - 160
           example: 20
           type: number
         channel:
           default: 1
-          description: specify the channel value where scan PCAP has to be started
+          description: specify the channel value where scan PCAP has to be started,
+            default value gets applied when user provides wrong values
           example: 1
           type: number
         client_mac:
@@ -64185,7 +64288,7 @@ components:
           type: string
         duration:
           default: 600
-          description: duration of the cpture, in seconds
+          description: duration of the capture, in seconds
           example: 600
           maximum: 86400
           type: integer
@@ -65508,228 +65611,6 @@ components:
           example: medium
           type: string
       type: object
-    curd_ui_settings:
-      description: CURD UI Settings
-      properties:
-        created_time:
-          example: 1508823803
-          readOnly: true
-          type: number
-        defaultScopeId:
-          example: 67970e46-4e12-11e6-9188-0242ad112847
-          type: string
-        defaultScopeType:
-          example: site
-          type: string
-        defaultTimeRange:
-          properties:
-            end:
-              example: 1508828400
-              type: integer
-            endDate:
-              example: 10/23/2017
-              type: string
-            interval:
-              example: 1d
-              type: string
-            name:
-              example: This Week
-              type: string
-            shortName:
-              example: thisWeek
-              type: string
-            start:
-              example: 1508655600
-              type: integer
-            usePreset:
-              example: true
-              type: boolean
-          type: object
-        description:
-          example: Description of the databoard
-          type: string
-        for_site:
-          example: true
-          readOnly: true
-          type: boolean
-        id:
-          example: 3bdcc7e8-c04d-4512-b4fc-093da9057eb0
-          format: uuid
-          readOnly: true
-          type: string
-        isCustomDataboard:
-          type: boolean
-        isScopeLinked:
-          type: boolean
-        isTimeRangeLinked:
-          type: boolean
-        modified_time:
-          example: 1508823803
-          readOnly: true
-          type: number
-        name:
-          example: New Databoard
-          type: string
-        org_id:
-          example: cc079380-5029-4d4a-9125-858de85731ff
-          format: uuid
-          readOnly: true
-          type: string
-        purpose:
-          example: databoard
-          type: string
-        site_id:
-          example: 67970e46-4e12-11e6-9188-0242ad112847
-          format: uuid
-          readOnly: true
-          type: string
-        tiles:
-          items:
-            properties:
-              chartBand:
-                example: 2.4 ghz
-                type: string
-              chartColor:
-                example: '#00B4AD'
-                type: string
-              chartDirection:
-                example: tx + rx
-                type: string
-              chartRankBy:
-                type: string
-              chartType:
-                example: timeSeries
-                type: string
-              colspan:
-                example: 5
-                type: integer
-              column:
-                example: 1
-                type: integer
-              hideEmptyRows:
-                type: boolean
-              id:
-                example: 7a9ab38c-cfc3-483d-b51a-0aec571fadc0
-                format: uuid
-                type: string
-              metric:
-                properties:
-                  apiName:
-                    example: client-dhcp-latency
-                    type: string
-                type: object
-              name:
-                example: New Analysis
-                type: string
-              row:
-                example: 1
-                type: integer
-              rowspan:
-                example: 2
-                type: integer
-              scopeId:
-                example: e0c767834b4c
-                type: string
-              scopeType:
-                example: client
-                type: string
-              sortedColumns: {}
-              timeRange:
-                properties:
-                  end:
-                    example: 1508823743
-                    type: number
-                  endDate:
-                    example: 10/23/2017
-                    type: string
-                  interval:
-                    example: 1d
-                    type: string
-                  name:
-                    example: Past 7 Days
-                    type: string
-                  shortName:
-                    example: 7d
-                    type: string
-                  start:
-                    example: 1508223600
-                    type: integer
-                  usePreset:
-                    example: true
-                    type: boolean
-                type: object
-              trendType:
-                example: line
-                type: string
-              vizType:
-                example: averageTimeSeriesChart
-                type: string
-            type: object
-          minItems: 1
-          type: array
-          uniqueItems: true
-      required:
-      - created_time
-      - description
-      - for_site
-      - id
-      - modified_time
-      - org_id
-      - purpose
-      - site_id
-      type: object
-      x-examples:
-        Example:
-          created_time: 1508823803
-          defaultScopeId: 67970e46-4e12-11e6-9188-0242ad112847
-          defaultScopeType: site
-          defaultTimeRange:
-            end: 1508828400
-            endDate: 10/23/2017
-            interval: 1d
-            name: This Week
-            shortName: thisWeek
-            start: 1508655600
-            usePreset: true
-          description: Description of the databoard
-          for_site: true
-          id: 3bdcc7e8-c04d-4512-b4fc-093da9057eb0
-          isCustomDataboard: true
-          isScopeLinked: true
-          isTimeRangeLinked: true
-          modified_time: 0
-          name: New Databoard
-          org_id: cc079380-5029-4d4a-9125-858de85731ff
-          purpose: databoard
-          site_id: 67970e46-4e12-11e6-9188-0242ad112847
-          tiles:
-          - chartBand: 2.4 ghz
-            chartColor: '#00B4AD'
-            chartDirection: tx + rx
-            chartRankBy: string
-            chartType: timeSeries
-            colspan: 5
-            column: 1
-            hideEmptyRows: true
-            id: 7a9ab38c-cfc3-483d-b51a-0aec571fadc0
-            metric:
-              apiName: client-dhcp-latency
-            name: New Analysis
-            row: 1
-            rowspan: 2
-            scopeId: e0c767834b4c
-            scopeType: client
-            sortedColumns: null
-            timeRange:
-              end: 1508823743
-              endDate: 10/23/2017
-              interval: 1d
-              name: Past 7 Days
-              shortName: 7d
-              start: 1508223600
-              usePreset: true
-            trendType: line
-            vizType: averageTimeSeriesChart
     delivery:
       description: Delivery object to configure the alarm delivery
       properties:
@@ -66348,7 +66229,7 @@ components:
           type: string
         port_config:
           additionalProperties:
-            $ref: '#/components/schemas/junos_port_config_gateway'
+            $ref: '#/components/schemas/gateway_port_config'
           description: Property key is the port name or range (e.g. "ge-0/0/0-10")
           type: object
         port_mirroring:
@@ -66727,12 +66608,55 @@ components:
         extra_routes:
           additionalProperties:
             properties:
+              discard:
+                default: false
+                description: this takes precedence
+                type: boolean
+              metric:
+                example: null
+                nullable: true
+                type: integer
+              next_qualified:
+                additionalProperties:
+                  properties:
+                    metric:
+                      nullable: true
+                      type: integer
+                    preference:
+                      nullable: true
+                      type: integer
+                  type: object
+                example:
+                  10.3.1.1:
+                    metric: null
+                    preference: 40
+                type: object
+              no_resolve:
+                default: false
+                type: boolean
+              preference:
+                example: 30
+                nullable: true
+                type: integer
               via:
                 description: next-hop IP Address
                 type: string
             type: object
           description: Property key is the network name or a CIDR
-          type: object
+          example:
+            172.16.3.0/24:
+              via: 10.2.1.1
+            it_mgmt:
+              discard: false
+              metric: null
+              next_qualified:
+                10.3.1.1:
+                  metric: null
+                  preference: 40
+              no_resolve: false
+              preference: 30
+              via: 10.2.1.1
+            type: object
         id:
           format: uuid
           readOnly: true
@@ -69125,6 +69049,378 @@ components:
           threat_level: 7
           timestamp: 1592524478
           type: cc
+    gateway_port_config:
+      description: Gateway port config
+      properties:
+        description:
+          type: string
+        disable_autoneg:
+          default: false
+          type: boolean
+        dsl_config:
+          description: if `wan_type`==`dsl`
+          properties:
+            ppoe_auth:
+              default: none
+              enum:
+              - none
+              - chap
+              - pap
+              type: string
+            ppoe_password:
+              type: string
+            ppoe_username:
+              type: string
+          type: object
+        duplex:
+          default: auto
+          enum:
+          - half
+          - full
+          - auto
+          example: full
+          type: string
+        ip_config:
+          $ref: '#/components/schemas/junos_ip_config_gateway'
+        lte_apn:
+          description: if `wan_type`==`lte`
+          type: string
+        lte_auth:
+          default: none
+          description: if `wan_type`==`lte`
+          enum:
+          - none
+          - chap
+          - pap
+          type: string
+        lte_backup:
+          type: boolean
+        lte_password:
+          description: if `wan_type`==`lte`
+          type: string
+        lte_username:
+          description: if `wan_type`==`lte`
+          type: string
+        mtu:
+          type: integer
+        name:
+          description: name that we'll use to derive config
+          type: string
+        networks:
+          description: if `usage`==`lan`
+          items:
+            type: string
+          type: array
+        outer_vlan_id:
+          description: for Q-in-Q
+          type: integer
+        poe_disabled:
+          default: false
+          type: boolean
+        port_network:
+          description: if `usage`==`lan`
+          type: string
+        preserve_dscp:
+          default: true
+          description: whether to preserve dscp when sending traffic over VPN (SSR-only)
+          type: boolean
+        redundant:
+          description: if HA mode
+          type: boolean
+        reth_idx:
+          description: if HA mode
+          type: integer
+        reth_node:
+          description: if HA mode
+          type: string
+        speed:
+          default: auto
+          example: 1g
+          type: string
+        svr_port_range:
+          default: none
+          description: for SSR only
+          example: 60000-60005
+          type: string
+        traffic_shaping:
+          properties:
+            class_percentages:
+              description: 'percentages for differet class of traffic: high / medium
+                / low / best-effort
+
+                sum must be equal to 100'
+              items:
+                type: integer
+              type: array
+            enabled:
+              default: false
+              type: boolean
+          type: object
+        usage:
+          description: port usage name
+          enum:
+          - lan
+          - wan
+          - ha_data
+          - ha_control
+          type: string
+        vlan_id:
+          description: if WAN interface is on a VLAN
+          type: integer
+        vpn_paths:
+          additionalProperties:
+            properties:
+              bfd_profile:
+                default: broadband
+                enum:
+                - lte
+                - broadband
+                type: string
+              bfd_use_tunnel_mode:
+                default: false
+                description: whether to use tunnel mode. SSR only
+                type: boolean
+              role:
+                default: spoke
+                enum:
+                - spoke
+                - hub
+                type: string
+              traffic_shaping:
+                properties:
+                  class_percentage:
+                    description: 'percentages for differet class of traffic: high
+                      / medium / low / best-effort
+
+                      sum must be equal to 100'
+                    items:
+                      type: integer
+                    type: array
+                  enabled:
+                    type: boolean
+                  max_tx_kbps:
+                    type: integer
+                type: object
+            type: object
+          type: object
+        wan_ext_ip:
+          description: optional, if spoke should reach this port by a different IP
+          type: string
+        wan_source_nat:
+          description: optional, by default, source-NAT is performed on all WAN Ports
+            using the interface-ip
+          properties:
+            disabled:
+              default: false
+              description: or to disable the source-nat
+              type: boolean
+            nat_pool:
+              description: if alternative nat_pool is desired
+              example: 64.2.4.0/30
+              type: string
+          type: object
+        wan_type:
+          default: broadband
+          description: if `usage`==`wan`
+          enum:
+          - broadband
+          - dsl
+          - lte
+          type: string
+      required:
+      - usage
+      type: object
+      x-examples:
+        LAN:
+          networks:
+          - default
+          - guest
+          - pos
+          port_network: default
+          usage: lan
+        LTE:
+          ip_config:
+            type: dhcp
+          lte_apn: 5ginternet
+          lte_backup: false
+          usage: wan
+          wan_type: lte
+        PPOE:
+          ip_config:
+            pppoe_password: foryoureyesonly
+            pppoe_username: u13534
+            type: ppoe
+          peers:
+          - 12.35.68.35
+          usage: wan
+          wan_type: broadband
+        VPN:
+          vpns:
+            data-center:
+              links:
+              - wan0
+              role: spoke
+      x-stoplight:
+        id: a6c0e5f9ce87d
+    gateway_routing_policy:
+      properties:
+        terms:
+          description: zero or more criteria/filter can be specified to match the
+            term, all criteria have to be met
+          items:
+            properties:
+              action:
+                description: when used as import policy
+                properties:
+                  accept:
+                    type: boolean
+                  add_community:
+                    items:
+                      example: '65003:10'
+                      type: string
+                    type: array
+                  community:
+                    description: when used as export policy, optional
+                    items:
+                      example: '65003:10'
+                      type: string
+                    type: array
+                  exclude_as_path:
+                    description: 'when used as export policy, optional. To exclude
+                      certain AS '
+                    items:
+                      example: '65002'
+                      type: string
+                    type: array
+                  exclude_community:
+                    items:
+                      example: '65003:10'
+                      type: string
+                    type: array
+                  export_communitites:
+                    description: when used as export policy, optional
+                    items:
+                      type: string
+                    type: array
+                  local_preference:
+                    description: optional, for an import policy, local_preference
+                      can be changed
+                    type: string
+                  prepend_as_path:
+                    description: when used as export policy, optional. By default,
+                      the local AS will be prepended, to change it
+                    items:
+                      example: '65003'
+                      type: string
+                    type: array
+                type: object
+              matching:
+                description: zero or more criteria/filter can be specified to match
+                  the term, all criteria have to be met
+                properties:
+                  as_path:
+                    description: takes regular expression
+                    items:
+                      example: '65001'
+                      type: string
+                    type: array
+                  community:
+                    items:
+                      example: '65001:2'
+                      type: string
+                    type: array
+                  network:
+                    items:
+                      type: string
+                    type: array
+                  prefix:
+                    description: zero or more criteria/filter can be specified to
+                      match the term, all criteria have to be met
+                    items:
+                      example: 192.168.0.0/16-30
+                      type: string
+                    type: array
+                  protocol:
+                    description: '`direct`, `bgp`, `osp`, ...'
+                    items:
+                      example: direct
+                      type: string
+                    type: array
+                  route_exists:
+                    properties:
+                      route:
+                        example: 192.168.0.0/24
+                        type: string
+                      vrf_name:
+                        default: default
+                        description: 'name of the vrf instance
+
+                          it can also be the name of the VPN or wan if they'
+                        type: string
+                    type: object
+                  vpn_neighbor_mac:
+                    description: overlay-facing criteria (used for bgp_config where
+                      via=vpn)
+                    items:
+                      type: string
+                    type: array
+                  vpn_path:
+                    description: 'overlay-facing criteria (used for bgp_config where
+                      via=vpn)
+
+                      ordered-'
+                    items:
+                      type: string
+                    type: array
+                  vpn_path_sla:
+                    properties:
+                      max_jitter:
+                        nullable: true
+                        type: integer
+                      max_latency:
+                        example: 1500
+                        nullable: true
+                        type: integer
+                      max_loss:
+                        example: 30
+                        nullable: true
+                        type: integer
+                    type: object
+                type: object
+            type: object
+          type: array
+          uniqueItems: true
+      type: object
+      x-examples:
+        example-1:
+          terms:
+          - action:
+              accept: true
+              community:
+              - '65003:10'
+              exclude_as_path:
+              - '65002'
+              export_communitites:
+              - string
+              local_preference: string
+              prepend_as_path:
+              - '65003'
+            matching:
+              as_path:
+              - '65001'
+              community:
+              - '65001:2'
+              network:
+              - string
+              prefix:
+              - 192.168.0.0/16-30
+              protocol:
+              - direct
+              route_exists:
+                route: 192.168.0.0/24
+                vrf_name: default
+      x-stoplight:
+        id: 81370d959ebf7
     gatewaytemplate:
       description: Gateway Template is applied to a site for gateway(s) in a site.
       properties:
@@ -69224,12 +69520,17 @@ components:
           readOnly: true
           type: number
         name:
+          example: gw_template
           type: string
         networks:
           additionalProperties:
             $ref: '#/components/schemas/network'
           description: Property key is the network name
           type: object
+        node1_router_id:
+          description: used for inband managment
+          example: 10.2.1.12
+          type: string
         oob_ip_config:
           $ref: '#/components/schemas/junos_oob_ip_config'
         org_id:
@@ -69284,12 +69585,16 @@ components:
           type: object
         port_config:
           additionalProperties:
-            $ref: '#/components/schemas/junos_port_config_gateway'
+            $ref: '#/components/schemas/gateway_port_config'
           description: Property key is the port(s) name or range (e.g. "ge-0/0/0-10")
           type: object
+        router_id:
+          description: used for inband managment
+          example: 10.2.1.10
+          type: string
         routing_policies:
           additionalProperties:
-            $ref: '#/components/schemas/junos_routing_policy'
+            $ref: '#/components/schemas/gateway_routing_policy'
           description: Property key is the routing policy name
           type: object
         service_policies:
@@ -69359,802 +69664,12 @@ components:
           - standalone
           - spoke
           - hub
+          example: standalone
           type: string
       required:
       - name
       type: object
-      x-examples:
-        Example 1:
-          additional_config_cmds:
-          - string
-          bgp_config:
-            property1:
-              auth_key: string
-              bfd_minimum_interval: 0
-              communities:
-              - id: string
-                local_preference: 0
-                vpn_name: string
-              disable_bfd: false
-              export: string
-              export_policy: string
-              graceful_restart_time: 0
-              hold_time: 90
-              import: string
-              import_policy: string
-              imported_networks:
-              - dc-apps
-              local_as: 0
-              neighbor_as: 0
-              neighbors:
-                property1:
-                  export_policy: string
-                  hold_time: 90
-                  import_policy: string
-                  multihop_ttl: 0
-                  neighbor_as: 0
-                property2:
-                  export_policy: string
-                  hold_time: 90
-                  import_policy: string
-                  multihop_ttl: 0
-                  neighbor_as: 0
-              networks:
-              - string
-              no_readvertise_to_overlay: false
-              type: internal
-              via: lan
-              vpn_name: string
-              wan_name: string
-            property2:
-              auth_key: string
-              bfd_minimum_interval: 0
-              communities:
-              - id: string
-                local_preference: 0
-                vpn_name: string
-              disable_bfd: false
-              export: string
-              export_policy: string
-              graceful_restart_time: 0
-              hold_time: 90
-              import: string
-              import_policy: string
-              imported_networks:
-              - dc-apps
-              local_as: 0
-              neighbor_as: 0
-              neighbors:
-                property1:
-                  export_policy: string
-                  hold_time: 90
-                  import_policy: string
-                  multihop_ttl: 0
-                  neighbor_as: 0
-                property2:
-                  export_policy: string
-                  hold_time: 90
-                  import_policy: string
-                  multihop_ttl: 0
-                  neighbor_as: 0
-              networks:
-              - string
-              no_readvertise_to_overlay: false
-              type: internal
-              via: lan
-              vpn_name: string
-              wan_name: string
-          created_time: 0
-          dhcpd_config:
-            property1:
-              dns_servers:
-              - 192.168.0.1
-              dns_suffix:
-              - string
-              fixed_bindings:
-                property1:
-                  ip: 192.168.0.1
-                  name: string
-                property2:
-                  ip: 192.168.0.1
-                  name: string
-              gateway: 192.168.0.1
-              ip_end: 192.168.0.1
-              ip_start: 192.168.0.1
-              servers:
-              - 192.168.0.1
-              type: local
-            property2:
-              dns_servers:
-              - 192.168.0.1
-              dns_suffix:
-              - string
-              fixed_bindings:
-                property1:
-                  ip: 192.168.0.1
-                  name: string
-                property2:
-                  ip: 192.168.0.1
-                  name: string
-              gateway: 192.168.0.1
-              ip_end: 192.168.0.1
-              ip_start: 192.168.0.1
-              servers:
-              - 192.168.0.1
-              type: local
-          extra_routes:
-            property1:
-              via: 192.168.0.1
-            property2:
-              via: 192.168.0.1
-          gateway_matching:
-            enable: true
-            rules:
-            - additional_config_cmds:
-              - string
-              name: string
-              port_config:
-                property1:
-                  ae_disable_lacp: true
-                  ae_idx: 0
-                  aggregated: false
-                  critical: true
-                  description: string
-                  disable_autoneg: false
-                  duplex: auto
-                  dynamic_usage: string
-                  esilag: true
-                  mtu: 1514
-                  no_local_overwrite: true
-                  poe_disabled: false
-                  speed: auto
-                  usage: string
-                property2:
-                  ae_disable_lacp: true
-                  ae_idx: 0
-                  aggregated: false
-                  critical: true
-                  description: string
-                  disable_autoneg: false
-                  duplex: auto
-                  dynamic_usage: string
-                  esilag: true
-                  mtu: 1514
-                  no_local_overwrite: true
-                  poe_disabled: false
-                  speed: auto
-                  usage: string
-              property1: string
-              property2: string
-          id: 497f6eca-6276-4993-bfeb-53cbbbba6f1c
-          ip_configs:
-            property1:
-              ip: 192.168.0.1
-              netmask: /24
-            property2:
-              ip: 192.168.0.1
-              netmask: /24
-          modified_time: 0
-          name: string
-          networks:
-            property1:
-              created_time: 0
-              disallow_mist_services: false
-              gateway: 192.168.70.1
-              hosts:
-                property1:
-                  external_ips: 172.16.10.32-172.16.10.35
-                  ips: 192.168.70.32-192.168.70.35
-                property2:
-                  external_ips: 172.16.10.32-172.16.10.35
-                  ips: 192.168.70.32-192.168.70.35
-              id: 497f6eca-6276-4993-bfeb-53cbbbba6f1d
-              internal_access:
-                enabled: true
-              internet_access:
-                create_simple_service_policy: false
-                destination_nat:
-                  property1:
-                    internal_ip: 192.168.70.30
-                    name: web server
-                    port: 443
-                  property2:
-                    internal_ip: 192.168.70.30
-                    name: web server
-                    port: 443
-                enabled: true
-                restricted: false
-                static_nat:
-                  property1:
-                    internal_ip: 192.168.70.3
-                    name: printer-1
-                  property2:
-                    internal_ip: 192.168.70.3
-                    name: printer-1
-              isolation: true
-              modified_time: 0
-              name: string
-              org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-              subnet: 192.168.70.0/24
-              tenants:
-                property1:
-                  addresses: string
-                property2:
-                  addresses: string
-              vlan_id: 0
-              vpn_access:
-                property1:
-                  affinity: hub
-                  allow_ping: true
-                  destination_nat:
-                    property1:
-                      name: web server
-                      port: 443
-                      to: 192.168.70.5/30
-                    property2:
-                      name: web server
-                      port: 443
-                      to: 192.168.70.5/30
-                  nat_pool: 172.16.0.0/26
-                  no_readvertise_to_lan_bgp: false
-                  no_readvertise_to_overlay: true
-                  routed: true
-                  source_nat:
-                    exteral_ip: 172.16.0.8/30
-                  static_nat:
-                    property1:
-                      internal_ip: 192.168.70.3
-                      name: pos-station-1
-                    property2:
-                      internal_ip: 192.168.70.3
-                      name: pos-station-1
-                  summarized_subnet: 172.16.0.0/16
-                  summarized_subnet_to_lan_bgp: 172.16.0.0/16
-                property2:
-                  affinity: hub
-                  allow_ping: true
-                  destination_nat:
-                    property1:
-                      name: web server
-                      port: 443
-                      to: 192.168.70.5/30
-                    property2:
-                      name: web server
-                      port: 443
-                      to: 192.168.70.5/30
-                  nat_pool: 172.16.0.0/26
-                  no_readvertise_to_lan_bgp: false
-                  no_readvertise_to_overlay: true
-                  routed: true
-                  source_nat:
-                    exteral_ip: 172.16.0.8/30
-                  static_nat:
-                    property1:
-                      internal_ip: 192.168.70.3
-                      name: pos-station-1
-                    property2:
-                      internal_ip: 192.168.70.3
-                      name: pos-station-1
-                  summarized_subnet: 172.16.0.0/16
-                  summarized_subnet_to_lan_bgp: 172.16.0.0/16
-            property2:
-              created_time: 0
-              disallow_mist_services: false
-              gateway: 192.168.70.1
-              hosts:
-                property1:
-                  external_ips: 172.16.10.32-172.16.10.35
-                  ips: 192.168.70.32-192.168.70.35
-                property2:
-                  external_ips: 172.16.10.32-172.16.10.35
-                  ips: 192.168.70.32-192.168.70.35
-              id: 497f6eca-6276-4993-bfeb-53cbbbba6f1e
-              internal_access:
-                enabled: true
-              internet_access:
-                create_simple_service_policy: false
-                destination_nat:
-                  property1:
-                    internal_ip: 192.168.70.30
-                    name: web server
-                    port: 443
-                  property2:
-                    internal_ip: 192.168.70.30
-                    name: web server
-                    port: 443
-                enabled: true
-                restricted: false
-                static_nat:
-                  property1:
-                    internal_ip: 192.168.70.3
-                    name: printer-1
-                  property2:
-                    internal_ip: 192.168.70.3
-                    name: printer-1
-              isolation: true
-              modified_time: 0
-              name: string
-              org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-              subnet: 192.168.70.0/24
-              tenants:
-                property1:
-                  addresses: string
-                property2:
-                  addresses: string
-              vlan_id: 0
-              vpn_access:
-                property1:
-                  affinity: hub
-                  allow_ping: true
-                  destination_nat:
-                    property1:
-                      name: web server
-                      port: 443
-                      to: 192.168.70.5/30
-                    property2:
-                      name: web server
-                      port: 443
-                      to: 192.168.70.5/30
-                  nat_pool: 172.16.0.0/26
-                  no_readvertise_to_lan_bgp: false
-                  no_readvertise_to_overlay: true
-                  routed: true
-                  source_nat:
-                    exteral_ip: 172.16.0.8/30
-                  static_nat:
-                    property1:
-                      internal_ip: 192.168.70.3
-                      name: pos-station-1
-                    property2:
-                      internal_ip: 192.168.70.3
-                      name: pos-station-1
-                  summarized_subnet: 172.16.0.0/16
-                  summarized_subnet_to_lan_bgp: 172.16.0.0/16
-                property2:
-                  affinity: hub
-                  allow_ping: true
-                  destination_nat:
-                    property1:
-                      name: web server
-                      port: 443
-                      to: 192.168.70.5/30
-                    property2:
-                      name: web server
-                      port: 443
-                      to: 192.168.70.5/30
-                  nat_pool: 172.16.0.0/26
-                  no_readvertise_to_lan_bgp: false
-                  no_readvertise_to_overlay: true
-                  routed: true
-                  source_nat:
-                    exteral_ip: 172.16.0.8/30
-                  static_nat:
-                    property1:
-                      internal_ip: 192.168.70.3
-                      name: pos-station-1
-                    property2:
-                      internal_ip: 192.168.70.3
-                      name: pos-station-1
-                  summarized_subnet: 172.16.0.0/16
-                  summarized_subnet_to_lan_bgp: 172.16.0.0/16
-          oob_ip_config:
-            dns:
-            - string
-            dns_suffix:
-            - string
-            gateway: string
-            ip: string
-            netmask: string
-            network: string
-            node1:
-              ip: string
-              netmask: string
-              network: string
-              type: dynamic
-              use_mgmt_vrf: false
-              use_mgmt_vrf_for_host_out: false
-              vlan_id: 0
-            property1:
-              ip: string
-              netmask: string
-              network: string
-              type: dynamic
-            property2:
-              ip: string
-              netmask: string
-              network: string
-              type: dynamic
-            type: dynamic
-            use_mgmt_vrf: false
-            use_mgmt_vrf_for_host_out: false
-            vlan_id: 0
-          org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-          path_preferences:
-            property1:
-              paths:
-                cost: 0
-                gateway_ip: string
-                internet_access: false
-                name: string
-                networks:
-                - string
-                target_ips:
-                - string
-                type: local
-              strategy: ordered
-            property2:
-              paths:
-                cost: 0
-                gateway_ip: string
-                internet_access: false
-                name: string
-                networks:
-                - string
-                target_ips:
-                - string
-                type: local
-              strategy: ordered
-          port_config:
-            property1:
-              description: string
-              disable_autoneg: false
-              dsl_config:
-                ppoe_auth: none
-                ppoe_password: string
-                ppoe_username: string
-              duplex: full
-              ip_config:
-                dns:
-                - string
-                dns_suffix:
-                - string
-                gateway: string
-                ip: string
-                netmask: string
-                network: string
-                poser_password: string
-                ppoe_username: string
-                pppoe_auth: none
-                type: dhcp
-              lte_apn: string
-              lte_auth: none
-              lte_backup: true
-              lte_password: string
-              lte_username: string
-              mtu: 0
-              name: string
-              networks:
-              - string
-              outer_vlan_id: 0
-              poe_disabled: false
-              port_network: string
-              preserve_dscp: true
-              redundant: true
-              reth_idx: 0
-              reth_node: string
-              speed: 1g
-              svr_port_range: 60000-60005
-              traffic_shaping:
-                class_percentages:
-                - 0
-                enabled: false
-              usage: lan
-              vlan_id: 0
-              vpn_paths:
-                property1:
-                  bfd_profile: broadband
-                  bfd_udp_transform: false
-                  bfd_use_tunnel_mode: false
-                  role: spoke
-                  traffic_shaping:
-                    class_percentage:
-                    - 0
-                    enabled: true
-                    max_tx_kbps: 0
-                property2:
-                  bfd_profile: broadband
-                  bfd_udp_transform: false
-                  bfd_use_tunnel_mode: false
-                  role: spoke
-                  traffic_shaping:
-                    class_percentage:
-                    - 0
-                    enabled: true
-                    max_tx_kbps: 0
-              wan_ext_ip: string
-              wan_source_nat:
-                disabled: false
-                nat_pool: 64.2.4.0/30
-              wan_type: broadband
-            property2:
-              description: string
-              disable_autoneg: false
-              dsl_config:
-                ppoe_auth: none
-                ppoe_password: string
-                ppoe_username: string
-              duplex: full
-              ip_config:
-                dns:
-                - string
-                dns_suffix:
-                - string
-                gateway: string
-                ip: string
-                netmask: string
-                network: string
-                poser_password: string
-                ppoe_username: string
-                pppoe_auth: none
-                type: dhcp
-              lte_apn: string
-              lte_auth: none
-              lte_backup: true
-              lte_password: string
-              lte_username: string
-              mtu: 0
-              name: string
-              networks:
-              - string
-              outer_vlan_id: 0
-              poe_disabled: false
-              port_network: string
-              preserve_dscp: true
-              redundant: true
-              reth_idx: 0
-              reth_node: string
-              speed: 1g
-              svr_port_range: 60000-60005
-              traffic_shaping:
-                class_percentages:
-                - 0
-                enabled: false
-              usage: lan
-              vlan_id: 0
-              vpn_paths:
-                property1:
-                  bfd_profile: broadband
-                  bfd_udp_transform: false
-                  bfd_use_tunnel_mode: false
-                  role: spoke
-                  traffic_shaping:
-                    class_percentage:
-                    - 0
-                    enabled: true
-                    max_tx_kbps: 0
-                property2:
-                  bfd_profile: broadband
-                  bfd_udp_transform: false
-                  bfd_use_tunnel_mode: false
-                  role: spoke
-                  traffic_shaping:
-                    class_percentage:
-                    - 0
-                    enabled: true
-                    max_tx_kbps: 0
-              wan_ext_ip: string
-              wan_source_nat:
-                disabled: false
-                nat_pool: 64.2.4.0/30
-              wan_type: broadband
-          routing_policies:
-            property1:
-              terms:
-              - action:
-                  accept: true
-                  add_community:
-                  - '65003:10'
-                  community:
-                  - '65003:10'
-                  exclude_as_path:
-                  - '65002'
-                  exclude_community:
-                  - '65003:10'
-                  export_communitites:
-                  - string
-                  local_preference: string
-                  prepend_as_path:
-                  - '65003'
-                matching:
-                  as_path:
-                  - '65001'
-                  community:
-                  - '65001:2'
-                  network:
-                  - string
-                  prefix:
-                  - 192.168.0.0/16-30
-                  protocol:
-                  - direct
-                  route_exists:
-                    route: 192.168.0.0/24
-                    vrf_name: default
-                  vpn_neighbor_mac:
-                  - string
-                  vpn_path:
-                  - string
-                  vpn_path_sla:
-                    max_jitter: 0
-                    max_latency: 1500
-                    max_loss: 30
-            property2:
-              terms:
-              - action:
-                  accept: true
-                  add_community:
-                  - '65003:10'
-                  community:
-                  - '65003:10'
-                  exclude_as_path:
-                  - '65002'
-                  exclude_community:
-                  - '65003:10'
-                  export_communitites:
-                  - string
-                  local_preference: string
-                  prepend_as_path:
-                  - '65003'
-                matching:
-                  as_path:
-                  - '65001'
-                  community:
-                  - '65001:2'
-                  network:
-                  - string
-                  prefix:
-                  - 192.168.0.0/16-30
-                  protocol:
-                  - direct
-                  route_exists:
-                    route: 192.168.0.0/24
-                    vrf_name: default
-                  vpn_neighbor_mac:
-                  - string
-                  vpn_path:
-                  - string
-                  vpn_path_sla:
-                    max_jitter: 0
-                    max_latency: 1500
-                    max_loss: 30
-          service_policies:
-          - action: allow
-            ewf:
-            - alert_only: true
-              block_message: Access to this URL Category has been blocked
-              enabled: false
-              profille: strict
-            idp:
-              alert_only: string
-              enabled: false
-              profile: strict
-            local_routing: false
-            name: string
-            path_preferences: string
-            servicepolicy_id: a4b81837-7a2f-46c1-bf27-dc8af6edd0a0
-            services:
-            - string
-            tenants:
-            - string
-          tunnel_configs:
-            property1:
-              auto_provision:
-                enable: true
-                latlng:
-                  lat: 37.295833
-                  lng: -122.032946
-                primary:
-                  num_hosts: string
-                  wan_names:
-                  - wan0
-                region: auto
-                secondary:
-                  num_hosts: string
-                  wan_names:
-                  - wan0
-              ike_lifetime: 0
-              ike_mode: main
-              ike_proposals:
-              - auth_algo: sha1
-                dh_group: '14'
-                enc_algo: aes256
-              ipsec_lifetime: 0
-              ipsec_proposals:
-              - auth_algo: sha1
-                dh_group: '14'
-                enc_algo: aes256
-              local_id: string
-              mode: active-standby
-              primary:
-                hosts:
-                - string
-                internal_ips:
-                - string
-                probe_ips:
-                - string
-                remote_ids:
-                - string
-                wan_names:
-                - string
-              probe:
-                interval: 0
-                threshold: 0
-                timeout: 0
-                type: icmp
-              protocol: ipsec
-              provider: zscaler-ipsec
-              psk: string
-              secondary:
-                hosts:
-                - string
-                internal_ips:
-                - string
-                probe_ips:
-                - string
-                remote_ids:
-                - string
-                wan_names:
-                - string
-              version: '2'
-            property2:
-              auto_provision:
-                enable: true
-                latlng:
-                  lat: 37.295833
-                  lng: -122.032946
-                primary:
-                  num_hosts: string
-                  wan_names:
-                  - wan0
-                region: auto
-                secondary:
-                  num_hosts: string
-                  wan_names:
-                  - wan0
-              ike_lifetime: 0
-              ike_mode: main
-              ike_proposals:
-              - auth_algo: sha1
-                dh_group: '14'
-                enc_algo: aes256
-              ipsec_lifetime: 0
-              ipsec_proposals:
-              - auth_algo: sha1
-                dh_group: '14'
-                enc_algo: aes256
-              local_id: string
-              mode: active-standby
-              primary:
-                hosts:
-                - string
-                internal_ips:
-                - string
-                probe_ips:
-                - string
-                remote_ids:
-                - string
-                wan_names:
-                - string
-              probe:
-                interval: 0
-                threshold: 0
-                timeout: 0
-                type: icmp
-              protocol: ipsec
-              provider: zscaler-ipsec
-              psk: string
-              secondary:
-                hosts:
-                - string
-                internal_ips:
-                - string
-                probe_ips:
-                - string
-                remote_ids:
-                - string
-                wan_names:
-                - string
-              version: '2'
-          type: standalone
+      x-examples: {}
     gatewaytemplate_tunnel_configs:
       properties:
         auto_provision:
@@ -70726,8 +70241,17 @@ components:
         deviceprofile_name:
           example: SJ1
           type: string
+        ext_ip:
+          example: 12.34.56.78
+          type: string
         height:
           example: 2.7
+          type: number
+        ip:
+          example: 192.168.1.111
+          type: string
+        last_seen:
+          example: 1687887907.5919843
           type: number
         mac:
           example: 5c5b35000018
@@ -70750,6 +70274,12 @@ components:
           type: string
         site_name:
           example: SJ1
+          type: string
+        uptime:
+          example: 12345
+          type: integer
+        version:
+          example: 0.10.24362
           type: string
         x:
           example: 150
@@ -71830,6 +71360,17 @@ components:
           type: array
         gateway:
           type: string
+        isolation:
+          default: false
+          description: 'whether to stop clients to talk to each other, default is
+            false (when enabled, a unique isolation_vlan_id is required)
+
+            NOTE: this features requires uplink device to also a be Juniper device
+            and `inter_switch_link` to be set'
+          type: boolean
+        isolation_vlan_id:
+          example: '3070'
+          type: string
         ospf_interface_type:
           type: string
         subnet:
@@ -72158,6 +71699,14 @@ components:
           type: string
         esilag:
           type: boolean
+        inter_switch_link:
+          default: false
+          description: 'inter_switch_link is used together with "isolation" under
+            networks
+
+            NOTE: inter_switch_link works only between Juniper device. This has to
+            be applied to both ports connected together'
+          type: boolean
         mtu:
           default: 1514
           description: media maximum transmission unit (MTU) is the largest data unit
@@ -72198,217 +71747,6 @@ components:
         example-dynamic:
           dynamic_usage: dynamic
           usage: default
-    junos_port_config_gateway:
-      description: Gateway port config
-      properties:
-        description:
-          type: string
-        disable_autoneg:
-          default: false
-          type: boolean
-        dsl_config:
-          description: if `wan_type`==`dsl`
-          properties:
-            ppoe_auth:
-              default: none
-              enum:
-              - none
-              - chap
-              - pap
-              type: string
-            ppoe_password:
-              type: string
-            ppoe_username:
-              type: string
-          type: object
-        duplex:
-          default: auto
-          enum:
-          - half
-          - full
-          - auto
-          example: full
-          type: string
-        ip_config:
-          $ref: '#/components/schemas/junos_ip_config_gateway'
-        lte_apn:
-          description: if `wan_type`==`lte`
-          type: string
-        lte_auth:
-          default: none
-          description: if `wan_type`==`lte`
-          enum:
-          - none
-          - chap
-          - pap
-          type: string
-        lte_backup:
-          type: boolean
-        lte_password:
-          description: if `wan_type`==`lte`
-          type: string
-        lte_username:
-          description: if `wan_type`==`lte`
-          type: string
-        mtu:
-          type: integer
-        name:
-          description: name that we'll use to derive config
-          type: string
-        networks:
-          description: if `usage`==`lan`
-          items:
-            type: string
-          type: array
-        outer_vlan_id:
-          description: for Q-in-Q
-          type: integer
-        poe_disabled:
-          default: false
-          type: boolean
-        port_network:
-          description: if `usage`==`lan`
-          type: string
-        preserve_dscp:
-          default: true
-          description: whether to preserve dscp when sending traffic over VPN (SSR-only)
-          type: boolean
-        redundant:
-          description: if HA mode
-          type: boolean
-        reth_idx:
-          description: if HA mode
-          type: integer
-        reth_node:
-          description: if HA mode
-          type: string
-        speed:
-          default: auto
-          example: 1g
-          type: string
-        svr_port_range:
-          description: For 128T only, 16385 - 65353
-          example: 60000-60005
-          nullable: true
-          type: string
-        traffic_shaping:
-          properties:
-            class_percentages:
-              description: 'percentages for differet class of traffic: high / medium
-                / low / best-effort
-
-                sum must be equal to 100'
-              items:
-                type: integer
-              type: array
-            enabled:
-              default: false
-              type: boolean
-          type: object
-        usage:
-          description: port usage name
-          enum:
-          - lan
-          - wan
-          - ha_data
-          - ha_control
-          type: string
-        vlan_id:
-          description: if WAN interface is on a VLAN
-          type: integer
-        vpn_paths:
-          additionalProperties:
-            properties:
-              bfd_profile:
-                default: broadband
-                enum:
-                - lte
-                - broadband
-                type: string
-              bfd_use_tunnel_mode:
-                default: false
-                description: whether to use tunnel mode. SSR only
-                type: boolean
-              role:
-                default: spoke
-                enum:
-                - spoke
-                - hub
-                type: string
-              traffic_shaping:
-                properties:
-                  class_percentage:
-                    description: 'percentages for differet class of traffic: high
-                      / medium / low / best-effort
-
-                      sum must be equal to 100'
-                    items:
-                      type: integer
-                    type: array
-                  enabled:
-                    type: boolean
-                  max_tx_kbps:
-                    type: integer
-                type: object
-            type: object
-          type: object
-        wan_ext_ip:
-          description: optional, if spoke should reach this port by a different IP
-          type: string
-        wan_source_nat:
-          description: optional, by default, source-NAT is performed on all WAN Ports
-            using the interface-ip
-          properties:
-            disabled:
-              default: false
-              description: or to disable the source-nat
-              type: boolean
-            nat_pool:
-              description: if alternative nat_pool is desired
-              example: 64.2.4.0/30
-              type: string
-          type: object
-        wan_type:
-          default: broadband
-          description: if `usage`==`wan`
-          enum:
-          - broadband
-          - dsl
-          - lte
-          type: string
-      required:
-      - usage
-      type: object
-      x-examples:
-        LAN:
-          networks:
-          - default
-          - guest
-          - pos
-          port_network: default
-          usage: lan
-        LTE:
-          ip_config:
-            type: dhcp
-          lte_apn: 5ginternet
-          lte_backup: false
-          usage: wan
-          wan_type: lte
-        PPOE:
-          ip_config:
-            pppoe_password: foryoureyesonly
-            pppoe_username: u13534
-            type: ppoe
-          peers:
-          - 12.35.68.35
-          usage: wan
-          wan_type: broadband
-        VPN:
-          vpns:
-            data-center:
-              links:
-              - wan0
-              role: spoke
     junos_port_mirror:
       properties:
         egress_port_ids:
@@ -72774,163 +72112,6 @@ components:
             secret: testing123
           auth_servers_retries: 3
           auth_servers_timeout: 5
-    junos_routing_policy:
-      properties:
-        terms:
-          description: zero or more criteria/filter can be specified to match the
-            term, all criteria have to be met
-          items:
-            properties:
-              action:
-                description: when used as import policy
-                properties:
-                  accept:
-                    type: boolean
-                  add_community:
-                    items:
-                      example: '65003:10'
-                      type: string
-                    type: array
-                  community:
-                    description: when used as export policy, optional
-                    items:
-                      example: '65003:10'
-                      type: string
-                    type: array
-                  exclude_as_path:
-                    description: 'when used as export policy, optional. To exclude
-                      certain AS '
-                    items:
-                      example: '65002'
-                      type: string
-                    type: array
-                  exclude_community:
-                    items:
-                      example: '65003:10'
-                      type: string
-                    type: array
-                  export_communitites:
-                    description: when used as export policy, optional
-                    items:
-                      type: string
-                    type: array
-                  local_preference:
-                    description: optional, for an import policy, local_preference
-                      can be changed
-                    type: string
-                  prepend_as_path:
-                    description: when used as export policy, optional. By default,
-                      the local AS will be prepended, to change it
-                    items:
-                      example: '65003'
-                      type: string
-                    type: array
-                type: object
-              matching:
-                description: zero or more criteria/filter can be specified to match
-                  the term, all criteria have to be met
-                properties:
-                  as_path:
-                    description: takes regular expression
-                    items:
-                      example: '65001'
-                      type: string
-                    type: array
-                  community:
-                    items:
-                      example: '65001:2'
-                      type: string
-                    type: array
-                  network:
-                    items:
-                      type: string
-                    type: array
-                  prefix:
-                    description: zero or more criteria/filter can be specified to
-                      match the term, all criteria have to be met
-                    items:
-                      example: 192.168.0.0/16-30
-                      type: string
-                    type: array
-                  protocol:
-                    description: '`direct`, `bgp`, `osp`, ...'
-                    items:
-                      example: direct
-                      type: string
-                    type: array
-                  route_exists:
-                    properties:
-                      route:
-                        example: 192.168.0.0/24
-                        type: string
-                      vrf_name:
-                        default: default
-                        description: 'name of the vrf instance
-
-                          it can also be the name of the VPN or wan if they'
-                        type: string
-                    type: object
-                  vpn_neighbor_mac:
-                    description: overlay-facing criteria (used for bgp_config where
-                      via=vpn)
-                    items:
-                      type: string
-                    type: array
-                  vpn_path:
-                    description: 'overlay-facing criteria (used for bgp_config where
-                      via=vpn)
-
-                      ordered-'
-                    items:
-                      type: string
-                    type: array
-                  vpn_path_sla:
-                    properties:
-                      max_jitter:
-                        nullable: true
-                        type: integer
-                      max_latency:
-                        example: 1500
-                        nullable: true
-                        type: integer
-                      max_loss:
-                        example: 30
-                        nullable: true
-                        type: integer
-                    type: object
-                type: object
-            type: object
-          type: array
-          uniqueItems: true
-      type: object
-      x-examples:
-        example-1:
-          terms:
-          - action:
-              accept: true
-              community:
-              - '65003:10'
-              exclude_as_path:
-              - '65002'
-              export_communitites:
-              - string
-              local_preference: string
-              prepend_as_path:
-              - '65003'
-            matching:
-              as_path:
-              - '65001'
-              community:
-              - '65001:2'
-              network:
-              - string
-              prefix:
-              - 192.168.0.0/16-30
-              protocol:
-              - direct
-              route_exists:
-                route: 192.168.0.0/24
-                vrf_name: default
     junos_snmp_config:
       properties:
         client_list:
@@ -74303,12 +73484,6 @@ components:
         created_time:
           readOnly: true
           type: number
-        fips:
-          description: FIPS configuration
-          properties:
-            enabled:
-              type: boolean
-          type: object
         for_site:
           readOnly: true
           type: boolean
@@ -74524,6 +73699,27 @@ components:
           items:
             $ref: '#/components/schemas/site_tunterm_monitoring'
           type: array
+        tunterm_multicast_config:
+          properties:
+            mdns:
+              properties:
+                enabled:
+                  type: boolean
+                vlan_ids:
+                  items:
+                    type: string
+                  type: array
+              type: object
+            ssdp:
+              properties:
+                enabled:
+                  type: boolean
+                vlan_ids:
+                  items:
+                    type: string
+                  type: array
+              type: object
+          type: object
         tunterm_other_ip_configs:
           additionalProperties:
             properties:
@@ -75102,6 +74298,7 @@ components:
           - cert_sub
           - client_mac
           - idp_role
+          - mdm_status
           - radius_group
           - realm
           - ssid
@@ -75187,6 +74384,14 @@ components:
           - 1vlan-20
           - 2-vlan10
           type: egress_vlan_names
+        matches mdm_status:
+          match: mdm_status
+          name: mdm_compliance
+          type: match
+          values:
+          - compliant
+          - non-compliant
+          - unknown
         matches_cert_cn:
           match: cert_cn
           name: staff
@@ -75353,6 +74558,13 @@ components:
           format: uuid
           readOnly: true
           type: string
+        routed_for_networks:
+          description: for a Network (usually LAN), it can be routable to other networks
+            (e.g. OSPF)
+          items:
+            example: pos
+            type: string
+          type: array
         subnet:
           example: 192.168.70.0/24
           type: string
@@ -75700,26 +74912,38 @@ components:
             properties:
               account_id:
                 description: Linked apps(zoom/teams/intune/jamf) tenant id
+                example: kojzWgIJQ0ujR73VvydOdg
                 type: string
               error:
                 description: This error is provided only when the apps(zoom) account
                   refresh token fails in the backend
+                example: OAuth token refresh failed, please re-link your account
                 type: string
+              errors:
+                items:
+                  example: OAuth token refresh failed, please re-link your account",
+                    "API daily rate limit reached for your account
+                  type: string
+                type: array
               last_status:
                 oneOf:
                 - type: integer
-                - type: string
+                - example: failed
+                  type: string
               last_sync:
                 oneOf:
                 - type: integer
-                - type: string
+                - example: '1665465346000'
+                  type: string
               linked_by:
                 description: First name of the user who linked the apps(zoom/teams/intune/jamf)
                   account
+                example: Testname2
                 type: string
               name:
                 description: Name of the company whose (zoom/teams/intune/jamf) account
                   mist has subscribed to
+                example: Test Compay2 Ltd
                 type: string
             type: object
           type: array
@@ -76300,6 +75524,14 @@ components:
                   description: private key password (optional)
                   type: string
               type: object
+            use_ssl_port:
+              default: false
+              description: "By default NAS devices (switches/aps) and proxies(mxedge)\
+                \ are configured to use port TCP2083(radsec) to reach mist-nac. \n\
+                Set `use_ssl_port`==`true` to override that port with TCP43 (ssl),\
+                \ \nThis is a org level setting that is applicable to wlans, switch-templates,\
+                \ and mxedge-clusters that have mist-nac enabled"
+              type: boolean
           type: object
         modified_time:
           readOnly: true
@@ -76308,6 +75540,9 @@ components:
           format: uuid
           readOnly: true
           type: string
+        mxedge_fips_enabled:
+          default: false
+          type: boolean
         mxedge_mgmt:
           $ref: '#/components/schemas/mxedge_mgmt'
         org_id:
@@ -76385,11 +75620,18 @@ components:
           type: object
         synthetic_test:
           properties:
-            urls:
-              items:
-                example: https://internal_app:8080/path
-                type: string
-              type: array
+            custom_test_urls:
+              additionalProperties:
+                description: list of URLs
+                items:
+                  type: string
+                type: array
+              description: Property key is a list of VLAN IDs
+              example:
+                10,30:
+                - http://www.abc.com/
+                - https://10.3.5.1:8080/about
+              type: object
           type: object
         tags:
           description: list of tags
@@ -77710,6 +76952,9 @@ components:
     radsec:
       description: Radsec settings
       properties:
+        coa_enabled:
+          default: false
+          type: boolean
         enabled:
           type: boolean
         idle_timeout:
@@ -80022,6 +79267,14 @@ components:
         for_site:
           readOnly: true
           type: boolean
+        gateway:
+          description: 'when Templates are not used, Site Setting holds settings for
+            multiple device types and they can differ
+
+            to set device-type specific configs, use this
+
+            whatever is defined under `gateway` will overwrite/shadow the one at root-level '
+          type: object
         gateway_additional_config_cmds:
           description: 'additional CLI commands to append to the generated config
             for gateways
@@ -80173,6 +79426,14 @@ components:
                 example: my.misty.com
                 type: string
               type: array
+          type: object
+        switch:
+          description: 'when Templates are not used, Site Setting holds settings for
+            multiple device types and they can differ
+
+            to set device-type specific configs, use this
+
+            whatever is defined under `switch` will overwrite/shadow the one at root-level '
           type: object
         switch_matching:
           properties:
@@ -85787,7 +85048,7 @@ components:
                   type: integer
                 util_non_wifi:
                   description: "reception of \u201CNo Packets\u201D utilization in\
-                    \ percentage, received frames with invalid PLCPs and CRS glitches\
+                    \ percentage, received frames with invalid PLCPs and CRC glitches\
                     \ as noise"
                   type: integer
                 util_rx_in_bss:
@@ -86499,20 +85760,31 @@ components:
           version: 18.4R1.8
     stats_device_other:
       properties:
+        config_status:
+          example: synced
+          type: string
         last_config:
+          example: 1675392788
           type: integer
         last_seen:
+          example: 1675843629
           type: integer
         mac:
+          example: 5c5b35000018
+          type: string
+        status:
+          example: online
           type: string
         uptime:
+          example: 20296
           type: integer
         vendor:
+          example: cradlepoint
           type: string
         vendor_specific:
-          properties: {}
           type: object
         version:
+          pattern: 7.22.70
           type: string
       type: object
       x-examples:
@@ -87166,46 +86438,84 @@ components:
                   user:
                     type: integer
                 type: object
+              example:
+                cpu0:
+                  idle: 89
+                  interrupt: 0
+                  system: 8
+                  usage: 10
+                  user: 1
+                cpu1:
+                  idle: 81
+                  interrupt: 0
+                  system: 4
+                  usage: 18
+                  user: 13
+                cpu2:
+                  idle: 81
+                  interrupt: 0
+                  system: 4
+                  usage: 18
+                  user: 13
+                cpu3:
+                  idle: 2
+                  interrupt: 0
+                  system: 50
+                  usage: 97
+                  user: 46
               type: object
             idle:
               description: percentage of Idle, Idle/(Idle + Busy) since last sampling
+              example: 62
               type: integer
             interrupt:
               description: percentage of Interrupt, (Irq + SoftIrq)/(Idle + Busy)
                 since last sampling
+              example: 0
               type: integer
             system:
               description: percentage of System, System/(Idle + Busy) since last sampling
+              example: 17
               type: integer
             usage:
               description: percentage of load, Busy/(Idle + Busy) since last sampling
+              example: 37
               type: integer
             user:
               description: percentage of User, User/(Idle + Busy) since last sampling
+              example: 19
               type: integer
           type: object
         created_time:
+          example: 1632684398
           type: integer
         for_site:
+          example: false
           type: boolean
         id:
+          example: 00000000-0000-0000-1000-020000a80cb4
           format: uuid
           type: string
         ip_stat:
           description: OOBM IP stats
           properties:
             ip:
+              example: 192.168.1.244
               type: string
             ips:
               additionalProperties:
                 type: string
               description: Property key is the interface name. IPs for each net interface
+              example:
+                ens18: 192.168.1.244/24,fe80::104c:ffff:fee0:caf8/64
               type: object
             macs:
               additionalProperties:
                 description: MAC addresses for each net interface
                 type: string
               description: Property key is the interface name. MAC for each net interface
+              example:
+                ens18: e4434b217044
               type: object
           type: object
         lag_stat:
@@ -87219,10 +86529,17 @@ components:
             type: object
           description: Stat for LAG (Link Aggregation Group). Property key is the
             LAG name
+          example:
+            lacp0:
+              active_ports:
+              - port0
+              - port1
           type: object
         last_seen:
+          example: 1633721215
           type: integer
         mac:
+          example: 020000a80cb4
           type: string
         memory_stat:
           description: Memory usage
@@ -87230,60 +86547,103 @@ components:
             active:
               description: The amount of memory, in kibibytes, that has been used
                 more recently and is usually not reclaimed unless absolutely necessary.
+              example: 394936320
               type: integer
             available:
               description: An estimate of how much memory is available for starting
                 new applications, without swapping.
+              example: 4699291648
               type: integer
             buffers:
               description: The amount, in kibibytes, of temporary storage for raw
                 disk blocks.
+              example: 107646976
               type: integer
             cached:
               description: The amount of physical RAM, in kibibytes, used as cache
                 memory.
+              example: 478060544
               type: integer
             free:
               description: The amount of physical RAM, in kibibytes, left unused by
                 the system
+              example: 4330659840
               type: integer
             inactive:
               description: The amount of memory, in kibibytes, that has been used
                 less recently and is more eligible to be reclaimed for other purposes.
+              example: 211980288
               type: integer
             swap_cached:
               description: The amount of memory, in kibibytes, that has once been
                 moved into swap, then back into the main memory, but still also remains
                 in the swapfile.
+              example: 0
               type: integer
             swap_free:
               description: The total amount of swap free, in kibibytes.
+              example: 1022357504
               type: integer
             swap_total:
               description: The total amount of swap available, in kibibytes.
+              example: 1022357504
               type: integer
             total:
               description: Total amount of usable RAM, in kibibytes, which is physical
                 RAM minus a number of reserved bits and the kernel binary code
+              example: 8365957120
               type: integer
             usage:
+              example: 48
               type: integer
           type: object
         model:
+          example: ME-VM
           type: string
         modified_time:
+          example: 1633643629
           type: integer
         mxagent_registered:
+          example: true
           type: boolean
         mxcluster_id:
+          example: 678bc339-7635-4556-bbc0-e77ad493ef8b
           format: uuid
           type: string
         name:
           description: The name of the tunnel
+          example: me-vm-1
           type: string
         num_tunnels:
+          example: 0
           type: integer
+        oob_ip_config:
+          properties:
+            dns:
+              example:
+              - 8.8.8.8
+              - 1.1.1.1
+              items:
+                type: string
+              type: array
+            gateway:
+              example: 10.0.0.1
+              type: string
+            ip:
+              example: 10.0.0.10
+              type: string
+            netmask:
+              example: 255.255.255.0
+              type: string
+            type:
+              enum:
+              - dhcp
+              - static
+              example: static
+              type: string
+          type: object
         org_id:
+          example: 11b08247-b1ee-4152-9b25-312b323ce480
           format: uuid
           type: string
         port_stat:
@@ -87312,219 +86672,142 @@ components:
               up:
                 type: boolean
             type: object
+          example:
+            port0:
+              full_duplex: true
+              mac: 9e294e49091d
+              rx_bytes: 646898375700
+              rx_errors: 0
+              rx_pkts: 8784449574
+              speed: 10000
+              state: forwarding
+              tx_bytes: 647200748038
+              tx_errors: 0
+              tx_pkts: 8788647466
+              up: true
+            port1:
+              full_duplex: true
+              mac: a270fe53437e
+              rx_bytes: 647200437652
+              rx_errors: 0
+              rx_pkts: 8788644886
+              speed: 10000
+              state: forwarding
+              tx_bytes: 646898681650
+              tx_errors: 0
+              tx_pkts: 8784452092
+              up: true
           type: object
         sensor_stat:
           type: object
+        serial:
+          nullable: true
+          type: string
         service_stat:
+          additionalProperties:
+            properties:
+              ext_ip:
+                description: "external IP from ep-terminator\u2019s point of view.\
+                  \ valid only for service having its own cloud connection"
+                type: string
+              last_seen:
+                description: timestamp when the last stats is seen (cloud unix time,
+                  in second). valid only for service having its own stats or whole
+                  system (last among last_seen of all services)
+                type: integer
+              package_state:
+                description: package/service installation state.
+                type: string
+              package_version:
+                description: package/service installation state.
+                type: string
+              running_state:
+                description: service running state.
+                type: string
+              uptime:
+                description: service uptime.
+                type: integer
+            type: object
           description: stat for each services
-          properties:
+          example:
             mxagent:
-              properties:
-                ext_ip:
-                  description: "external IP from ep-terminator\u2019s point of view.\
-                    \ valid only for service having its own cloud connection"
-                  type: string
-                last_seen:
-                  description: timestamp when the last stats is seen (cloud unix time,
-                    in second). valid only for service having its own stats or whole
-                    system (last among last_seen of all services)
-                  type: integer
-                package_state:
-                  description: package/service installation state.
-                  type: string
-                package_version:
-                  description: package/service installation state.
-                  type: string
-                running_state:
-                  description: service running state.
-                  type: string
-                uptime:
-                  description: service uptime.
-                  type: integer
-              type: object
+              ext_ip: 99.0.86.164
+              last_seen: 1633721215
+              package_state: Installed
+              package_version: 3.1.1037-1
+              running_state: Running
+              uptime: 21240
             tunterm:
-              properties:
-                ext_ip:
-                  description: "external IP from ep-terminator\u2019s point of view.\
-                    \ valid only for service having its own cloud connection"
-                  type: string
-                last_seen:
-                  description: timestamp when the last stats is seen (cloud unix time,
-                    in second). valid only for service having its own stats or whole
-                    system (last among last_seen of all services)
-                  type: integer
-                package_state:
-                  description: package/service installation state.
-                  type: string
-                package_version:
-                  description: package/service installation state.
-                  type: string
-                running_state:
-                  description: service running state.
-                  type: string
-                uptime:
-                  description: service uptime.
-                  type: integer
-              type: object
+              ext_ip: 99.0.86.164
+              last_seen: 1633721203
+              package_state: Installed
+              package_version: 0.1.2449+deb10
+              running_state: Running
+              uptime: 76261
           type: object
         services:
+          example:
+          - tunterm
           items:
-            type: object
+            type: string
           type: array
         site_id:
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
           type: string
         status:
-          type: string
-        tunterm_id:
-          format: uuid
+          example: connected
           type: string
         tunterm_ip_config:
           properties:
             gateway:
+              example: 192.168.11.1
               type: string
             ip:
+              example: 192.168.11.91
               type: string
             netmask:
+              example: 255.255.255.0
               type: string
           type: object
         tunterm_port_config:
           properties:
             downstream_ports:
+              example:
+              - '0'
+              - '1'
               items:
-                type: object
+                type: string
               type: array
             separate_upstream_downstream:
+              example: false
               type: boolean
             upstream_ports:
+              example:
+              - '0'
+              - '1'
               items:
-                type: object
+                type: string
               type: array
           type: object
         tunterm_registered:
+          example: true
           type: boolean
         tunterm_stat:
           properties:
             monitoring_failed:
+              example: false
               type: boolean
           type: object
         uptime:
+          example: 76281
           type: integer
         virtualization_type:
           description: Virtualization environment
+          example: KVM
           type: string
       type: object
-      x-examples:
-        example-1:
-          cpu_stat:
-            cpus:
-              property1:
-                idle: 0
-                interrupt: 0
-                system: 0
-                usage: 0
-                user: 0
-              property2:
-                idle: 0
-                interrupt: 0
-                system: 0
-                usage: 0
-                user: 0
-            idle: 0
-            interrupt: 0
-            system: 0
-            usage: 0
-            user: 0
-          created_time: 0
-          for_site: true
-          id: string
-          ip_stat:
-            ip: string
-            ips:
-              ens18: string
-          lag_stat: {}
-          last_seen: 0
-          mac: string
-          memory_stat:
-            active: 0
-            available: 0
-            buffers: 0
-            cached: 0
-            free: 0
-            inactive: 0
-            swap_cached: 0
-            swap_free: 0
-            swap_total: 0
-            total: 0
-            usage: 0
-          model: string
-          modified_time: 0
-          mxagent_registered: true
-          mxcluster_id: string
-          name: string
-          num_tunnels: 0
-          org_id: string
-          port_stat:
-            property1:
-              full_duplex: true
-              mac: string
-              rx_bytes: 0
-              rx_errors: 0
-              rx_pkts: 0
-              speed: 0
-              state: string
-              tx_bytes: 0
-              tx_errors: 0
-              tx_pkts: 0
-              up: true
-            property2:
-              full_duplex: true
-              mac: string
-              rx_bytes: 0
-              rx_errors: 0
-              rx_pkts: 0
-              speed: 0
-              state: string
-              tx_bytes: 0
-              tx_errors: 0
-              tx_pkts: 0
-              up: true
-          sensor_stat: {}
-          service_stat:
-            mxagent:
-              ext_ip: string
-              last_seen: 0
-              package_state: string
-              package_version: string
-              running_state: string
-              uptime: 0
-            tunterm:
-              ext_ip: string
-              last_seen: 0
-              package_state: string
-              package_version: string
-              running_state: string
-              uptime: 0
-          services:
-          - {}
-          site_id: string
-          status: string
-          tunterm_id: string
-          tunterm_ip_config:
-            gateway: string
-            ip: string
-            netmask: string
-          tunterm_port_config:
-            downstream_ports:
-            - {}
-            separate_upstream_downstream: true
-            upstream_ports:
-            - {}
-          tunterm_registered: true
-          tunterm_stat:
-            monitoring_failed: true
-          uptime: 0
-          virtualization_type: string
+      x-examples: {}
     stats_mxtunnel:
       description: 'MxTunnels statistics '
       properties:
@@ -88075,6 +87358,7 @@ components:
           type: boolean
         full_duplex:
           description: indicates full or half duplex
+          example: true
           type: boolean
         jitter:
           description: Last sampled jitter of the interface
@@ -89184,6 +88468,230 @@ components:
           two_factor: '123456'
       x-stoplight:
         id: tckdfvccg0kdp
+    ui_settings:
+      description: UI Settings
+      properties:
+        created_time:
+          example: 1508823803
+          readOnly: true
+          type: number
+        defaultScopeId:
+          example: 67970e46-4e12-11e6-9188-0242ad112847
+          type: string
+        defaultScopeType:
+          example: site
+          type: string
+        defaultTimeRange:
+          properties:
+            end:
+              example: 1508828400
+              type: integer
+            endDate:
+              example: 10/23/2017
+              type: string
+            interval:
+              example: 1d
+              type: string
+            name:
+              example: This Week
+              type: string
+            shortName:
+              example: thisWeek
+              type: string
+            start:
+              example: 1508655600
+              type: integer
+            usePreset:
+              example: true
+              type: boolean
+          type: object
+        description:
+          example: Description of the databoard
+          type: string
+        for_site:
+          example: true
+          readOnly: true
+          type: boolean
+        id:
+          example: 3bdcc7e8-c04d-4512-b4fc-093da9057eb0
+          format: uuid
+          readOnly: true
+          type: string
+        isCustomDataboard:
+          type: boolean
+        isScopeLinked:
+          type: boolean
+        isTimeRangeLinked:
+          type: boolean
+        modified_time:
+          example: 1508823803
+          readOnly: true
+          type: number
+        name:
+          example: New Databoard
+          type: string
+        org_id:
+          example: cc079380-5029-4d4a-9125-858de85731ff
+          format: uuid
+          readOnly: true
+          type: string
+        purpose:
+          example: databoard
+          type: string
+        site_id:
+          example: 67970e46-4e12-11e6-9188-0242ad112847
+          format: uuid
+          readOnly: true
+          type: string
+        tiles:
+          items:
+            properties:
+              chartBand:
+                example: 2.4 ghz
+                type: string
+              chartColor:
+                example: '#00B4AD'
+                type: string
+              chartDirection:
+                example: tx + rx
+                type: string
+              chartRankBy:
+                type: string
+              chartType:
+                example: timeSeries
+                type: string
+              colspan:
+                example: 5
+                type: integer
+              column:
+                example: 1
+                type: integer
+              hideEmptyRows:
+                type: boolean
+              id:
+                example: 7a9ab38c-cfc3-483d-b51a-0aec571fadc0
+                format: uuid
+                type: string
+              metric:
+                properties:
+                  apiName:
+                    example: client-dhcp-latency
+                    type: string
+                type: object
+              name:
+                example: New Analysis
+                type: string
+              row:
+                example: 1
+                type: integer
+              rowspan:
+                example: 2
+                type: integer
+              scopeId:
+                example: e0c767834b4c
+                type: string
+              scopeType:
+                example: client
+                type: string
+              sortedColumns: {}
+              timeRange:
+                properties:
+                  end:
+                    example: 1508823743
+                    type: number
+                  endDate:
+                    example: 10/23/2017
+                    type: string
+                  interval:
+                    example: 1d
+                    type: string
+                  name:
+                    example: Past 7 Days
+                    type: string
+                  shortName:
+                    example: 7d
+                    type: string
+                  start:
+                    example: 1508223600
+                    type: integer
+                  usePreset:
+                    example: true
+                    type: boolean
+                type: object
+              trendType:
+                example: line
+                type: string
+              vizType:
+                example: averageTimeSeriesChart
+                type: string
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+      required:
+      - created_time
+      - description
+      - for_site
+      - id
+      - modified_time
+      - org_id
+      - purpose
+      - site_id
+      type: object
+      x-examples:
+        Example:
+          created_time: 1508823803
+          defaultScopeId: 67970e46-4e12-11e6-9188-0242ad112847
+          defaultScopeType: site
+          defaultTimeRange:
+            end: 1508828400
+            endDate: 10/23/2017
+            interval: 1d
+            name: This Week
+            shortName: thisWeek
+            start: 1508655600
+            usePreset: true
+          description: Description of the databoard
+          for_site: true
+          id: 3bdcc7e8-c04d-4512-b4fc-093da9057eb0
+          isCustomDataboard: true
+          isScopeLinked: true
+          isTimeRangeLinked: true
+          modified_time: 0
+          name: New Databoard
+          org_id: cc079380-5029-4d4a-9125-858de85731ff
+          purpose: databoard
+          site_id: 67970e46-4e12-11e6-9188-0242ad112847
+          tiles:
+          - chartBand: 2.4 ghz
+            chartColor: '#00B4AD'
+            chartDirection: tx + rx
+            chartRankBy: string
+            chartType: timeSeries
+            colspan: 5
+            column: 1
+            hideEmptyRows: true
+            id: 7a9ab38c-cfc3-483d-b51a-0aec571fadc0
+            metric:
+              apiName: client-dhcp-latency
+            name: New Analysis
+            row: 1
+            rowspan: 2
+            scopeId: e0c767834b4c
+            scopeType: client
+            sortedColumns: null
+            timeRange:
+              end: 1508823743
+              endDate: 10/23/2017
+              interval: 1d
+              name: Past 7 Days
+              shortName: 7d
+              start: 1508223600
+              usePreset: true
+            trendType: line
+            vizType: averageTimeSeriesChart
+      x-stoplight:
+        id: 6df08eb3dee4c
     user_apitoken:
       description: User API Token
       properties:
@@ -89437,7 +88945,7 @@ components:
             - discovered-raw-rssi
             - location
             - mxedge-events
-            - nac-sessions
+            - nac-accounting
             - occupancy-alerts
             - rssizone
             - sdkclient-scan-data
@@ -90550,6 +90058,107 @@ components:
           topic: location
       x-stoplight:
         id: b9aeb10d136c7
+    webhook_nac_accounting:
+      description: nac-accounting webhook
+      properties:
+        events:
+          items:
+            properties:
+              ap:
+                description: mac address of the AP the client roamed or disconnected
+                  from
+                example: 5c5b355005be
+                type: string
+              auth_type:
+                description: radius authentication type
+                example: 802.1X
+                type: string
+              bssid:
+                description: "it\u2019s the MAC physical address of the access point"
+                example: 5c5b35546bb4
+                type: string
+              client_ip:
+                description: IP Address of client
+                example: 172.16.87.4
+                type: string
+              client_type:
+                description: "client type E.g. \u201Cwired\u201D, \u201Cwireless\u201D\
+                  , \u201Cvty\u201D"
+                example: wireless
+                type: string
+              mac:
+                description: "the client\u2019s mac"
+                example: 6e795836d5f9
+                type: string
+              nas_vendor:
+                description: "NAS Device vendor name E.g. \u201CJuniper\u201D, \u201C\
+                  Cisco\u201D"
+                example: juniper-mist
+                type: string
+              org_id:
+                description: Org ID
+                example: 625aba64-fe72-4b14-8985-cbf31ec3d78a
+                format: uuid
+                type: string
+              rx_pkts:
+                description: number of packets received
+                example: 9523
+                type: integer
+              site_id:
+                description: Site ID
+                example: ec9d1e85-af24-43f9-8d65-d620580e8631
+                format: uuid
+                type: string
+              ssid:
+                description: ESSID
+                example: Test-CMR SSID
+                type: string
+              timestamp:
+                description: sampling time (in epoch)
+                example: 1547235620.89
+                type: number
+              tx_pkts:
+                description: number of packets sent
+                example: 5233
+                type: integer
+              type:
+                description: "type of event. E.g. \u201CACCOUNTING_START\u201D, \u201C\
+                  ACCOUNTING_UPDATE\u201D, \u201CACCOUNTING_STOP\u201D"
+                example: NAC_ACCOUNTING_STOP
+                type: string
+              username:
+                description: username authenticated with
+                example: hi
+                type: string
+            type: object
+          type: array
+        topic:
+          enum:
+          - nac-accounting
+          example: nac-accounting
+          type: string
+      type: object
+      x-examples:
+        Example 1:
+          events:
+          - ap: 5c5b355005be
+            auth_type: 802.1X
+            bssid: 5c5b35546bb4
+            client_ip: 172.16.87.4
+            client_type: wireless
+            mac: 6e795836d5f9
+            nas_vendor: juniper-mist
+            org_id: 625aba64-fe72-4b14-8985-cbf31ec3d78a
+            rx_pkts: 9523
+            site_id: ec9d1e85-af24-43f9-8d65-d620580e8631
+            ssid: Test-CMR SSID
+            timestamp: 1547235620.89
+            tx_pkts: 5233
+            type: NAC_ACCOUNTING_STOP
+            username: hi
+          topic: nac-accounting
+      x-stoplight:
+        id: 5c261f4a27102
     webhook_occupancy_alerts:
       description: occupancy alert  webhook
       properties:
@@ -91444,7 +91053,7 @@ components:
           type: string
         isolation:
           default: false
-          description: whether to allow clients to talk to each other
+          description: whether to stop clients to talk to each other
           type: boolean
         l2_isolation:
           default: false
@@ -91486,7 +91095,9 @@ components:
 
                 * `coa_servers` is ignored
 
-                * `radsec` is ignored'
+                * `radsec` is ignored
+
+                * `coa_enabled` is assumed'
               type: boolean
           type: object
         modified_time:
@@ -91663,12 +91274,13 @@ components:
           nullable: true
           type: integer
         vlan_ids:
-          description: list of VLAN ids
+          description: "vlan_ids to use when there\u2019s no match from RA"
           example:
           - 3
           - 4
           - 5
           items:
+            default: 999
             maximum: 4094
             minimum: 1
             nullable: true
@@ -93459,10 +93071,19 @@ components:
           enum:
           - allow
           - block
+          example: allow
           type: string
+        apply_tags:
+          items:
+            example: c049dfcd-0c73-5014-1c64-062e9903f1e5
+            type: string
+          type: array
         blocked_apps:
           description: blocked apps (always blocking, ignoring action), the key of
             Get Application List
+          example:
+          - mist
+          - all-videos
           items:
             type: string
           type: array
@@ -93471,11 +93092,17 @@ components:
           type: number
         dst_allow_wxtags:
           description: tag list to indicate these tags are allowed access
+          example:
+          - fff34466-eec0-3756-6765-381c728a6037
+          - eee2c7b0-d1d0-5a30-f349-e35fa43dc3b3
           items:
             type: string
           type: array
         dst_deny_wxtags:
           description: tag list to indicate these tags are blocked access
+          example:
+          - aaa34466-eec0-3756-6765-381c728a6037
+          - bbb2c7b0-d1d0-5a30-f349-e35fa43dc3b3
           items:
             type: string
           type: array
@@ -93495,6 +93122,8 @@ components:
         order:
           description: the order how rules would be looked up, > 0 and bigger order
             got matched first, -1 means LAST, uniqueness not checked
+          example: 1
+          minimum: 1
           type: number
         org_id:
           format: uuid
@@ -93505,6 +93134,9 @@ components:
           type: string
         src_wxtags:
           description: tag list to determine if this rule would match
+          example:
+          - 8bfc2490-d726-3587-038d-cb2e71bd2330
+          - 3aa8e73f-9f46-d827-8d6a-567bb7e67fc9
           items:
             type: string
           type: array
@@ -93558,7 +93190,7 @@ components:
           - radius_username
           - wlan_id
           - psk_name
-          - psk_rule
+          - psk_role
           type: string
         modified_time:
           readOnly: true
@@ -93588,6 +93220,7 @@ components:
           readOnly: true
           type: string
         specs:
+          description: if `type`==`specs`
           items:
             properties:
               port_range:
@@ -93617,12 +93250,18 @@ components:
           - resource
           - subnet
           - spec
+          - vlan
           type: string
         values:
-          description: list of values to match
+          description: if `type`!=`vlan_id` and `type`!=`specs`, list of values to
+            match
           items:
             type: string
           type: array
+        vlan_id:
+          description: if `type`==`vlan_id`
+          example: 1055
+          type: integer
       required:
       - type
       - name
