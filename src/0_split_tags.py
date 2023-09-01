@@ -150,6 +150,8 @@ for path in data.get("paths", {}):
                             "getSiteDerivedCurdSetting",
                             "getSiteApplicationList",
                             "listMspTickets",
+                            "rebootOrgOtherDevice",
+                            "listOrgAvailableSsrVersions",
                         ]:
                             properties[verb]["tags"].append("Configuration")
                         elif properties[verb]["operationId"] in [
@@ -188,7 +190,7 @@ for path in data.get("paths", {}):
                             "getSiteDiscoveredAssetByMap",
                             "getSiteWxRulesUsage",
                             "getSiteCurrentMatchingClientsOfAWxTag",
-
+                            "troubleshootOrg"
                         ]:
                             properties[verb]["tags"].append("Monitor")
                         else:

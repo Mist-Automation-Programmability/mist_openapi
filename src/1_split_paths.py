@@ -21,7 +21,7 @@ parts = {
     "tags" : data.get("tags"),
     "paths" : data.get("paths"),
     "components" : data.get("components"),
-    "x-tagGroups" : data.get("x-tagGroups"),
+    "x-tagGroups" : data.get("x-tagGroups"),    
 }
 
 cat_paths = {
@@ -246,7 +246,7 @@ def get_schemas(src_schemas, schemas):
     #if dst_parameters: components["schemas"] = dst_schemas
     return dst_schemas
 
-def save_file(filename:str, cat_path:dict, cat_schema: dict, cat_param:list, cat_response:list, cat_tag:list):  
+def save_file(category:str, scope:str|None, filename:str, cat_path:dict, cat_schema: dict, cat_param:list, cat_response:list, cat_tag:list):  
         components = {}
         additional_schemas = []
 
@@ -277,9 +277,15 @@ def save_file(filename:str, cat_path:dict, cat_schema: dict, cat_param:list, cat
             if tag.get("name") in cat_tag:
                 tags.append(tag)
 
+        info = parts.get("info")
+        if scope:
+            info["title"] = f"{scope} - {category}"
+        else:
+            info["title"] = f"{category}"
+            
         data = {
             "openapi" : parts.get("openapi"),
-            "info" : parts.get("info"),
+            "info" : info,
             "servers" : parts.get("servers"),
             "security" : parts.get("security"),
             "tags" : tags,
@@ -287,7 +293,8 @@ def save_file(filename:str, cat_path:dict, cat_schema: dict, cat_param:list, cat
             "components" : {
                 "parameters": dst_parameters,
                 "responses": dst_responses,
-                "schemas": dst_schemas
+                "schemas": dst_schemas,
+                "securitySchemes": parts["components"]["securitySchemes"]
             }
         }    
 
@@ -314,7 +321,7 @@ def save():
                 cat_response = cat_responses[category][scope]
                 cat_tag = cat_tags[category][scope]
                 filename = f"../v2/mist.openapi.{category}.{scope}.yml"
-                save_file(filename, cat_path, cat_schema, cat_param, cat_response, cat_tag)
+                save_file(category, scope, filename, cat_path, cat_schema, cat_param, cat_response, cat_tag)
         else:
             cat_path = cat_paths[category]
             cat_schema = cat_schemas[category]
@@ -322,7 +329,7 @@ def save():
             cat_response = cat_responses[category]
             cat_tag = cat_tags[category]
             filename = f"../v2/mist.openapi.{category}.yml"
-            save_file(filename, cat_path, cat_schema, cat_param, cat_response, cat_tag)
+            save_file(category, None, filename, cat_path, cat_schema, cat_param, cat_response, cat_tag)
 
 
 
