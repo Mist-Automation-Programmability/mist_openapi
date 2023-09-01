@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2307.1.1**
+  description: '> Version: **2308.1.0**
 
     >
 
-    > Date: **August 4, 2023**
+    > Date: **August 31, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2307.1.1
+  version: 2308.1.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -123,6 +123,7 @@ tags:
 - name: Orgs Asset Filters
 - name: Orgs Calls
 - name: Orgs Cert
+- name: Orgs Clients - NAC
 - name: Orgs Clients - Wan
 - name: Orgs Clients - Wired
 - name: Orgs Clients - Wireless
@@ -251,6 +252,7 @@ tags:
 - name: Sites Assets
 - name: Sites Beacons
 - name: Sites Calls
+- name: Sites Clients - NAC
 - name: Sites Clients - Wan
 - name: Sites Clients - Wired
 - name: Sites Clients - Wireless
@@ -676,6 +678,26 @@ paths:
         '429':
           $ref: '#/components/responses/HTTP429'
       summary: listMxEdgeModels
+      tags:
+      - Constants
+  /api/v1/const/nac_events:
+    get:
+      description: Get List of List of available NAC Client Events
+      operationId: listNacEventsDefinitions
+      responses:
+        '200':
+          $ref: '#/components/responses/ConstNacEventsArray'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listNacEventsDefinitions
       tags:
       - Constants
   /api/v1/const/otherdevice_events:
@@ -5590,7 +5612,7 @@ paths:
   /api/v1/orgs/{org_id}/clients/events/search:
     get:
       description: Get Org Clients Events
-      operationId: searchOrgWirelessClientsEvents
+      operationId: searchOrgWirelessClientEvents
       parameters:
       - description: event type, e.g. MARVIS_EVENT_CLIENT_FBT_FAILURE
         in: query
@@ -5637,6 +5659,11 @@ paths:
         name: wlan_id
         schema:
           type: string
+      - description: nacrule_id
+        in: query
+        name: nacrule_id
+        schema:
+          type: string
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -5654,7 +5681,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: searchOrgWirelessClientsEvents
+      summary: searchOrgWirelessClientEvents
       tags:
       - Orgs Clients - Wireless
     parameters:
@@ -13332,6 +13359,170 @@ paths:
       summary: updateOrgMxTunnel
       tags:
       - Orgs MxTunnels
+  /api/v1/orgs/{org_id}/nac_clients/events/count:
+    get:
+      description: Count by Distinct Attributes of NAC Client-Events
+      operationId: countOrgNacClientEvents
+      parameters:
+      - in: query
+        name: distinct
+        schema:
+          enum:
+          - type
+          - nacrule_id
+          - auth_type
+          - vlan
+          - nas_vendor
+          - eap_type
+          - username
+          - ap
+          - mac
+          - ssid
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: countOrgNacClientEvents
+      tags:
+      - Orgs Clients - NAC
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/nac_clients/events/search:
+    get:
+      description: Search NAC Client Events
+      operationId: searchOrgNacClientEvents
+      parameters:
+      - description: event type, e.g. NAC_CLIENT_PERMIT
+        in: query
+        name: type
+        schema:
+          type: string
+      - description: NAC Policy Rule ID, if matched
+        in: query
+        name: nacrule_id
+        schema:
+          format: uuid
+          type: string
+      - description: NAC Policy Rule Matched
+        in: query
+        name: nacrule_matched
+        schema:
+          type: boolean
+      - description: "authentication type, e.g. \u201C802.1X\u201D, \u201CMAB\u201D\
+          , \u201CDeviceAuth\u201D"
+        in: query
+        name: auth_type
+        schema:
+          type: string
+      - description: Vlan ID
+        in: query
+        name: vlan
+        schema:
+          type: integer
+      - description: vendor of NAS device
+        in: query
+        name: nas_vendor
+        schema:
+          type: string
+      - description: SSID
+        in: query
+        name: bssid
+        schema:
+          type: string
+      - description: "EAP type, e.g. \u201CEAP-TTLS\u201D, \u201CEAP-TLS\u201D"
+        in: query
+        name: eap_type
+        schema:
+          type: string
+      - description: SSO ID, if present and used
+        in: query
+        name: idp_id
+        schema:
+          format: uuid
+          type: string
+      - description: IDP returned roles/groups for the user
+        in: query
+        name: idp_role
+        schema:
+          type: string
+      - description: Radius attributes returned by NAC to NAS Devive
+        in: query
+        name: resp_attrs
+        schema:
+          type: array
+      - description: SSID
+        in: query
+        name: ssid
+        schema:
+          type: string
+      - description: Username presented by the client
+        in: query
+        name: username
+        schema:
+          type: string
+      - description: site id
+        in: query
+        name: site_id
+        schema:
+          type: string
+      - description: AP MAC
+        in: query
+        name: ap
+        schema:
+          type: string
+      - description: AP random macMAC
+        in: query
+        name: random_mac
+        schema:
+          type: boolean
+      - description: MAC address
+        in: query
+        name: mac
+        schema:
+          type: string
+      - description: start time, in epoch
+        in: query
+        name: timestamp
+        schema:
+          type: number
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/EventsNacClientSearch'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: searchOrgNacClientEvents
+      tags:
+      - Orgs Clients - NAC
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/nacrules:
     get:
       description: Get List of Org NAC Rules
@@ -21326,7 +21517,7 @@ paths:
       description: 'Search Org WAN Client Events
 
         '
-      operationId: searchOrgWanClientsEvents
+      operationId: searchOrgWanClientEvents
       parameters:
       - description: Event type, e.g. CLIENT_IP_ASSIGNED, CLIENT_IP_RENEWED, CLIENT_IP_EXPIRED
         in: query
@@ -21353,6 +21544,11 @@ paths:
         name: mfg
         schema:
           type: string
+      - description: nacrule_id
+        in: query
+        name: nacrule_id
+        schema:
+          type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
@@ -21371,7 +21567,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: searchOrgWanClientsEvents
+      summary: searchOrgWanClientEvents
       tags:
       - Orgs Clients - Wan
     parameters:
@@ -21700,7 +21896,7 @@ paths:
         name: ip
         schema:
           type: string
-      - description: client manufacture
+      - description: client manufacturer
         in: query
         name: manufacture
         schema:
@@ -21708,6 +21904,11 @@ paths:
       - description: single entry of hostname/mac
         in: query
         name: text
+        schema:
+          type: string
+      - description: nacrule_id
+        in: query
+        name: nacrule_id
         schema:
           type: string
       - $ref: '#/components/parameters/limit'
@@ -24943,7 +25144,7 @@ paths:
   /api/v1/sites/{site_id}/clients/events/count:
     get:
       description: Count by Distinct Attributes of Client-Events
-      operationId: countSiteWirelessClientsEvents
+      operationId: countSiteWirelessClientEvents
       parameters:
       - description: type / proto / band / channel / wlan_id / ssid
         example: type
@@ -25021,7 +25222,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: countSiteWirelessClientsEvents
+      summary: countSiteWirelessClientEvents
       tags:
       - Sites Clients - Wireless
     parameters:
@@ -25029,7 +25230,7 @@ paths:
   /api/v1/sites/{site_id}/clients/events/search:
     get:
       description: Get Site Clients Events
-      operationId: searchSiteWirelessClientsEvents
+      operationId: searchSiteWirelessClientEvents
       parameters:
       - description: event type, e.g. MARVIS_EVENT_CLIENT_FBT_FAILURE
         in: query
@@ -25076,6 +25277,11 @@ paths:
         name: wlan_id
         schema:
           type: string
+      - description: nacrule_id
+        in: query
+        name: nacrule_id
+        schema:
+          type: string
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -25093,7 +25299,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: searchSiteWirelessClientsEvents
+      summary: searchSiteWirelessClientEvents
       tags:
       - Sites Clients - Wireless
     parameters:
@@ -25143,6 +25349,11 @@ paths:
       - description: partial / full MAC address, hostname, username or ip
         in: query
         name: text
+        schema:
+          type: string
+      - description: nacrule_id
+        in: query
+        name: nacrule_id
         schema:
           type: string
       - $ref: '#/components/parameters/limit'
@@ -26974,6 +27185,74 @@ paths:
       summary: cancelSiteDeviceUpgrade
       tags:
       - Sites Devices Upgrades
+  /api/v1/sites/{site_id}/devices/upgrade_bios:
+    parameters:
+    - in: path
+      name: site_id
+      required: true
+      schema:
+        type: string
+    post:
+      description: Upgrade Bios Multiple Device
+      operationId: upgraseSiteMultipleDevicesBios
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  device_ids:
+                  - 00000000-0000-0000-1000-5c5b35584a6f
+                  models:
+                  - EX4400-48T
+                  version: CDEN_P_EX1_00.15.01.00
+            schema:
+              properties:
+                device_ids:
+                  description: list of device id to upgrade bios
+                  items:
+                    example: 00000000-0000-0000-1000-5c5b35584a6f
+                    format: uuid
+                    type: string
+                  type: array
+                models:
+                  description: list of device model to upgrade bios
+                  items:
+                    example: EX4400-48T
+                    type: string
+                  type: array
+                reboot:
+                  default: false
+                  description: Reboot device immediately after upgrade is completed
+                  type: boolean
+                version:
+                  description: specific bios version
+                  example: CDEN_P_EX1_00.15.01.00
+                  type: string
+              type: object
+              x-examples:
+                Example 1:
+                  device_ids:
+                  - 00000000-0000-0000-1000-5c5b35584a6f
+                  models:
+                  - EX4400-48T
+                  version: CDEN_P_EX1_00.15.01.00
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: upgraseSiteMultipleDevicesBios
+      tags:
+      - Sites Devices Upgrades
   /api/v1/sites/{site_id}/devices/versions:
     get:
       description: Get List of Available Device Versions
@@ -28099,9 +28378,9 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Create HA Cluster\nBoth nodes has to be in the same site. We expect\
-        \ the user to configure ha_sync / ha_data port in port_configs already\n\n\
-        ### SRX cabling\n\nsee [Chassis Cluster User Guide for SRX Series Devices](https://www.juniper.net/documentation/us/en/software/junos/chassis-cluster-security-devices/topics/concept/chassis-cluster-srx-series-node-interface-understanding.html)\
+      description: "## Create HA Cluster\nBoth nodes has to be in the same site. We\
+        \ expect the user to configure ha_sync / ha_data port in port_configs already\n\
+        \n### SRX cabling\n\nsee [Chassis Cluster User Guide for SRX Series Devices](https://www.juniper.net/documentation/us/en/software/junos/chassis-cluster-security-devices/topics/concept/chassis-cluster-srx-series-node-interface-understanding.html)\
         \ Here\u2019s the recommended cabling.\n\n#### SRX300\n\nFrom ZTP / default\
         \ state, ge-0/0/0 and ge-0/0/7 (SFP) are default WAN ports and will get DHCP\
         \ IP. However, ge-0/0/0 becomes OOB/fxp0 after cluster is enabled (i.e. using\
@@ -28168,7 +28447,9 @@ paths:
         \ SRX4100\n\nSRX4100 has dedicated ha_control and ha_data (fabric) ports\n\
         \n1.  connect dedicated ha_control back-to-back\n2.  connect dedicated ha_data\
         \ back-to-back\n3.  connect xe-0/0/0 to WAN to reach Mist\n4.  connect xe-0/0/1-\
-        \ to LAN or additional WANs"
+        \ to LAN or additional WANs\n\n## Replace a Node in a HA Cluster\nUsually\
+        \ Device Replacement is done by Device Replacement API. For a HA cluster,\
+        \ you can also replace a node by another device in the same site."
       operationId: createSiteDeviceHaCluster
       requestBody:
         content:
@@ -28185,10 +28466,13 @@ paths:
                   items:
                     properties:
                       mac:
+                        description: when replacing a noce, either mac has to remain
+                          the same as existing cluster
                         minLength: 1
                         type: string
                     required:
                     - mac
+                    type: object
                   minItems: 1
                   type: array
                   uniqueItems: true
@@ -28200,6 +28484,7 @@ paths:
                   nodes:
                   - mac: aff827549235
                   - mac: 8396cd006c8c
+        description: ''
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -29359,6 +29644,68 @@ paths:
         '429':
           $ref: '#/components/responses/HTTP429'
       summary: upgradeSiteDevice
+      tags:
+      - Sites Devices Upgrades
+  /api/v1/sites/{site_id}/devices/{device_id}/upgrade_bios:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: Upgrade device bios
+      operationId: upgradeSiteDeviceBios
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  version: CDEN_P_EX1_00.20.01.00
+            schema:
+              properties:
+                reboot:
+                  default: false
+                  description: Reboot device immediately after upgrade is completed
+                  type: boolean
+                version:
+                  description: specific bios version
+                  example: CDEN_P_EX1_00.20.01.00
+                  type: string
+              type: object
+              x-examples:
+                Example 1:
+                  version: CDEN_P_EX1_00.20.01.00
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                Example 1:
+                  value:
+                    status: inprogress
+                    timestamp: 1428949501
+              schema:
+                properties:
+                  status:
+                    type: string
+                  timestamp:
+                    type: integer
+                type: object
+                x-examples:
+                  Example 1:
+                    status: inprogress
+                    timestamp: 1428949501
+          description: OK
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: upgradeSiteDeviceBios
       tags:
       - Sites Devices Upgrades
   /api/v1/sites/{site_id}/devices/{device_id}/vc:
@@ -31945,6 +32292,165 @@ paths:
       summary: preemptSitesMxTunnel
       tags:
       - Sites MxTunnels
+  /api/v1/sites/{site_id}/nac_clients/events/count:
+    get:
+      description: Count by Distinct Attributes of NAC Client-Events
+      operationId: countSiteNacClientEvents
+      parameters:
+      - in: query
+        name: distinct
+        schema:
+          enum:
+          - type
+          - nacrule_id
+          - auth_type
+          - vlan
+          - nas_vendor
+          - eap_type
+          - username
+          - ap
+          - mac
+          - ssid
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: countSiteNacClientEvents
+      tags:
+      - Sites Clients - NAC
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/nac_clients/events/search:
+    get:
+      description: Search NAC Client Events
+      operationId: searcSitegNacClientEvents
+      parameters:
+      - description: event type, e.g. NAC_CLIENT_PERMIT
+        in: query
+        name: type
+        schema:
+          type: string
+      - description: NAC Policy Rule ID, if matched
+        in: query
+        name: nacrule_id
+        schema:
+          format: uuid
+          type: string
+      - description: NAC Policy Rule Matched
+        in: query
+        name: nacrule_matched
+        schema:
+          type: boolean
+      - description: "authentication type, e.g. \u201C802.1X\u201D, \u201CMAB\u201D\
+          , \u201CDeviceAuth\u201D"
+        in: query
+        name: auth_type
+        schema:
+          type: string
+      - description: Vlan ID
+        in: query
+        name: vlan
+        schema:
+          type: integer
+      - description: vendor of NAS device
+        in: query
+        name: nas_vendor
+        schema:
+          type: string
+      - description: SSID
+        in: query
+        name: bssid
+        schema:
+          type: string
+      - description: "EAP type, e.g. \u201CEAP-TTLS\u201D, \u201CEAP-TLS\u201D"
+        in: query
+        name: eap_type
+        schema:
+          type: string
+      - description: SSO ID, if present and used
+        in: query
+        name: idp_id
+        schema:
+          format: uuid
+          type: string
+      - description: IDP returned roles/groups for the user
+        in: query
+        name: idp_role
+        schema:
+          type: string
+      - description: Radius attributes returned by NAC to NAS Devive
+        in: query
+        name: resp_attrs
+        schema:
+          type: array
+      - description: SSID
+        in: query
+        name: ssid
+        schema:
+          type: string
+      - description: Username presented by the client
+        in: query
+        name: username
+        schema:
+          type: string
+      - description: AP MAC
+        in: query
+        name: ap
+        schema:
+          type: string
+      - description: AP random macMAC
+        in: query
+        name: random_mac
+        schema:
+          type: boolean
+      - description: MAC address
+        in: query
+        name: mac
+        schema:
+          type: string
+      - description: start time, in epoch
+        in: query
+        name: timestamp
+        schema:
+          type: number
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/EventsNacClientSearch'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: searcSitegNacClientEvents
+      tags:
+      - Sites Clients - NAC
+    parameters:
+    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/networks/derived:
     get:
       description: Retrieves the list of Networks available for the Site
@@ -33461,7 +33967,6 @@ paths:
                   - string
                   dns_suffix:
                   - string
-                  enable_channel_144: false
                   engagement:
                     dwell_tag_names:
                       bounce: Bounce
@@ -34049,7 +34554,6 @@ paths:
                     disable_11k: false
                     disable_radios_when_power_constrained: false
                     enable_arp_spoof_check: false
-                    enable_channel_144: false
                     enable_shared_radio_scanning: true
                     enabled: true
                     locate_connected: true
@@ -39370,7 +39874,7 @@ paths:
   /api/v1/sites/{site_id}/wan_clients/events/search:
     get:
       description: Search Site WAN Client Events
-      operationId: searchSiteWanClientsEvents
+      operationId: searchSiteWanClientEvents
       parameters:
       - description: Event type, e.g. CLIENT_IP_ASSIGNED, CLIENT_IP_RENEWED, CLIENT_IP_EXPIRED
         in: query
@@ -39397,6 +39901,11 @@ paths:
         name: mfg
         schema:
           type: string
+      - description: nacrule_id
+        in: query
+        name: nacrule_id
+        schema:
+          type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
@@ -39415,7 +39924,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: searchSiteWanClientsEvents
+      summary: searchSiteWanClientEvents
       tags:
       - Sites Clients - Wan
     parameters:
@@ -39824,6 +40333,11 @@ paths:
       - description: single entry of hostname/mac
         in: query
         name: text
+        schema:
+          type: string
+      - description: nacrule_id
+        in: query
+        name: nacrule_id
         schema:
           type: string
       - $ref: '#/components/parameters/limit'
@@ -46429,6 +46943,36 @@ components:
               $ref: '#/components/schemas/const_mxedge_model'
             type: array
       description: List of MxEdge Models
+    ConstNacEventsArray:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+              - ap: 5c5b355008c0
+                bssid: 5c5b35548892
+                cert_cn: suriyas
+                cert_expiry: 1711557441
+                cert_issuer: /DC=net/DC=jnpr/CN=Juniper Networks Issuing AWS1 CA
+                cert_san_upn:
+                - suriyas@juniper.net
+                cert_serial: 1300103d29e56ef083797bedc2000100103d29
+                cert_subject: /CN=suriyas/emailAddress=suriyas@juniper.net
+                eap_type: EAP-TLS
+                nas_vendor: Mist
+                org_id: 94de66e8-556a-4d56-8780-a114620a5c42
+                random_mac: true
+                site_id: b5a005ab-47d4-41f7-97bf-733f9cc252dd
+                ssid: Test_Suriya-SSID
+                timestamp: 1685658478.438995
+                type: NAC_CLIENT_CERT_CHECK_SUCCESS
+                username: suriyas@juniper.net
+                wcid: b43637b0-f0d9-0a1d-1ec2-73c394a9f679
+          schema:
+            items:
+              $ref: '#/components/schemas/const_nac_events'
+            type: array
+      description: Example response
     ConstOtherDeviceEventsArray:
       content:
         application/json:
@@ -47149,7 +47693,21 @@ components:
                 status: online
                 uptime: 20296
                 vendor: cradlepoint
-                vendor_specific: {}
+                vendor_specific:
+                  ports:
+                    mdm-4d0e073b:
+                      bytes_in: 33004879
+                      bytes_out: 41103393
+                      health_category: ''
+                      health_score: 0
+                      id: '101027967'
+                      mode: wan
+                      model: Internal 5GB (SIM1)
+                      state: READY
+                      type: 5G
+                      uptime: 252371.34149021498
+                  router_id: null
+                  target_version: 7.23.40
                 version: 7.22.70
           schema:
             $ref: '#/components/schemas/stats_device_other'
@@ -51085,6 +51643,69 @@ components:
             - results
             type: object
       description: OK
+    EventsNacClientSearch:
+      content:
+        application/json:
+          examples:
+            NAC Client Events:
+              value:
+                end: 1513176951
+                limit: 10
+                results:
+                - ap: 5c5b35513227
+                  auth_type: 802.1X
+                  bssid: 5c5b355fafcc
+                  eap_type: EAP-TTLS
+                  idp_id: 912ef72e-2239-4996-b81e-469e87a27cd6
+                  idp_role:
+                  - itsuperusers
+                  - vip
+                  mac: ac3eb179e535
+                  nacrule_id: 32f27e7d-ff26-4a9b-b3d1-ff9bcb264c62
+                  nacrule_matched: true
+                  nas_vendor: juniper-mist
+                  org_id: 27547ac2-d114-4e04-beb1-f3f1e6e81ec6
+                  random_mac: false
+                  resp_attrs:
+                  - Tunnel-Type=VLAN
+                  - Tunnel-Medium-Type=IEEE-802
+                  - Tunnel-Private-Group-Id=750
+                  - User-Name=anonymous
+                  site_id: 441a1214-6928-442a-8e92-e1d34b8ec6a6
+                  ssid: mist_nac
+                  timestamp: 1691512031.358188
+                  type: NAC_CLIENT_PERMIT
+                  username: user@deaflyz.net
+                  vlan: '750'
+                start: 1512572151
+                total: 0
+          schema:
+            properties:
+              end:
+                example: 1513176951
+                type: integer
+              limit:
+                example: 10
+                type: integer
+              results:
+                items:
+                  $ref: '#/components/schemas/event_nacclient'
+                type: array
+              start:
+                example: 1512572151
+                type: integer
+              total:
+                example: 1
+                type: integer
+            type: object
+            x-examples:
+              Example 1:
+                end: 1513176951
+                limit: 10
+                results: []
+                start: 1512572151
+                total: 1
+      description: NAC Client Events
     EventsOtherDevicesSearch:
       content:
         application/json:
@@ -56458,7 +57079,6 @@ components:
                 - string
                 dns_suffix:
                 - string
-                enable_channel_144: false
                 engagement:
                   dwell_tag_names:
                     bounce: Bounce
@@ -57088,7 +57708,6 @@ components:
                   disable_11k: false
                   disable_radios_when_power_constrained: false
                   enable_arp_spoof_check: false
-                  enable_channel_144: false
                   enable_shared_radio_scanning: true
                   enabled: true
                   locate_connected: true
@@ -62596,15 +63215,6 @@ components:
             minimum: 1
             type: integer
           type: array
-        authentication_protocol:
-          default: pap
-          description: if `enable_mac_auth`==`true`, allows user to select an authentication
-            protocol
-          enum:
-          - pap
-          - eap-peap
-          - eap-md5
-          type: string
         disabled:
           type: boolean
         dynamic_vlan:
@@ -62641,6 +63251,21 @@ components:
           - site_mxedge
           example: all
           type: string
+        mac_auth_protocol:
+          default: pap
+          description: if `enable_mac_auth`==`true`, allows user to select an authentication
+            protocol
+          enum:
+          - pap
+          - eap-peap
+          - eap-md5
+          type: string
+        mist_nac:
+          properties:
+            enabled:
+              default: false
+              type: boolean
+          type: object
         mx_tunnel_id:
           description: if `forwarding`==`mxtunnel`, vlan_ids comes from mxtunnel
           example: 08cd7499-5841-51c8-e663-fb16b6f3b45e
@@ -65584,6 +66209,72 @@ components:
       type: object
       x-stoplight:
         id: 0716eb696a6b5
+    const_nac_events:
+      properties:
+        ap:
+          example: 5c5b355008c0
+          type: string
+        bssid:
+          example: 5c5b35548892
+          type: string
+        cert_cn:
+          example: suriyas
+          type: string
+        cert_expiry:
+          example: 1711557441
+          type: integer
+        cert_issuer:
+          example: /DC=net/DC=jnpr/CN=Juniper Networks Issuing AWS1 CA
+          type: string
+        cert_san_upn:
+          example:
+          - suriyas@juniper.net
+          items:
+            type: string
+          type: array
+        cert_serial:
+          example: 1300103d29e56ef083797bedc2000100103d29
+          type: string
+        cert_subject:
+          example: /CN=suriyas/emailAddress=suriyas@juniper.net
+          type: string
+        eap_type:
+          example: EAP-TLS
+          type: string
+        nas_vendor:
+          example: Mist
+          type: string
+        org_id:
+          example: 94de66e8-556a-4d56-8780-a114620a5c42
+          format: uuid
+          type: string
+        random_mac:
+          example: true
+          type: boolean
+        site_id:
+          example: b5a005ab-47d4-41f7-97bf-733f9cc252dd
+          format: uuid
+          type: string
+        ssid:
+          example: Test_Suriya-SSID
+          type: string
+        timestamp:
+          example: 1685658478.438995
+          type: number
+        type:
+          example: NAC_CLIENT_CERT_CHECK_SUCCESS
+          type: string
+        username:
+          example: suriyas@juniper.net
+          type: string
+        wcid:
+          example: b43637b0-f0d9-0a1d-1ec2-73c394a9f679
+          format: uuid
+          type: string
+      type: object
+      x-examples: {}
+      x-stoplight:
+        id: 9ad3e3cffe5d6
     const_traffic_type:
       properties:
         display:
@@ -68815,6 +69506,80 @@ components:
           type: CLIENT_LEFT_CALL
           video_quality: good
           wcid: 82c70a73-e2e1-42f9-6da0-97db44b7b9ad
+    event_nacclient:
+      properties:
+        ap:
+          example: 5c5b35513227
+          type: string
+        auth_type:
+          example: 802.1X
+          type: string
+        bssid:
+          example: 5c5b355fafcc
+          type: string
+        eap_type:
+          example: EAP-TTLS
+          type: string
+        idp_id:
+          example: 912ef72e-2239-4996-b81e-469e87a27cd6
+          format: uuid
+          type: string
+        idp_role:
+          example:
+          - itsuperusers
+          - vip
+          items:
+            type: string
+          type: array
+        mac:
+          example: ac3eb179e535
+          type: string
+        nacrule_id:
+          example: 32f27e7d-ff26-4a9b-b3d1-ff9bcb264c62
+          format: uuid
+          type: string
+        nacrule_matched:
+          example: true
+          type: boolean
+        nas_vendor:
+          example: juniper-mist
+          type: string
+        org_id:
+          example: 27547ac2-d114-4e04-beb1-f3f1e6e81ec6
+          format: uuid
+          type: string
+        random_mac:
+          example: false
+          type: boolean
+        resp_attrs:
+          example:
+          - Tunnel-Type=VLAN
+          - Tunnel-Medium-Type=IEEE-802
+          - Tunnel-Private-Group-Id=750
+          - User-Name=anonymous
+          items:
+            type: string
+          type: array
+        site_id:
+          example: 441a1214-6928-442a-8e92-e1d34b8ec6a6
+          format: uuid
+          type: string
+        ssid:
+          example: mist_nac
+          type: string
+        timestamp:
+          example: 1691512031.358188
+          type: number
+        type:
+          example: NAC_CLIENT_PERMIT
+          type: string
+        username:
+          example: user@deaflyz.net
+          type: string
+        vlan:
+          example: '750'
+          type: string
+      type: object
     event_otherdevice:
       properties:
         device_mac:
@@ -70278,6 +71043,10 @@ components:
         uptime:
           example: 12345
           type: integer
+        vc_mac:
+          example: null
+          nullable: true
+          type: string
         version:
           example: 0.10.24362
           type: string
@@ -70868,6 +71637,10 @@ components:
     junos_dhcpd:
       additionalProperties:
         properties:
+          disabled:
+            default: false
+            description: when defined in template, this allows device to override
+            type: boolean
           dns_servers:
             description: if `type`==`local` - optional, if not defined, system one
               will be used
@@ -71091,6 +71864,24 @@ components:
               example: 10.255.240.0/20
               type: string
           type: object
+        vs_instances:
+          additionalProperties:
+            properties:
+              networks:
+                items:
+                  type: string
+                type: array
+            type: object
+          description: optional, for EX9200 only to seggregate virtual-switches
+          example:
+            guest:
+              networks:
+              - guest
+            iot:
+              networks:
+              - iot-wifi
+              - iot-lan
+          type: object
       type: object
       x-examples:
         Example:
@@ -71105,6 +71896,14 @@ components:
             as_base: 65001
             routed_id_prefix: /24
             subnet: 10.255.240.0/20
+          vs_instances:
+            guest:
+              networks:
+              - guest
+            iot:
+              networks:
+              - iot-wifi
+              - iot-lan
     junos_evpn_topology:
       properties:
         id:
@@ -71169,6 +71968,12 @@ components:
                 maximum: 255
                 minimum: 1
                 type: integer
+              pods:
+                description: "by default, core switches are assumed to be connecting\
+                  \ all pods. \nif you want to limit the pods, you can specify pods."
+                items:
+                  type: integer
+                type: array
               role:
                 description: use `role`==`none` to remove a switch from the topology
                 enum:
@@ -71557,9 +72362,10 @@ components:
                 minimum: 1
                 type: integer
               interface_type:
-                default: nbma
+                default: broadcast
                 description: interface type (nbma = non-broadcast multi-access)
                 enum:
+                - broadcast
                 - nbma
                 - p2p
                 - p2mp
@@ -71845,14 +72651,6 @@ components:
             \nWhen it is not defined, it means using the system\u2019s default setting\
             \ which depends on whether the port is a access or trunk port."
           type: boolean
-        authentication_protocol:
-          default: pap
-          description: can be set for non-mist-nac config when `enable_mac_auth`==`true`
-          enum:
-          - pap
-          - eap-peap
-          - eap-md5
-          type: string
         bypass_auth_when_server_down:
           description: if `port_auth`==`dot1x`, whether to allow the device to connect
             if RADIUS server is down
@@ -71889,6 +72687,14 @@ components:
         mac_auth_only:
           description: only effect once `enable_mac_auth`==`true`
           type: boolean
+        mac_auth_protocol:
+          default: eap-md5
+          description: can be set for non-mist-nac config when `enable_mac_auth`==`true`
+          enum:
+          - pap
+          - eap-peap
+          - eap-md5
+          type: string
         mac_limit:
           default: 0
           description: max number of mac addresses, default is 0 for unlimited, otherwise
@@ -79252,6 +80058,7 @@ components:
           type: array
         enable_channel_144:
           default: false
+          deprecated: true
           description: whether to enable channel 144 (some older clients may not support
             it)
           type: boolean
@@ -79348,6 +80155,53 @@ components:
           properties:
             dynamic:
               $ref: '#/components/schemas/junos_port_usages_dynamic'
+          type: object
+        protect_re:
+          description: restrict inbound-traffic to host  (draft)
+          properties:
+            allowed_services:
+              description: optionally, services we'll allow
+              example:
+              - icmp
+              - ssh
+              items:
+                type: string
+              type: array
+            custom:
+              description: optionally, custom acls
+              items:
+                properties:
+                  port_range:
+                    description: matched dst port, "0" means any, default is "0"
+                    example: 80,1035-1040
+                    type: string
+                  protocol:
+                    enum:
+                    - tcp
+                    - udp
+                    - icmp
+                    - any
+                    type: string
+                  subnet:
+                    items:
+                      example: 10.1.2.0/24
+                      type: string
+                    type: array
+                type: object
+              type: array
+            enabled:
+              default: false
+              description: "when enabled, all traffic that is not essential to our\
+                \ operation will be dropped\ne.g. ntp / dns / traffic to mist will\
+                \ be allowed by default\n     if dhcpd is enabled, we'll make sure\
+                \ it works"
+              type: boolean
+            trusted_hosts:
+              description: optionally, host/subnets we'll allow traffic to/from
+              items:
+                example: 10.242.3.0/24
+                type: string
+              type: array
           type: object
         proxy:
           description: Proxy Configuration for APs and Site Edges to talk to Mist
@@ -79642,7 +80496,6 @@ components:
           - string
           dns_suffix:
           - string
-          enable_channel_144: false
           engagement:
             dwell_tag_names:
               bounce: Bounce
@@ -80233,7 +81086,6 @@ components:
             disable_11k: false
             disable_radios_when_power_constrained: false
             enable_arp_spoof_check: false
-            enable_channel_144: false
             enable_shared_radio_scanning: true
             enabled: true
             locate_connected: true
@@ -80416,6 +81268,7 @@ components:
           type: boolean
         enable_channel_144:
           default: false
+          deprecated: true
           description: whether to enable channel 144 (some older clients may not support
             it)
           type: boolean
@@ -85782,9 +86635,55 @@ components:
           example: cradlepoint
           type: string
         vendor_specific:
+          description: when `vendor`==`cradlepoint`
+          properties:
+            ports:
+              additionalProperties:
+                properties:
+                  bytes_in:
+                    type: integer
+                  bytes_out:
+                    type: integer
+                  health_category:
+                    type: string
+                  health_score:
+                    type: integer
+                  id:
+                    type: string
+                  mode:
+                    type: string
+                  model:
+                    type: string
+                  state:
+                    type: string
+                  type:
+                    type: string
+                  uptime:
+                    type: number
+                type: object
+              example:
+                mdm-4d0e073b:
+                  bytes_in: 33004879
+                  bytes_out: 41103393
+                  health_category: ''
+                  health_score: 0
+                  id: '101027967'
+                  mode: wan
+                  model: Internal 5GB (SIM1)
+                  state: READY
+                  type: 5G
+                  uptime: 252371.34149021498
+              type: object
+            router_id:
+              example: null
+              nullable: true
+              type: string
+            target_version:
+              example: 7.23.40
+              type: string
           type: object
         version:
-          pattern: 7.22.70
+          example: 7.22.70
           type: string
       type: object
       x-examples:
@@ -88855,12 +89754,14 @@ components:
                 enum:
                 - broadband
                 - lte
-                minLength: 1
                 type: string
               ip:
                 description: if different from the wan port
-                minLength: 1
                 type: string
+              pod:
+                default: 1
+                example: 2
+                type: integer
             type: object
           type: object
       required:
@@ -91111,6 +92012,12 @@ components:
           description: when `interface`=`site_medge`, the definition of the Mist Tunnels
             (key is the name)
           type: object
+        mxtunnel_id:
+          deprecated: true
+          description: (deprecated, use mxtunnel_ids instead) when `interface`==`mxtunnel`,
+            id of the Mist Tunnel
+          format: uuid
+          type: string
         mxtunnel_ids:
           description: when `interface`=`mxtunnel`, id of the Mist Tunnel
           format: uuid
@@ -93617,6 +94524,7 @@ x-tagGroups:
   - Sites Assets
   - Sites Beacons
   - Sites Calls
+  - Sites Clients - NAC
   - Sites Clients - Wan
   - Sites Clients - Wired
   - Sites Clients - Wireless
@@ -93679,6 +94587,7 @@ x-tagGroups:
   - Orgs Asset Filters
   - Orgs Calls
   - Orgs Cert
+  - Orgs Clients - NAC
   - Orgs Clients - Wan
   - Orgs Clients - Wired
   - Orgs Clients - Wireless
