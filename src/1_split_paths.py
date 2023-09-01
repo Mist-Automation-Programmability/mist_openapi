@@ -61,6 +61,7 @@ cat_params = {
     "installer": [],
     "webhook": [],
 }
+
 cat_responses = {
     "constants": [],
     "authentication": [],
@@ -285,7 +286,8 @@ def save_file(filename:str, cat_path:dict, cat_schema: dict, cat_param:list, cat
             "paths" : cat_path,
             "components" : {
                 "parameters": dst_parameters,
-                "responses": dst_responses
+                "responses": dst_responses,
+                "schemas": dst_schemas
             }
         }    
 

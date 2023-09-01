@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2306.2.8**
+  description: '> Version: **2306.2.9**
 
     >
 
-    > Date: **July 10, 2023**
+    > Date: **July 13, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2306.2.8
+  version: 2306.2.9
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -3309,3 +3309,939 @@ components:
             - inventory_duplicated
             type: object
       description: OK
+  schemas:
+    Msp:
+      properties:
+        allow_mist:
+          type: boolean
+        created_time:
+          readOnly: true
+          type: integer
+        id:
+          format: uuid
+          type: string
+        logo_url:
+          description: For advanced tier (uMSPs) only
+          type: string
+        name:
+          type: string
+        tier:
+          default: base
+          enum:
+          - base
+          - advanced
+          type: string
+        url:
+          description: For advanced tier (uMSPs) only
+          type: string
+      type: object
+      x-examples:
+        example-1:
+          id: 9520c63a-f7b3-670c-0944-727774d5a722
+          logo_url: https://....
+          name: MSP
+          tier: advanced
+          url: https://..
+    admin:
+      description: Admin
+      properties:
+        admin_id:
+          format: uuid
+          readOnly: true
+          type: string
+        email:
+          format: email
+          type: string
+        enable_two_factor:
+          readOnly: true
+          type: boolean
+        first_name:
+          description: for an invite, this is the original first name used
+          type: string
+        hours:
+          default: 24
+          description: how long the invite should be valid
+          maximum: 168
+          minimum: 1
+          type: integer
+        last_name:
+          description: for an invite, this is the original last name used
+          type: string
+        oauth_google:
+          readOnly: true
+          type: boolean
+        phone:
+          description: phone number (numbers only, including country code)
+          type: string
+        phone2:
+          description: secondary phone number (numbers only, including country code)
+          type: string
+        privileges:
+          description: list of privileges the admin has on the MSP / Orgs / OrgGroups
+          items:
+            $ref: ./components/schemas/privileges.yaml
+          minItems: 1
+          readOnly: true
+          type: array
+          uniqueItems: true
+        session_expiry:
+          readOnly: true
+          type: integer
+        tags:
+          items:
+            type: string
+          readOnly: true
+          type: array
+        two_factor_verified:
+          description: two factor status
+          readOnly: true
+          type: boolean
+        via_sso:
+          description: an admin alogin via_sso is more restircted. (password and email
+            cannot be changed)
+          readOnly: true
+          type: string
+      required:
+      - email
+      - first_name
+      - last_name
+      type: object
+      x-examples:
+        example-1:
+          privileges:
+          - role: write
+            scope: org
+            view: reporting
+          - role: write
+            scope: site
+            site_id: d96e3952-53e8-4266-959a-45acd55f5114
+            view: reporting
+          - role: write
+            scope: sitegroup
+            sitegroup_id: 581328b6-e382-f54e-c9dc-999983183a34
+            view: reporting
+    license:
+      description: License
+      properties:
+        amendments:
+          items:
+            properties:
+              created_time:
+                type: number
+              end_time:
+                readOnly: true
+                type: integer
+              id:
+                readOnly: true
+                type: string
+              modified_time:
+                type: number
+              quantity:
+                readOnly: true
+                type: integer
+              start_time:
+                readOnly: true
+                type: integer
+              subscription_id:
+                readOnly: true
+                type: string
+              type:
+                enum:
+                - SUB-MAN
+                - SUB-AST
+                - SUB-VNA
+                - SUB-DATA
+                - SUB-ENG
+                - SUB-PMA
+                - SUB-EX12
+                - SUB-EX24
+                - SUB-EX48
+                - SUB-SVNA
+                - SUB-ME
+                - SUB-WAN1
+                - SUB-WAN2
+                - SUB-WVNA1
+                - SUB-WVNA2
+                - SUB-SRX1
+                - SUB-SRX2
+                readOnly: true
+                type: string
+            readOnly: true
+            type: object
+          readOnly: true
+          type: array
+          uniqueItems: true
+        entitled:
+          additionalProperties:
+            type: integer
+          description: Property key is license type (e.g. SUB-MAN)  and Property value
+            is the number of licenses entitled.
+          readOnly: true
+          type: object
+        licenses:
+          description: list of registered licenses
+          items:
+            properties:
+              created_time:
+                type: number
+              end_time:
+                description: end date of the license term
+                readOnly: true
+                type: integer
+              id:
+                format: uuid
+                type: string
+              modified_time:
+                type: number
+              order_id:
+                readOnly: true
+                type: string
+              org_id:
+                format: uuid
+                type: string
+              quantity:
+                description: number of devices entitled for this license
+                readOnly: true
+                type: integer
+              remaining_quantity:
+                description: Number of licences left in this subscription
+                type: integer
+              start_time:
+                description: start date of the license term
+                readOnly: true
+                type: integer
+              subscription_id:
+                readOnly: true
+                type: string
+              type:
+                enum:
+                - SUB-MAN
+                - SUB-AST
+                - SUB-VNA
+                - SUB-DATA
+                - SUB-ENG
+                - SUB-PMA
+                - SUB-EX12
+                - SUB-EX24
+                - SUB-EX48
+                - SUB-SVNA
+                - SUB-ME
+                - SUB-WAN1
+                - SUB-WAN2
+                - SUB-WVNA1
+                - SUB-WVNA2
+                - SUB-SRX1
+                - SUB-SRX2
+                readOnly: true
+                type: string
+            readOnly: true
+            type: object
+          readOnly: true
+          type: array
+          uniqueItems: true
+        summary:
+          additionalProperties:
+            type: integer
+          description: Property key is license type (e.g. SUB-MAN) and Property value
+            is the number of licenses consumed.
+          readOnly: true
+          type: object
+      type: object
+      x-examples:
+        example-1:
+          amendments:
+          - created_time: 1644684842
+            end_time: 1744156799
+            id: ff0a14f6-1234-5678-90ab-c8e64d4bc6c6
+            modified_time: 1644684842
+            quantity: -1
+            start_time: 1632873600
+            subscription_id: VNA-000000af
+            type: SUB-VNA
+          - created_time: 1644684842
+            end_time: 1744156799
+            id: c1c28812-1234-5678-90ab-dc95680da61e
+            modified_time: 1644684842
+            quantity: -1
+            start_time: 1632873600
+            subscription_id: MAN-000008be
+            type: SUB-MAN
+          - created_time: 1644684842
+            end_time: 1744243199
+            id: 96c0a41f-1234-5678-90ab-afe74817e9fd
+            modified_time: 1644684842
+            quantity: -1
+            start_time: 1586476800
+            subscription_id: EX24-000000bc
+            type: SUB-EX24
+          entitled:
+            SUB-ENG: 26
+            SUB-EX24: 9
+            SUB-MAN: 26
+            SUB-VNA: 26
+          licenses:
+          - created_time: 1555353534
+            end_time: 1586822399
+            id: 693a41a6-1234-5678-90ab-f53dbd3a31c0
+            modified_time: 1555353534
+            order_id: '00000000'
+            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+            quantity: 2
+            remaining_quantity: 0
+            start_time: 1555286400
+            subscription_id: VNA-000000aa
+            type: SUB-VNA
+          - created_time: 1576132516
+            end_time: 1586822399
+            id: 656607cf-1234-5678-90ab-fc9035614ea5
+            modified_time: 1576132516
+            order_id: '00000000'
+            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+            quantity: 8
+            remaining_quantity: 0
+            start_time: 1576022400
+            subscription_id: VNA-000000ab
+            type: SUB-VNA
+          - created_time: 1579204568
+            end_time: 1730764800
+            id: db50d0bc-1234-5678-90ab-e439958cb06b
+            modified_time: 1579204568
+            order_id: '00000000'
+            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+            quantity: 2
+            remaining_quantity: 2
+            start_time: 1572998400
+            subscription_id: MAN-000000ac
+            type: SUB-MAN
+          - created_time: 1579204568
+            end_time: 1730764800
+            id: 2ff9e84a-1234-5678-90ab-fb9ec0726e01
+            modified_time: 1579204568
+            order_id: '00000000'
+            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+            quantity: 2
+            remaining_quantity: 2
+            start_time: 1572998400
+            subscription_id: ENG-000000ad
+            type: SUB-ENG
+          - created_time: 1579204568
+            end_time: 1730764800
+            id: 16df7ea6-1234-5678-90ab-78018cd4024d
+            modified_time: 1579204568
+            order_id: '00000000'
+            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+            quantity: 2
+            remaining_quantity: 2
+            start_time: 1572998400
+            subscription_id: VNA-000000ae
+            type: SUB-VNA
+          - created_time: 1586237081
+            end_time: 1744243199
+            id: 1b6f68d5-1234-5678-90ab-70d3e6d18c73
+            modified_time: 1586237081
+            order_id: '00000000'
+            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+            quantity: 14
+            remaining_quantity: 14
+            start_time: 1586563200
+            subscription_id: VNA-000000af
+            type: SUB-VNA
+          - created_time: 1586237097
+            end_time: 1744243199
+            id: 1375c9bf-1234-5678-90ab-9c636708c89e
+            modified_time: 1586237097
+            order_id: '00000000'
+            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+            quantity: 14
+            remaining_quantity: 14
+            start_time: 1586563200
+            subscription_id: MAN-000000ba
+            type: SUB-MAN
+          - created_time: 1586237137
+            end_time: 1744243199
+            id: 5974e979-1234-5678-90ab-438f833ec1c9
+            modified_time: 1586237137
+            order_id: '00000000'
+            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+            quantity: 14
+            remaining_quantity: 14
+            start_time: 1586563200
+            subscription_id: ENG-000000bb
+            type: SUB-ENG
+          - created_time: 1629947267
+            end_time: 1744243199
+            id: 340a9cb3-1234-5678-90ab-b009344dbf3c
+            modified_time: 1629947267
+            order_id: '00000000'
+            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+            quantity: 10
+            remaining_quantity: 9
+            start_time: 1586476800
+            subscription_id: EX24-000000bc
+            type: SUB-EX24
+          - created_time: 1632941870
+            end_time: 1744156799
+            id: 9b599b0f-1234-5678-90ab-406081b58e7f
+            modified_time: 1632941870
+            order_id: '00000000'
+            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+            quantity: 10
+            remaining_quantity: 10
+            start_time: 1632873600
+            subscription_id: ENG-000000bd
+            type: SUB-ENG
+          - created_time: 1632941882
+            end_time: 1744156799
+            id: d6d8ead3-1234-5678-90ab-98badeac7287
+            modified_time: 1632941882
+            order_id: '00000000'
+            org_id: 9777c1a0-1234-5678-90ab-02e208b2d34f
+            quantity: 11
+            remaining_quantity: 9
+            start_time: 1632873600
+            subscription_id: MAN-000008be
+            type: SUB-MAN
+          summary:
+            SUB-ENG: 18
+            SUB-EX24: 3
+            SUB-MAN: 22
+            SUB-VNA: 20
+    org:
+      description: An organization usualy represents a customer - which has inventories,
+        licenses. An Organization can contain multiple sites. A site usually represents
+        a deployment at the same location (a campus, an office).
+      properties:
+        alarmtemplate_id:
+          format: uuid
+          nullable: true
+          type: string
+        allow_mist:
+          default: true
+          type: boolean
+        created_time:
+          readOnly: true
+          type: number
+        id:
+          format: uuid
+          readOnly: true
+          type: string
+        modified_time:
+          readOnly: true
+          type: number
+        msp_id:
+          format: uuid
+          nullable: true
+          readOnly: true
+          type: string
+        name:
+          type: string
+        orggroup_ids:
+          default: []
+          items:
+            format: uuid
+            type: string
+          type: array
+        session_expiry:
+          default: 1440
+          type: number
+      required:
+      - name
+      type: object
+      x-examples:
+        example-1:
+          alarmtemplate_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          allow_mist: true
+          msp_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          name: string
+          orggroup_ids: []
+          session_expiry: 0
+    orggroup:
+      description: Organizations Group
+      properties:
+        created_time:
+          readOnly: true
+          type: number
+        id:
+          format: uuid
+          readOnly: true
+          type: string
+        modified_time:
+          readOnly: true
+          type: number
+        msp_id:
+          format: uuid
+          readOnly: true
+          type: string
+        name:
+          type: string
+        org_ids:
+          items:
+            format: uuid
+            type: string
+          type: array
+      required:
+      - name
+      type: object
+      x-examples:
+        example-1:
+          created_time: 0
+          id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          modified_time: 0
+          msp_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          name: string
+          org_ids:
+          - string
+    privileges:
+      description: Privilieges settings
+      properties:
+        for_site:
+          readOnly: true
+          type: boolean
+        msp_id:
+          description: id of the MSP (if the org belongs to an MSP)
+          format: uuid
+          nullable: true
+          type: string
+        msp_logo_url:
+          description: logo of the MSP (if the MSP belongs to an Advanced tier)
+          type: string
+        msp_name:
+          description: name of the MSP (if the org belongs to an MSP)
+          nullable: true
+          type: string
+        msp_url:
+          description: custom url of the MSP (if the MSP belongs to an Advanced tier)
+          type: string
+        name:
+          description: name of the org/site/MSP depending on object scope
+          type: string
+        org_id:
+          description: id of the org
+          format: uuid
+          nullable: true
+          type: string
+        org_name:
+          description: name of the org (for a site belonging to org)
+          type: string
+        orggroup_ids:
+          description: list of orggroup ids (if the org belongs to an MSP)
+          items:
+            format: uuid
+            type: string
+          type: array
+        role:
+          description: access permissions
+          enum:
+          - admin
+          - write
+          - read
+          - helpdesk
+          - installer
+          type: string
+        scope:
+          description: "list of privileges the admin has on the MSP\_/ OrgGroups /\
+            \ Orgs / Sites"
+          enum:
+          - org
+          - site
+          - msp
+          - orggroup
+          type: string
+        site_id:
+          description: id of the site
+          format: uuid
+          nullable: true
+          type: string
+        sitegroup_ids:
+          description: list of sitegroup ids
+          items:
+            format: uuid
+            type: string
+          type: array
+        views:
+          description: 'Custom roles restrict Org users to specific UI views. This
+            is useful for limiting UI access of Org users.
+
+
+            You can invite a new user or update existing users in your Org to this
+            custom role. For this, specify view along with role when assigning privileges.
+
+
+            Below are the list of supported UI views. Note that this is UI only feature
+
+            Custom roles restrict Org users to specific UI views. This is useful for
+            limiting UI access of Org users.
+
+
+            You can invite a new user or update existing users in your Org to this
+            custom role. For this, specify `view` along with `role` when assigning
+            privileges.
+
+
+            Below are the list of supported UI views. Note that this is UI only feature
+
+
+            | UI View | Description |
+
+            | --- | --- |
+
+            | `reporting` | full access to all analytics tools |
+
+            | `marketing` | can view analytics and location maps |
+
+            | `location` | can view and manage location maps |
+
+            | `security` | can view and manage WLAN, rogues and authentication |
+
+            | `switch_admin` | can view and manage Switch ports |
+
+            | `mxedge_admin` | can view and manage Mist edges and Mist tunnels |
+
+            | `lobby_admin` | full access to Org and Site Pre-shared keys |'
+          items:
+            type: string
+          type: array
+      required:
+      - role
+      - scope
+      title: ''
+      type: object
+      x-examples:
+        example-1:
+          msp_id: 9520c63a-f7b3-670c-0944-727774d5a722
+          msp_name: MSP
+          name: TestCompany
+          org_id: 9ff00eec-24f0-44d7-bda4-6238c81376ee
+          orggroup_ids:
+          - 9ff00eec-24f0-44d7-bda4-6238c81376ee
+          role: admin
+          scope: org
+        example-2:
+          name: Mist Office
+          org_id: 9ff00eec-24f0-44d7-bda4-6238c81376ee
+          org_name: TestCompany
+          role: admin
+          scope: site
+          site_id: d96e3952-53e8-4266-959a-45acd55f5114
+          sitegroup_ids:
+          - 581328b6-e382-f54e-c9dc-999983183a34
+        example-3:
+          msp_id: 9520c63a-f7b3-670c-0944-727774d5a722
+          name: MSP
+          role: admin
+          scope: msp
+    sso:
+      description: SSO
+      properties:
+        created_time:
+          readOnly: true
+          type: number
+        custom_logout_url:
+          description: optional, a URL we will redirect the user after user logout
+            from Mist (for some IdP which supports a custom logout URL that is different
+            from SP-initiated SLO process)
+          type: string
+        default_role:
+          description: "default role to assign if there\u2019s no match. By default,\
+            \ an assertion is treated as invalid when there\u2019s no role matched"
+          type: string
+        domain:
+          type: string
+        id:
+          format: uuid
+          readOnly: true
+          type: string
+        idp_cert:
+          description: if `idp_type`==`saml`. IDP Cert (used to verify the signed
+            response)
+          type: string
+        idp_sign_algo:
+          description: if `idp_type`==`saml`. Signing algorithm for SAML Assertion
+          type: string
+        idp_sso_url:
+          description: IDP Single-Sign-On URL
+          type: string
+        idp_type:
+          default: saml
+          enum:
+          - saml
+          - ldap
+          - oauth
+          type: string
+        ignore_unmatched_roles:
+          description: ignore any unmatched roles provided in assertion. By default,
+            an assertion is treated as invalid for any unmatched role
+          type: boolean
+        issuer:
+          description: if `idp_type`==`saml`. IDP issuer URL
+          type: string
+        ldap_base_dn:
+          description: if `idp_type`==`ldap`
+          type: string
+        ldap_bind_dn:
+          description: if `idp_type`==`ldap`
+          type: string
+        ldap_bind_password:
+          description: if `idp_type`==`ldap`
+          type: string
+        ldap_certs:
+          description: if `idp_type`==`ldap`
+          items:
+            type: string
+          type: array
+        ldap_client_cert:
+          description: if `idp_type`==`ldap`
+          type: string
+        ldap_client_key:
+          description: if `idp_type`==`ldap`
+          type: string
+        ldap_group_attr:
+          description: Only if `ldap_type`==`custom`
+          type: string
+        ldap_group_dn:
+          description: Only if `ldap_type`==`custom`
+          type: string
+        ldap_group_filter:
+          description: Only if `ldap_type`==`custom`
+          type: string
+        ldap_server_hosts:
+          description: if `idp_type`==`ldap`
+          items:
+            type: string
+          type: array
+        ldap_type:
+          default: azure
+          description: if `idp_type`==`ldap`
+          enum:
+          - azure
+          - okta
+          - google
+          - custom
+          type: string
+        ldap_user_filter:
+          description: Only if `ldap_type`==`custom`
+          type: string
+        modified_time:
+          readOnly: true
+          type: number
+        msp_id:
+          format: uuid
+          readOnly: true
+          type: string
+        name:
+          description: name
+          type: string
+        nameid_format:
+          default: email
+          description: if `idp_type`==`saml`
+          enum:
+          - email
+          - unspecified
+          type: string
+        oauth_cc_client_id:
+          description: if `oauth_type`==`okta`, Client Credentials
+          example: e60da615-7def-4c5a-8196-43675f45e174
+          type: string
+        oauth_cc_client_secret:
+          description: if `oauth_type`==`okta`, oauth_cc_client_secret is RSA private
+            key, of the form "-----BEGIN RSA PRIVATE KEY--...."
+          example: akL8Q~5kWFMVFYl4TFZ3fi~7cMdyDONi6cj01cpH
+          type: string
+        oauth_discovery_url:
+          description: if `idp_type`==`oauth`
+          type: string
+        oauth_ropc_client_id:
+          description: ropc = Resource Owner Password Credentials
+          example: 9ce04c97-b5b1-4ec8-af17-f5ed42d2daf7
+          type: string
+        oauth_ropc_secret:
+          description: oauth_ropc_client_secret can be empty if oauth_type is azure
+          example: blM9R~6kWFMVFYl4TFZ3fi~8cMdyDONi6cj01dqI
+          type: string
+        oauth_tenant_id:
+          description: if `oauth_type`==`okta`, oauth_tenant_id
+          example: dev-88336535
+          type: string
+        oauth_type:
+          default: azure
+          enum:
+          - azure
+          - okta
+          type: string
+        org_id:
+          format: uuid
+          readOnly: true
+          type: string
+        role_attr_extraction:
+          description: "optional, custom role attribute parsing scheme\n\nSupported\
+            \ Role Parsing Schemes\n<table><tr><th>Name</th><th>Scheme</th></tr><tr><td>cn</td><td><ul><li>The\
+            \ expected role attribute format in SAML Assertion is \u201CCN=cn,OU=ou1,OU=ou2,\u2026\
+            \u201D</li><li>CN (the key) is case insensitive and exactly 1 CN is expected\
+            \ (or the entire entry will be ignored)</li><li>E.g. if role attribute\
+            \ is \u201CCN=cn,OU=ou1,OU=ou2\u201D then parsed role value is \u201C\
+            cn\u201D</li></ul></td></tr></table>"
+          type: string
+        role_attr_from:
+          default: role
+          description: ' name of the attribute in SAML Assertion to extract role from'
+          type: string
+        site_id:
+          format: uuid
+          readOnly: true
+          type: string
+        type:
+          type: string
+      required:
+      - name
+      type: object
+      x-examples:
+        example-1:
+          created_time: 1583144587
+          custom_logout_url: https://...
+          domain: xxxxxxxx
+          id: de6ec5cd-xxxx-xxxx-xxxx-c8cda102947f
+          idp_cert: '-----BEGIN CERTIFICATE-----
+
+            MIIJIjC...HpsEn8Y=
+
+            -----END CERTIFICATE-----'
+          idp_sign_algo: sha256
+          idp_sso_url: https://...
+          issuer: https://...
+          modified_time: 1583144587
+          msp_id: 00000000-xxxx-xxxx-xxxx-000000000000
+          name: PingId
+          nameid_format: email
+          org_id: 30ab0bf5-xxxx-xxxx-xxxx-feeb1c17654f
+          type: SAML
+    ssorole:
+      description: SSO Role response
+      properties:
+        created_time:
+          readOnly: true
+          type: number
+        for_site:
+          readOnly: true
+          type: boolean
+        id:
+          format: uuid
+          readOnly: true
+          type: string
+        modified_time:
+          readOnly: true
+          type: number
+        msp_id:
+          format: uuid
+          readOnly: true
+          type: string
+        name:
+          type: string
+        org_id:
+          format: uuid
+          readOnly: true
+          type: string
+        privileges:
+          items:
+            $ref: ./components/schemas/privileges.yaml
+          minItems: 1
+          type: array
+          uniqueItems: true
+        site_id:
+          format: uuid
+          readOnly: true
+          type: string
+      required:
+      - name
+      - privileges
+      type: object
+      x-examples:
+        example-1:
+          created_time: 0
+          id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          modified_time: 0
+          msp_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          name: string
+          org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          privileges:
+          - msp_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+            msp_name: string
+            name: string
+            org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+            org_name: string
+            orggroup_ids:
+            - string
+            role: string
+            scope: string
+            site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+            sitegroup_ids:
+            - string
+    ticket:
+      description: Support Ticket
+      properties:
+        case_number:
+          readOnly: true
+          type: string
+        comments:
+          items:
+            properties:
+              attachments:
+                items:
+                  properties:
+                    content_type:
+                      type: string
+                    content_url:
+                      type: string
+                    size:
+                      type: integer
+                  type: object
+                type: array
+              author:
+                type: string
+              comment:
+                type: string
+              created_at:
+                type: integer
+            required:
+            - author
+            - comment
+            - created_at
+            type: object
+          type: array
+        created_at:
+          readOnly: true
+          type: integer
+        id:
+          format: uuid
+          readOnly: true
+          type: string
+        requester:
+          readOnly: true
+          type: string
+        requester_email:
+          description: email of the requester
+          format: email
+          type: string
+        status:
+          description: "Status open: ticket is open, Mist is working on it \n* pending:\
+            \ ticket is open and Requester attention is needed (e.g. Mist is asking\
+            \ for some more information) \n* solved: ticket is marked as solved /\
+            \ considered by Mist (requester can update it, causing it to re-open;\
+            \ or rate it) \n* closed: ticket is archived and cannot be changed"
+          enum:
+          - open
+          - pending
+          - solved
+          - closed
+          type: string
+        subject:
+          type: string
+        type:
+          description: question (default) / bug / critical
+          type: string
+        updated_at:
+          readOnly: true
+          type: integer
+      required:
+      - subject
+      - type
+      type: object

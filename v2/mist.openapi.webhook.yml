@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2306.2.8**
+  description: '> Version: **2306.2.9**
 
     >
 
-    > Date: **July 10, 2023**
+    > Date: **July 13, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2306.2.8
+  version: 2306.2.9
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -621,3 +621,1358 @@ components:
           schema:
             type: object
       description: OK
+  schemas:
+    webhook_alarms:
+      description: "**N.B.**: Fields like `aps`, `bssids`, `ssids` are event specific.\
+        \ They are relevant to this event type ( rogue-ap-detected). For a different\
+        \ event type, different fields may be sent. These don\u2019t contain all affected\
+        \ entities and are representative samples of entities (capped at 10). For\
+        \ marvis action related events, we expose `details` to include more event\
+        \ specific details.\n\nEvents specific fields for other alarm event type can\
+        \ be found with API https://api.mist.com/api/v1/const/alarm_defs, under \u201C\
+        fields\u201D array of /alarm_defs response object."
+      properties:
+        events:
+          description: list of events
+          items:
+            properties:
+              aps:
+                items:
+                  type: string
+                readOnly: true
+                type: array
+              bssids:
+                items:
+                  type: string
+                readOnly: true
+                type: array
+              count:
+                description: If present, represents number of events of given type
+                  occurred in current interval, default=1
+                readOnly: true
+                type: integer
+              event_id:
+                description: event id
+                format: uuid
+                readOnly: true
+                type: string
+              for_site:
+                readOnly: true
+                type: boolean
+              id:
+                format: uuid
+                readOnly: true
+                type: string
+              last_seen:
+                readOnly: true
+                type: number
+              org_id:
+                description: org id
+                format: uuid
+                readOnly: true
+                type: string
+              site_id:
+                description: site id
+                format: uuid
+                readOnly: true
+                type: string
+              ssids:
+                items:
+                  type: string
+                readOnly: true
+                type: array
+              timestamp:
+                readOnly: true
+                type: integer
+              type:
+                description: event type
+                readOnly: true
+                type: string
+              update:
+                description: If presents, represents that this is an update to event
+                  with given id sent earlier. default=false
+                readOnly: true
+                type: boolean
+            required:
+            - id
+            - last_seen
+            - org_id
+            - site_id
+            - timestamp
+            - type
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+        topic:
+          default: alarms
+          description: topic subscribed to
+          type: string
+      required:
+      - events
+      - topic
+      type: object
+      x-examples:
+        example-1:
+          value:
+            events:
+            - aps:
+              - string
+              bssids:
+              - string
+              count: 0
+              event_id: a7a26ff2-e851-45b6-9634-d595f45458b7
+              for_site: true
+              id: 432f6eca-6276-4993-bfeb-53cb3bba6f08
+              last_seen: 0
+              org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+              site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+              ssids:
+              - string
+              timestamp: 0
+              type: string
+              update: true
+            topic: alarms
+      x-stoplight:
+        id: 8bf41abeb79f8
+    webhook_asset_raw:
+      description: asset raw webhook
+      properties:
+        events:
+          description: list of events
+          items:
+            properties:
+              asset_id:
+                description: asset id
+                format: uuid
+                type: string
+              beam:
+                description: antenna index, from 1-8, clock-wise starting from the
+                  LED
+                type: integer
+              device_id:
+                description: device where the asset reading is from
+                format: uuid
+                type: string
+              ibeacon_major:
+                description: iBeacon major
+                type: integer
+              ibeacon_minor:
+                description: iBeacon minor
+                type: integer
+              ibeacon_uuid:
+                description: iBeacon UUID
+                format: uuid
+                type: string
+              mac:
+                description: MAC of the beacon
+                type: string
+              map_id:
+                description: map id
+                format: uuid
+                type: string
+              mfg_company_id:
+                description: optional, BLE manufacturing company ID
+                type: number
+              mfg_data:
+                description: "optional, BLE manufacturing data in hex byte-string\
+                  \ format (ie: \u201C112233AABBCC\u201D)"
+                type: string
+              rssi:
+                description: signal strength
+                type: number
+              service_data_data:
+                description: optional, data from service data
+                type: string
+              service_data_last_rx_time:
+                description: optional, last data transmit time from service data
+                type: integer
+              service_data_rx_cnt:
+                description: optional, data transmit count from service data
+                type: integer
+              service_data_uuid:
+                description: optional, UUID from service data
+                format: uuid
+                type: string
+              service_packets:
+                description: list of service data packets heard from the asset/ beacon
+                items:
+                  properties:
+                    service_data:
+                      description: ata from service data
+                      type: string
+                    service_uuid:
+                      description: UUID from service data
+                      type: string
+                  type: object
+                type: array
+              site_id:
+                description: site id
+                format: uuid
+                type: string
+              timestamp:
+                type: number
+            required:
+            - asset_id
+            - beam
+            - device_id
+            - mac
+            - map_id
+            - mfg_company_id
+            - mfg_data
+            - rssi
+            - site_id
+            - timestamp
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+        topic:
+          default: asset-raw
+          description: topic subscribed to
+          type: string
+      required:
+      - events
+      - topic
+      type: object
+      x-examples:
+        example-1:
+          events:
+          - asset_id: a8ec4d8a-4da6-4ead-a486-d0f72e40dd08
+            beam: 5
+            device_id: 00000000-0000-0000-1000-5c5b35000001
+            ibeacon_major: 13
+            ibeacon_minor: 138
+            ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
+            mac: 7fc2936fd243
+            map_id: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+            mfg_company_id: 935
+            mfg_data: 648520a1020000
+            rssi: -71
+            site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+            timestamp: 1461220784
+          topic: asset-raw
+      x-stoplight:
+        id: 9e7641ef7c64a
+    webhook_audits:
+      description: audit webhook
+      properties:
+        events:
+          items:
+            properties:
+              admin_name:
+                type: string
+              device_id:
+                format: uuid
+                type: string
+              id:
+                format: uuid
+                type: string
+              message:
+                type: string
+              org_id:
+                format: uuid
+                type: string
+              site_id:
+                format: uuid
+                type: string
+              src_ip:
+                type: string
+              timestamp:
+                type: number
+            required:
+            - admin_name
+            - device_id
+            - id
+            - message
+            - org_id
+            - site_id
+            - src_ip
+            - timestamp
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+        topic:
+          default: audits
+          type: string
+      required:
+      - events
+      - topic
+      type: object
+      x-examples:
+        example-1:
+          events:
+          - admin_name: Chris Dao chris.dao@yahoo.com
+            device_id: 00000000-0000-0000-1000-5c5b350e01c7
+            id: 8e00dd48-b918-4d9b-b40d-b98989ac76a7
+            message: Update Device "Reception"
+            org_id: 2b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+            site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+            src_ip: 73.92.124.103
+            timestamp: 1549047906.201053
+          topic: audits
+      x-stoplight:
+        id: c8616f7028337
+    webhook_client_join:
+      description: client join webhook
+      properties:
+        events:
+          items:
+            properties:
+              ap:
+                description: mac address of the AP the client connected to
+                type: string
+              ap_name:
+                description: user-friendly name of the AP the client connected to.
+                type: string
+              band:
+                description: 5GHz or 2.4GHz band
+                type: string
+              bssid:
+                type: string
+              connect:
+                description: time when the user connects
+                type: integer
+              connect_float:
+                description: floating point connect timestamp with millisecond precision
+                type: number
+              mac:
+                description: "the client\u2019s mac"
+                type: string
+              org_id:
+                format: uuid
+                type: string
+              rssi:
+                description: RSSI when the client associated
+                type: number
+              site_id:
+                format: uuid
+                type: string
+              site_name:
+                type: string
+              ssid:
+                description: ESSID
+                type: string
+              timestamp:
+                type: number
+              version:
+                description: schema version of this message
+                type: number
+              wlan_id:
+                format: uuid
+                type: string
+            required:
+            - ap
+            - ap_name
+            - band
+            - bssid
+            - connect
+            - connect_float
+            - mac
+            - org_id
+            - rssi
+            - site_id
+            - site_name
+            - ssid
+            - timestamp
+            - version
+            - wlan_id
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+        topic:
+          default: client-join
+          type: string
+      required:
+      - events
+      - topic
+      type: object
+      x-examples:
+        example-1:
+          events:
+          - ap: 5c5b35d01338
+            ap_name: AP43 Test
+            band: '5'
+            bssid: 5c5b35df18a1
+            connect: 1592333828
+            connect_float: 1592333828.324
+            mac: 70ef0071535f
+            org_id: 6748cfa6-4e12-11e6-9188-0242ac110007
+            rssi: -54
+            site_id: d761985e-49b1-4506-88e9-e0368a05c301
+            site_name: Test
+            ssid: Maui
+            timestamp: 1592333828
+            version: 2
+            wlan_id: 6c0c0b07-0d77-44d1-9ab2-610aee9ce711
+          topic: client-join
+      x-stoplight:
+        id: adf9376c9c6ff
+    webhook_client_sessions:
+      description: client session webhook
+      properties:
+        events:
+          items:
+            properties:
+              ap:
+                description: mac address of the AP the client roamed or disconnected
+                  from
+                type: string
+              ap_name:
+                description: user-friendly name of the AP the client roamed or disconnected
+                  from.
+                type: string
+              band:
+                description: 5GHz or 2.4GHz band
+                type: string
+              bssid:
+                type: string
+              client_family:
+                description: "device family E.g. \u201CMac\u201D, \u201CiPhone\u201D\
+                  , \u201CApple watch\u201D"
+                type: string
+              client_manufacture:
+                description: "device manufacturer E.g. \u201CApple\u201D"
+                type: string
+              client_model:
+                description: "device model E.g. \u201C8+\u201D, \u201CXS\u201D"
+                type: string
+              client_os:
+                description: "device operating system E.g. \u201CMojave\u201D, \u201C\
+                  Windows 10\u201D, \u201CLinux\u201D"
+                type: string
+              connect:
+                description: time when the user connects
+                type: integer
+              connect_float:
+                description: floating point connect timestamp with millisecond precision
+                type: number
+              disconnect:
+                description: time when the user disconnects
+                type: integer
+              disconnect_float:
+                description: floating point disconnect timestamp with millisecond
+                  precision
+                type: number
+              duration:
+                description: the duration of the roamed or complete session indicated
+                  by termination_reason field.
+                type: integer
+              mac:
+                description: "the client\u2019s mac"
+                type: string
+              next_ap:
+                description: the AP the client has roamed to.
+                type: string
+              org_id:
+                format: uuid
+                type: string
+              rssi:
+                description: latest average RSSI before the user disconnects
+                type: number
+              site_id:
+                format: uuid
+                type: string
+              site_name:
+                type: string
+              ssid:
+                type: string
+              termination_reason:
+                description: 1 disassociate - when the client disassociates. 2 inactive
+                  - when the client is timeout. 3 roamed - when the client is roamed
+                  between APs
+                type: integer
+              timestamp:
+                type: number
+              version:
+                description: schema version of this message
+                type: number
+              wlan_id:
+                format: uuid
+                type: string
+            required:
+            - ap
+            - ap_name
+            - band
+            - bssid
+            - client_family
+            - client_manufacture
+            - client_model
+            - client_os
+            - connect
+            - connect_float
+            - disconnect
+            - disconnect_float
+            - duration
+            - mac
+            - next_ap
+            - org_id
+            - rssi
+            - site_id
+            - site_name
+            - ssid
+            - termination_reason
+            - timestamp
+            - version
+            - wlan_id
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+        topic:
+          default: client-sessions
+          type: string
+      required:
+      - events
+      - topic
+      type: object
+      x-examples:
+        example-1:
+          events:
+          - ap: 5c5b352f587e
+            ap_name: AP41 Test
+            band: '5'
+            bssid: 5c5b352b51b4
+            client_family: iPhone
+            client_manufacture: Apple
+            client_model: 8+
+            client_os: 13.4.1
+            connect: 1592333548
+            connect_float: 1592333548.117
+            disconnect: 1592333828
+            disconnect_float: 1592333828.589
+            duration: 279.835049793
+            mac: 70ef0071535f
+            next_ap: 5c5b35d01338
+            org_id: 6748cfa6-4e12-11e6-9188-0242ac110007
+            rssi: -87
+            site_id: d761985e-49b1-4506-88e9-e0368a05c301
+            site_name: Test
+            ssid: Maui
+            termination_reason: 3
+            timestamp: 1592333828
+            version: 2
+            wlan_id: 6c0c0b07-0d77-44d1-9ab2-610aee9ce711
+          topic: client-sessions
+      x-stoplight:
+        id: d5d78718f958f
+    webhook_device_events:
+      description: device event  webhook
+      properties:
+        events:
+          description: list of events
+          items:
+            properties:
+              ap:
+                description: (will be deprecated soon; please use mac instead) ap
+                  mac
+                type: string
+              ap_name:
+                description: (will be deprecated soon; please use device_name instead)
+                  ap name
+                type: string
+              audit_id:
+                description: (optional) audit id
+                format: uuid
+                type: string
+              device_name:
+                description: device name
+                type: string
+              device_type:
+                description: device type (ap/switch/gateway)
+                enum:
+                - ap
+                - switch
+                - gateway
+                type: string
+              ev_type:
+                description: (optional) event advisory (notice/warn)
+                enum:
+                - notice
+                - warn
+                type: string
+              mac:
+                description: device mac
+                type: string
+              org_id:
+                description: org id
+                format: uuid
+                type: string
+              reason:
+                description: (optional) event reason
+                type: string
+              site_id:
+                description: site id
+                format: uuid
+                type: string
+              site_name:
+                description: site name
+                type: string
+              text:
+                description: (optional) event description
+                type: string
+              timestamp:
+                description: time the event occurred e.g. 1565987313
+                type: integer
+              type:
+                description: event type
+                type: string
+            required:
+            - device_name
+            - device_type
+            - ev_type
+            - mac
+            - org_id
+            - timestamp
+            - type
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+        topic:
+          default: device-events
+          description: topic subscribed to
+          type: string
+      required:
+      - events
+      - topic
+      type: object
+      x-examples:
+        example-1:
+          events:
+          - ap: 5c5b35000001
+            ap_name: AP41 Near Lab
+            audit_id: a8ec4d8a-4da6-4ead-a486-d0f72e40dd08
+            device_name: AP41 Near Lab
+            device_type: ap/switch/gateway
+            ev_type: NOTICE
+            mac: 5c5b35000001
+            org_id: 2b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+            reason: power_cycle
+            site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+            site_name: Site 1
+            text: event details
+            timestamp: 1461220784
+            type: AP_RESTARTED
+          topic: device-events
+      x-stoplight:
+        id: 8eef709bf0a1e
+    webhook_device_updowns:
+      description: device up/down webhook
+      properties:
+        events:
+          items:
+            properties:
+              ap:
+                readOnly: true
+                type: string
+              ap_name:
+                readOnly: true
+                type: string
+              for_site:
+                readOnly: true
+                type: boolean
+              org_id:
+                format: uuid
+                readOnly: true
+                type: string
+              site_id:
+                format: uuid
+                readOnly: true
+                type: string
+              site_name:
+                readOnly: true
+                type: string
+              timestamp:
+                type: number
+              type:
+                readOnly: true
+                type: string
+            required:
+            - ap
+            - ap_name
+            - org_id
+            - site_id
+            - site_name
+            - timestamp
+            - type
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+        topic:
+          default: device-updowns
+          type: string
+      required:
+      - events
+      - topic
+      type: object
+      x-examples:
+        example-1:
+          events:
+          - ap: 5c5b35000001
+            ap_name: AP01
+            org_id: 2b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+            site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+            site_name: SJ1
+            timestamp: 1461220784
+            type: AP_RESTARTED
+          topic: device-updowns
+      x-stoplight:
+        id: d9bcea34184a3
+    webhook_discovered_raw_rssi:
+      properties:
+        events:
+          items:
+            properties:
+              ap_loc:
+                description: coordinates (if any) of reporting AP (updated once in
+                  60s per client)
+                items:
+                  type: number
+                type: array
+              beam:
+                description: antenna index, from 1-8, clock-wise starting from the
+                  LED
+                type: integer
+              device_id:
+                description: device id of the reporting AP
+                format: uuid
+                type: string
+              ibeacon_major:
+                type: integer
+              ibeacon_minor:
+                type: integer
+              ibeacon_uuid:
+                format: uuid
+                type: string
+              is_asset:
+                type: boolean
+              mac:
+                description: MAC of the asset/ beacon
+                type: string
+              map_id:
+                format: uuid
+                type: string
+              mfg_company_id:
+                description: BLE manufacturing company ID
+                type: string
+              mfg_data:
+                description: "BLE manufacturing data in hex byte-string format (ie:\
+                  \ \u201C112233AABBCC\u201D)"
+                type: string
+              org_id:
+                format: uuid
+                type: string
+              rssi:
+                description: signal strength
+                type: number
+              service_packets:
+                items:
+                  properties:
+                    service_data:
+                      type: string
+                    service_uuid:
+                      format: uuid
+                      type: string
+                  type: object
+                type: array
+              site_id:
+                format: uuid
+                type: string
+              timestamp:
+                type: integer
+            required:
+            - beam
+            - device_id
+            - mac
+            - map_id
+            - org_id
+            - rssi
+            - site_id
+            type: object
+          type: array
+        topic:
+          type: string
+      required:
+      - topic
+      type: object
+      x-examples:
+        Example 1:
+          events:
+          - beam: 8
+            device_id: 00000000-0000-0000-1000-ac2316eca70b
+            ibeacon_major: 2
+            ibeacon_minor: 2121
+            ibeacon_uuid: ac950d7b-af31-42d2-be7c-e15639fab2cd
+            is_asset: false
+            mac: ed2cc53f2770
+            map_id: bd42f0c3-2e6a-4f8a-ac2d-d34e268c1418
+            org_id: 9c3e516c-397d-11e6-ae35-0242ac110008
+            rssi: -79
+            site_id: 27ea2f07-6fe6-4eab-be1b-b8e3ce083d67
+            timestamp: 1661300746
+          - ap_loc:
+            - 36.03303862386182
+            - 43.57022468463291
+            - 2.75
+            beam: 7
+            device_id: 00000000-0000-0000-1000-ac2316eca70b
+            is_asset: false
+            mac: ed2cc53f2771
+            map_id: bd42f0c3-2e6a-4f8a-ac2d-d34e268c1418
+            org_id: 9c3e516c-397d-11e6-ae35-0242ac110008
+            rssi: -74
+            service_packets:
+            - service_data: 010441060606fe3d35700601cecbd902512f000001
+              service_uuid: UUID
+            site_id: 27ea2f07-6fe6-4eab-be1b-b8e3ce083d67
+            timestamp: 1661300746
+          topic: discovered-raw-rssi
+      x-stoplight:
+        id: 5e62ab1fa7fb7
+    webhook_location:
+      description: location  webhook
+      properties:
+        events:
+          description: list of events
+          items:
+            properties:
+              battery_voltage:
+                type: integer
+              eddystone_uid_instance:
+                type: string
+              eddystone_uid_namespace:
+                type: string
+              eddystone_url_url:
+                type: string
+              ibeacon_major:
+                type: integer
+              ibeacon_minor:
+                type: integer
+              ibeacon_uuid:
+                format: uuid
+                type: string
+              id:
+                description: unique id of the client (a client would have different
+                  id for different org)
+                format: uuid
+                type: string
+              mac:
+                type: string
+              map_id:
+                description: map id
+                format: uuid
+                type: string
+              mfg_company_id:
+                description: optional, BLE manufacturing company ID
+                type: integer
+              mfg_data:
+                description: optional, BLE manufacturing data in hex byte-string format
+                  (ie "112233AABBCC")
+                type: string
+              name:
+                description: name of the client, may be empty
+                type: string
+              site_id:
+                format: uuid
+                type: string
+              timestamp:
+                description: timestamp of the event, epoch
+                type: integer
+              type:
+                type: string
+              wifi_beacon_extended_info:
+                description: optional, list of extended beacon info packets heard
+                  from the client, frame and sequence control included with the payload
+                items:
+                  properties:
+                    frame_ctrl:
+                      description: frame control field of 802.11 header
+                      type: integer
+                    payload:
+                      description: Extended Info Payload associated with frame
+                      type: string
+                    seq_ctrl:
+                      description: sequence control field of 802.11 header
+                      type: integer
+                  type: object
+                type: array
+              x:
+                description: x, in meter
+                type: integer
+              y:
+                description: y, in meter
+                type: integer
+            required:
+            - id
+            - map_id
+            - site_id
+            - timestamp
+            - type
+            - x
+            - y
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+        topic:
+          default: location
+          description: topic subscribed to
+          type: string
+      required:
+      - events
+      - topic
+      type: object
+      x-examples:
+        example-asset:
+          events:
+          - battery_voltage: 3370
+            eddystone_uid_instance: 5c5b35000001
+            eddystone_uid_namespace: 2818e3868dec25629ede
+            eddystone_url_url: https://www.abc.com
+            ibeacon_major: 13
+            ibeacon_minor: 138
+            ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
+            mac: 7fc2936fd243
+            map_id: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+            mfg_company_id: 935
+            mfg_data: 648520a1020000
+            site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+            timestamp: 1461220784
+            type: asset
+            x: 13.5
+            y: 3.2
+          topic: location
+        example-sdk_client:
+          events:
+          - id: de87bf9d-183f-e383-cc68-6ba43947d403
+            map_id: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+            name: optional
+            site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+            timestamp: 1461220784
+            type: sdk
+            x: 13.5
+            y: 3.2
+          topic: location
+        example-wifi_client:
+          events:
+          - mac: 5684dae9ac8b
+            map_id: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+            site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+            timestamp: 1461220784
+            type: wifi
+            x: 13.5
+            y: 3.2
+          topic: location
+      x-stoplight:
+        id: b9aeb10d136c7
+    webhook_occupancy_alerts:
+      description: occupancy alert  webhook
+      properties:
+        events:
+          items:
+            properties:
+              alert_events:
+                description: list of occupancy alerts for non-compliance zones within
+                  the site detected around the same time
+                items:
+                  properties:
+                    current_occupancy:
+                      type: integer
+                    map_id:
+                      format: uuid
+                      type: string
+                    occupancy_limit:
+                      type: integer
+                    org_id:
+                      format: uuid
+                      type: string
+                    timestamp:
+                      type: number
+                    type:
+                      description: event type (COMPLIANCE-VIOLATION / COMPLIANCE-OK)
+                      enum:
+                      - COMPLIANCE-VIOLATION
+                      - COMPLIANCE-OK
+                      type: string
+                    zone_id:
+                      format: uuid
+                      type: string
+                    zone_name:
+                      type: string
+                  required:
+                  - current_occupancy
+                  - map_id
+                  - occupancy_limit
+                  - org_id
+                  - timestamp
+                  - type
+                  - zone_id
+                  - zone_name
+                  type: object
+                minItems: 1
+                readOnly: true
+                type: array
+                uniqueItems: true
+              for_site:
+                readOnly: true
+                type: boolean
+              site_id:
+                format: uuid
+                readOnly: true
+                type: string
+              site_name:
+                readOnly: true
+                type: string
+            required:
+            - site_id
+            - site_name
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+        topic:
+          default: occupancy-alerts
+          type: string
+      required:
+      - events
+      - topic
+      type: object
+      x-examples:
+        example-1:
+          events:
+          - alert_events:
+            - current_occupancy: 10
+              map_id: f5d26c7f-1670-4921-a79d-09f887f46b44
+              occupancy_limit: 5
+              org_id: 6748cfa6-4e12-11e6-9188-0242ac110007
+              timestamp: 1594861457
+              type: COMPLIANCE-VIOLATION
+              zone_id: b83312a7-7269-4ae1-bea8-e7cfe0e3073c
+              zone_name: PLM and Leadership
+            - current_occupancy: 20
+              map_id: f5d26c7f-1670-4921-a79d-09f887f46b44
+              occupancy_limit: 10
+              org_id: 6748cfa6-4e12-11e6-9188-0242ac110007
+              timestamp: 1594861457
+              type: COMPLIANCE-VIOLATION
+              zone_id: 80acf542-e863-43cf-9efd-9295468585e7
+              zone_name: CSQA
+            - current_occupancy: 9
+              map_id: f5d26c7f-1670-4921-a79d-09f887f46b44
+              occupancy_limit: 4
+              org_id: 6748cfa6-4e12-11e6-9188-0242ac110007
+              timestamp: 1594861457
+              type: COMPLIANCE-VIOLATION
+              zone_id: a4c7a7c2-880e-4a0e-9626-02e5a9471f86
+              zone_name: Marketing & Sales Ops
+            site_id: 67970e46-4e12-11e6-9188-0242ac110007
+            site_name: TRUE MIST OFFICE [STAGING]
+          topic: occupancy-alerts
+      x-stoplight:
+        id: f7a3f8bedd649
+    webhook_ping:
+      description: ping webhook
+      properties:
+        events:
+          items:
+            properties:
+              id:
+                format: uuid
+                type: string
+              name:
+                type: string
+              site_id:
+                format: uuid
+                type: string
+              timestamp:
+                type: number
+            required:
+            - id
+            - name
+            - site_id
+            - timestamp
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+        topic:
+          default: ping
+          type: string
+      required:
+      - events
+      - topic
+      type: object
+      x-examples:
+        example-1:
+          events:
+          - id: 18ff1f91-a9e0-c3b7-74ea-2ce4ea372f72
+            name: my webhook
+            site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+            timestamp: 1461220784
+          topic: ping
+      x-stoplight:
+        id: 54d3cc3295be4
+    webhook_sdkclient-scan-data:
+      description: ''
+      properties:
+        events:
+          items:
+            properties:
+              connection_ap:
+                description: mac address of the AP the client is connected to
+                minLength: 1
+                type: string
+              connection_band:
+                description: 5GHz or 2.4GHz band, of the BSSID the client is connected
+                  to
+                minLength: 1
+                type: string
+              connection_bssid:
+                description: BSSID of the AP the client is connected to
+                minLength: 1
+                type: string
+              connection_channel:
+                description: channel of the band the client is connected to
+                type: integer
+              connection_rssi:
+                description: "RSSI of the client\u2019s connection to the AP/BSSID"
+                type: number
+              last_seen:
+                description: time client last seen with scan data
+                type: number
+              mac:
+                description: "the client\u2019s mac"
+                minLength: 1
+                type: string
+              scan_data:
+                items:
+                  properties:
+                    ap:
+                      description: mac address of the AP associated with the BSSID
+                        scanned
+                      minLength: 1
+                      type: string
+                    band:
+                      description: 5GHz or 2.4GHz band, associated with the BSSID
+                        scanned
+                      enum:
+                      - '2.4'
+                      - '5'
+                      minLength: 1
+                      type: string
+                    bssid:
+                      description: "BSSID found during client\u2019s background scan\
+                        \ for wifi"
+                      minLength: 1
+                      type: string
+                    channel:
+                      description: channel of the band found in the scan
+                      type: integer
+                    rssi:
+                      description: "client\u2019s RSSI relative to the BSSID scanned"
+                      type: number
+                    ssid:
+                      description: ESSID containing the BSSID scanned
+                      minLength: 1
+                      type: string
+                    timestamp:
+                      description: time the scan of the particular BSSID occurred
+                      type: number
+                  required:
+                  - ap
+                  - bssid
+                  - band
+                  - channel
+                  - rssi
+                  - ssid
+                  - timestamp
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+              site_id:
+                description: Site ID
+                minLength: 1
+                type: string
+            required:
+            - connection_ap
+            - connection_band
+            - connection_channel
+            - connection_bssid
+            - mac
+            - connection_rssi
+            - site_id
+            - last_seen
+            type: object
+          minItems: 1
+          readOnly: true
+          type: array
+          uniqueItems: true
+        topic:
+          default: sdkclient-scan-data
+          enum:
+          - sdkclient-scan-data
+          minLength: 1
+          type: string
+      required:
+      - topic
+      - events
+      type: object
+      x-examples:
+        example-1:
+          events:
+          - connection_ap: 5c5b352f587e
+            connection_band: '2.4'
+            connection_bssid: 5c5b352b51b4
+            connection_channel: 11
+            connection_rssi: -87
+            last_seen: 1592333828
+            mac: 70ef0071535f
+            scan_data:
+            - ap: 5c5b352f587e
+              band: '2.4'
+              bssid: 5c5b352b51b4
+              channel: 11
+              rssi: -87
+              ssid: mist-wifi
+              timestamp: 1592333828
+            - ap: 5c5b352f587e
+              band: '5'
+              bssid: 5c5b352b51b8
+              channel: 36
+              rssi: -75
+              ssid: mist-wifi
+              timestamp: 1592333828
+            site_id: d761985e-49b1-4506-88e9-e0368a05c301
+          topic: sdkclient-scan-data
+          value:
+            events:
+            - connection_ap: 5c5b352f587e
+              connection_band: '2.4'
+              connection_bssid: 5c5b352b51b4
+              connection_channel: 11
+              connection_rssi: -87
+              last_seen: 1592333828
+              mac: 70ef0071535f
+              scan_data:
+              - ap: 5c5b352f587e
+                band: '2.4'
+                bssid: 5c5b352b51b4
+                channel: 11
+                rssi: -87
+                ssid: mist-wifi
+                timestamp: 1592333828
+              - ap: 5c5b352f587e
+                band: '5'
+                bssid: 5c5b352b51b8
+                channel: 36
+                rssi: -75
+                ssid: mist-wifi
+                timestamp: 1592333828
+              site_id: d761985e-49b1-4506-88e9-e0368a05c301
+            topic: sdkclient-scan-data
+      x-stoplight:
+        id: 595a3fb2a397a
+    webhook_zone:
+      description: zone webhook
+      properties:
+        events:
+          description: list of events
+          items:
+            properties:
+              asset_id:
+                description: uuid of named asset
+                format: uuid
+                type: string
+              id:
+                description: uuid of SDK-client
+                format: uuid
+                type: string
+              mac:
+                description: mac address of wifi client or asset
+                type: string
+              map_id:
+                description: map id
+                format: uuid
+                type: string
+              name:
+                description: name of the client, may be empty
+                type: string
+              site_id:
+                description: site id
+                format: uuid
+                type: string
+              timestamp:
+                description: timestamp of the event, epoch
+                type: integer
+              trigger:
+                description: enter / exit
+                enum:
+                - enter
+                - exit
+                type: string
+              type:
+                type: string
+              zone_id:
+                description: zone id
+                format: uuid
+                type: string
+            required:
+            - id
+            - map_id
+            - site_id
+            - timestamp
+            - trigger
+            - type
+            - zone_id
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+        topic:
+          default: zone
+          description: topic subscribed to
+          type: string
+      required:
+      - events
+      - topic
+      type: object
+      x-examples:
+        example-asset:
+          events:
+          - asset_id: c180b858-8f39-11e7-a7a5-346895ed1b7d
+            mac: 7fc2936fd243
+            map_id: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+            site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+            timestamp: 1461220784
+            trigger: enter
+            type: asset
+            zone_id: 8ac84899-32db-6327-334c-9b6d58544cfe
+          topic: zone
+        example-sdk_client:
+          events:
+          - id: de87bf9d-183f-e383-cc68-6ba43947d403
+            map_id: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+            name: optional
+            site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+            timestamp: 1461220784
+            trigger: enter
+            type: sdk
+            zone_id: 8ac84899-32db-6327-334c-9b6d58544cfe
+          topic: zone
+        example-wifi_client:
+          events:
+          - mac: 5684dae9ac8b
+            map_id: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+            site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+            timestamp: 1461220784
+            trigger: enter
+            type: wifi
+            zone_id: 8ac84899-32db-6327-334c-9b6d58544cfe
+          topic: zone
+      x-stoplight:
+        id: 0350c2a3b3c30

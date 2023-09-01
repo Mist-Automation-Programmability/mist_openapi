@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2306.2.8**
+  description: '> Version: **2306.2.9**
 
     >
 
-    > Date: **July 10, 2023**
+    > Date: **July 13, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2306.2.8
+  version: 2306.2.9
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -2043,3 +2043,276 @@ components:
           schema:
             type: object
       description: OK
+  schemas:
+    Model_object_email:
+      properties:
+        email:
+          format: email
+          type: string
+      required:
+      - email
+      title: Model_object_email
+      type: object
+      x-examples:
+        example-1:
+          email: user@example.com
+    admin:
+      description: Admin
+      properties:
+        admin_id:
+          format: uuid
+          readOnly: true
+          type: string
+        email:
+          format: email
+          type: string
+        enable_two_factor:
+          readOnly: true
+          type: boolean
+        first_name:
+          description: for an invite, this is the original first name used
+          type: string
+        hours:
+          default: 24
+          description: how long the invite should be valid
+          maximum: 168
+          minimum: 1
+          type: integer
+        last_name:
+          description: for an invite, this is the original last name used
+          type: string
+        oauth_google:
+          readOnly: true
+          type: boolean
+        phone:
+          description: phone number (numbers only, including country code)
+          type: string
+        phone2:
+          description: secondary phone number (numbers only, including country code)
+          type: string
+        privileges:
+          description: list of privileges the admin has on the MSP / Orgs / OrgGroups
+          items:
+            $ref: ./components/schemas/privileges.yaml
+          minItems: 1
+          readOnly: true
+          type: array
+          uniqueItems: true
+        session_expiry:
+          readOnly: true
+          type: integer
+        tags:
+          items:
+            type: string
+          readOnly: true
+          type: array
+        two_factor_verified:
+          description: two factor status
+          readOnly: true
+          type: boolean
+        via_sso:
+          description: an admin alogin via_sso is more restircted. (password and email
+            cannot be changed)
+          readOnly: true
+          type: string
+      required:
+      - email
+      - first_name
+      - last_name
+      type: object
+      x-examples:
+        example-1:
+          privileges:
+          - role: write
+            scope: org
+            view: reporting
+          - role: write
+            scope: site
+            site_id: d96e3952-53e8-4266-959a-45acd55f5114
+            view: reporting
+          - role: write
+            scope: sitegroup
+            sitegroup_id: 581328b6-e382-f54e-c9dc-999983183a34
+            view: reporting
+    apitoken:
+      description: API Token
+      properties:
+        created_by:
+          description: for Org token only. email of the token creator / null if creator
+            is deleted
+          nullable: true
+          type: string
+        created_time:
+          readOnly: true
+          type: integer
+        id:
+          format: uuid
+          readOnly: true
+          type: string
+        key:
+          readOnly: true
+          type: string
+        last_used:
+          nullable: true
+          readOnly: true
+          type: integer
+        name:
+          description: name of the token
+          type: string
+        org_id:
+          format: uuid
+          readOnly: true
+          type: string
+        privileges:
+          description: list of privileges the token has on the orgs/sites
+          items:
+            $ref: ./components/schemas/privileges.yaml
+          minItems: 1
+          type: array
+          uniqueItems: true
+      type: object
+      x-examples:
+        example-1:
+          id: 864f351a-1377-4ad9-83f8-72f3fe6199ba
+          key: 1qkb...QQCL
+          name: org_token_xyz
+          org_id: bc411cd9-0d1b-4713-94df-eee8617758ed
+    privileges:
+      description: Privilieges settings
+      properties:
+        for_site:
+          readOnly: true
+          type: boolean
+        msp_id:
+          description: id of the MSP (if the org belongs to an MSP)
+          format: uuid
+          nullable: true
+          type: string
+        msp_logo_url:
+          description: logo of the MSP (if the MSP belongs to an Advanced tier)
+          type: string
+        msp_name:
+          description: name of the MSP (if the org belongs to an MSP)
+          nullable: true
+          type: string
+        msp_url:
+          description: custom url of the MSP (if the MSP belongs to an Advanced tier)
+          type: string
+        name:
+          description: name of the org/site/MSP depending on object scope
+          type: string
+        org_id:
+          description: id of the org
+          format: uuid
+          nullable: true
+          type: string
+        org_name:
+          description: name of the org (for a site belonging to org)
+          type: string
+        orggroup_ids:
+          description: list of orggroup ids (if the org belongs to an MSP)
+          items:
+            format: uuid
+            type: string
+          type: array
+        role:
+          description: access permissions
+          enum:
+          - admin
+          - write
+          - read
+          - helpdesk
+          - installer
+          type: string
+        scope:
+          description: "list of privileges the admin has on the MSP\_/ OrgGroups /\
+            \ Orgs / Sites"
+          enum:
+          - org
+          - site
+          - msp
+          - orggroup
+          type: string
+        site_id:
+          description: id of the site
+          format: uuid
+          nullable: true
+          type: string
+        sitegroup_ids:
+          description: list of sitegroup ids
+          items:
+            format: uuid
+            type: string
+          type: array
+        views:
+          description: 'Custom roles restrict Org users to specific UI views. This
+            is useful for limiting UI access of Org users.
+
+
+            You can invite a new user or update existing users in your Org to this
+            custom role. For this, specify view along with role when assigning privileges.
+
+
+            Below are the list of supported UI views. Note that this is UI only feature
+
+            Custom roles restrict Org users to specific UI views. This is useful for
+            limiting UI access of Org users.
+
+
+            You can invite a new user or update existing users in your Org to this
+            custom role. For this, specify `view` along with `role` when assigning
+            privileges.
+
+
+            Below are the list of supported UI views. Note that this is UI only feature
+
+
+            | UI View | Description |
+
+            | --- | --- |
+
+            | `reporting` | full access to all analytics tools |
+
+            | `marketing` | can view analytics and location maps |
+
+            | `location` | can view and manage location maps |
+
+            | `security` | can view and manage WLAN, rogues and authentication |
+
+            | `switch_admin` | can view and manage Switch ports |
+
+            | `mxedge_admin` | can view and manage Mist edges and Mist tunnels |
+
+            | `lobby_admin` | full access to Org and Site Pre-shared keys |'
+          items:
+            type: string
+          type: array
+      required:
+      - role
+      - scope
+      title: ''
+      type: object
+      x-examples:
+        example-1:
+          msp_id: 9520c63a-f7b3-670c-0944-727774d5a722
+          msp_name: MSP
+          name: TestCompany
+          org_id: 9ff00eec-24f0-44d7-bda4-6238c81376ee
+          orggroup_ids:
+          - 9ff00eec-24f0-44d7-bda4-6238c81376ee
+          role: admin
+          scope: org
+        example-2:
+          name: Mist Office
+          org_id: 9ff00eec-24f0-44d7-bda4-6238c81376ee
+          org_name: TestCompany
+          role: admin
+          scope: site
+          site_id: d96e3952-53e8-4266-959a-45acd55f5114
+          sitegroup_ids:
+          - 581328b6-e382-f54e-c9dc-999983183a34
+        example-3:
+          msp_id: 9520c63a-f7b3-670c-0944-727774d5a722
+          name: MSP
+          role: admin
+          scope: msp
