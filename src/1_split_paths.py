@@ -292,12 +292,12 @@ def save_file(filename:str, cat_path:dict, cat_schema: dict, cat_param:list, cat
         }    
 
 
-        output_str = json.dumps(data)
-        re_schema = "\$ref\"*: \"#/components/schemas/([0-9a-zA-Z_.-]+)\""
-        for entry in re.findall(re_schema, output_str):
-            tmp_re_schema = f"\$ref\"*: \"#/components/schemas/{entry}\""
-            output_str = re.sub(tmp_re_schema, f"$ref\": \"./components/schemas/{entry}.yaml\"", output_str)
-        data = json.loads(output_str)
+        # output_str = json.dumps(data)
+        # re_schema = "\$ref\"*: \"#/components/schemas/([0-9a-zA-Z_.-]+)\""
+        # for entry in re.findall(re_schema, output_str):
+        #     tmp_re_schema = f"\$ref\"*: \"#/components/schemas/{entry}\""
+        #     output_str = re.sub(tmp_re_schema, f"$ref\": \"./components/schemas/{entry}.yaml\"", output_str)
+        # data = json.loads(output_str)
 
         with open(filename, 'w') as oas_out_file:
             for item in order:
