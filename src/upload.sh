@@ -1,5 +1,5 @@
 cd ../v2
-
+API_KEY="xxx"
 TUPLES=(
 "mist.openapi.authentication.yml:64f1b7559486b90f72e7ff61"
 "mist.openapi.self.yml:64f205c97abb41004c7b9770"
@@ -21,7 +21,7 @@ do
     ID=`echo $i | cut -d":" -f2`
     echo " -- $FILE -- $ID --"
     rdme openapi \
-    --key=rdme_xn8s9h1b1c755bef2e56f30819b59ab7edbcd15fe9388e24a2e9496954d560d93db003 \
+    --key=$API_KEY \
     --id=$ID $FILE
 done
 
