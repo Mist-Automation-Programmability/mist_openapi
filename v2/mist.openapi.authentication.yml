@@ -68,20 +68,7 @@ tags:
     the authorizaiton code by clicking / going through Authorization URL Link Mist
     Account against OAuth2 Provider by using the authorization code
   name: Login With OAuth2
-- name: Self Account
-- description: "Like many other API providers, it\u2019s also possible to generate\
-    \ API Tokens to be used (in HTTP Header) for authentication. An API token ties\
-    \ to a Admin with equal or less privileges.\n\nNotes:\n* an API token generated\
-    \ for a specific admin has the same privilege as the user\n* an API token will\
-    \ be automatically removed if not used for > 90 days\n* SSO admins cannot generate\
-    \ these API tokens. Refer Org level API tokens (/api/v1/docs/Org#api-token) which\
-    \ can have privileges of a specific Org/Site for more information.    "
-  name: Self API Token
-- name: Self OAuth2
 - name: Recover Password
-- name: Self MFA
-- name: Self Alarms
-- name: Self Audit Logs
 paths:
   /api/v1/login:
     post:
@@ -156,7 +143,6 @@ paths:
       summary: login
       tags:
       - Login
-      - Authentication
   /api/v1/login/lookup:
     post:
       description: Login Lookup
@@ -200,8 +186,75 @@ paths:
       summary: lookup
       tags:
       - Login
-      - Authentication
+  /api/v1/login/two_factor:
+    post:
+      description: Send 2FA Code
+      operationId: twoFactor
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  two_factor: '123456'
+            schema:
+              $ref: '#/components/schemas/two_factor'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          description: "two_factor code is incorrect or the user hasn\u2019t login\
+            \ yet"
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          description: "the user doesn\u2019t have 2FA enabled"
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: twoFactor
+      tags:
+      - Login
+  /api/v1/logout:
+    post:
+      description: Logout
+      operationId: logout
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                    forward_url: https://my.sso/custom_logout_url
+              schema:
+                properties:
+                  forward_url:
+                    description: if configured in SSO as custom_logout_url
+                    type: string
+                type: object
+          description: OK
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: logout
+      tags:
+      - Login
   /api/v1/login/oauth/{provider}:
+    parameters:
+    - in: path
+      name: provider
+      required: true
+      schema:
+        type: string
     delete:
       description: Unlink OAuth2 Provider
       operationId: unlinkOAuth2Provider
@@ -221,7 +274,6 @@ paths:
       summary: unlinkOAuth2Provider
       tags:
       - Login With OAuth2
-      - Authentication
     get:
       description: Obtain Authorization URL for Login
       operationId: getOAuth2AuthorizationUrlForLogin
@@ -264,13 +316,6 @@ paths:
       summary: getOAuth2AuthorizationUrlForLogin
       tags:
       - Login With OAuth2
-      - Authentication
-    parameters:
-    - in: path
-      name: provider
-      required: true
-      schema:
-        type: string
     post:
       description: Login via OAuth2
       operationId: loginOAuth2
@@ -305,71 +350,6 @@ paths:
       summary: loginOAuth2
       tags:
       - Login With OAuth2
-      - Authentication
-  /api/v1/login/two_factor:
-    post:
-      description: Send 2FA Code
-      operationId: twoFactor
-      requestBody:
-        content:
-          application/json:
-            examples:
-              Example:
-                value:
-                  two_factor: '123456'
-            schema:
-              $ref: '#/components/schemas/two_factor'
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          description: "two_factor code is incorrect or the user hasn\u2019t login\
-            \ yet"
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          description: "the user doesn\u2019t have 2FA enabled"
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: twoFactor
-      tags:
-      - Login
-      - Authentication
-  /api/v1/logout:
-    post:
-      description: Logout
-      operationId: logout
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    forward_url: https://my.sso/custom_logout_url
-              schema:
-                properties:
-                  forward_url:
-                    description: if configured in SSO as custom_logout_url
-                    type: string
-                type: object
-          description: OK
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: logout
-      tags:
-      - Login
-      - Authentication
   /api/v1/recover:
     post:
       description: 'Recover Password
@@ -410,7 +390,6 @@ paths:
       summary: recoverPassword
       tags:
       - Recover Password
-      - Authentication
   /api/v1/recover/verify/{token}:
     parameters:
     - $ref: '#/components/parameters/token'
@@ -436,759 +415,8 @@ paths:
       summary: verifyRecoverPasssword
       tags:
       - Recover Password
-      - Authentication
-  /api/v1/self:
-    delete:
-      description: 'To delete ones account and every associated with it. The effects:
-
-
-        the account would be deleted
-
-        any orphaned Org (that only has this account as admin) will be deleted
-
-        along with all data with Org (sites, wlans, devices) will be gone.'
-      operationId: deleteSelf
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              examples:
-                if any of the org to be deleted still has inventory:
-                  value:
-                    detail: inventory not empty
-                    org_id: 424f6eca-7276-4993-bfeb-53cbbbba6f05
-              schema:
-                properties:
-                  detail:
-                    type: string
-                  org_id:
-                    format: uuid
-                    type: string
-                required:
-                - detail
-                - org_id
-                type: object
-          description: Bad Request
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: deleteSelf
-      tags:
-      - Self Account
-      - Authentication
-    get:
-      description: "Get \u2018whoami\u2019 and privileges (which org and which sites\
-        \ I have access to)"
-      operationId: getSelf
-      responses:
-        '200':
-          $ref: '#/components/responses/Admin'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: getSelf
-      tags:
-      - Self Account
-      - Authentication
-    put:
-      description: update Account Information
-      operationId: updateSelf
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  email: john.smith@mycorp.net
-                  enable_two_factor: true
-                  first_name: John
-                  last_name: Smith
-                  password: foryoureyesonly
-                  persona: security
-                  phone: '14081112222'
-                  phone2: '14083334444'
-            schema:
-              $ref: '#/components/schemas/admin'
-        description: Request Body
-      responses:
-        '200':
-          $ref: '#/components/responses/Admin'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: updateSelf
-      tags:
-      - Self Account
-      - Authentication
-  /api/v1/self/apitokens:
-    get:
-      description: Get List of Current User API Tokens
-      operationId: listApiTokens
-      responses:
-        '200':
-          $ref: '#/components/responses/ApitokensUserArray'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: listApiTokens
-      tags:
-      - Self API Token
-      - Authentication
-    post:
-      description: 'Create API Token
-
-        Note that the key is only available during creation time.'
-      operationId: createApiToken
-      requestBody:
-        content:
-          application/json:
-            examples:
-              Example 1:
-                value:
-                  created_time: 1626875902
-                  last_used: 1690115110
-                  name: org_token_xyz
-            schema:
-              $ref: '#/components/schemas/user_apitoken'
-      responses:
-        '200':
-          $ref: '#/components/responses/ApitokensUserArray'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: createApiToken
-      tags:
-      - Self API Token
-      - Authentication
-  /api/v1/self/apitokens/{apitoken_id}:
-    delete:
-      description: Delete an API Token
-      operationId: deleteApiToken
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: deleteApiToken
-      tags:
-      - Self API Token
-      - Authentication
-    get:
-      description: Get User API Token
-      operationId: getApiToken
-      responses:
-        '200':
-          $ref: '#/components/responses/ApitokenUser'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: getApiToken
-      tags:
-      - Self API Token
-      - Authentication
-    parameters:
-    - in: path
-      name: apitoken_id
-      required: true
-      schema:
-        type: string
-    put:
-      description: Update User API Token
-      operationId: updateApiToken
-      requestBody:
-        content:
-          application/json:
-            examples:
-              Example:
-                value:
-                  name: org_token_xyz
-            schema:
-              $ref: '#/components/schemas/user_apitoken'
-      responses:
-        '200':
-          $ref: '#/components/responses/ApitokenUser'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: updateApiToken
-      tags:
-      - Self API Token
-      - Authentication
-  /api/v1/self/logs:
-    get:
-      description: 'Get List of change logs across all Orgs for current admin
-
-        Audit logs records all administrative activities done by current admin across
-        all orgs'
-      operationId: listSelfAuditLogs
-      parameters:
-      - $ref: '#/components/parameters/page'
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    end: 1428954000
-                    limit: 100
-                    page: 1
-                    results:
-                    - admin_id: 72bfa2bd-e58a-4670-9d20-a1468f7a6f58
-                      admin_name: test@mistsys.com
-                      after:
-                        auth:
-                          type: open
-                      before:
-                        auth:
-                          type: psk
-                      id: c6f9347b-b0a4-4a23-b927-fa9249f2ffb2
-                      message: Update WLAN "Corporate"
-                      org_id: 423f6eca-6276-4994-bfeb-53cbbbba6f04
-                      site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-                      timestamp: 1431382121
-                    start: 1428939600
-                    total: 135
-              schema:
-                properties:
-                  end:
-                    type: integer
-                  limit:
-                    type: integer
-                  page:
-                    type: integer
-                  results:
-                    items:
-                      properties:
-                        admin_id:
-                          format: uuid
-                          type: string
-                        admin_name:
-                          type: string
-                        after:
-                          description: field values after the change
-                          properties:
-                            auth:
-                              properties:
-                                type:
-                                  type: string
-                              required:
-                              - type
-                              type: object
-                          required:
-                          - auth
-                          type: object
-                        before:
-                          description: field values prior to the change
-                          properties:
-                            auth:
-                              properties:
-                                type:
-                                  type: string
-                              required:
-                              - type
-                              type: object
-                          required:
-                          - auth
-                          type: object
-                        for_site:
-                          readOnly: true
-                          type: boolean
-                        id:
-                          format: uuid
-                          type: string
-                        message:
-                          type: string
-                        org_id:
-                          format: uuid
-                          type: string
-                        site_id:
-                          format: uuid
-                          type: string
-                        timestamp:
-                          type: number
-                      required:
-                      - admin_id
-                      - admin_name
-                      - id
-                      - message
-                      - org_id
-                      - site_id
-                      - timestamp
-                      type: object
-                    minItems: 1
-                    type: array
-                    uniqueItems: true
-                  start:
-                    type: integer
-                  total:
-                    type: integer
-                required:
-                - end
-                - limit
-                - page
-                - results
-                - start
-                - total
-                type: object
-          description: OK
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: listSelfAuditLogs
-      tags:
-      - Self Audit Logs
-      - Authentication
-  /api/v1/self/oauth/{provider}:
-    get:
-      description: Obtain Authorization URL for Linking
-      operationId: getOAuth2UrlForLinking
-      parameters:
-      - in: query
-        name: forward
-        schema:
-          example: http://manage.mist.com/oauth/callback.html
-          type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    authorization_url: https://accounts.google.com/o/oauth2/v2/auth?.....
-                    linked: false
-              schema:
-                properties:
-                  authorization_url:
-                    type: string
-                  linked:
-                    type: boolean
-                required:
-                - linked
-                - authorization_url
-                type: object
-          description: OK
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: getOAuth2UrlForLinking
-      tags:
-      - Self OAuth2
-      - Authentication
-    parameters:
-    - in: path
-      name: provider
-      required: true
-      schema:
-        type: string
-    post:
-      description: Link Mist account with an OAuth2 Provider
-      operationId: linkOAuth2MistAccount
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  code: 4/S9tegDeLkrYg0L9pWNXV4cgMVbbr3SR9t693A2kSHzw
-            schema:
-              properties:
-                code:
-                  type: string
-              required:
-              - code
-              type: object
-        description: Request Body
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    action: oauth account linked
-                    id: google-user-id
-              schema:
-                properties:
-                  action:
-                    type: string
-                  id:
-                    type: string
-                required:
-                - action
-                - id
-                type: object
-          description: OK
-        '400':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    error: access_denied
-                    error_description: The resource owner or authorization server
-                      denied the request.
-              schema:
-                properties:
-                  error:
-                    type: string
-                  error_description:
-                    type: string
-                required:
-                - error
-                - error_description
-                type: object
-          description: Authorization Error
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: linkOAuth2MistAccount
-      tags:
-      - Self OAuth2
-      - Authentication
-  /api/v1/self/subscriptions:
-    get:
-      description: Get List of all the subscriptions
-      operationId: listAlarmSubscriptions
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                items:
-                  properties:
-                    org_id:
-                      format: uuid
-                      type: string
-                  required:
-                  - org_id
-                  type: object
-                minItems: 1
-                type: array
-                uniqueItems: true
-          description: OK
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: listAlarmSubscriptions
-      tags:
-      - Self Alarms
-      - Authentication
-  /api/v1/self/two_factor/token:
-    get:
-      description: Generate QR code for verification
-      operationId: generateQrCodeForVerification
-      parameters:
-      - in: query
-        name: by
-        schema:
-          default: qrcode
-          enum:
-          - qrcode
-          type: string
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: generateQrCodeForVerification
-      tags:
-      - Self MFA
-      - Authentication
-  /api/v1/self/two_factor/verify:
-    post:
-      description: "Verify Two-factor (OTP)\n\nTo verify two-factor authentication\
-        \ by using a code generated by app (e.g. Google Authenticator, Authy) or by\
-        \ SMS. Upon successful verification, the otp_verified will be set to true\
-        \ if it hasn\u2019t already been."
-      operationId: verifyTwoFactor
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  two_factor: '123456'
-            schema:
-              properties:
-                two_factor:
-                  type: string
-              required:
-              - two_factor
-              type: object
-        description: Request Body
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: Response when 2FA verification is successful
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: verifyTwoFactor
-      tags:
-      - Self MFA
-      - Authentication
-  /api/v1/self/update:
-    post:
-      description: 'Change Email
-
-        We require the user to verify that they actually own the email address they
-        intend to change it to.
-
-
-        After the API call, the user will receive an email to the new email address
-        with a link like https://manage.mist.com/verify/update?expire=:exp_time&email=:admin_email&token=:token
-
-
-        Upon clicking the link, the user is provided with a login page to authenticate
-        using existing credentials. After successful login, the email address of the
-        user gets updated
-
-
-        **Note**: The request parameter email can be used by UI to validate that the
-        current session (if any) belongs to the admin or provide a login page (by
-        pre-populating the email on login screen). UI can also use the request parameter
-        expire to validate token expiry.'
-      operationId: updateSelfEmail
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  email: new@mistsys.com
-            schema:
-              $ref: '#/components/schemas/Model_object_email'
-        description: Request Body
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          content:
-            application/json:
-              examples:
-                invalid email address:
-                  value: {}
-                new email address already exists:
-                  value:
-                    detail: email already existed
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: invalid email address or new email address already exists
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: updateSelfEmail
-      tags:
-      - Self Account
-      - Authentication
-  /api/v1/self/update/verify/{token}:
-    get:
-      description: Verify Email change
-      operationId: verifySelfEmail
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: With correct verification, the email address of the user will
-            be updated
-        '400':
-          content:
-            application/json:
-              examples:
-                invalid or expired token:
-                  value:
-                    detail: invalid token
-                new email address already exists:
-                  value:
-                    detail: email already existed
-                request comes from authenticated users other than admin:
-                  value:
-                    detail: invalid token
-              schema:
-                properties:
-                  detail:
-                    type: string
-                required:
-                - detail
-                type: object
-          description: Bad Request
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: verifySelfEmail
-      tags:
-      - Self Account
-      - Authentication
-    parameters:
-    - $ref: '#/components/parameters/token'
 components:
   parameters:
-    duration:
-      description: "For historical stats and/or logs where time range is needed, you\
-        \ can specify the time range in a few different ways:\n  * ?start=1430000000&end=1430864000\t\
-        specify the start / end\n  * ?end=1430864000&duration=1d\tspecify end time\
-        \ and duration\n  * ?duration=1d\tspecify duration, end will be now() in seconds"
-      in: query
-      name: duration
-      required: false
-      schema:
-        default: 1d
-        example: 10m
-        type: string
-    end:
-      in: query
-      name: end
-      schema:
-        default: 0
-        minimum: 0
-        type: integer
-    limit:
-      in: query
-      name: limit
-      required: false
-      schema:
-        default: 100
-        minimum: 0
-        type: integer
-    page:
-      in: query
-      name: page
-      required: false
-      schema:
-        default: 1
-        minimum: 1
-        type: integer
-    start:
-      in: query
-      name: start
-      schema:
-        default: 0
-        minimum: 0
-        type: integer
     token:
       in: path
       name: token
@@ -1196,62 +424,6 @@ components:
       schema:
         type: string
   responses:
-    Admin:
-      content:
-        application/json:
-          examples:
-            example-1:
-              value:
-                admin_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                email: user@example.com
-                first_name: string
-                last_name: string
-                privileges:
-                - msp_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  msp_name: string
-                  name: string
-                  org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  org_name: string
-                  orggroup_ids:
-                  - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  role: admin
-                  scope: org
-                  site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  sitegroup_ids:
-                  - 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
-          schema:
-            $ref: '#/components/schemas/admin'
-      description: OK
-    ApitokenUser:
-      content:
-        application/json:
-          examples:
-            Example:
-              value:
-                created_time: 1626875902
-                id: 864f351a-1377-4ad9-83f8-72f3fe6199ba
-                key: 1qkb...QQCL
-                last_used: 1690115110
-                name: org_token_xyz
-          schema:
-            $ref: '#/components/schemas/user_apitoken'
-      description: OK
-    ApitokensUserArray:
-      content:
-        application/json:
-          examples:
-            Example:
-              value:
-              - created_time: 1626875902
-                id: 864f351a-1377-4ad9-83f8-72f3fe6199ba
-                key: 1qkb...QQCL
-                last_used: 1690115110
-                name: org_token_xyz
-          schema:
-            items:
-              $ref: '#/components/schemas/user_apitoken'
-            type: array
-      description: OK
     HTTP400:
       content:
         application/json:
@@ -1305,15 +477,6 @@ components:
               Example 1:
                 detail: You do not have permission to perform this action.
       description: Permission Denied
-    HTTP404:
-      content:
-        application/json:
-          schema:
-            properties:
-              id:
-                type: string
-      description: "Not found. The API endpoint doesn\u2019t exist or resource doesn\u2019\
-        t exist"
     HTTP429:
       content:
         application/json:
@@ -1341,104 +504,16 @@ components:
           schema:
             type: object
       description: OK
+    HTTP404:
+      content:
+        application/json:
+          schema:
+            properties:
+              id:
+                type: string
+      description: "Not found. The API endpoint doesn\u2019t exist or resource doesn\u2019\
+        t exist"
   schemas:
-    Model_object_email:
-      properties:
-        email:
-          format: email
-          type: string
-      required:
-      - email
-      title: Model_object_email
-      type: object
-      x-examples:
-        example-1:
-          email: user@example.com
-    admin:
-      description: Admin
-      properties:
-        admin_id:
-          example: 456b7016-a916-a4b1-78dd-72b947c152b7
-          format: uuid
-          readOnly: true
-          type: string
-        email:
-          example: jsnow@abc.com
-          format: email
-          type: string
-        enable_two_factor:
-          readOnly: true
-          type: boolean
-        expire_time:
-          type: integer
-        first_name:
-          description: for an invite, this is the original first name used
-          example: John
-          type: string
-        hours:
-          default: 24
-          description: how long the invite should be valid
-          maximum: 168
-          minimum: 1
-          type: integer
-        last_name:
-          description: for an invite, this is the original last name used
-          example: Sno
-          type: string
-        oauth_google:
-          readOnly: true
-          type: boolean
-        phone:
-          description: phone number (numbers only, including country code)
-          type: string
-        phone2:
-          description: secondary phone number (numbers only, including country code)
-          type: string
-        privileges:
-          description: list of privileges the admin has on the MSP / Orgs / OrgGroups
-          items:
-            $ref: '#/components/schemas/privileges'
-          minItems: 1
-          readOnly: true
-          type: array
-          uniqueItems: true
-        session_expiry:
-          example: 1440
-          readOnly: true
-          type: integer
-        tags:
-          items:
-            type: string
-          readOnly: true
-          type: array
-        two_factor_verified:
-          description: two factor status
-          readOnly: true
-          type: boolean
-        via_sso:
-          description: an admin alogin via_sso is more restircted. (password and email
-            cannot be changed)
-          readOnly: true
-          type: boolean
-      required:
-      - email
-      - first_name
-      - last_name
-      type: object
-      x-examples:
-        example-1:
-          privileges:
-          - role: write
-            scope: org
-            view: reporting
-          - role: write
-            scope: site
-            site_id: d96e3952-53e8-4266-959a-45acd55f5114
-            view: reporting
-          - role: write
-            scope: sitegroup
-            sitegroup_id: 581328b6-e382-f54e-c9dc-999983183a34
-            view: reporting
     login:
       properties:
         email:
@@ -1458,145 +533,18 @@ components:
       x-examples: {}
       x-stoplight:
         id: epuznogs8v6ey
-    privileges:
-      description: Privilieges settings
+    Model_object_email:
       properties:
-        for_site:
-          readOnly: true
-          type: boolean
-        msp_id:
-          description: id of the MSP (if the org belongs to an MSP)
-          format: uuid
-          nullable: true
+        email:
+          format: email
           type: string
-        msp_logo_url:
-          description: logo of the MSP (if the MSP belongs to an Advanced tier)
-          type: string
-        msp_name:
-          description: name of the MSP (if the org belongs to an MSP)
-          nullable: true
-          type: string
-        msp_url:
-          description: custom url of the MSP (if the MSP belongs to an Advanced tier)
-          type: string
-        name:
-          description: name of the org/site/MSP depending on object scope
-          type: string
-        org_id:
-          description: id of the org
-          format: uuid
-          nullable: true
-          type: string
-        org_name:
-          description: name of the org (for a site belonging to org)
-          type: string
-        orggroup_ids:
-          description: list of orggroup ids (if the org belongs to an MSP)
-          items:
-            format: uuid
-            type: string
-          type: array
-        role:
-          description: access permissions
-          enum:
-          - admin
-          - write
-          - read
-          - helpdesk
-          - installer
-          type: string
-        scope:
-          description: "list of privileges the admin has on the MSP\_/ OrgGroups /\
-            \ Orgs / Sites"
-          enum:
-          - org
-          - site
-          - msp
-          - orggroup
-          type: string
-        site_id:
-          description: id of the site
-          format: uuid
-          nullable: true
-          type: string
-        sitegroup_ids:
-          description: list of sitegroup ids
-          items:
-            format: uuid
-            type: string
-          type: array
-        views:
-          description: 'Custom roles restrict Org users to specific UI views. This
-            is useful for limiting UI access of Org users.
-
-
-            You can invite a new user or update existing users in your Org to this
-            custom role. For this, specify view along with role when assigning privileges.
-
-
-            Below are the list of supported UI views. Note that this is UI only feature
-
-            Custom roles restrict Org users to specific UI views. This is useful for
-            limiting UI access of Org users.
-
-
-            You can invite a new user or update existing users in your Org to this
-            custom role. For this, specify `view` along with `role` when assigning
-            privileges.
-
-
-            Below are the list of supported UI views. Note that this is UI only feature
-
-
-            | UI View | Description |
-
-            | --- | --- |
-
-            | `reporting` | full access to all analytics tools |
-
-            | `marketing` | can view analytics and location maps |
-
-            | `location` | can view and manage location maps |
-
-            | `security` | can view and manage WLAN, rogues and authentication |
-
-            | `switch_admin` | can view and manage Switch ports |
-
-            | `mxedge_admin` | can view and manage Mist edges and Mist tunnels |
-
-            | `lobby_admin` | full access to Org and Site Pre-shared keys |'
-          items:
-            type: string
-          type: array
       required:
-      - role
-      - scope
-      title: ''
+      - email
+      title: Model_object_email
       type: object
       x-examples:
         example-1:
-          msp_id: 9520c63a-f7b3-670c-0944-727774d5a722
-          msp_name: MSP
-          name: TestCompany
-          org_id: 9ff00eec-24f0-44d7-bda4-6238c81376ee
-          orggroup_ids:
-          - 9ff00eec-24f0-44d7-bda4-6238c81376ee
-          role: admin
-          scope: org
-        example-2:
-          name: Mist Office
-          org_id: 9ff00eec-24f0-44d7-bda4-6238c81376ee
-          org_name: TestCompany
-          role: admin
-          scope: site
-          site_id: d96e3952-53e8-4266-959a-45acd55f5114
-          sitegroup_ids:
-          - 581328b6-e382-f54e-c9dc-999983183a34
-        example-3:
-          msp_id: 9520c63a-f7b3-670c-0944-727774d5a722
-          name: MSP
-          role: admin
-          scope: msp
+          email: user@example.com
     two_factor:
       properties:
         two_factor:
@@ -1611,41 +559,6 @@ components:
           two_factor: '123456'
       x-stoplight:
         id: tckdfvccg0kdp
-    user_apitoken:
-      description: User API Token
-      properties:
-        created_time:
-          example: 1626875902
-          readOnly: true
-          type: integer
-        id:
-          example: 864f351a-1377-4ad9-83f8-72f3fe6199ba
-          format: uuid
-          readOnly: true
-          type: string
-        key:
-          example: 1qkb...QQCL
-          readOnly: true
-          type: string
-        last_used:
-          example: 1690115110
-          nullable: true
-          readOnly: true
-          type: integer
-        name:
-          description: name of the token
-          example: org_token_xyz
-          type: string
-      type: object
-      x-examples:
-        Example 1:
-          created_time: 1626875902
-          id: 864f351a-1377-4ad9-83f8-72f3fe6199ba
-          key: 1qkb...QQCL
-          last_used: 1690115110
-          name: org_token_xyz
-      x-stoplight:
-        id: 9ced0c58817a5
   securitySchemes:
     apiToken:
       description: "Like many other API providers, it\u2019s also possible to generate\

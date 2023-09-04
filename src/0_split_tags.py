@@ -65,8 +65,9 @@ for path in data.get("paths", {}):
                 properties[verb]["tags"].append("Installer")
                 logs.append(f"{properties[verb]['operationId']} >>>> Installer")
     elif (
-        path.startswith("/api/v1/self")
-        or path.startswith("/api/v1/login")
+        path.startswith("/api/v1/login")
+        or path.startswith("/api/v1/lookup")
+        or path.startswith("/api/v1/tow_factor")
         or path.startswith("/api/v1/logout")
         or path.startswith("/api/v1/recover")
     ):
@@ -75,6 +76,12 @@ for path in data.get("paths", {}):
                 print(f">>>>>>>>>>>>>>>>> {properties[verb]['operationId']}")
                 properties[verb]["tags"].append("Authentication")
                 logs.append(f"{properties[verb]['operationId']} >>>> Authentication")
+    elif path.startswith("/api/v1/self"):
+        for verb in properties:
+            if verb in ["get", "post", "put", "delete"]:
+                print(f">>>>>>>>>>>>>>>>> {properties[verb]['operationId']}")
+                properties[verb]["tags"].append("Self")
+                logs.append(f"{properties[verb]['operationId']} >>>> Self")
     elif (
         "post" in properties
         or "delete" in properties
