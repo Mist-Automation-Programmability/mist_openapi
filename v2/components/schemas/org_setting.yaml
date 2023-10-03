@@ -224,6 +224,14 @@ properties:
             description: private key password (optional)
             type: string
         type: object
+      use_ssl_port:
+        default: false
+        description: "By default NAS devices (switches/aps) and proxies(mxedge) are\
+          \ configured to use port TCP2083(radsec) to reach mist-nac. \nSet `use_ssl_port`==`true`\
+          \ to override that port with TCP43 (ssl), \nThis is a org level setting\
+          \ that is applicable to wlans, switch-templates, and mxedge-clusters that\
+          \ have mist-nac enabled"
+        type: boolean
     type: object
   modified_time:
     readOnly: true
@@ -232,6 +240,9 @@ properties:
     format: uuid
     readOnly: true
     type: string
+  mxedge_fips_enabled:
+    default: false
+    type: boolean
   mxedge_mgmt:
     $ref: ./org_auto_rules.yaml
   org_id:
@@ -308,11 +319,26 @@ properties:
     type: object
   synthetic_test:
     properties:
-      urls:
-        items:
-          example: https://internal_app:8080/path
-          type: string
-        type: array
+      vlans:
+        additionalProperties:
+          properties:
+            custom_test_urls:
+              items:
+                type: string
+              type: array
+            disabled:
+              description: for some vlans where we don't want this to run
+              type: boolean
+          type: object
+        description: Property key is the vlan id or list of vlan ids
+        example:
+          10,20:
+            custom_test_urls:
+            - http://www.abc.com/
+            - https://10.3.5.1:8080/about
+          30,40:
+            disabled: true
+        type: object
     type: object
   tags:
     description: list of tags
@@ -344,6 +370,12 @@ properties:
     properties:
       enabled:
         default: false
+        type: boolean
+    type: object
+  wireless_pma:
+    properties:
+      enabled:
+        default: true
         type: boolean
     type: object
 title: org_setting

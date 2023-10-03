@@ -2,7 +2,7 @@ properties:
   archive:
     properties:
       files:
-        example: 111
+        example: 20
         type: integer
       size:
         example: 5m
@@ -12,37 +12,7 @@ properties:
     properties:
       contents:
         items:
-          properties:
-            facility:
-              enum:
-              - any
-              - authorization
-              - conflict-log
-              - change-log
-              - daemon
-              - dfc
-              - kernel
-              - interactive-commands
-              - ftp
-              - firewall
-              - external
-              - pfe
-              - ntp
-              - security
-              - user
-              type: string
-            severity:
-              enum:
-              - any
-              - alert
-              - emergency
-              - critical
-              - warning
-              - info
-              - notice
-              - error
-              type: string
-          type: object
+          $ref: ./remote_syslog_content.yaml
         type: array
     type: object
   enabled:
@@ -62,37 +32,7 @@ properties:
           type: object
         contents:
           items:
-            properties:
-              facility:
-                enum:
-                - any
-                - authorization
-                - conflict-log
-                - change-log
-                - daemon
-                - dfc
-                - kernel
-                - interactive-commands
-                - ftp
-                - firewall
-                - external
-                - pfe
-                - ntp
-                - security
-                - user
-                type: string
-              severity:
-                enum:
-                - any
-                - alert
-                - emergency
-                - critical
-                - warning
-                - info
-                - notice
-                - error
-                type: string
-            type: object
+            $ref: ./remote_syslog_content.yaml
           type: array
         explicit_priority:
           type: boolean
@@ -109,46 +49,24 @@ properties:
   network:
     description: if source_address is configured, will use the vlan firstly otherwise
       use source_ip
+    example: default
     type: string
   send_to_all_servers:
-    default: true
+    default: false
     type: boolean
   servers:
+    example:
+    - facility: config
+      host: syslogd.internal
+      port: 514
+      protocol: udp
+      severity: info
+      tag: ''
     items:
       properties:
         contents:
           items:
-            properties:
-              facility:
-                enum:
-                - any
-                - authorization
-                - conflict-log
-                - change-log
-                - daemon
-                - dfc
-                - kernel
-                - interactive-commands
-                - ftp
-                - firewall
-                - external
-                - pfe
-                - ntp
-                - security
-                - user
-                type: string
-              severity:
-                enum:
-                - any
-                - alert
-                - emergency
-                - critical
-                - warning
-                - info
-                - notice
-                - error
-                type: string
-            type: object
+            $ref: ./remote_syslog_content.yaml
           type: array
         explicit_priority:
           type: boolean
@@ -158,6 +76,7 @@ properties:
           - authorization
           - conflict-log
           - change-log
+          - config
           - daemon
           - dfc
           - kernel
@@ -169,6 +88,7 @@ properties:
           - ntp
           - security
           - user
+          example: config
           type: string
         host:
           example: syslogd.internal
@@ -214,43 +134,14 @@ properties:
     - millisecond
     - year
     - year millisecond
+    example: millisecond
     type: string
   users:
     items:
       properties:
         contents:
           items:
-            properties:
-              facility:
-                enum:
-                - any
-                - authorization
-                - conflict-log
-                - change-log
-                - daemon
-                - dfc
-                - kernel
-                - interactive-commands
-                - ftp
-                - firewall
-                - external
-                - pfe
-                - ntp
-                - security
-                - user
-                type: string
-              severity:
-                enum:
-                - any
-                - alert
-                - emergency
-                - critical
-                - warning
-                - info
-                - notice
-                - error
-                type: string
-            type: object
+            $ref: ./remote_syslog_content.yaml
           type: array
         match:
           example: '"!alarm|ntp|errors.crc_error[chan]"'
@@ -263,55 +154,39 @@ properties:
 title: remote_syslog
 type: object
 x-examples:
-  example-1:
+  Example 1:
     archive:
-      files: 111
+      files: 20
       size: 5m
     console:
       contents:
-      - facility: any | authorization | conflict-log | change-log | daemon | dfc |
-          kernel | interactive-commands | ftp | firewall | external | pfe | ntp |
-          security | user
-        severity: any | alert | emergency | critical | warning | info | notice | error
-    enabled: true
+      - facility: config
+        severity: warning
+    enabled: false
     files:
     - archive:
         files: 10
         size: 5m
       contents:
-      - facility: any | authorization | conflict-log | change-log | daemon | dfc |
-          kernel | interactive-commands | ftp | firewall | external | pfe | ntp |
-          security | user
-        severity: any | alert | emergency | critical | warning | info | notice | error
+      - facility: config
+        severity: warning
       explicit_priority: true
       file: file-name
       match: '!alarm|ntp|errors.crc_error[chan]'
       structured_data: true
     network: default
-    send_to_all_servers: true
+    send_to_all_servers: false
     servers:
-    - contents:
-      - facility: any | authorization | conflict-log | change-log | daemon | dfc |
-          kernel | interactive-commands | ftp | firewall | external | pfe | ntp |
-          security | user
-        severity: any | alert | emergency | critical | warning | info | notice | error
-      explicit_priority: true
-      facility: config
+    - facility: config
       host: syslogd.internal
-      match: '!alarm|ntp|errors.crc_error[chan]'
       port: 514
       protocol: udp
-      routing_instance: routing-instance-name
       severity: info
-      source_address: 192.168.1.1
-      structured_data: true
       tag: ''
-    time_format: millisecond | year |  year millisecond
+    time_format: millisecond
     users:
     - contents:
-      - facility: any | authorization | conflict-log | change-log | daemon | dfc |
-          kernel | interactive-commands | ftp | firewall | external | pfe | ntp |
-          security | user
-        severity: any | alert | emergency | critical | warning | info | notice | error
-      match: '!alarm|ntp|errors.crc_error[chan]'
+      - facility: config
+        severity: warning
+      match: '"!alarm|ntp|errors.crc_error[chan]"'
       user: '*'

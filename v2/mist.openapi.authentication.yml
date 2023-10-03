@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2306.2.8**
+  description: '> Version: **2309.1.1**
 
     >
 
-    > Date: **July 10, 2023**
+    > Date: **September 28, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2306.2.8
+  version: 2309.1.1
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -68,15 +68,20 @@ tags:
     the authorizaiton code by clicking / going through Authorization URL Link Mist
     Account against OAuth2 Provider by using the authorization code
   name: Login With OAuth2
+- name: Self Account
 - description: "Like many other API providers, it\u2019s also possible to generate\
     \ API Tokens to be used (in HTTP Header) for authentication. An API token ties\
     \ to a Admin with equal or less privileges.\n\nNotes:\n* an API token generated\
     \ for a specific admin has the same privilege as the user\n* an API token will\
     \ be automatically removed if not used for > 90 days\n* SSO admins cannot generate\
     \ these API tokens. Refer Org level API tokens (/api/v1/docs/Org#api-token) which\
-    \ can have privileges of a specific Org/Site for more information."
-  name: API Token
-- name: Self
+    \ can have privileges of a specific Org/Site for more information.    "
+  name: Self API Token
+- name: Self OAuth2
+- name: Recover Password
+- name: Self MFA
+- name: Self Alarms
+- name: Self Audit Logs
 paths:
   /api/v1/login:
     post:
@@ -89,27 +94,17 @@ paths:
         content:
           application/json:
             examples:
-              with 2FA:
+              Example with 2FA:
                 value:
-                  email: string
-                  password: string
-                  two_factor: string
-              without 2FA:
+                  email: test@mistsys.com
+                  password: foryoureyesonly
+                  two_factor: '123456'
+              Example without 2FA:
                 value:
-                  email: string
-                  password: string
+                  email: test@mistsys.com
+                  password: foryoureyesonly
             schema:
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
-                two_factor:
-                  type: string
-              required:
-              - email
-              - password
-              type: object
+              $ref: ./components/schemas/login.yaml
       responses:
         '200':
           content:
@@ -193,41 +188,15 @@ paths:
                 type: object
           description: account exists
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
           description: user does not exist
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: lookup
       tags:
       - Login
@@ -240,53 +209,15 @@ paths:
         '200':
           $ref: '#/components/responses/OK'
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: unlinkOAuth2Provider
       tags:
       - Login With OAuth2
@@ -321,53 +252,15 @@ paths:
                 type: object
           description: OK
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: getOAuth2AuthorizationUrlForLogin
       tags:
       - Login With OAuth2
@@ -400,53 +293,15 @@ paths:
         '200':
           $ref: '#/components/responses/OK'
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: loginOAuth2
       tags:
       - Login With OAuth2
@@ -459,54 +314,28 @@ paths:
         content:
           application/json:
             examples:
-              example-1:
+              Example:
                 value:
                   two_factor: '123456'
             schema:
-              properties:
-                two_factor:
-                  type: string
-              required:
-              - two_factor
-              type: object
+              $ref: ./components/schemas/two_factor.yaml
       responses:
         '200':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: two_factor code is correct
-          headers: {}
+          $ref: '#/components/responses/OK'
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
           description: "two_factor code is incorrect or the user hasn\u2019t login\
             \ yet"
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
           description: "the user doesn\u2019t have 2FA enabled"
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: twoFactor
       tags:
-      - Login With OAuth2
+      - Login
       - Authentication
   /api/v1/logout:
     post:
@@ -528,53 +357,15 @@ paths:
                 type: object
           description: OK
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: logout
       tags:
       - Login
@@ -607,56 +398,18 @@ paths:
         '200':
           $ref: '#/components/responses/OK'
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: recoverPassword
       tags:
-      - Self
+      - Recover Password
       - Authentication
   /api/v1/recover/verify/{token}:
     parameters:
@@ -671,56 +424,18 @@ paths:
         '200':
           $ref: '#/components/responses/OK'
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: verifyRecoverPasssword
       tags:
-      - Self
+      - Recover Password
       - Authentication
   /api/v1/self:
     delete:
@@ -757,48 +472,16 @@ paths:
                 type: object
           description: Bad Request
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: deleteSelf
       tags:
-      - Self
+      - Self Account
       - Authentication
     get:
       description: "Get \u2018whoami\u2019 and privileges (which org and which sites\
@@ -808,56 +491,18 @@ paths:
         '200':
           $ref: '#/components/responses/Admin'
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: getSelf
       tags:
-      - Self
+      - Self Account
       - Authentication
     put:
       description: update Account Information
@@ -883,56 +528,18 @@ paths:
         '200':
           $ref: '#/components/responses/Admin'
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: updateSelf
       tags:
-      - Self
+      - Self Account
       - Authentication
   /api/v1/self/apitokens:
     get:
@@ -940,58 +547,20 @@ paths:
       operationId: listApiTokens
       responses:
         '200':
-          $ref: '#/components/responses/ApitokensArray'
+          $ref: '#/components/responses/ApitokensUserArray'
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: listApiTokens
       tags:
-      - API Token
+      - Self API Token
       - Authentication
     post:
       description: 'Create API Token
@@ -1001,65 +570,30 @@ paths:
       requestBody:
         content:
           application/json:
+            examples:
+              Example 1:
+                value:
+                  created_time: 1626875902
+                  last_used: 1690115110
+                  name: org_token_xyz
             schema:
-              properties:
-                name:
-                  type: string
-              type: object
+              $ref: ./components/schemas/user_apitoken.yaml
       responses:
         '200':
-          $ref: '#/components/responses/Apitoken'
+          $ref: '#/components/responses/ApitokensUserArray'
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: createApiToken
       tags:
-      - API Token
+      - Self API Token
       - Authentication
   /api/v1/self/apitokens/{apitoken_id}:
     delete:
@@ -1069,56 +603,28 @@ paths:
         '200':
           $ref: '#/components/responses/OK'
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: deleteApiToken
       tags:
-      - API Token
+      - Self API Token
+      - Authentication
+    get:
+      description: Get User API Token
+      operationId: getApiToken
+      responses:
+        '200':
+          $ref: '#/components/responses/ApitokenUser'
+      summary: getApiToken
+      tags:
+      - Self API Token
       - Authentication
     parameters:
     - in: path
@@ -1126,6 +632,25 @@ paths:
       required: true
       schema:
         type: string
+    put:
+      description: Update User API Token
+      operationId: updateApiToken
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  name: org_token_xyz
+            schema:
+              $ref: ./components/schemas/user_apitoken.yaml
+      responses:
+        '200':
+          $ref: '#/components/responses/ApitokenUser'
+      summary: updateApiToken
+      tags:
+      - Self API Token
+      - Authentication
   /api/v1/self/logs:
     get:
       description: 'Get List of change logs across all Orgs for current admin
@@ -1249,56 +774,18 @@ paths:
                 type: object
           description: OK
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: listSelfAuditLogs
       tags:
-      - Self
+      - Self Audit Logs
       - Authentication
   /api/v1/self/oauth/{provider}:
     get:
@@ -1331,56 +818,18 @@ paths:
                 type: object
           description: OK
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: getOAuth2UrlForLinking
       tags:
-      - Login With OAuth2
+      - Self OAuth2
       - Authentication
     parameters:
     - in: path
@@ -1447,48 +896,16 @@ paths:
                 type: object
           description: Authorization Error
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: linkOAuth2MistAccount
       tags:
-      - Login With OAuth2
+      - Self OAuth2
       - Authentication
   /api/v1/self/subscriptions:
     get:
@@ -1512,63 +929,26 @@ paths:
                 uniqueItems: true
           description: OK
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: listAlarmSubscriptions
       tags:
-      - Self
+      - Self Alarms
       - Authentication
   /api/v1/self/two_factor/token:
     get:
       description: Generate QR code for verification
       operationId: generateQrCodeForVerification
       parameters:
-      - in: query
+      - description: if `by`==`qrcode`, returns the secret as a qrcode image
+        in: query
         name: by
         schema:
           default: qrcode
@@ -1577,58 +957,20 @@ paths:
           type: string
       responses:
         '200':
-          $ref: '#/components/responses/OK'
+          $ref: '#/components/responses/TwoFactorToken'
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: generateQrCodeForVerification
       tags:
-      - Self
+      - Self MFA
       - Authentication
   /api/v1/self/two_factor/verify:
     post:
@@ -1661,56 +1003,18 @@ paths:
                 type: object
           description: Response when 2FA verification is successful
         '400':
-          content:
-            application/json:
-              schema:
-                properties: {}
-                type: object
-          description: The API endpoint exists but its syntax/payload is incorrect,
-            detail may be given
+          $ref: '#/components/responses/HTTP400'
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: verifyTwoFactor
       tags:
-      - Self
+      - Self MFA
       - Authentication
   /api/v1/self/update:
     post:
@@ -1763,48 +1067,16 @@ paths:
                 type: object
           description: invalid email address or new email address already exists
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: updateSelfEmail
       tags:
-      - Self
+      - Self Account
       - Authentication
   /api/v1/self/update/verify/{token}:
     get:
@@ -1841,48 +1113,16 @@ paths:
                 type: object
           description: Bad Request
         '401':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Authentication credentials were not provided.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Unauthorized
+          $ref: '#/components/responses/HTTP401'
         '403':
-          content:
-            application/json:
-              examples:
-                Permission Denied:
-                  value:
-                    detail: You do not have permission to perform this action.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Permission Denied
+          $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                Unauthorized:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Not found. The API endpoint doesn't exist or resource doesn't
-            exist
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: verifySelfEmail
       tags:
-      - Self
+      - Self Account
       - Authentication
     parameters:
     - $ref: '#/components/parameters/token'
@@ -1963,83 +1203,466 @@ components:
           schema:
             $ref: ./components/schemas/admin.yaml
       description: OK
-    Apitoken:
+    ApitokenUser:
       content:
         application/json:
           examples:
-            Org API Token:
+            Example:
               value:
-                created_time: 0
-                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                key: string
-                last_used: 0
-                name: string
-                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                privileges:
-                - msp_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  msp_name: string
-                  name: string
-                  org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  org_name: string
-                  orggroup_ids:
-                  - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  role: admin
-                  scope: org
-                  site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  sitegroup_ids:
-                  - 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
-            User API Token:
-              value:
-                created_time: 0
-                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                key: string
-                last_used: 0
-                name: string
-                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                created_time: 1626875902
+                id: 864f351a-1377-4ad9-83f8-72f3fe6199ba
+                key: 1qkb...QQCL
+                last_used: 1690115110
+                name: org_token_xyz
           schema:
-            $ref: ./components/schemas/apitoken.yaml
+            $ref: ./components/schemas/user_apitoken.yaml
       description: OK
-    ApitokensArray:
+    ApitokensUserArray:
       content:
         application/json:
           examples:
-            Org API Tokens:
+            Example:
               value:
-              - created_time: 0
-                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                key: string
-                last_used: 0
-                name: string
-                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                privileges:
-                - msp_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  msp_name: string
-                  name: string
-                  org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  org_name: string
-                  orggroup_ids:
-                  - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  role: admin
-                  scope: org
-                  site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  sitegroup_ids:
-                  - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-            User API Tokens:
-              value:
-              - created_time: 0
-                id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                key: string
-                last_used: 0
-                name: string
-                org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+              - created_time: 1626875902
+                id: 864f351a-1377-4ad9-83f8-72f3fe6199ba
+                key: 1qkb...QQCL
+                last_used: 1690115110
+                name: org_token_xyz
           schema:
             items:
-              $ref: ./components/schemas/apitoken.yaml
+              $ref: ./components/schemas/user_apitoken.yaml
             type: array
       description: OK
+    HTTP400:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                detail: 'JSON parse error - Expecting value: line 5 column 8 (char
+                  56)'
+          schema:
+            properties:
+              detail:
+                example: 'JSON parse error - Expecting value: line 5 column 8 (char
+                  56)'
+                type: string
+            type: object
+            x-examples:
+              Example 1:
+                detail: JSON parse error
+      description: Bad Syntax
+    HTTP401:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                detail: Authentication credentials were not provided.
+          schema:
+            properties:
+              detail:
+                example: Authentication credentials were not provided.
+                type: string
+            type: object
+            x-examples:
+              Example 1:
+                detail: Authentication credentials were not provided.
+      description: Unauthorized
+    HTTP403:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                detail: You do not have permission to perform this action.
+          schema:
+            properties:
+              detail:
+                example: You do not have permission to perform this action.
+                type: string
+            type: object
+            x-examples:
+              Example 1:
+                detail: You do not have permission to perform this action.
+      description: Permission Denied
+    HTTP404:
+      content:
+        application/json:
+          schema:
+            properties:
+              id:
+                type: string
+      description: "Not found. The API endpoint doesn\u2019t exist or resource doesn\u2019\
+        t exist"
+    HTTP429:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                detail: Too Many Request. The API Token used for the request reached
+                  the 5000 API Calls per hour threshold
+          schema:
+            properties:
+              detail:
+                example: Too Many Request. The API Token used for the request reached
+                  the 5000 API Calls per hour threshold
+                type: string
+            type: object
+        application/xml:
+          schema:
+            properties: {}
+            type: object
+      description: Too Many Request. The API Token used for the request reached the
+        5000 API Calls per hour threshold
     OK:
       content:
         application/json:
           schema:
             type: object
       description: OK
+    TwoFactorToken:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                two_factor_secret: pYbeqdBaiFemq9qb4UbGGaqJZKcQX1gG
+          schema:
+            properties:
+              two_factor_secret:
+                example: pYbeqdBaiFemq9qb4UbGGaqJZKcQX1gG
+                type: string
+            type: object
+            x-examples:
+              Example 1:
+                two_factor_secret: pYbeqdBaiFemq9qb4UbGGaqJZKcQX1gG
+        application/octet-stream:
+          schema:
+            description: if `by`==`qrcode`, returns the secret as a qrcode image
+            type: string
+      description: Two Factor configuration Token
+  schemas:
+    Model_object_email:
+      properties:
+        email:
+          format: email
+          type: string
+      required:
+      - email
+      title: Model_object_email
+      type: object
+      x-examples:
+        example-1:
+          email: user@example.com
+    admin:
+      description: Admin
+      properties:
+        admin_id:
+          example: 456b7016-a916-a4b1-78dd-72b947c152b7
+          format: uuid
+          readOnly: true
+          type: string
+        email:
+          example: jsnow@abc.com
+          format: email
+          type: string
+        enable_two_factor:
+          readOnly: true
+          type: boolean
+        expire_time:
+          type: integer
+        first_name:
+          description: for an invite, this is the original first name used
+          example: John
+          type: string
+        hours:
+          default: 24
+          description: how long the invite should be valid
+          maximum: 168
+          minimum: 1
+          type: integer
+        last_name:
+          description: for an invite, this is the original last name used
+          example: Sno
+          type: string
+        oauth_google:
+          readOnly: true
+          type: boolean
+        phone:
+          description: phone number (numbers only, including country code)
+          type: string
+        phone2:
+          description: secondary phone number (numbers only, including country code)
+          type: string
+        privileges:
+          description: list of privileges the admin has on the MSP / Orgs / OrgGroups
+          items:
+            $ref: ./components/schemas/privileges.yaml
+          minItems: 1
+          readOnly: true
+          type: array
+          uniqueItems: true
+        session_expiry:
+          example: 1440
+          readOnly: true
+          type: integer
+        tags:
+          items:
+            type: string
+          readOnly: true
+          type: array
+        two_factor_verified:
+          description: two factor status
+          readOnly: true
+          type: boolean
+        via_sso:
+          description: an admin alogin via_sso is more restircted. (password and email
+            cannot be changed)
+          readOnly: true
+          type: boolean
+      required:
+      - email
+      - first_name
+      - last_name
+      type: object
+      x-examples:
+        example-1:
+          privileges:
+          - role: write
+            scope: org
+            view: reporting
+          - role: write
+            scope: site
+            site_id: d96e3952-53e8-4266-959a-45acd55f5114
+            view: reporting
+          - role: write
+            scope: sitegroup
+            sitegroup_id: 581328b6-e382-f54e-c9dc-999983183a34
+            view: reporting
+    login:
+      properties:
+        email:
+          example: test@mistsys.com
+          type: string
+        password:
+          example: foryoureyesonly
+          type: string
+        two_factor:
+          example: '123456'
+          type: string
+      required:
+      - email
+      - password
+      title: login
+      type: object
+      x-examples: {}
+      x-stoplight:
+        id: epuznogs8v6ey
+    privileges:
+      description: Privilieges settings
+      properties:
+        for_site:
+          readOnly: true
+          type: boolean
+        msp_id:
+          description: id of the MSP (if the org belongs to an MSP)
+          format: uuid
+          nullable: true
+          type: string
+        msp_logo_url:
+          description: logo of the MSP (if the MSP belongs to an Advanced tier)
+          type: string
+        msp_name:
+          description: name of the MSP (if the org belongs to an MSP)
+          nullable: true
+          type: string
+        msp_url:
+          description: custom url of the MSP (if the MSP belongs to an Advanced tier)
+          type: string
+        name:
+          description: name of the org/site/MSP depending on object scope
+          type: string
+        org_id:
+          description: id of the org
+          format: uuid
+          nullable: true
+          type: string
+        org_name:
+          description: name of the org (for a site belonging to org)
+          type: string
+        orggroup_ids:
+          description: list of orggroup ids (if the org belongs to an MSP)
+          items:
+            format: uuid
+            type: string
+          type: array
+        role:
+          description: access permissions
+          enum:
+          - admin
+          - write
+          - read
+          - helpdesk
+          - installer
+          type: string
+        scope:
+          description: "list of privileges the admin has on the MSP\_/ OrgGroups /\
+            \ Orgs / Sites"
+          enum:
+          - org
+          - site
+          - msp
+          - orggroup
+          type: string
+        site_id:
+          description: id of the site
+          format: uuid
+          nullable: true
+          type: string
+        sitegroup_ids:
+          description: list of sitegroup ids
+          items:
+            format: uuid
+            type: string
+          type: array
+        views:
+          description: 'Custom roles restrict Org users to specific UI views. This
+            is useful for limiting UI access of Org users.
+
+
+            You can invite a new user or update existing users in your Org to this
+            custom role. For this, specify view along with role when assigning privileges.
+
+
+            Below are the list of supported UI views. Note that this is UI only feature
+
+            Custom roles restrict Org users to specific UI views. This is useful for
+            limiting UI access of Org users.
+
+
+            You can invite a new user or update existing users in your Org to this
+            custom role. For this, specify `view` along with `role` when assigning
+            privileges.
+
+
+            Below are the list of supported UI views. Note that this is UI only feature
+
+
+            | UI View | Description |
+
+            | --- | --- |
+
+            | `reporting` | full access to all analytics tools |
+
+            | `marketing` | can view analytics and location maps |
+
+            | `location` | can view and manage location maps |
+
+            | `security` | can view and manage WLAN, rogues and authentication |
+
+            | `switch_admin` | can view and manage Switch ports |
+
+            | `mxedge_admin` | can view and manage Mist edges and Mist tunnels |
+
+            | `lobby_admin` | full access to Org and Site Pre-shared keys |'
+          items:
+            type: string
+          type: array
+      required:
+      - role
+      - scope
+      title: ''
+      type: object
+      x-examples:
+        example-1:
+          msp_id: 9520c63a-f7b3-670c-0944-727774d5a722
+          msp_name: MSP
+          name: TestCompany
+          org_id: 9ff00eec-24f0-44d7-bda4-6238c81376ee
+          orggroup_ids:
+          - 9ff00eec-24f0-44d7-bda4-6238c81376ee
+          role: admin
+          scope: org
+        example-2:
+          name: Mist Office
+          org_id: 9ff00eec-24f0-44d7-bda4-6238c81376ee
+          org_name: TestCompany
+          role: admin
+          scope: site
+          site_id: d96e3952-53e8-4266-959a-45acd55f5114
+          sitegroup_ids:
+          - 581328b6-e382-f54e-c9dc-999983183a34
+        example-3:
+          msp_id: 9520c63a-f7b3-670c-0944-727774d5a722
+          name: MSP
+          role: admin
+          scope: msp
+    two_factor:
+      properties:
+        two_factor:
+          example: '123456'
+          type: string
+      required:
+      - two_factor
+      title: two_factor
+      type: object
+      x-examples:
+        Example:
+          two_factor: '123456'
+      x-stoplight:
+        id: tckdfvccg0kdp
+    user_apitoken:
+      description: User API Token
+      properties:
+        created_time:
+          example: 1626875902
+          readOnly: true
+          type: integer
+        id:
+          example: 864f351a-1377-4ad9-83f8-72f3fe6199ba
+          format: uuid
+          readOnly: true
+          type: string
+        key:
+          example: 1qkb...QQCL
+          readOnly: true
+          type: string
+        last_used:
+          example: 1690115110
+          nullable: true
+          readOnly: true
+          type: integer
+        name:
+          description: name of the token
+          example: org_token_xyz
+          type: string
+      type: object
+      x-examples:
+        Example 1:
+          created_time: 1626875902
+          id: 864f351a-1377-4ad9-83f8-72f3fe6199ba
+          key: 1qkb...QQCL
+          last_used: 1690115110
+          name: org_token_xyz
+      x-stoplight:
+        id: 9ced0c58817a5
+  securitySchemes:
+    apiToken:
+      description: "Like many other API providers, it\u2019s also possible to generate\
+        \ API Tokens to be used (in HTTP Header) for authentication. An API token\
+        \ ties to a Admin with equal or less privileges.\n\n**Format**:\n  API Token\
+        \ value format is `Token {apitoken}`\n\n**Notes**:\n* an API token generated\
+        \ for a specific admin has the same privilege as the user\n* an API token\
+        \ will be automatically removed if not used for > 90 days\n* SSO admins cannot\
+        \ generate these API tokens. Refer Org level API tokens which can have privileges\
+        \ of a specific Org/Site for more information."
+      in: header
+      name: Authorization
+      type: apiKey
+    basicAuth:
+      description: "While our current UI uses Session / Cookie-based authentication,\
+        \ it\u2019s also possible to do Basic Auth."
+      scheme: basic
+      type: http
