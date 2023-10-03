@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2308.1.1**
+  description: '> Version: **2309.1.1**
 
     >
 
-    > Date: **August 31, 2023**
+    > Date: **September 28, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: orgs - monitor
-  version: 2308.1.1
+  version: 2309.1.1
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -95,6 +95,7 @@ tags:
 - name: Orgs Stats
 - name: Orgs Tickets
 - name: Orgs Tunnels Stats
+- name: Orgs Vars
 - name: Orgs VPNs
 - name: Orgs Webhooks
 - name: Orgs WxTags
@@ -1346,7 +1347,7 @@ paths:
     - $ref: '#/components/parameters/org_id'
     get:
       description: Count Org Devices Events
-      operationId: countOrgDevicesEvents
+      operationId: countOrgDeviceEvents
       parameters:
       - in: query
         name: distinct
@@ -1416,7 +1417,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: countOrgDevicesEvents
+      summary: countOrgDeviceEvents
       tags:
       - Orgs Devices
   /api/v1/orgs/{org_id}/devices/events/search:
@@ -1424,7 +1425,7 @@ paths:
     - $ref: '#/components/parameters/org_id'
     get:
       description: Search Org Devices Events
-      operationId: searchOrgDevicesEvents
+      operationId: searchOrgDeviceEvents
       parameters:
       - description: device mac
         in: query
@@ -1461,13 +1462,19 @@ paths:
         name: type
         schema:
           type: string
+      - description: Return last/recent event for passed in field
+        example: port_id
+        in: query
+        name: last_by
+        schema:
+          type: string
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       responses:
         '200':
-          $ref: '#/components/responses/DevicesEventsSearch'
+          $ref: '#/components/responses/DeviceEventsSearch'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -1478,7 +1485,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: searchOrgDevicesEvents
+      summary: searchOrgDeviceEvents
       tags:
       - Orgs Devices
   /api/v1/orgs/{org_id}/devices/last_config/count:
@@ -1580,6 +1587,9 @@ paths:
     get:
       description: Get List of Org AP Device Mac and Radio MACs
       operationId: listOrgApsMacs
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           content:
@@ -1771,7 +1781,7 @@ paths:
     - $ref: '#/components/parameters/org_id'
     get:
       description: Count Org OtherDevices Events
-      operationId: countOrgOtherDevicesEvents
+      operationId: countOrgOtherDeviceEvents
       parameters:
       - in: query
         name: distinct
@@ -1801,7 +1811,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: countOrgOtherDevicesEvents
+      summary: countOrgOtherDeviceEvents
       tags:
       - Orgs Devices Others
   /api/v1/orgs/{org_id}/otherdevices/events/search:
@@ -1809,7 +1819,7 @@ paths:
     - $ref: '#/components/parameters/org_id'
     get:
       description: Search Org OtherDevices Events
-      operationId: searchOrgOtherDevicesEvents
+      operationId: searchOrgOtherDeviceEvents
       parameters:
       - description: site id
         in: query
@@ -1859,7 +1869,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: searchOrgOtherDevicesEvents
+      summary: searchOrgOtherDeviceEvents
       tags:
       - Orgs Devices Others
   /api/v1/orgs/{org_id}/stats/otherdevices/{device_mac}:
@@ -2587,6 +2597,9 @@ paths:
     get:
       description: Get List of premium analytics dashboards for this Org
       operationId: listOrgPmaDashboards
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           content:
@@ -3179,11 +3192,6 @@ paths:
         in response header (as the response is an array)'
       operationId: listOrgDevicesStats
       parameters:
-      - $ref: '#/components/parameters/page'
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
       - in: query
         name: type
         schema:
@@ -3224,6 +3232,12 @@ paths:
         name: evpn_unused
         schema:
           type: string
+      - $ref: '#/components/parameters/fields'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
       responses:
         '200':
           $ref: '#/components/responses/DevicesArrayStatsOrg'
@@ -3724,6 +3738,106 @@ paths:
       summary: searchOrgTunnelsStats
       tags:
       - Orgs Tunnels Stats
+  /api/v1/orgs/{org_id}/vars/search:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    get:
+      description: 'Search vars
+
+
+        Example: /api/v1/orgs/:org_id/vars/search?vars=*'
+      operationId: searchOrgVars
+      parameters:
+      - in: query
+        name: site_id
+        schema:
+          type: string
+      - in: query
+        name: vars
+        schema:
+          type: string
+      - in: query
+        name: src
+        schema:
+          enum:
+          - site
+          - deviceprofile
+          type: string
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                Example:
+                  value:
+                    end: 1693952979
+                    limit: 10
+                    results:
+                    - created_time: 1618457655.384858
+                      modified_time: 1693610886.477805
+                      org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
+                      site_id: 1519f016-4e41-47c0-a396-cce4d04bac0b
+                      src: setting
+                      var: mvp
+                    start: 1693949379
+                    total: 1
+              schema:
+                properties:
+                  end:
+                    type: integer
+                  limit:
+                    type: integer
+                  results:
+                    items:
+                      properties:
+                        created_time:
+                          type: number
+                        modified_time:
+                          type: number
+                        org_id:
+                          type: string
+                        site_id:
+                          type: string
+                        src:
+                          type: string
+                        var:
+                          type: string
+                      type: object
+                    type: array
+                  start:
+                    type: integer
+                  total:
+                    type: integer
+                type: object
+                x-examples:
+                  Example 1:
+                    end: 1693952979
+                    limit: 10
+                    results:
+                    - created_time: 1618457655.384858
+                      modified_time: 1693610886.477805
+                      org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
+                      site_id: 1519f016-4e41-47c0-a396-cce4d04bac0b
+                      src: setting
+                      var: mvp
+                    start: 1693949379
+                    total: 1
+          description: OK
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: searchOrgVars
+      tags:
+      - Orgs Vars
   /api/v1/orgs/{org_id}/stats/vpn_peers/count:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -4046,6 +4160,14 @@ components:
         default: 0
         minimum: 0
         type: integer
+    fields:
+      description: list of additional fields requests, comma separeted
+      in: query
+      name: fields
+      required: false
+      schema:
+        example: field1,field2
+        type: string
     interval:
       description: Aggregation works by giving a time range plus interval (e.g. 1d,
         1h, 10m) where aggregation function would be applied to.
@@ -4057,7 +4179,7 @@ components:
         type: string
     ip:
       in: query
-      name: ip address
+      name: ip_address
       required: false
       schema:
         example: 192.168.1.1
@@ -4615,7 +4737,7 @@ components:
             - total
             type: object
       description: OK
-    DevicesEventsSearch:
+    DeviceEventsSearch:
       content:
         application/json:
           examples:
@@ -7895,11 +8017,87 @@ components:
     stats_device_ap:
       description: AP statistics
       properties:
+        auto_placement:
+          properties:
+            _id:
+              example: 5c5b35000010
+              type: string
+            info:
+              description: Additional information about auto placements AP data
+              properties:
+                cluster_number:
+                  description: All APs sharing a given cluster number can be placed
+                    relative to each other
+                  example: 0
+                  type: integer
+                orientation_stats:
+                  description: The orientation of an AP
+                  example: 0
+                  type: integer
+                probability_surface:
+                  description: Coordinates representing a circle where the AP is most
+                    likely exists in the event of an inaccurate placement result
+                  properties:
+                    radius:
+                      description: The radius representing placement uncertainty,
+                        measured in pixels
+                      example: 2.1
+                      type: number
+                    radius_m:
+                      description: The radius representing placement uncertainty,
+                        measured in meters
+                      type: number
+                    x:
+                      description: "X-coordinate of the potential placement\u2019\
+                        s center, measured in pixels"
+                      example: 5.65
+                      type: number
+                    y:
+                      description: "Y-coordinate of the potential placement\u2019\
+                        s center, measured in pixels"
+                      example: 17
+                      type: number
+                  type: object
+              type: object
+            recommended_anchor:
+              description: Flag to represent if AP is recommended as an anchor by
+                auto placement service
+              type: boolean
+            status:
+              description: Basic Placement Status
+              example: localized
+              type: string
+            status_detail:
+              description: Additional info about placement status
+              example: localized
+              type: string
+            use_auto_placement:
+              description: Flag to represent if auto_placement values are currently
+                utilized
+              type: boolean
+            x:
+              description: X Autoplaced Position in pixels
+              example: 53.5
+              type: number
+            x_m:
+              description: X Autoplaced Position in meters
+              example: 5.35
+              type: number
+            y:
+              description: Y Autoplaced Position in pixels
+              example: 173.1
+              type: number
+            y_m:
+              description: X Autoplaced Position in meters
+              example: 17.31
+              type: number
+          type: object
         ble_config:
           properties:
             beacon_rate:
               type: integer
             beacon_rate_model:
+              example: custom
               type: string
             beam_disabled:
               items:
@@ -7908,6 +8106,7 @@ components:
             power:
               type: integer
             power_mode:
+              example: custom
               type: string
           type: object
         ble_stat:
@@ -8031,19 +8230,24 @@ components:
           properties:
             dns:
               items:
+                example: 8.8.8.8
                 type: string
               type: array
             dns_suffix:
               items:
+                example: .mist.local
                 type: string
               type: array
             gateway:
+              example: 10.2.1.254
               type: string
             ip:
+              example: 10.2.1.1
               type: string
             netmask:
               type: string
             type:
+              example: static
               type: string
           type: object
         ip_stat:
@@ -8115,6 +8319,7 @@ components:
           type: object
         last_seen:
           description: last seen timestamp
+          example: 1470417522
           type: number
         last_trouble:
           properties:
@@ -8178,8 +8383,10 @@ components:
           type: boolean
         mac:
           description: device mac
+          example: 5c5b35000010
           type: string
         map_id:
+          example: 63eda950-c6da-11e4-a628-60f81dd250cc
           format: uuid
           type: string
         mesh_downlinks:
@@ -8270,11 +8477,13 @@ components:
           type: object
         model:
           description: device model
+          example: AP200
           type: string
         mount:
           example: faceup
           type: string
         name:
+          example: conference room
           type: string
         num_clients:
           description: how many wireless clients are currently connected
@@ -8547,6 +8756,7 @@ components:
           type: integer
         serial:
           description: serial
+          example: FXLH2015170017
           type: string
         status:
           enum:
@@ -8563,6 +8773,7 @@ components:
           type: number
         type:
           description: device type, ap / ble
+          example: ap
           type: string
         uptime:
           description: how long, in seconds, has the device been up (or rebooted)
@@ -8570,251 +8781,329 @@ components:
         version:
           type: string
         x:
+          example: 53.5
           type: number
         y:
+          example: 173.1
           type: number
       required:
       - mac
       - model
       type: object
       x-examples:
-        example-1:
+        Example:
+          auto_placement:
+            _id: 5c5b35000010
+            info:
+              cluster_number: 0
+              orientation_stats: 0
+              probability_surface:
+                radius: 2.1
+                x: 5.65
+                y: '17.'
+            recommended_anchor: true
+            status: localized
+            status_detail: localized
+            use_auto_placement: true
+            x: 53.5
+            x_m: 5.35
+            y: 173.1
+            y_m: 17.31
           ble_config:
-            beacon_rate: 3
+            beacon_rate: 0
             beacon_rate_model: custom
             beam_disabled:
-            - 1
-            - 3
-            - 6
-            power: 10
+            - 0
+            power: 0
             power_mode: custom
           ble_stat:
-            beacon_rate: 3
-            eddystone_uid_enabled: false
-            eddystone_uid_freq_msec: 200
-            eddystone_uid_instance: 5c5b35000001
-            eddystone_uid_namespace: 2818e3868dec25629ede
+            beacon_rate: 0
+            eddystone_uid_enabled: true
+            eddystone_uid_freq_msec: 0
+            eddystone_uid_instance: string
+            eddystone_uid_namespace: string
             eddystone_url_enabled: true
-            eddystone_url_freq_msec: 100
-            eddystone_url_url: https://www.abc.com
+            eddystone_url_freq_msec: 0
+            eddystone_url_url: string
             ibeacon_enabled: true
-            ibeacon_major: 13
-            ibeacon_minor: 138
-            ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
-            major: 12345
+            ibeacon_major: 0
+            ibeacon_minor: 0
+            ibeacon_uuid: 1f89bc00-d0af-481b-82fe-a6629259a39f
+            major: 0
             minors:
-            - 201
-            - 202
-            - 203
-            - 204
-            - 205
-            - 206
-            - 207
-            - 208
-            power: 10
-            rx_bytes: 135
-            rx_pkts: 135
-            tx_bytes: 5231513353
-            tx_pkts: 135135135
+            - 0
+            power: 0
+            rx_bytes: 0
+            rx_pkts: 0
+            tx_bytes: 0
+            tx_pkts: 0
             tx_resets: 0
-            uuid: ada72f8f-1643-e5c6-94db-f2a5636f1a64
-          cert_expiry: 1534534392
-          ext_ip: 73.92.124.103
+            uuid: 095be615-a8ad-4c33-8e9c-c7612fbf6c9f
+          cert_expiry: 0
+          env_stat:
+            accel_x: 0
+            accel_y: 0
+            accel_z: 0
+            ambient_temp: 0
+            attitude: 0
+            cpu_temp: 0
+            humidity: 0
+            magne_x: 0
+            magne_y: 0
+            magne_z: 0
+            pressure: 0
+            vcore_voltage: 0
+          esl_stat:
+            channel: 0
+            connected: true
+            type: string
+            up: true
+          ext_ip: string
           fwupdate:
-            progress: 10
-            status: inprogress
-            status_id: 5
-            timestamp: 1428949501
+            progress: 0
+            status: string
+            status_id: 0
+            timestamp: 0
           iot_stat:
             DI2:
               value: 0
-          ip: 10.2.9.159
+          ip: string
           ip_config:
             dns:
             - 8.8.8.8
-            - 4.4.4.4
             dns_suffix:
             - .mist.local
-            - .mist.com
             gateway: 10.2.1.254
             ip: 10.2.1.1
-            netmask: 255.255.255.0
+            netmask: string
             type: static
           ip_stat:
             dns:
-            - 8.8.8.8
-            - 4.4.4.4
+            - string
             dns_suffix:
-            - .mist.local
-            - .mist.com
-            gateway: 10.2.1.254
-            gateway6: 2607:f8b0:4005:808::1
-            ip: 10.2.1.1
-            ip6: 2607:f8b0:4005:808::2004
+            - string
+            gateway: string
+            gateway6: string
+            ip: string
+            ip6: string
             ips:
-              vlan1: 10.2.1.1/24,2607:f8b0:4005:808::1/32
-              vlan193: 10.73.1.31/16
-              vlan3157: 10.72.11.14/24
-            netmask: 255.255.255.0
-            netmask6: /32
+              property1: string
+              property2: string
+            netmask: string
+            netmask6: string
           l2tp_stat:
-            7dae216d-7c98-a51b-e068-dd7d477b7216:
+            property1:
               sessions:
-              - local_sid: 31
-                remote_id: vpn1
-                remote_sid: 13
-                state: established
-              state: established_with_sessions
-              uptime: 135
-              wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
+              - local_sid: 0
+                remote_id: string
+                remote_sid: 0
+                state: string
+              state: string
+              uptime: 0
+              wxtunnel_id: a22b6fc8-8d68-45c1-939f-7f1a3747fbcf
+            property2:
+              sessions:
+              - local_sid: 0
+                remote_id: string
+                remote_sid: 0
+                state: string
+              state: string
+              uptime: 0
+              wxtunnel_id: a22b6fc8-8d68-45c1-939f-7f1a3747fbcf
           last_seen: 1470417522
           last_trouble:
-            code: '03'
-            timestamp: 1428949501
+            code: string
+            timestamp: 0
           led:
-            brightness: 255
+            brightness: 0
             enabled: true
           lldp_stat:
-            chassis_id: 63:68:61:73:73:69
-            lldp_med_supported: false
-            mgmt_addr: 10.1.5.2
-            port_desc: 2/26
-            power_allocated: 15500
-            power_draw: 15000
-            power_request_count: 3
-            power_requested: 25500
-            system_desc: HP J9729A 2920-48G-POE+ Switch
-            system_name: TC2-OWL-Stack-01
-          locating: false
+            chassis_id: string
+            lldp_med_supported: true
+            mgmt_addr: string
+            port_desc: string
+            power_allocated: 0
+            power_draw: 0
+            power_request_count: 0
+            power_requested: 0
+            system_desc: string
+            system_name: string
+          locating: true
+          locked: true
           mac: 5c5b35000010
           map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
           mesh_downlinks:
-            00000000-0000-0000-1000-5c5b356be59f:
-              band: '24'
-              channel: 7
-              idle_time: 3
-              last_seen: 1470417522
-              proto: a
-              rssi: -65
-              rx_bps: 12
-              rx_bytes: 217416
-              rx_packets: 2337
-              rx_rate: 65
-              rx_retries: 5
-              snr: 31
-              tx_bps: 6
-              tx_bytes: 175132
-              tx_packets: 1566
-              tx_rate: 65
-              tx_retries: 500
+            property1:
+              band: string
+              channel: 0
+              idle_time: 0
+              last_seen: 0
+              proto: string
+              rssi: 0
+              rx_bps: 0
+              rx_bytes: 0
+              rx_packets: 0
+              rx_rate: 0
+              rx_retries: 0
+              site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+              snr: 0
+              tx_bps: 0
+              tx_bytes: 0
+              tx_packets: 0
+              tx_rate: 0
+              tx_retries: 0
+            property2:
+              band: string
+              channel: 0
+              idle_time: 0
+              last_seen: 0
+              proto: string
+              rssi: 0
+              rx_bps: 0
+              rx_bytes: 0
+              rx_packets: 0
+              rx_rate: 0
+              rx_retries: 0
+              site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+              snr: 0
+              tx_bps: 0
+              tx_bytes: 0
+              tx_packets: 0
+              tx_rate: 0
+              tx_retries: 0
           mesh_uplink:
-            band: '24'
-            channel: 7
-            idle_time: 3
-            last_seen: 1470417522
-            proto: a
-            rssi: -65
-            rx_bps: 12
-            rx_bytes: 217416
-            rx_packets: 2337
-            rx_rate: 65
-            rx_retries: 5
-            snr: 31
-            tx_bps: 6
-            tx_bytes: 175132
-            tx_packets: 1566
-            tx_rate: 65
-            tx_retries: 500
-            uplink_ap_id: 00000000-0000-0000-1000-5c5b35000010
+            band: string
+            channel: 0
+            idle_time: 0
+            last_seen: 0
+            proto: string
+            rssi: 0
+            rx_bps: 0
+            rx_bytes: 0
+            rx_packets: 0
+            rx_rate: 0
+            rx_retries: 0
+            snr: 0
+            tx_bps: 0
+            tx_bytes: 0
+            tx_packets: 0
+            tx_rate: 0
+            tx_retries: 0
+            uplink_ap_id: 7a1e5165-af02-4d03-9a7f-eedea65d14b2
+            uplink_site_id: 4472c7d6-975f-449b-ac60-e0322008fb93
           model: AP200
+          mount: faceup
           name: conference room
-          num_clients: 10
+          num_clients: 0
           port_stat:
-            eth0:
+            property1:
               full_duplex: true
-              rx_bytes: 2056
+              rx_bytes: 0
               rx_errors: 0
-              rx_pkts: 670
-              speed: 1000
-              tx_bytes: 2056
-              tx_pkts: 670
+              rx_pkts: 0
+              speed: 0
+              tx_bytes: 0
+              tx_pkts: 0
               up: true
-            eth1:
-              up: false
-            module:
-              up: false
-          power_budget: -12000
-          power_src: PoE 802.3af
+            property2:
+              full_duplex: true
+              rx_bytes: 0
+              rx_errors: 0
+              rx_pkts: 0
+              speed: 0
+              tx_bytes: 0
+              tx_pkts: 0
+              up: true
+          power_budget: 0
+          power_constrained: true
+          power_opmode: '[20] 6GHz(2x2) 5GHz(4x4) 2.4GHz(2x2).'
+          power_src: string
           radio_config:
             band_24:
-              bandwidth: 20
+              bandwidth: 0
               channel: 0
-              dynamic_chaining_enabled: false
+              dynamic_chaining_enabled: true
               power: 0
-              rx_chain: 4
-              tx_chain: 4
+              rx_chain: 0
+              tx_chain: 0
             band_5:
-              bandwidth: 40
+              bandwidth: 0
               channel: 0
-              dynamic_chaining_enabled: false
+              dynamic_chaining_enabled: true
               power: 0
-              rx_chain: 4
-              tx_chain: 1
+              rx_chain: 0
+              tx_chain: 0
             band_6:
-              bandwidth: 40
+              bandwidth: 0
               channel: 0
+              dynamic_chaining_enabled: true
               power: 0
-              rx_chain: 4
-              tx_chain: 1
+              rx_chain: 0
+              tx_chain: 0
             scanning_enabled: true
           radio_stat:
             band_24:
               bandwidth: 20
-              channel: 6
-              mac: 5c5b350004a0
-              num_clients: 6
-              power: 19
-              rx_bytes: 8504737800
-              rx_pkts: 57731964
-              tx_bytes: 211166512114
-              tx_pkts: 812058566
+              channel: 0
+              dynamic_chaining_enalbed: true
+              mac: string
+              num_clients: 0
+              power: 0
+              rx_bytes: 0
+              rx_pkts: 0
+              tx_bytes: 0
+              tx_pkts: 0
+              util_all: 0
+              util_non_wifi: 0
+              util_rx_in_bss: 0
+              util_rx_other_bss: 0
+              util_tx: 0
+              util_unknown_wifi: 0
             band_5:
-              bandwidth: 80
-              channel: 44
-              mac: 5c5b350004b0
-              num_clients: 4
-              power: 15
-              rx_bytes: 10366616
-              rx_pkts: 38603
-              tx_bytes: 50877568
-              tx_pkts: 145496
+              bandwidth: 20
+              channel: 0
+              dynamic_chaining_enalbed: true
+              mac: string
+              num_clients: 0
+              power: 0
+              rx_bytes: 0
+              rx_pkts: 0
+              tx_bytes: 0
+              tx_pkts: 0
+              util_all: 0
+              util_non_wifi: 0
+              util_rx_in_bss: 0
+              util_rx_other_bss: 0
+              util_tx: 0
+              util_unknown_wifi: 0
             band_6:
-              bandwidth: 80
-              channel: 44
-              mac: 5c5b350004b0
-              num_clients: 4
-              power: 15
-              rx_bytes: 10366616
-              rx_pkts: 38603
-              tx_bytes: 50877568
-              tx_pkts: 145496
-          rx_bps: 60003
-          rx_bytes: 8515104416
-          rx_pkts: 57770567
+              bandwidth: 20
+              channel: 0
+              dynamic_chaining_enalbed: true
+              mac: string
+              num_clients: 0
+              power: 0
+              rx_bytes: 0
+              rx_pkts: 0
+              tx_bytes: 0
+              tx_pkts: 0
+              util_all: 0
+              util_non_wifi: 0
+              util_rx_in_bss: 0
+              util_rx_other_bss: 0
+              util_tx: 0
+              util_unknown_wifi: 0
+          rx_bps: 0
+          rx_bytes: 0
+          rx_pkts: 0
           serial: FXLH2015170017
           status: connected
-          tx_bps: 634301
-          tx_bytes: 211217389682
-          tx_pkts: 812204062
+          tx_bps: 0
+          tx_bytes: 0
+          tx_pkts: 0
           type: ap
-          uptime: 13500
-          usb_stat:
-            channel: 3
-            connected: true
-            last_activity: 1586873254
-            type: imagotag
-            up: true
-          version: 1.0.0
+          uptime: 0
+          version: string
           x: 53.5
           y: 173.1
     stats_device_switch_org:
@@ -9861,10 +10150,6 @@ components:
                   type: 5G
                   uptime: 252371.34149021498
               type: object
-            router_id:
-              example: null
-              nullable: true
-              type: string
             target_version:
               example: 7.23.40
               type: string
@@ -10249,6 +10534,11 @@ components:
           type: string
         peer_ip:
           description: peer ip address
+          type: string
+        priority:
+          enum:
+          - primary
+          - secondary
           type: string
         protocol:
           enum:

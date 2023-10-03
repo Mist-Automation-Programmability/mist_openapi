@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2308.1.1**
+  description: '> Version: **2309.1.1**
 
     >
 
-    > Date: **August 31, 2023**
+    > Date: **September 28, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: sites - configuration
-  version: 2308.1.1
+  version: 2309.1.1
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -64,6 +64,7 @@ tags:
     Wlans, Policies, Zones.
   name: Sites
 - name: Sites Alarms
+- name: Sites AP Templates
 - name: Sites Asset Filters
 - name: Sites Assets
 - name: Sites Beacons
@@ -92,16 +93,17 @@ tags:
     In our implementation, following the steps to deploy EVPN topologies in a Site '
   name: Sites EVPN Topologies
 - name: Sites Guests
-- name: Sites Insights
 - name: Sites Location
 - name: Sites Maps
 - name: Sites Maps Auto-orientation
 - name: Sites Maps Auto-placement
 - name: Sites MxEdges
 - name: Sites MxTunnels
+- name: Sites Network Templates
 - name: Sites Networks
 - name: Sites Pcaps
 - name: Sites Psks
+- name: Sites RF Templates
 - name: Sites Rfdiags
 - name: Sites Rogues
 - name: Sites RRM
@@ -109,6 +111,7 @@ tags:
 - name: Sites Services
 - name: Sites Service Policies
 - name: Sites Setting
+- name: Sites Site Templates
 - name: Sites SLEs
 - name: Sites Subscriptions
 - name: Sites Synthetic Tests
@@ -434,12 +437,43 @@ paths:
       summary: unackSiteAlarm
       tags:
       - Sites Alarms
+  /api/v1/sites/{site_id}/aptemplates/derived:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    get:
+      description: Get derived AP Templates for Site
+      operationId: getSiteApTemplateDerived
+      parameters:
+      - description: whether resolve the site variables
+        in: query
+        name: resolve
+        schema:
+          type: boolean
+      responses:
+        '200':
+          $ref: '#/components/responses/Aptemplate'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteApTemplateDerived
+      tags:
+      - Sites AP Templates
   /api/v1/sites/{site_id}/assetfilters:
     parameters:
     - $ref: '#/components/parameters/site_id'
     get:
       description: Get List of Site Asset Filters
       operationId: listSiteAssetFilters
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/AssetfiltersArray'
@@ -554,6 +588,9 @@ paths:
     get:
       description: Get List of Site Assets
       operationId: listSiteAssets
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/AssetsArray'
@@ -745,6 +782,9 @@ paths:
     get:
       description: Get List of Site Beacons
       operationId: listSiteBeacons
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/BeaconsArray'
@@ -1128,7 +1168,7 @@ paths:
                     vlan_id: 1
                   for_site: true
                   height: 2.75
-                  id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  id: 497f6eca-6276-4993-bfeb-53eabbba6f08
                   image1_url: string
                   image2_url: string
                   image3_url: string
@@ -1606,7 +1646,7 @@ paths:
                     vlan_id: 1
                   for_site: true
                   height: 2.75
-                  id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  id: 497f6eca-6276-4993-bfeb-53ebbbba6f08
                   image1_url: string
                   image2_url: string
                   image3_url: string
@@ -2648,7 +2688,7 @@ paths:
                   - advertised
                   example: advertised
                   type: string
-                vrf_name:
+                vrf:
                   example: default
                   type: string
               type: object
@@ -3646,6 +3686,72 @@ paths:
       summary: resetSiteAllApsToUseRrm
       tags:
       - Sites Devices - Wireless
+  /api/v1/sites/{site_id}/devices/send_ble_beacon:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    post:
+      description: 'Send arbitrary BLE Beacon for a period of time
+
+
+        Note that only the devices that are connected will be restarted.'
+      operationId: sendSiteDevicesArbitratryBleBeacon
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  beacon_frame: 68b329da9893e34099c7d8ad5cb9c940
+                  beacon_freq: 100
+                  duration: 10
+                  macs:
+                  - 5c5b35584a6f
+                  - 5c5b350ea3b3
+                  map_ids:
+                  - 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+            schema:
+              properties:
+                beacon_frame:
+                  example: 68b329da9893e34099c7d8ad5cb9c940
+                  type: string
+                beacon_freq:
+                  example: 100
+                  type: integer
+                duration:
+                  example: 10
+                  maximum: 60
+                  minimum: 1
+                  type: integer
+                macs:
+                  example:
+                  - 5c5b35584a6f
+                  - 5c5b350ea3b3
+                  items:
+                    type: string
+                  type: array
+                map_ids:
+                  example:
+                  - 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+                  items:
+                    type: string
+                  type: array
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: sendSiteDevicesArbitratryBleBeacon
+      tags:
+      - Sites Devices - Wireless
   /api/v1/sites/{site_id}/devices/zerioze:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -4458,6 +4564,150 @@ paths:
       summary: pingFromDevice
       tags:
       - Sites Devices Utilities
+  /api/v1/sites/{site_id}/devices/{device_id}/readopt:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: For the octerm devices, the device ID must come from fpc0. However,
+        for a VC, the users may change the original fpc0 from CLI. To fix the issue,
+        the readopt API could be used to trigger the readopt process so the device
+        would get the corret device ID to connect the cloud.
+      operationId: readoptSiteOctermDevice
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          description: he device is not a virtual chassis
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: readoptSiteOctermDevice
+      tags:
+      - Sites Devices Utilities
+  /api/v1/sites/{site_id}/devices/{device_id}/show_arp:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: "Get ARP Table from the Device. The output will be available through\
+        \ websocket. As there can be multiple command issued against the same device\
+        \ at the same time and the output all goes through the same websocket stream,\
+        \ `session` is introduced for demux.\n\n#### Subscribe to Device Command outputs\n\
+        `WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+        \n}\n```\n"
+      operationId: getSiteDeviceArpTable
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  neighbor: 192.168.4.1
+                  prefix: 192.168.0.5/30
+                  protocol: bgp
+                  route: advertised
+                  vrf_name: default
+            schema:
+              properties:
+                ip:
+                  example: 192.168.30.7
+                  type: string
+                port:
+                  example: ge-0/0/0.0
+                  type: string
+                vrf:
+                  example: guest
+                  type: string
+              type: object
+              x-examples:
+                example-1:
+                  neighbor: 192.168.4.1
+                  prefix: 192.168.0.5/30
+                  protocol: bgp
+                  route: advertised
+                  vrf_name: default
+        description: all attributes are optional
+      responses:
+        '200':
+          $ref: '#/components/responses/Session'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteDeviceArpTable
+      tags:
+      - Sites Devices Utilities
+  /api/v1/sites/{site_id}/devices/{device_id}/show_mac_table:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: "Get MAC Table from the Device. The output will be available through\
+        \ websocket. As there can be multiple command issued against the same device\
+        \ at the same time and the output all goes through the same websocket stream,\
+        \ `session` is introduced for demux.\n\n#### Subscribe to Device Command outputs\n\
+        `WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+        \n}\n```\n"
+      operationId: getSiteDeviceMacTable
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  neighbor: 192.168.4.1
+                  prefix: 192.168.0.5/30
+                  protocol: bgp
+                  route: advertised
+                  vrf_name: default
+            schema:
+              properties:
+                mac_address:
+                  example: '112233445566'
+                  type: string
+                port:
+                  example: ge-0/0/0.0
+                  type: string
+                vlan_id:
+                  example: ge-0/0/0.0
+                  type: string
+              type: object
+              x-examples:
+                example-1:
+                  neighbor: 192.168.4.1
+                  prefix: 192.168.0.5/30
+                  protocol: bgp
+                  route: advertised
+                  vrf_name: default
+        description: all attributes are optional
+      responses:
+        '200':
+          $ref: '#/components/responses/Session'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteDeviceMacTable
+      tags:
+      - Sites Devices Utilities
   /api/v1/sites/{site_id}/devices/{device_id}/snapshot:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -4813,63 +5063,6 @@ paths:
       summary: updateSiteGuestAuthorization
       tags:
       - Sites Guests
-  /api/v1/sites/{site_id}/insights/rogues:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    get:
-      description: Get List of Site Rogue/Neighbor APs
-      operationId: listSiteRogueAPs
-      parameters:
-      - $ref: '#/components/parameters/rogue_type'
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/interval'
-      responses:
-        '200':
-          $ref: '#/components/responses/InsightRogue'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: listSiteRogueAPs
-      tags:
-      - Sites Insights
-  /api/v1/sites/{site_id}/insights/rogues/clients:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    get:
-      description: Get List of Site Rogue Clients
-      operationId: listSiteRogueClients
-      parameters:
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/interval'
-      responses:
-        '200':
-          $ref: '#/components/responses/InsightRogueClients'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: listSiteRogueClients
-      tags:
-      - Sites Insights
   /api/v1/sites/{site_id}/location/ml/current:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -5070,6 +5263,9 @@ paths:
     get:
       description: Get List of Site Maps
       operationId: listSiteMaps
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/MapsArray'
@@ -5813,8 +6009,28 @@ paths:
       tags:
       - Sites Maps Auto-placement
     get:
-      description: This API is called to view the current status of auto placement
+      description: 'This API is called to view the current status of auto placement
         for a given map.
+
+
+
+        #### Status Descriptions
+
+
+        | Status | Description |
+
+        | --- | --- |
+
+        | `pending` | Autoplacement has not been requested for this map |
+
+        | `inprogress` | Autoplacement is currently processing |
+
+        | `done` | The autoplacement process has completed |
+
+        | `data_needed` | Additional position data is required for autoplacement.
+        Users should verify the requested anchor APs have a position on the map |
+
+        | `error` | There was an error in the autoplacement process |'
       operationId: getSiteApAutoPlacement
       responses:
         '200':
@@ -5845,8 +6061,8 @@ paths:
                     description: time when autoplacement completed or was manually
                       stopped
                     type: number
-                  estimated_time_left:
-                    description: estimate of the time to completion
+                  est_time_left:
+                    description: (Only when inprogress) estimate of the time to completion
                     type: number
                   start_time:
                     description: time when autoplacement process was last queued for
@@ -6034,6 +6250,9 @@ paths:
     get:
       description: Get List of Site Mist Edges
       operationId: listSiteMxEdges
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/MxedgesArray'
@@ -6332,6 +6551,34 @@ paths:
       summary: preemptSitesMxTunnel
       tags:
       - Sites MxTunnels
+  /api/v1/sites/{site_id}/networktemplates/derived:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    get:
+      description: Get derived Network Templates for Site
+      operationId: getSiteNetworkTemplateDerived
+      parameters:
+      - description: whether resolve the site variables
+        in: query
+        name: resolve
+        schema:
+          type: boolean
+      responses:
+        '200':
+          $ref: '#/components/responses/Networktemplate'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteNetworkTemplateDerived
+      tags:
+      - Sites Network Templates
   /api/v1/sites/{site_id}/networks/derived:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -6889,6 +7136,34 @@ paths:
       summary: updateSitePsk
       tags:
       - Sites Psks
+  /api/v1/sites/{site_id}/rftemplates/derived:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    get:
+      description: Get derived RF Templates for Site
+      operationId: getSiteRfTemplateDerived
+      parameters:
+      - description: whether resolve the site variables
+        in: query
+        name: resolve
+        schema:
+          type: boolean
+      responses:
+        '200':
+          $ref: '#/components/responses/Rftemplate'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteRfTemplateDerived
+      tags:
+      - Sites RF Templates
   /api/v1/sites/{site_id}/rfdiags:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -7059,6 +7334,63 @@ paths:
       summary: stopSiteRfdiagRecording
       tags:
       - Sites Rfdiags
+  /api/v1/sites/{site_id}/insights/rogues:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    get:
+      description: Get List of Site Rogue/Neighbor APs
+      operationId: listSiteRogueAPs
+      parameters:
+      - $ref: '#/components/parameters/rogue_type'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/interval'
+      responses:
+        '200':
+          $ref: '#/components/responses/InsightRogue'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listSiteRogueAPs
+      tags:
+      - Sites Rogues
+  /api/v1/sites/{site_id}/insights/rogues/clients:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    get:
+      description: Get List of Site Rogue Clients
+      operationId: listSiteRogueClients
+      parameters:
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/interval'
+      responses:
+        '200':
+          $ref: '#/components/responses/InsightRogueClients'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listSiteRogueClients
+      tags:
+      - Sites Rogues
   /api/v1/sites/{site_id}/rogues/{rogue_bssid}:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -7183,6 +7515,9 @@ paths:
     get:
       description: Get List of Site RSSI Zone (RSSI-based)
       operationId: listSiteRssiZones
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           content:
@@ -8328,6 +8663,62 @@ paths:
       summary: createSiteWirelessClientsAllowlist
       tags:
       - Sites Setting
+  /api/v1/sites/{site_id}/gatewaytemplates/derived:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    get:
+      description: Get derived Gateway Templates for Site
+      operationId: getSiteGatewayTemplateDerived
+      parameters:
+      - description: whether resolve the site variables
+        in: query
+        name: resolve
+        schema:
+          type: boolean
+      responses:
+        '200':
+          $ref: '#/components/responses/Gatewaytemplate'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteGatewayTemplateDerived
+      tags:
+      - Sites Site Templates
+  /api/v1/sites/{site_id}/sitetemplates/derived:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    get:
+      description: Get derived Site Templates for Site
+      operationId: getSiteSiteTemplateDerived
+      parameters:
+      - description: whether resolve the site variables
+        in: query
+        name: resolve
+        schema:
+          type: boolean
+      responses:
+        '200':
+          $ref: '#/components/responses/SiteTemplate'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteSiteTemplateDerived
+      tags:
+      - Sites Site Templates
   /api/v1/sites/{site_id}/sle/{scope}/{scope_id}/metric/{metric}/threshold:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -8897,6 +9288,9 @@ paths:
     get:
       description: Get List of Site Virtual Beacons
       operationId: listSiteVBeacons
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/VBeaconsArray'
@@ -9071,6 +9465,9 @@ paths:
     get:
       description: Get List of Site Webhooks
       operationId: listSiteWebhooks
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/WebhooksArray'
@@ -9282,6 +9679,9 @@ paths:
     get:
       description: Get List of Site WLANs
       operationId: listSiteWlans
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/WlansArray'
@@ -10377,6 +10777,9 @@ paths:
     get:
       description: Get List of Site WxLan Rules
       operationId: listSiteWxRules
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/WxruleArray'
@@ -10417,7 +10820,7 @@ paths:
                   - bbb2c7b0-d1d0-5a30-f349-e35fa43dc3b3
                   enabled: true
                   for_site: true
-                  id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  id: 497f6eca-6276-4993-bfeb-53ecbbba6f08
                   modified_time: 0
                   order: 1
                   org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
@@ -10532,7 +10935,7 @@ paths:
                   - bbb2c7b0-d1d0-5a30-f349-e35fa43dc3b3
                   enabled: true
                   for_site: true
-                  id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  id: 497f6eca-6276-4993-bfeb-53edbbba6f08
                   modified_time: 0
                   order: 1
                   org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
@@ -10565,6 +10968,9 @@ paths:
     get:
       description: Get List of Site WxTags
       operationId: listSiteWxTags
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/WxtagArray'
@@ -10816,6 +11222,9 @@ paths:
     get:
       description: Get List of Site WxLan Tunnels
       operationId: listSiteWxTunnels
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/WxtunnelArray'
@@ -10998,6 +11407,9 @@ paths:
     get:
       description: Get List of Site Zones
       operationId: listSiteZones
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/ZonesArray'
@@ -11512,6 +11924,166 @@ components:
           schema:
             $ref: '#/components/schemas/site'
       description: OK
+    Aptemplate:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                ap_matching:
+                  enabled: true
+                  rules:
+                  - match_model: string
+                    name: string
+                    port_config:
+                      property1:
+                        additional_vlan_ids:
+                        - 55
+                        - 66
+                        authentication_protocol: pap
+                        disabled: true
+                        dynamic_vlan:
+                          default_vlan_id: 999
+                          enabled: true
+                          type: string
+                          vlans:
+                            1-10: null
+                            user: null
+                        enable_mac_auth: false
+                        forwarding: all
+                        mx_tunnel_id: 08cd7499-5841-51c8-e663-fb16b6f3b45e
+                        mxtunnel_name: string
+                        port_auth: none
+                        port_vlan_id: 1
+                        radius_config:
+                          acct_interim_interval: 0
+                          acct_servers:
+                          - host: 1.2.3.4
+                            keywrap_enabled: true
+                            keywrap_format: hex
+                            keywrap_kek: '1122334455'
+                            keywrap_mack: '1122334455'
+                            port: 1813
+                            secret: testing123
+                          auth_servers:
+                          - host: 1.2.3.4
+                            keywrap_enabled: true
+                            keywrap_format: hex
+                            keywrap_kek: '1122334455'
+                            keywrap_mack: '1122334455'
+                            port: 1812
+                            secret: testing123
+                          auth_servers_retries: 3
+                          auth_servers_timeout: 5
+                          coa_enabled: false
+                          coa_port: 3799
+                          network: string
+                          source_ip: string
+                        radsec:
+                          enabled: true
+                          idle_timeout: 60
+                          mxcluster_ids:
+                          - 572586b7-f97b-a22b-526c-8b97a3f609c4
+                          proxy_hosts:
+                          - mxedge1.local
+                          server_name: radsec.abc.com
+                          servers:
+                          - host: 1.1.1.1
+                            port: 1812
+                          use_mxedge: true
+                          use_site_mxedge: false
+                        vlan_id: 9
+                        vland_ids:
+                        - 1
+                        - 10
+                        - 50
+                        wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
+                        wxtunnel_remote_id: wifiguest
+                      property2:
+                        additional_vlan_ids:
+                        - 55
+                        - 66
+                        authentication_protocol: pap
+                        disabled: true
+                        dynamic_vlan:
+                          default_vlan_id: 999
+                          enabled: true
+                          type: string
+                          vlans:
+                            1-10: null
+                            user: null
+                        enable_mac_auth: false
+                        forwarding: all
+                        mx_tunnel_id: 08cd7499-5841-51c8-e663-fb16b6f3b45e
+                        mxtunnel_name: string
+                        port_auth: none
+                        port_vlan_id: 1
+                        radius_config:
+                          acct_interim_interval: 0
+                          acct_servers:
+                          - host: 1.2.3.4
+                            keywrap_enabled: true
+                            keywrap_format: hex
+                            keywrap_kek: '1122334455'
+                            keywrap_mack: '1122334455'
+                            port: 1813
+                            secret: testing123
+                          auth_servers:
+                          - host: 1.2.3.4
+                            keywrap_enabled: true
+                            keywrap_format: hex
+                            keywrap_kek: '1122334455'
+                            keywrap_mack: '1122334455'
+                            port: 1812
+                            secret: testing123
+                          auth_servers_retries: 3
+                          auth_servers_timeout: 5
+                          coa_enabled: false
+                          coa_port: 3799
+                          network: string
+                          source_ip: string
+                        radsec:
+                          enabled: true
+                          idle_timeout: 60
+                          mxcluster_ids:
+                          - 572586b7-f97b-a22b-526c-8b97a3f609c4
+                          proxy_hosts:
+                          - mxedge1.local
+                          server_name: radsec.abc.com
+                          servers:
+                          - host: 1.1.1.1
+                            port: 1812
+                          use_mxedge: true
+                          use_site_mxedge: false
+                        vlan_id: 9
+                        vland_ids:
+                        - 1
+                        - 10
+                        - 50
+                        wxtunnel_id: 7dae216d-7c98-a51b-e068-dd7d477b7216
+                        wxtunnel_remote_id: wifiguest
+                created_time: 0
+                for_site: true
+                id: 497f6eca-6276-4993-bfeb-53cbbbba8f08
+                modified_time: 0
+                org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                wifi:
+                  cisco_enabled: true
+                  disable_11k: false
+                  disable_radios_when_power_constrained: true
+                  enable_arp_spoof: true
+                  enable_shared_radio_scanning: false
+                  enabled: true
+                  locate_connected: false
+                  locate_unconnected: false
+                  mesh_allow_dfs: false
+                  mesh_enable_crm: true
+                  mesh_enabled: true
+                  proxy_arp: false
+          schema:
+            $ref: '#/components/schemas/aptemplate'
+      description: AP Template
     AssetfiltersArray:
       content:
         application/json:
@@ -13716,6 +14288,13 @@ components:
           schema:
             $ref: '#/components/schemas/junos_evpn_topology'
       description: Example response
+    Gatewaytemplate:
+      content:
+        application/json:
+          examples: {}
+          schema:
+            $ref: '#/components/schemas/gatewaytemplate'
+      description: OK
     Guest:
       content:
         application/json:
@@ -14428,6 +15007,357 @@ components:
               $ref: '#/components/schemas/network'
             type: array
       description: OK
+    Networktemplate:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                additional_config_cmds:
+                - string
+                created_time: 0
+                dhcp_snooping:
+                  all_networks: true
+                  enable_arp_spoof_check: true
+                  enable_ip_source_guard: true
+                  enabled: true
+                  networks:
+                  - string
+                dns_servers:
+                - string
+                dns_suffix:
+                - string
+                extra_routes:
+                  property1:
+                    via: string
+                  property2:
+                    via: string
+                group_tags: {}
+                id: 497f6eca-6276-4993-bfeb-53cbbbba6708
+                import_org_networks:
+                - ap
+                mist_nac:
+                  enabled: true
+                  network: string
+                modified_time: 0
+                name: string
+                networks:
+                  property1:
+                    subnet: 192.168.1.0/24
+                    vlan_id: 10
+                  property2:
+                    subnet: 192.168.1.0/24
+                    vlan_id: 10
+                ntp_servers:
+                - string
+                org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                port_usages:
+                  dynamic:
+                    mode: dynamic
+                    reset_default_when: link_down
+                    rules:
+                    - equals: string
+                      equals_any:
+                      - string
+                      expression: string
+                      src: lldp_chassis_id
+                      usage: string
+                  property1:
+                    all_networks: false
+                    allow_dhcpd: true
+                    authentication_protocol: pap
+                    bypass_auth_when_server_down: true
+                    description: string
+                    disable_autoneg: false
+                    disabled: false
+                    duplex: auto
+                    enable_mac_auth: true
+                    enable_qos: true
+                    guest_network: string
+                    mac_auth_only: true
+                    mac_limit: 0
+                    mode: access
+                    mtu: 0
+                    networks:
+                    - string
+                    persist_mac: false
+                    poe_disabled: false
+                    port_auth: string
+                    port_network: string
+                    rejected_network: true
+                    speed: string
+                    storm_control:
+                      no_broadcast: false
+                      no_multicast: false
+                      no_registered_multicast: false
+                      no_unknown_unicast: false
+                      percentage: 80
+                    stp_edge: true
+                    voip_network: string
+                  property2:
+                    all_networks: false
+                    allow_dhcpd: true
+                    authentication_protocol: pap
+                    bypass_auth_when_server_down: true
+                    description: string
+                    disable_autoneg: false
+                    disabled: false
+                    duplex: auto
+                    enable_mac_auth: true
+                    enable_qos: true
+                    guest_network: string
+                    mac_auth_only: true
+                    mac_limit: 0
+                    mode: access
+                    mtu: 0
+                    networks:
+                    - string
+                    persist_mac: false
+                    poe_disabled: false
+                    port_auth: string
+                    port_network: string
+                    rejected_network: true
+                    speed: string
+                    storm_control:
+                      no_broadcast: false
+                      no_multicast: false
+                      no_registered_multicast: false
+                      no_unknown_unicast: false
+                      percentage: 80
+                    stp_edge: true
+                    voip_network: string
+                radius_config:
+                  acct_interim_interval: 0
+                  acct_servers:
+                  - host: 1.2.3.4
+                    keywrap_enabled: true
+                    keywrap_format: hex
+                    keywrap_kek: '1122334455'
+                    keywrap_mack: '1122334455'
+                    port: 1813
+                    secret: testing123
+                  auth_servers:
+                  - host: 1.2.3.4
+                    keywrap_enabled: true
+                    keywrap_format: hex
+                    keywrap_kek: '1122334455'
+                    keywrap_mack: '1122334455'
+                    port: 1812
+                    secret: testing123
+                  auth_servers_retries: 3
+                  auth_servers_timeout: 5
+                  coa_enabled: false
+                  coa_port: 3799
+                  network: string
+                  source_ip: string
+                remote_syslog:
+                  archive:
+                    files: 111
+                    size: 5m
+                  console:
+                    contents:
+                    - facility: any
+                      severity: any
+                  enabled: false
+                  files:
+                  - archive:
+                      files: 10
+                      size: 5m
+                    contents:
+                    - facility: any
+                      severity: any
+                    explicit_priority: true
+                    file: file-name
+                    match: '!alarm|ntp|errors.crc_error[chan]'
+                    structured_data: true
+                  network: string
+                  send_to_all_servers: true
+                  servers:
+                  - contents:
+                    - facility: any
+                      severity: any
+                    explicit_priority: true
+                    facility: any
+                    host: syslogd.internal
+                    match: '!alarm|ntp|errors.crc_error[chan]'
+                    port: 514
+                    protocol: udp
+                    routing_instance: routing-instance-name
+                    severity: any
+                    source_address: string
+                    structured_data: true
+                    tag: string
+                  time_format: millisecond
+                  users:
+                  - contents:
+                    - facility: any
+                      severity: any
+                    match: '"!alarm|ntp|errors.crc_error[chan]"'
+                    user: '*'
+                snmp_config:
+                  client_list:
+                  - client_list_name: clist-1
+                    clients:
+                    - 151.140.101.218/32
+                  contact: cns@juniper.net
+                  description: Juniper QFX Series Switch - 1K_5LA
+                  enabled: true
+                  engine_id: local
+                  location: Las Vegas, NV
+                  name: TGH-1K-QFX10K
+                  network: default
+                  trap_groups:
+                  - categories:
+                    - authentication
+                    group_name: profiler
+                    targets:
+                    - 172.29.158.19
+                    version: v2
+                  v2c_config:
+                  - authorization: read-only
+                    client_list_name: clist-1
+                    community_name: abc123
+                    view: all
+                  v3_config:
+                    notify:
+                    - name: string
+                      tag: string
+                      type: trap
+                    notify_filter:
+                    - contents:
+                      - include: true
+                        oid: 1.3.6.1.4.1
+                      profile_name: string
+                    target_address:
+                    - address: address
+                      address_mask: address_mask
+                      port: 161
+                      tag_list: string
+                      target_address_name: target_address_name
+                      target_parameters: string
+                    target_parameters:
+                    - message_processing_model: v1
+                      name: string
+                      notify_filter: string
+                      security_level: authentication
+                      security_model: usm
+                      security_name: m01620
+                    usm:
+                      engine-id: 00:00:00:0b:00:00:70:10:6f:08:b6:3f
+                      engine_type: remote_engine
+                      users:
+                      - authentication_password: strings
+                        authentication_type: authentication-md5
+                        encryption_password: stringst
+                        encryption_type: privacy-aes128
+                        name: string
+                    vacm:
+                      access:
+                      - group_name: string
+                        prefix_list:
+                        - context_prefix: iil
+                          notify_view: all
+                          read_view: all
+                          security_level: privacy
+                          security_model: any
+                          type: default_context_prefix
+                          write_view: all
+                      security_to_group:
+                        content:
+                        - group: string
+                          security_name: string
+                        security_model: usm
+                  views:
+                    include: true
+                    oid: 1.3.6.1
+                    view_name: all
+                switch_matching:
+                  enable: true
+                  rules:
+                  - additional_config_cmds:
+                    - string
+                    match_role: string
+                    name: string
+                    port_config:
+                      property1:
+                        ae_disable_lacp: true
+                        ae_idx: 0
+                        aggregated: false
+                        critical: true
+                        description: string
+                        disable_autoneg: false
+                        duplex: auto
+                        dynamic_usage: string
+                        esilag: true
+                        mtu: 1514
+                        no_local_overwrite: true
+                        poe_disabled: false
+                        speed: auto
+                        usage: string
+                      property2:
+                        ae_disable_lacp: true
+                        ae_idx: 0
+                        aggregated: false
+                        critical: true
+                        description: string
+                        disable_autoneg: false
+                        duplex: auto
+                        dynamic_usage: string
+                        esilag: true
+                        mtu: 1514
+                        no_local_overwrite: true
+                        poe_disabled: false
+                        speed: auto
+                        usage: string
+                    property1: string
+                    property2: string
+                    switch_mgmt:
+                      ap_affinity_threshold: '10'
+                      config_revert_timer: 10
+                      dhcp_option_fqdn: false
+                      mxedge_proxy_host: string
+                      mxedge_proxy_port: 2222
+                      use_mxedge_proxy: false
+                switch_mgmt:
+                  config_revert: 10
+                  protect_re:
+                    enabled: false
+                  root_password: string
+                  tacacs:
+                    acct_servers:
+                    - host: string
+                      port: string
+                      secret: string
+                      timeout: 10
+                    enabled: true
+                    network: string
+                    tacplus_servers:
+                    - host: string
+                      port: string
+                      secret: string
+                      timeout: 10
+                vrf_config:
+                  enabled: false
+                vrf_instances:
+                  property1:
+                    extra_routes:
+                      property1:
+                        via: string
+                      property2:
+                        via: string
+                    networks:
+                    - string
+                  property2:
+                    extra_routes:
+                      property1:
+                        via: string
+                      property2:
+                        via: string
+                    networks:
+                    - string
+          schema:
+            $ref: '#/components/schemas/networktemplate'
+      description: OK
     DeviceOtherArray:
       content:
         application/json:
@@ -14481,6 +15411,36 @@ components:
                       items:
                         type: string
                       type: array
+                    aps:
+                      items:
+                        example: 5c5b35000010
+                        type: string
+                      type: array
+                    duration:
+                      example: 600
+                      type: number
+                    format:
+                      example: stream
+                      type: string
+                    id:
+                      format: uuid
+                      type: string
+                    max_num_packets:
+                      example: 1024
+                      type: number
+                    org_id:
+                      format: uuid
+                      type: string
+                    pcap_aps:
+                      type: object
+                    pcap_url:
+                      type: string
+                    site_id:
+                      format: uuid
+                      type: string
+                    termination_reason:
+                      example: default
+                      type: string
                     timestamp:
                       type: number
                     type:
@@ -14579,6 +15539,26 @@ components:
                 items:
                   type: string
                 type: array
+              pcap_aps:
+                additionalProperties:
+                  properties:
+                    band:
+                      type: integer
+                    bandwidth:
+                      type: integer
+                    channel:
+                      type: integer
+                    tcpdump_expresssion:
+                      nullable: true
+                      type: string
+                  type: object
+                example:
+                  5c5b35000010:
+                    band: 6
+                    bandwidth: 20
+                    channel: 133
+                    tcpdump_expressiin: null
+                type: object
               radiotap_tcpdump_expression:
                 description: when `type`==`radiotap`, radiotap_tcpdump_expression
                   expression provided by the user
@@ -14791,6 +15771,60 @@ components:
             description: File
             format: binary
             type: string
+      description: OK
+    Rftemplate:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                ant_gain_24: 0
+                ant_gain_5: 0
+                band_24:
+                  allow_rrm_disable: true
+                  ant_gain: 0
+                  bandwidth: 20
+                  channels:
+                  - 1
+                  - 6
+                  - 11
+                  disabled: false
+                  power_max: 11
+                  power_min: 3
+                  preamble: short
+                band_24_usage: auto
+                band_5:
+                  allow_rrm_disable: false
+                  ant_gain: 0
+                  bandwidth: 80
+                  channels:
+                  - 36
+                  - 40
+                  - 44
+                  - 48
+                  - 52
+                  - 56
+                  - 60
+                  - 64
+                  - 100
+                  - 104
+                  - 149
+                  - 153
+                  - 157
+                  - 161
+                  disabled: false
+                  power_max: 16
+                  power_min: 9
+                  preamble: short
+                country_code: FR
+                created_time: 1594743723
+                id: b3f20330-f76a-49f1-bc65-0d8727140b1d
+                model_specific: {}
+                modified_time: 1613582192
+                name: Lab
+                org_id: 203d3d02-dbc0-4c1b-9f41-76896a3330f4
+          schema:
+            $ref: '#/components/schemas/rftemplate'
       description: OK
     RssizonesArray:
       content:
@@ -15631,6 +16665,24 @@ components:
                 type: array
             type: object
       description: OK
+    SiteTemplate:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                auto_upgrade:
+                  day_of_week: string
+                  enabled: true
+                  time_of_day: string
+                  version: string
+                name: string
+                vars:
+                  SSID_STR: string
+                  VLAN_ID: string
+          schema:
+            $ref: '#/components/schemas/sitetemplate'
+      description: Example response
     SleThreshold:
       content:
         application/json:
@@ -16818,7 +17870,7 @@ components:
                 - bbb2c7b0-d1d0-5a30-f349-e35fa43dc3b3
                 enabled: true
                 for_site: true
-                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                id: 497f6eca-6276-4993-bfeb-53ebbbba6f08
                 modified_time: 0
                 order: 1
                 org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
@@ -16852,7 +17904,7 @@ components:
                 - bbb2c7b0-d1d0-5a30-f349-e35fa43dc3b3
                 enabled: true
                 for_site: true
-                id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                id: 497f6eca-6276-4993-9feb-53cbbbba6f08
                 modified_time: 0
                 order: 1
                 org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
@@ -21214,6 +22266,8 @@ components:
         id: ac5bc7de9d2fd
     junos_evpn_topology:
       properties:
+        config:
+          $ref: '#/components/schemas/site_switch'
         id:
           example: 9197ec96-4c8d-529f-c595-035895e688b2
           format: uuid
@@ -21232,6 +22286,8 @@ components:
         switches:
           items:
             properties:
+              config:
+                $ref: '#/components/schemas/device_switch'
               deviceprofile_id:
                 example: 6a1deab1-96df-4fa2-8455-d5253f943d06
                 format: uuid
@@ -21336,6 +22392,145 @@ components:
             site_id: 1916d52a-4a90-11e5-8b45-1258369c38a9
             uplinks:
             - 5c5b35000005
+    site_switch:
+      description: Switch site settings
+      properties:
+        ap_affinity_threshold:
+          default: 10
+          description: ap_affinity_threshold ap_affinity_threshold can be added as
+            a field under site/setting. By default this value is set to 12. If the
+            field is set in both site/setting and org/setting, the value from site/setting
+            will be used.
+          type: integer
+        config_revert_timer:
+          default: 10
+          description: the rollback timer for commit confirmed
+          maximum: 30
+          minimum: 1
+          type: number
+        dhcp_option_fqdn:
+          default: false
+          description: Enable to provide the FQDN with DHCP option 81
+          type: boolean
+        mxedge_proxy_host:
+          type: string
+        mxedge_proxy_port:
+          default: 2222
+          type: integer
+        protect_re:
+          description: restrict inbound-traffic to host  (draft)
+          properties:
+            allowed_services:
+              description: optionally, services we'll allow
+              items:
+                example: '["snmp", "icmp"]'
+                type: string
+              type: array
+            custom:
+              items:
+                properties:
+                  port_range:
+                    description: matched dst port, `0` means any
+                    maxLength: 6553
+                    minLength: 0
+                    type: string
+                  protocol:
+                    default: any
+                    enum:
+                    - tcp
+                    - udp
+                    - icmp
+                    - any
+                    type: string
+                  subnets:
+                    items:
+                      type: string
+                    type: array
+                type: object
+              type: array
+            enabled:
+              description: 'when enabled, all traffic that is not essential to our
+                operation will be dropped
+
+                e.g. ntp / dns / traffic to mist will be allowed by default'
+              type: boolean
+            trusted_hosts:
+              description: when `enabled`==`true`, all traffic that is not essential
+                to our operation will be dropped (e.g. if dhcpd is enabled, we'll
+                make sure it works)
+              items:
+                example: '["10.242.3.0/24"]'
+                type: string
+              type: array
+          type: object
+        root_password:
+          type: string
+        tacacs:
+          $ref: '#/components/schemas/tacacs'
+        use_mxedge_proxy:
+          description: to use mxedge as proxy
+          type: boolean
+      type: object
+    tacacs:
+      properties:
+        acct_servers:
+          items:
+            properties:
+              host:
+                type: string
+              port:
+                type: integer
+              secret:
+                type: string
+              timeout:
+                default: 10
+                maximum: 90
+                minimum: 1
+                type: integer
+            type: object
+          type: array
+        enabled:
+          type: boolean
+        network:
+          description: which network the TACACS server resides
+          type: string
+        tacplus_servers:
+          items:
+            properties:
+              host:
+                type: string
+              port:
+                type: integer
+              secret:
+                type: string
+              timeout:
+                default: 10
+                maximum: 90
+                minimum: 1
+                type: integer
+            type: object
+          type: array
+      type: object
+      x-examples:
+        Example 1:
+          acct_servers:
+          - host: 1.2.3.4
+            port: 49
+            secret: testing123
+          - host: tacacs.internal
+            port: 49
+            secret: testing123
+            timeout: 10
+          enabled: true
+          network: default
+          tacplus_servers:
+          - host: 1.2.3.4
+            port: 49
+            secret: testing123
+          - host: tacacs.internal
+            port: 49
+            secret: testing123
+            timeout: 10
     guest:
       description: Guest
       properties:
@@ -23609,6 +24804,29 @@ components:
           type: object
         switch_mgmt:
           $ref: '#/components/schemas/site_switch'
+        synthetic_test:
+          properties:
+            vlans:
+              additionalProperties:
+                properties:
+                  custom_test_urls:
+                    items:
+                      type: string
+                    type: array
+                  disabled:
+                    description: for some vlans where we don't want this to run
+                    type: boolean
+                type: object
+              description: Property key is the vlan id or list of vlan ids
+              example:
+                10,20:
+                  custom_test_urls:
+                  - http://www.abc.com/
+                  - https://10.3.5.1:8080/about
+                30,40:
+                  disabled: true
+              type: object
+          type: object
         track_anonymous_devices:
           default: false
           description: "whether to track anonymous BLE assets (requires \u2018track_asset\u2019\
@@ -23621,6 +24839,40 @@ components:
         tunterm_monitoring_disabled:
           default: false
           type: boolean
+        tunterm_multicast_config:
+          properties:
+            mdns:
+              properties:
+                enabled:
+                  default: false
+                  type: boolean
+                vlan_ids:
+                  example:
+                  - 2
+                  - 3
+                  - 5
+                  items:
+                    type: integer
+                  type: array
+              type: object
+            multicast_all:
+              default: false
+              type: boolean
+            ssdp:
+              properties:
+                enabled:
+                  default: false
+                  type: boolean
+                vlan_ids:
+                  example:
+                  - 2
+                  - 3
+                  - 5
+                  items:
+                    type: integer
+                  type: array
+              type: object
+          type: object
         vars:
           additionalProperties:
             type: string
@@ -23698,7 +24950,7 @@ components:
           $ref: '#/components/schemas/site_zone_occupancy_alert'
       type: object
       x-examples:
-        Example 1:
+        Example:
           additional_config_cmds:
           - string
           analytic:
@@ -23777,6 +25029,7 @@ components:
           - string
           dns_suffix:
           - string
+          enable_channel_144: false
           engagement:
             dwell_tag_names:
               bounce: Bounce
@@ -23810,10 +25063,19 @@ components:
               as_base: 65001
               routed_id_prefix: /24
               subnet: 10.255.240.0/20
+            vs_instances:
+              guest:
+                networks:
+                - guest
+              iot:
+                networks:
+                - iot-wifi
+                - iot-lan
           flags:
             property1: string
             property2: string
           for_site: true
+          gateway: {}
           gateway_additional_config_cmds:
           - string
           gateway_mgmt:
@@ -23840,7 +25102,7 @@ components:
             root_password: string
             security_log_source_address: string
             security_log_source_interface: string
-          id: 497f6eca-6276-4993-bfeb-53cbbbba6ff8
+          id: 497f6eca-6276-4993-bfeb-53efbbba6f08
           led:
             brightness: 255
             enabled: true
@@ -23882,12 +25144,36 @@ components:
             root_password: ROOT_PASSWORD
           mxtunnels:
             additional_mxtunnels:
-              property1: null
-              property2: null
+              property1:
+                clusters:
+                - name: primary,
+                  tunterm_hosts:
+                  - mxedge1
+                  - mxedge2.local
+                hello_interval: 60
+                hello_retries: 3
+                protocol: udp
+                vlan_ids:
+                - 300
+                - 310
+                - 320
+              property2:
+                clusters:
+                - name: primary,
+                  tunterm_hosts:
+                  - mxedge1
+                  - mxedge2.local
+                hello_interval: 60
+                hello_retries: 3
+                protocol: udp
+                vlan_ids:
+                - 300
+                - 310
+                - 320
             ap_subnets:
             - 0.0.0.0/0
             auto_preemption:
-              day_of_week: mon
+              day_of_week: sun
               enabled: false
               time_of_day: '12:00'
             clusters:
@@ -23902,7 +25188,7 @@ components:
             hello_retries: 3
             hosts:
             - string
-            id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+            id: 497f6eca-6276-4993-bfeb-53d0bbba6f08
             modified_time: 0
             mtu: 1100
             org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
@@ -23939,6 +25225,8 @@ components:
               dns_suffix:
               - string
               gateway: string
+              isolation: false
+              isolation_vlan_id: '3070'
               ospf_interface_type: string
               subnet: string
               vlan_id: 0
@@ -23949,6 +25237,8 @@ components:
               dns_suffix:
               - string
               gateway: string
+              isolation: false
+              isolation_vlan_id: '3070'
               ospf_interface_type: string
               subnet: string
               vlan_id: 0
@@ -24027,7 +25317,6 @@ components:
             property1:
               all_networks: false
               allow_dhcpd: true
-              authentication_protocol: pap
               bypass_auth_when_server_down: true
               description: string
               disable_autoneg: false
@@ -24037,6 +25326,7 @@ components:
               enable_qos: true
               guest_network: string
               mac_auth_only: true
+              mac_auth_protocol: eap-md5
               mac_limit: 0
               mode: access
               mtu: 0
@@ -24059,7 +25349,6 @@ components:
             property2:
               all_networks: false
               allow_dhcpd: true
-              authentication_protocol: pap
               bypass_auth_when_server_down: true
               description: string
               disable_autoneg: false
@@ -24069,6 +25358,7 @@ components:
               enable_qos: true
               guest_network: string
               mac_auth_only: true
+              mac_auth_protocol: eap-md5
               mac_limit: 0
               mode: access
               mtu: 0
@@ -24088,6 +25378,18 @@ components:
                 percentage: 80
               stp_edge: true
               voip_network: string
+          protect_re:
+            allowed_services:
+            - icmp
+            - ssh
+            custom:
+            - port_range: 80,1035-1040
+              protocol: tcp
+              subnet:
+              - 10.1.2.0/24
+            enabled: false
+            trusted_hosts:
+            - 10.242.3.0/24
           proxy:
             url: http://proxy.internal:8080/
           radio_config:
@@ -24263,12 +25565,28 @@ components:
             enabled: false
             hostnames:
             - my.misty.com
+          switch: {}
           switch_matching:
             additional_config_cmds:
             - set snmp community public
             enabled: false
             rules:
-            - {}
+            - property1:
+                match_model: string
+                name: string
+                port_config:
+                  property1:
+                    usage: string
+                  property2:
+                    usage: string
+              property2:
+                match_model: string
+                name: string
+                port_config:
+                  property1:
+                    usage: string
+                  property2:
+                    usage: string
           switch_mgmt:
             ap_affinity_threshold: 10
             config_revert_timer: 10
@@ -24301,6 +25619,14 @@ components:
                 secret: string
                 timeout: 10
             use_mxedge_proxy: true
+          synthetic_test:
+            vlans:
+              10,20:
+                custom_test_urls:
+                - http://www.abc.com/
+                - https://10.3.5.1:8080/about
+              30,40:
+                disabled: true
           track_anonymous_devices: false
           tunterm_monitoring:
           - host: 10.2.8.15
@@ -24308,6 +25634,20 @@ components:
             protocol: tcp
             timeout: 300
           tunterm_monitoring_disabled: false
+          tunterm_multicast_config:
+            mdns:
+              enabled: false
+              vlan_ids:
+              - 2
+              - 3
+              - 5
+            multicast_all: false
+            ssdp:
+              enabled: false
+              vlan_ids:
+              - 2
+              - 3
+              - 5
           vars:
             RADIUS_IP1: 172.31.2.5
             RADIUS_SECRET: 11s64632d
@@ -24367,6 +25707,7 @@ components:
             disable_11k: false
             disable_radios_when_power_constrained: false
             enable_arp_spoof_check: false
+            enable_channel_144: false
             enable_shared_radio_scanning: true
             enabled: true
             locate_connected: true
@@ -25654,145 +26995,6 @@ components:
           - 1.1.1.1
           - 2.2.2.2
           disable_stats: false
-    site_switch:
-      description: Switch site settings
-      properties:
-        ap_affinity_threshold:
-          default: 10
-          description: ap_affinity_threshold ap_affinity_threshold can be added as
-            a field under site/setting. By default this value is set to 12. If the
-            field is set in both site/setting and org/setting, the value from site/setting
-            will be used.
-          type: integer
-        config_revert_timer:
-          default: 10
-          description: the rollback timer for commit confirmed
-          maximum: 30
-          minimum: 1
-          type: number
-        dhcp_option_fqdn:
-          default: false
-          description: Enable to provide the FQDN with DHCP option 81
-          type: boolean
-        mxedge_proxy_host:
-          type: string
-        mxedge_proxy_port:
-          default: 2222
-          type: integer
-        protect_re:
-          description: restrict inbound-traffic to host  (draft)
-          properties:
-            allowed_services:
-              description: optionally, services we'll allow
-              items:
-                example: '["snmp", "icmp"]'
-                type: string
-              type: array
-            custom:
-              items:
-                properties:
-                  port_range:
-                    description: matched dst port, `0` means any
-                    maxLength: 6553
-                    minLength: 0
-                    type: string
-                  protocol:
-                    default: any
-                    enum:
-                    - tcp
-                    - udp
-                    - icmp
-                    - any
-                    type: string
-                  subnets:
-                    items:
-                      type: string
-                    type: array
-                type: object
-              type: array
-            enabled:
-              description: 'when enabled, all traffic that is not essential to our
-                operation will be dropped
-
-                e.g. ntp / dns / traffic to mist will be allowed by default'
-              type: boolean
-            trusted_hosts:
-              description: when `enabled`==`true`, all traffic that is not essential
-                to our operation will be dropped (e.g. if dhcpd is enabled, we'll
-                make sure it works)
-              items:
-                example: '["10.242.3.0/24"]'
-                type: string
-              type: array
-          type: object
-        root_password:
-          type: string
-        tacacs:
-          $ref: '#/components/schemas/tacacs'
-        use_mxedge_proxy:
-          description: to use mxedge as proxy
-          type: boolean
-      type: object
-    tacacs:
-      properties:
-        acct_servers:
-          items:
-            properties:
-              host:
-                type: string
-              port:
-                type: integer
-              secret:
-                type: string
-              timeout:
-                default: 10
-                maximum: 90
-                minimum: 1
-                type: integer
-            type: object
-          type: array
-        enabled:
-          type: boolean
-        network:
-          description: which network the TACACS server resides
-          type: string
-        tacplus_servers:
-          items:
-            properties:
-              host:
-                type: string
-              port:
-                type: integer
-              secret:
-                type: string
-              timeout:
-                default: 10
-                maximum: 90
-                minimum: 1
-                type: integer
-            type: object
-          type: array
-      type: object
-      x-examples:
-        Example 1:
-          acct_servers:
-          - host: 1.2.3.4
-            port: 49
-            secret: testing123
-          - host: tacacs.internal
-            port: 49
-            secret: testing123
-            timeout: 10
-          enabled: true
-          network: default
-          tacplus_servers:
-          - host: 1.2.3.4
-            port: 49
-            secret: testing123
-          - host: tacacs.internal
-            port: 49
-            secret: testing123
-            timeout: 10
     junos_vrf_instance:
       example:
         extra_routes:
@@ -26376,7 +27578,7 @@ components:
         Example:
           created_time: 0
           for_site: true
-          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          id: 497f6eca-6276-4993-bfeb-53d1bbba6f08
           major: 1356
           map_id: 63eda950-c6da-11e4-a628-60f81dd250cc
           message: Welcome to Mist
@@ -26441,29 +27643,31 @@ components:
           nullable: true
           type: string
         topics:
-          description: N.B. For org webhooks, only device-events/alarms/audits/client-join/client-sessions/nac-sessions
+          description: N.B. For org webhooks, only device-events/alarms/audits/client-join/client-sessions/nac-sessions/nac-events
             topics are supported.
           items:
             enum:
             - alarms
-            - asset-raw
-            - asset-raw-rssi
             - audits
-            - client-join
-            - client-sessions
             - device-events
             - device-updowns
-            - discovered-raw-rssi
-            - location
             - mxedge-events
-            - nac-accounting
+            - client-join
+            - client-sessions
             - occupancy-alerts
+            - nac-accounting
+            - nac-events
+            - site-sle
+            - location
             - rssizone
-            - sdkclient-scan-data
             - vbeacon
+            - zone
+            - sdkclient-scan-data
+            - asset-raw
+            - asset-raw-rssi
+            - discovered-raw-rssi
             - wifi-conn-raw
             - wifi-unconn-raw
-            - zone
             type: string
           type: array
         type:
@@ -26807,6 +28011,13 @@ components:
               type: integer
             enabled:
               default: false
+              type: boolean
+            force_lookup:
+              default: false
+              description: 'when 11r is enabled, we''ll try to use the cached PMK,
+                this can be disabled
+
+                `false` means auto'
               type: boolean
             source:
               default: radius
@@ -27222,7 +28433,7 @@ components:
           allow_mdns: false
           allow_ssdp: false
           ap_ids:
-          - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          - 497f6eca-6276-4993-bfeb-53d2bbba6f08
           app_limit:
             apps:
               dropbox: 300
@@ -27355,7 +28566,7 @@ components:
             rcoi:
             - 5A03BA0000
             venue_name: some_name
-          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          id: 497f6eca-6276-4993-bfeb-53d3bbba6f08
           interface: all
           isolation: false
           l2_isolation: false
@@ -27537,7 +28748,7 @@ components:
           wlan_limit_up: 0
           wlan_limit_up_enabled: false
           wxtag_ids:
-          - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          - 497f6eca-6276-4993-bfeb-53d4bbba6f08
           wxtunnel_id: string
           wxtunnel_remote_id: string
     wlan_airwatch:
@@ -29532,6 +30743,90 @@ components:
       type: object
       x-stoplight:
         id: 31ivz8cgfvnbx
+    aptemplate:
+      properties:
+        ap_matching:
+          properties:
+            enabled:
+              type: boolean
+            rules:
+              items:
+                properties:
+                  match_model:
+                    minLength: 1
+                    type: string
+                  name:
+                    minLength: 1
+                    type: string
+                  port_config:
+                    additionalProperties:
+                      $ref: '#/components/schemas/ap_port_config'
+                    description: Property key is the interface(s) name (e.g. "eth1,eth2")
+                    type: object
+                type: object
+              minItems: 1
+              type: array
+              uniqueItems: true
+          type: object
+        created_time:
+          readOnly: true
+          type: number
+        for_site:
+          readOnly: true
+          type: boolean
+        id:
+          format: uuid
+          readOnly: true
+          type: string
+        modified_time:
+          readOnly: true
+          type: number
+        org_id:
+          format: uuid
+          readOnly: true
+          type: string
+        site_id:
+          format: uuid
+          readOnly: true
+          type: string
+        wifi:
+          properties:
+            cisco_enabled:
+              type: boolean
+            disable_11k:
+              default: false
+              type: boolean
+            disable_radios_when_power_constrained:
+              type: boolean
+            enable_arp_spoof:
+              type: boolean
+            enable_shared_radio_scanning:
+              default: false
+              type: boolean
+            enabled:
+              default: true
+              type: boolean
+            locate_connected:
+              default: false
+              type: boolean
+            locate_unconnected:
+              default: false
+              type: boolean
+            mesh_allow_dfs:
+              default: false
+              type: boolean
+            mesh_enable_crm:
+              type: boolean
+            mesh_enabled:
+              type: boolean
+            proxy_arp:
+              default: false
+              type: boolean
+          type: object
+      required:
+      - ap_matching
+      type: object
+      x-examples: {}
     deviceprofile:
       anyOf:
       - $ref: '#/components/schemas/deviceprofile_ap'
@@ -31354,6 +32649,8 @@ components:
             $ref: '#/components/schemas/gatewaytemplate_tunnel_configs'
           description: Property key is the tunnel name
           type: object
+        tunnel_provider_options:
+          $ref: '#/components/schemas/gatewaytemplate_tunnel_proivder'
         type:
           default: standalone
           enum:
@@ -31753,14 +33050,6 @@ components:
         vpn_access:
           additionalProperties:
             properties:
-              affinity:
-                default: hub
-                description: DRAFT - when used in path preference, whether we should
-                  prefer the same hub or by path
-                enum:
-                - hub
-                - path
-                type: string
               allow_ping:
                 description: whether to allow ping from vpn into this routed network
                 type: boolean
@@ -31795,6 +33084,15 @@ components:
 
                   how HUB should deal with routes it received from Spokes'
                 type: boolean
+              other_vrfs:
+                description: 'by default, the routes are only readvertised toward
+                  the same vrf on spoke
+
+                  to allow it to be leaked to other vrfs'
+                items:
+                  example: iot
+                  type: string
+                type: array
               routed:
                 description: whether this network is routable
                 type: boolean
@@ -32342,6 +33640,129 @@ components:
             - 63.1.5.3
       x-stoplight:
         id: he1v15qwk4t9y
+    gatewaytemplate_tunnel_proivder:
+      properties:
+        jse:
+          description: for jse-ipsec, this allow provisioning of adequate resource
+            on JSE. Make sure adequate licenses are added
+          properties:
+            num_users:
+              example: 5
+              type: integer
+          type: object
+        zscalar:
+          description: 'for zscaler-ipsec and zscaler-gre, '
+          properties:
+            aup_acceptance_required:
+              default: true
+              type: boolean
+            aup_expire:
+              default: 1
+              description: days before AUP is requested again
+              type: integer
+            aup_ssl_proxy:
+              default: false
+              description: proxy HTTPs traffic, requiring Zscaler cert to be installed
+                in browser
+              type: boolean
+            download_mbps:
+              description: the download bandwidth cap of the link, in Mbps
+              example: 200
+              type: integer
+            enable_aup:
+              default: false
+              description: if `use_xff`==`true`, display Acceptable Use Policy (AUP)
+              type: boolean
+            enable_caution:
+              default: false
+              description: when `enforce_authentication`==`false`, display caution
+                notification for non-authenticated users
+              type: boolean
+            enforce_authentication:
+              default: false
+              type: boolean
+            sub_locations:
+              description: if `use_xff`==`true`
+              items:
+                properties:
+                  aup_acceptance_required:
+                    default: true
+                    type: boolean
+                  aup_expire:
+                    default: 1
+                    description: days before AUP is requested again
+                    type: integer
+                  aup_ssl_proxy:
+                    default: false
+                    description: proxy HTTPs traffic, requiring Zscaler cert to be
+                      installed in browser
+                    type: boolean
+                  download_mbps:
+                    description: the download bandwidth cap of the link, in Mbps
+                    example: 200
+                    type: integer
+                  enable_aup:
+                    description: if `use_xff`==`true`, display Acceptable Use Policy
+                      (AUP)
+                    type: boolean
+                  enable_caution:
+                    default: false
+                    description: when `enforce_authentication`==`false`, display caution
+                      notification for non-authenticated users
+                    type: boolean
+                  enforce_authentication:
+                    default: false
+                    type: boolean
+                  subnets:
+                    example:
+                    - 172.16.8.0/24
+                    - 172.16.32.0/23
+                    items:
+                      type: string
+                    type: array
+                  upload_mbps:
+                    description: the download bandwidth cap of the link, in Mbps
+                    example: 200
+                    type: integer
+                type: object
+              type: array
+            upload_mbps:
+              description: the download bandwidth cap of the link, in Mbps
+              example: 200
+              type: integer
+            use_xff:
+              description: location uses proxy chaining to forward traffic
+              type: boolean
+          type: object
+      type: object
+      x-examples:
+        Example 1:
+          jse:
+            num_users: 5
+          zscalar:
+            aup_acceptance_required: true
+            aup_expire: 2
+            aup_ssl_proxy: false
+            download_mbps: 200
+            enable_aup: false
+            enable_caution: false
+            enforce_authentication: false
+            sub_locations:
+            - aup_acceptance_required: true
+              aup_expire: 2
+              aup_ssl_proxy: false
+              download_mbps: 200
+              enable_aup: false
+              enable_caution: false
+              enforce_authentication: false
+              subnets:
+              - 172.16.8.0/24
+              - 172.16.32.0/23
+              upload_mbps: 200
+            upload_mbps: 200
+            use_xff: false
+      x-stoplight:
+        id: 06dd3e8604a73
     device_upgrade_response:
       properties:
         counts:
@@ -32451,6 +33872,641 @@ components:
           status: created
           strategy: big_bang
           target_version: string
+    networktemplate:
+      description: Network Template
+      properties:
+        additional_config_cmds:
+          items:
+            type: string
+          type: array
+        created_time:
+          readOnly: true
+          type: number
+        dhcp_snooping:
+          $ref: '#/components/schemas/junos_dhcp_snooping'
+        dns_servers:
+          items:
+            type: string
+          type: array
+        dns_suffix:
+          items:
+            type: string
+          type: array
+        extra_routes:
+          additionalProperties:
+            description: Property key is the destination CIDR or network name
+            properties:
+              via:
+                description: Next-hop address
+                type: string
+            type: object
+          type: object
+        group_tags:
+          type: object
+        id:
+          format: uuid
+          readOnly: true
+          type: string
+        import_org_networks:
+          description: Org Networks that we'd like to import
+          items:
+            example: ap
+            type: string
+          type: array
+        mist_nac:
+          description: enable mist_nac to use radsec
+          properties:
+            enabled:
+              type: boolean
+            network:
+              type: string
+          type: object
+        modified_time:
+          readOnly: true
+          type: number
+        name:
+          type: string
+        networks:
+          additionalProperties:
+            properties:
+              subnet:
+                example: 192.168.1.0/24
+                type: string
+              vlan_id:
+                example: 10
+                type: integer
+            type: object
+          description: Property key is network name
+          type: object
+        ntp_servers:
+          items:
+            type: string
+          type: array
+        org_id:
+          format: uuid
+          readOnly: true
+          type: string
+        port_usages:
+          additionalProperties:
+            $ref: '#/components/schemas/junos_port_usages'
+          description: Property key is the port profile name
+          properties:
+            dynamic:
+              $ref: '#/components/schemas/junos_port_usages_dynamic'
+          type: object
+        radius_config:
+          $ref: '#/components/schemas/junos_radius_config'
+        remote_syslog:
+          $ref: '#/components/schemas/remote_syslog'
+        snmp_config:
+          $ref: '#/components/schemas/junos_snmp_config'
+        switch_matching:
+          $ref: '#/components/schemas/template_switch.matching'
+        switch_mgmt:
+          properties:
+            config_revert:
+              default: 10
+              type: integer
+            protect_re:
+              properties:
+                enabled:
+                  default: false
+                  type: boolean
+              type: object
+            root_password:
+              type: string
+            tacacs:
+              properties:
+                acct_servers:
+                  items:
+                    properties:
+                      host:
+                        type: string
+                      port:
+                        type: string
+                      secret:
+                        type: string
+                      timeout:
+                        default: 10
+                        type: integer
+                    type: object
+                  type: array
+                enabled:
+                  type: boolean
+                network:
+                  type: string
+                tacplus_servers:
+                  items:
+                    properties:
+                      host:
+                        type: string
+                      port:
+                        type: string
+                      secret:
+                        type: string
+                      timeout:
+                        default: 10
+                        type: integer
+                    type: object
+                  type: array
+              type: object
+          type: object
+        vrf_config:
+          properties:
+            enabled:
+              default: false
+              type: boolean
+          type: object
+        vrf_instances:
+          additionalProperties:
+            properties:
+              extra_routes:
+                additionalProperties:
+                  properties:
+                    via:
+                      description: Next-hop address
+                      type: string
+                  type: object
+                description: Property key is the destination CIDR (e.g. "10.0.0.0/8")
+                type: object
+              networks:
+                items:
+                  type: string
+                type: array
+            type: object
+          description: Property key is the VRF name
+          type: object
+      type: object
+      x-examples:
+        example-1:
+          name: string
+          networks:
+            dns:
+            - string
+            dns_suffix:
+            - string
+            gateway: string
+            subnet: string
+            vlan_id: 1
+          port_usages:
+            eth0:
+              all_networks: true
+              bypass_auth_when_server_down: true
+              description: string
+              disable_autoneg: true
+              disabled: true
+              duplex: half
+              enable_mac_auth: true
+              guest_network: string
+              mac_limit: 0
+              mode: access
+              mtu: 0
+              networks:
+              - string
+              poe_disabled: true
+              port_auth: string
+              port_network: string
+              speed: string
+              storm_control:
+                no_broadcast: true
+                no_multicast: true
+                no_registered_multicast: true
+                no_unknown_unicast: true
+                percentage: 0
+              stp_edge: true
+              voip_network: string
+          radius_config:
+            acct_interim_interval: 0
+            acct_servers:
+            - host: string
+              port: 0
+              secret: string
+            auth_servers:
+            - host: string
+              port: 0
+              secret: string
+            auth_servers_retries: 0
+            auth_servers_timeout: 0
+          switch_matching:
+            enable: true
+            rules:
+            - additional_config_cmds:
+              - string
+              match_model: string
+              match_name[0:3]: string
+              match_role: string
+              name: string
+              port_config:
+                aggregated: true
+                description: string
+                dynamic_usage: true
+                usage: string
+          switch_mgmt:
+            config_revert_timer: 0
+    junos_snmp_config:
+      properties:
+        client_list:
+          items:
+            properties:
+              client_list_name:
+                example: clist-1
+                type: string
+              clients:
+                items:
+                  example: 151.140.101.218/32
+                  type: string
+                type: array
+            type: object
+          type: array
+        contact:
+          example: cns@juniper.net
+          type: string
+        description:
+          example: Juniper QFX Series Switch - 1K_5LA
+          type: string
+        enabled:
+          default: true
+          type: boolean
+        engine_id:
+          enum:
+          - local
+          - engine-id-suffix
+          - use-default-ip-address
+          - use-mac-address
+          type: string
+        location:
+          example: Las Vegas, NV
+          type: string
+        name:
+          example: TGH-1K-QFX10K
+          type: string
+        network:
+          default: default
+          type: string
+        trap_groups:
+          items:
+            properties:
+              categories:
+                items:
+                  example: authentication
+                  type: string
+                type: array
+              group_name:
+                description: Categories list can refer to https://www.juniper.net/documentation/software/topics/task/configuration/snmp-trap-groups-configuring-junos-nm.html
+                example: profiler
+                type: string
+              targets:
+                items:
+                  example: 172.29.158.19
+                  type: string
+                type: array
+              version:
+                default: v2
+                enum:
+                - v1
+                - v2
+                - all
+                type: string
+            type: object
+          type: array
+        v2c_config:
+          items:
+            properties:
+              authorization:
+                example: read-only
+                type: string
+              client_list_name:
+                description: client_list_name here should refer to client_list above
+                example: clist-1
+                type: string
+              community_name:
+                example: abc123
+                type: string
+              view:
+                description: view name here should be defined in views above
+                example: all
+                type: string
+            type: object
+          type: array
+        v3_config:
+          properties:
+            notify:
+              items:
+                properties:
+                  name:
+                    type: string
+                  tag:
+                    type: string
+                  type:
+                    enum:
+                    - trap
+                    - inform
+                    type: string
+                type: object
+              type: array
+            notify_filter:
+              items:
+                properties:
+                  contents:
+                    items:
+                      properties:
+                        include:
+                          type: boolean
+                        oid:
+                          example: 1.3.6.1.4.1
+                          type: string
+                      type: object
+                    type: array
+                  profile_name:
+                    type: string
+                type: object
+              type: array
+            target_address:
+              items:
+                properties:
+                  address:
+                    example: address
+                    type: string
+                  address_mask:
+                    example: address_mask
+                    type: string
+                  port:
+                    default: 161
+                    type: integer
+                  tag_list:
+                    description: <refer to notify tag, can be multiple with blank
+                    type: string
+                  target_address_name:
+                    example: target_address_name
+                    type: string
+                  target_parameters:
+                    description: refer to notify target parameters name
+                    type: string
+                type: object
+              type: array
+            target_parameters:
+              items:
+                properties:
+                  message_processing_model:
+                    enum:
+                    - v1
+                    - v2c
+                    - v3
+                    type: string
+                  name:
+                    type: string
+                  notify_filter:
+                    description: refer to profile-name in notify-filter
+                    type: string
+                  security_level:
+                    enum:
+                    - authentication
+                    - none
+                    - privacy
+                    type: string
+                  security_model:
+                    enum:
+                    - usm
+                    - v1
+                    - v2c
+                    type: string
+                  security_name:
+                    description: refer to security_name in usm
+                    example: m01620
+                    type: string
+                type: object
+              type: array
+            usm:
+              properties:
+                engine-id:
+                  description: required only if `engine_type`==`remote_engine`
+                  example: 00:00:00:0b:00:00:70:10:6f:08:b6:3f
+                  type: string
+                engine_type:
+                  enum:
+                  - remote_engine
+                  - local_engine
+                  type: string
+                users:
+                  items:
+                    properties:
+                      authentication_password:
+                        description: 'Not required if `authentication_type`==`authentication-none`
+
+                          include alphabetic, numeric, and special characters, but
+                          it cannot include control characters. '
+                        minLength: 7
+                        type: string
+                      authentication_type:
+                        description: sha224, sha256, sha384, sha512 are supported
+                          in 21.1 and newer release
+                        enum:
+                        - authentication-md5
+                        - authentication-sha
+                        - authentication-sha224
+                        - authentication-sha256
+                        - authentication-sha384
+                        - authentication-sha512
+                        - authentication-none
+                        type: string
+                      encryption_password:
+                        description: 'Not required if `encryption_type`==`privacy-none`
+
+                          include alphabetic, numeric, and special characters, but
+                          it cannot include control characters'
+                        minLength: 8
+                        type: string
+                      encryption_type:
+                        enum:
+                        - privacy-aes128
+                        - privacy-des
+                        - privacy-3des
+                        - privacy-none
+                        type: string
+                      name:
+                        type: string
+                    type: object
+                  type: array
+              type: object
+            vacm:
+              properties:
+                access:
+                  items:
+                    properties:
+                      group_name:
+                        type: string
+                      prefix_list:
+                        items:
+                          properties:
+                            context_prefix:
+                              description: only required if `type`==`context_prefix`
+                              example: iil
+                              type: string
+                            notify_view:
+                              description: refer to view name
+                              example: all
+                              type: string
+                            read_view:
+                              description: refer to view name
+                              example: all
+                              type: string
+                            security_level:
+                              enum:
+                              - privacy
+                              - authentication
+                              - none
+                              type: string
+                            security_model:
+                              enum:
+                              - any
+                              - usm
+                              - v1
+                              - v2c
+                              type: string
+                            type:
+                              enum:
+                              - default_context_prefix
+                              type: string
+                            write_view:
+                              description: refer to view name
+                              example: all
+                              type: string
+                          type: object
+                        type: array
+                    type: object
+                  type: array
+                security_to_group:
+                  properties:
+                    content:
+                      items:
+                        properties:
+                          group:
+                            description: refer to group_name under access
+                            type: string
+                          security_name:
+                            type: string
+                        type: object
+                      type: array
+                    security_model:
+                      enum:
+                      - usm
+                      - v1
+                      - v2c
+                      type: string
+                  type: object
+              type: object
+          type: object
+        views:
+          properties:
+            include:
+              description: if the root oid configured is included
+              type: boolean
+            oid:
+              example: 1.3.6.1
+              type: string
+            view_name:
+              example: all
+              type: string
+          type: object
+      type: object
+      x-examples: {}
+    template_switch.matching:
+      description: Switch template
+      properties:
+        enable:
+          type: boolean
+        rules:
+          items:
+            additionalProperties:
+              type: string
+            description: 'property key define the type of matching, value is the string
+              to match. e.g: `match_name[0:3]`, `match_name[2:6]`, `match_model`,  `match_model[0-6]`'
+            example:
+              match_model: EX4300
+              match_name[0:3]: abc
+            properties:
+              additional_config_cmds:
+                items:
+                  example: set snmp community public
+                  type: string
+                type: array
+              match_role:
+                description: role to match
+                example: access
+                type: string
+              name:
+                example: access_ex4300
+                type: string
+              port_config:
+                additionalProperties:
+                  $ref: '#/components/schemas/junos_port_config'
+                description: Propery key is the interface name or interface range
+                example:
+                  '*':
+                    usage: default
+                  ge-0/0/0-1:
+                    ae_disable_lacp: false
+                    ae_idx: 0
+                    aggregated: true
+                    critical: true
+                    usage: uplink
+                  ge-0/0/8-16,ge-1/0/0-47:
+                    usage: ap
+                type: object
+              switch_mgmt:
+                properties:
+                  ap_affinity_threshold:
+                    example: '10'
+                    type: string
+                  config_revert_timer:
+                    default: 10
+                    type: integer
+                  dhcp_option_fqdn:
+                    default: false
+                    description: Enable to provide the FQDN with DHCP option 81
+                    type: boolean
+                  mxedge_proxy_host:
+                    type: string
+                  mxedge_proxy_port:
+                    default: 2222
+                    type: integer
+                  use_mxedge_proxy:
+                    default: false
+                    type: boolean
+                type: object
+            type: object
+          minItems: 1
+          type: array
+          uniqueItems: true
+      type: object
+      x-examples:
+        Example 1:
+          enable: true
+          rules:
+          - match_model: EX4300
+            match_name[0:3]: abc
+        example-1:
+          enable: true
+          rules:
+          - additional_config_cmds:
+            - set snmp community public
+            match_model: EX4300
+            match_name[0:3]: abc
+            name: match by name
+            port_config:
+              '*':
+                usage: default
+              ge-0/0/0:
+                usage: uplink
+              ge-0/0/8-16,ge-1/0/0-47:
+                usage: ap
+          - additional_config_cmds:
+            - set snmp community public2
+            match_role: access
+            name: match by role
+            port_config:
+              ge-0/0/0:
+                usage: uplink
     device_other:
       properties:
         created_time:
@@ -32591,6 +34647,101 @@ components:
           start_time: 1476990144
           type: sdkclient
           url: https://s3.amazon.com/.../frames.json
+    rftemplate:
+      description: RF Template
+      properties:
+        ant_gain_24:
+          type: integer
+        ant_gain_5:
+          type: integer
+        band_24:
+          $ref: '#/components/schemas/ap_radio_band'
+        band_24_usage:
+          default: '24'
+          description: If `band_24_usage`==`5`, by default, `band_5` properties is
+            used, if specific channel/bandwidth/power/... If desired, use `band_5_on_24_radio`
+          enum:
+          - '24'
+          - '5'
+          - auto
+          type: string
+        band_5:
+          $ref: '#/components/schemas/ap_radio_band'
+        band_5_on_24_radio:
+          $ref: '#/components/schemas/ap_radio_band'
+        country_code:
+          description: optional, country code to use. If specified, this gets applied
+            to all sites using the RF Template
+          type: string
+        created_time:
+          readOnly: true
+          type: number
+        for_site:
+          readOnly: true
+          type: boolean
+        id:
+          format: uuid
+          readOnly: true
+          type: string
+        model_specific:
+          additionalProperties:
+            properties:
+              band_24:
+                $ref: '#/components/schemas/ap_radio_band'
+              band_5:
+                $ref: '#/components/schemas/ap_radio_band'
+            type: object
+          description: overwrites for a specific model. If a band is specified, it
+            will shadow the default. Property key is the model name (e.g. "AP63")
+          type: object
+        modified_time:
+          readOnly: true
+          type: number
+        name:
+          description: The name of the RF template
+          type: string
+        org_id:
+          format: uuid
+          readOnly: true
+          type: string
+        scanning_enabled:
+          description: whether scanning radio is enabled
+          type: boolean
+        site_id:
+          format: uuid
+          readOnly: true
+          type: string
+      required:
+      - name
+      type: object
+      x-examples:
+        example-1:
+          band_24:
+            bandwidth: 20
+            channels:
+            - 1
+            - 6
+            - 11
+            disabled: false
+            power: 16
+          band_5:
+            bandwidth: 40
+            disabled: false
+            power: 0
+            power_max: 18
+            power_min: 10
+            preamble: short
+          country_code: US
+          model_specific:
+            AP61:
+              band_5:
+                bandwidth: 40
+                channels:
+                - 100
+                - 104
+                disabled: false
+                power: 0
+          name: 5G-Restricted
     service_policy:
       properties:
         action:
@@ -32793,6 +34944,40 @@ components:
           traffic_type: data_best_effort
           type: custom
           vpn_name: addresses
+    sitetemplate:
+      properties:
+        auto_upgrade:
+          properties:
+            day_of_week:
+              type: string
+            enabled:
+              type: boolean
+            time_of_day:
+              type: string
+            version:
+              type: string
+          type: object
+        name:
+          type: string
+        vars:
+          properties:
+            SSID_STR:
+              type: string
+            VLAN_ID:
+              type: string
+          type: object
+      type: object
+      x-examples:
+        example-1:
+          auto_upgrade:
+            day_of_week: mon
+            enabled: true
+            time_of_day: 01:00
+            version: stable
+          name: template_000
+          vars:
+            SSID_STR: mist
+            VLAN_ID: '2345'
     ssr_upgrade_response:
       properties:
         channel:
@@ -32882,6 +35067,8 @@ components:
               pod:
                 default: 1
                 example: 2
+                maximum: 128
+                minimum: 1
                 type: integer
             type: object
           type: object

@@ -1,4 +1,0 @@
-
-# Mist Github Repo
-
-Sample codes can be found on our [mist-public](https://github.com/mistsys/mist-public) Github.
