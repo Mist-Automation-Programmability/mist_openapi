@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2309.1.1**
+  description: '> Version: **2311.1.0**
 
     >
 
-    > Date: **September 28, 2023**
+    > Date: **November 17, 2023**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2309.1.1
+  version: 2311.1.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -55,6 +55,8 @@ servers:
   url: https://api.gc2.mist.com
 - description: Mist Europe 01
   url: https://api.eu.mist.com
+- description: Mist APAC 01
+  url: https://api.ac5.mist.com
 security:
 - apiToken: []
 - basicAuth: []
@@ -585,6 +587,26 @@ paths:
       summary: listDeviceModels
       tags:
       - Constants
+  /api/v1/const/gateway_applications:
+    get:
+      description: Get the full list of applications that we recognize
+      operationId: listGatewayApplications
+      responses:
+        '200':
+          $ref: '#/components/responses/ConstGatewayApplications'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listGatewayApplications
+      tags:
+      - Constants
   /api/v1/const/insight_metrics:
     get:
       description: List Insight Metrics
@@ -735,7 +757,7 @@ paths:
       description: 'Supported OtherDevice Models
 
         '
-      operationId: getSupportedOtherDeviceModels
+      operationId: listSupportedOtherDeviceModels
       responses:
         '200':
           content:
@@ -821,7 +843,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSupportedOtherDeviceModels
+      summary: listSupportedOtherDeviceModels
       tags:
       - Constants
   /api/v1/const/traffic_types:
@@ -12146,9 +12168,6 @@ paths:
       - Orgs JSI
     parameters:
     - $ref: '#/components/parameters/org_id'
-  /api/v1/orgs/{org_id}/junos/register_cmd:
-    parameters:
-    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/licenses:
     get:
       description: Get the list of licenses
@@ -17245,7 +17264,6 @@ paths:
                     no_static_ip: false
                     org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
                     portal:
-                      allow_wlan_id_roam: true
                       amazon_client_id: string
                       amazon_client_secret: string
                       amazon_email_domains:
@@ -22615,7 +22633,6 @@ paths:
                   no_static_ip: false
                   org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
                   portal:
-                    allow_wlan_id_roam: true
                     amazon_client_id: string
                     amazon_client_secret: string
                     amazon_email_domains:
@@ -30451,19 +30468,42 @@ paths:
         content:
           application/json:
             examples:
-              example-1:
+              Create a VC with three members:
                 value:
                   members:
                   - mac: aff827549235
                     vc_ports:
                     - xe-0/1/0
+                    vc_role: master
                   - mac: 8396cd006c8c
                     vc_ports:
                     - xe-0/1/0
                     - xe-0/1/1
+                    vc_role: backup
                   - mac: 8396cd00888c
                     vc_ports:
                     - xe-0/1/0
+                    vc_role: linecard
+              Create a pre-provisioned VC with three members:
+                value:
+                  members:
+                  - mac: aff827549235
+                    member_id: 0
+                    vc_ports:
+                    - xe-0/1/0
+                    - xe-0/1/1
+                    vc_role: master
+                  - mac: 8396cd006c8c
+                    member_id: 1
+                    vc_ports:
+                    - xe-0/1/0
+                    vc_role: linecard
+                  - mac: 8396cd00888c
+                    member_id: 2
+                    vc_ports:
+                    - xe-0/1/0
+                    vc_role: backup
+                  preprovisioned: true
             schema:
               $ref: '#/components/schemas/device_switch_vc'
         description: Request Body
@@ -30522,31 +30562,47 @@ paths:
         \ the state of the member switch to be replaced must be non present. \n2.\
         \ Adding the new member switch to the VC \n3. Waiting for the VC state (vc_state)\
         \ of this VC to be updated to API server \n4. Invoke vc with renumber to replace\
-        \ the new member switch from fpc X to"
+        \ the new member switch from fpc X to\n\n## Perprovision VC members\nBy specifying\
+        \ \u201Cpreprovision\u201D op, you can convert the current VC to pre-provisioned\
+        \ mode, update VC members as well as specify vc_ports when adding new members\
+        \ for device models without dedicated vc ports. Use renumber for fpc0 replacement\
+        \ which involves device_id change.\n\nNote: \n1. vc_ports is used for adding\
+        \ new members and not needed if * the device model has dedicated vc ports,\
+        \ or * no new member is added \n2. New VC members to be added should exist\
+        \ in the same Site as the VC\n\nUpdate Device\u2019s VC config can achieve\
+        \ similar purpose by directly modifying current virtual_chassis config. However,\
+        \ it cannot fulfill requests to enabling vc_ports on new members that are\
+        \ yet to belong to current VC."
       operationId: updateSiteVirtualChassisMember
       requestBody:
         content:
           application/json:
             examples:
-              Adding two new switches into the VC (MAC aff827549235):
+              Adding two new switches as line cards into the VC:
                 value:
                   members:
                   - mac: aff827549235
                     member: 0
                     vc_ports:
                     - xe-0/1/1
-                  - mac: aff827549235
-                    member: 2
-                    vc_ports:
-                    - xe-0/1/1
+                    vc_role: linecard
                   - mac: 8396cd00777c
                     vc_ports:
                     - xe-0/1/0
-                  - mac: 8396cd00888c
-                    vc_ports:
-                    - xe-0/1/0
+                    vc_role: linecard
                   op: add
-              Removing two new switches into the VC (MAC aff827549235):
+              Convert to pre-provisioned VC:
+                value:
+                  member: 0
+                  members:
+                  - mac: string
+                    member: 0
+                    vc_ports:
+                    - string
+                    vc_role: master
+                  new-member: 0
+                  op: add
+              Removing two switches from VC:
                 value:
                   members:
                   - member: 2
@@ -30557,22 +30613,8 @@ paths:
                   member: 3
                   new-member: 2
                   op: renumber
-              preprovisioned VC:
-                value:
-                  virtual_chassis:
-                    members:
-                    - mac: aff827549235
-                      member_id: 0
-                      vc_role: master
-                    - mac: 8396cd006c8c
-                      member_id: 1
-                      vc_role: linecard
-                    - mac: 8396cd00888c
-                      member_id: 2
-                      vc_role: backup
-                    preprovisioned: true
             schema:
-              $ref: '#/components/schemas/device_switch_vc'
+              $ref: '#/components/schemas/device_switch_vc_update'
         description: Request Body
       responses:
         '200':
@@ -32010,8 +32052,40 @@ paths:
     - $ref: '#/components/parameters/map_id'
     - $ref: '#/components/parameters/site_id'
     post:
-      description: This API is used to trigger a map for Auto orientation
+      description: 'This API is called to trigger a map for auto orientation. For
+        auto orient feature to work, BLE data needs to be collected from the APs on
+        the map. This precess is not disruptive unlike FTM collection. Repeated POST
+        to this endpoint while a map is still running will be rejected.
+
+
+        List of devices to provide suggestions for is an optional parameter that can
+        be given to this API. This will provide auto orient suggestions only for the
+        devices specified. If no list of devices is provided, all APs asociated with
+        that map are considered by default'
       operationId: startSiteApAutoOrientation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                force_collection:
+                  default: false
+                  description: "If `force_collection`==`false`, the API attempts to\
+                    \ start auto orientation with existing BLE data. \nIf `force_collection`==`true`,\
+                    \ the API attempts to start BLE orchestration."
+                  type: boolean
+                  x-stoplight:
+                    id: fnpa028b9y3u9
+                macs:
+                  description: list of device macs
+                  items:
+                    type: string
+                    x-stoplight:
+                      id: 021coojw857sc
+                  type: array
+                  x-stoplight:
+                    id: nrjs81kfqp4uy
+              type: object
       responses:
         '200':
           content:
@@ -32050,7 +32124,27 @@ paths:
                     time_queued: -1
           description: Map queued for auto orientation
         '400':
-          $ref: '#/components/responses/HTTP400'
+          content:
+            application/json:
+              examples:
+                Example 1:
+                  value:
+                    detail: Map has less than 3 APs associated with it to perform
+                      auto orient
+                Example 2:
+                  value:
+                    detail: Auto AP orient is already in progress for this Map
+                Example 3:
+                  value:
+                    detail: Auto orient data does not exist or has gone stale
+              schema:
+                properties:
+                  detail:
+                    type: string
+                    x-stoplight:
+                      id: gld8d01g8w5hs
+                type: object
+          description: Bad Request
         '401':
           $ref: '#/components/responses/HTTP401'
         '403':
@@ -32103,6 +32197,12 @@ paths:
 
         | `data_needed` | Additional position data is required for autoplacement.
         Users should verify the requested anchor APs have a position on the map |
+
+        | `invalid_model` | Autoplacement is not supported on the model of the APs
+        on the map |
+
+        | `invalid_version` | Autoplacement is not supported with the APs current
+        firmware version |
 
         | `error` | There was an error in the autoplacement process |'
       operationId: getSiteApAutoPlacement
@@ -32192,17 +32292,17 @@ paths:
           application/json:
             schema:
               properties:
-                device_ids:
-                  description: list of device macs
-                  items:
-                    type: string
-                  type: array
                 force_collection:
                   default: false
                   description: "* If `force_collection`==`false`: the API Iattempts\
                     \ to start localization with existing data. \n* If `force_collection`==`true`:\
                     \ maintenance the API attempts to start orchestration."
                   type: boolean
+                macs:
+                  description: list of device macs
+                  items:
+                    type: string
+                  type: array
               type: object
       responses:
         '200':
@@ -32235,7 +32335,7 @@ paths:
           application/json:
             schema:
               properties:
-                device_ids:
+                macs:
                   description: list of device macs
                   items:
                     type: string
@@ -32270,7 +32370,7 @@ paths:
           application/json:
             schema:
               properties:
-                device_ids:
+                macs:
                   description: list of device macs
                   items:
                     type: string
@@ -32418,14 +32518,6 @@ paths:
       summary: replaceSiteMapImage
       tags:
       - Sites Maps
-  /api/v1/sites/{site_id}/maps/{map_id}/revert_auto_orient:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/map_id'
-  /api/v1/sites/{site_id}/maps/{map_id}/revert_autoplacement:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/map_id'
   /api/v1/sites/{site_id}/maps/{map_id}/set_map:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -32444,22 +32536,21 @@ paths:
             examples:
               Example 1:
                 value:
-                  device_ids:
+                  macs:
                   - 5c5b35000001
                   - 5c5b35584a6f
             schema:
               properties:
-                device_ids:
+                macs:
                   items:
-                    example: 5c5b35000001
                     type: string
                   type: array
               type: object
               x-examples:
                 Example 1:
-                  device_ids:
-                  - 00000000-0000-0000-1000-5c5b35000001
-                  - 00000000-0000-0000-1000-5c5b35584a6f
+                  macs:
+                  - 5c5b35000001
+                  - 5c5b35584a6f
       responses:
         '200':
           content:
@@ -32538,12 +32629,6 @@ paths:
                   description: If accept is true, accepts placement for devices in
                     list otherwise. If false, reject for devices in list.
                   type: boolean
-                device_macs:
-                  description: A list of macs to accept/reject. If a list is not provided
-                    the API will accept/reject for the full map.
-                  items:
-                    type: string
-                  type: array
                 for:
                   default: placement
                   description: 'The selector to choose auto placement or auto orientation. '
@@ -32551,6 +32636,14 @@ paths:
                   - placement
                   - orientation
                   type: string
+                macs:
+                  description: A list of macs to accept/reject. If a list is not provided
+                    the API will accept/reject for the full map.
+                  items:
+                    type: string
+                    x-stoplight:
+                      id: v2u0f7xok5pvp
+                  type: array
               type: object
       responses:
         '200':
@@ -32733,6 +32826,112 @@ paths:
       summary: createSiteMxEdge
       tags:
       - Sites MxEdges
+  /api/v1/sites/{site_id}/mxedges/events/count:
+    get:
+      description: Count Mist Edge Events
+      operationId: countSiteMxEdgeEvents
+      parameters:
+      - in: query
+        name: distinct
+        schema:
+          default: mxedge_id
+          enum:
+          - mxedge_id
+          - type
+          - mxcluster_id
+          - package
+          type: string
+      - description: mist edge id
+        in: query
+        name: mxedge_id
+        schema:
+          type: string
+      - description: mist edge cluster id
+        in: query
+        name: mxcluster_id
+        schema:
+          type: string
+      - description: mist edge event type [Supported Events](/#operation/listGatewayApplications)
+        in: query
+        name: type
+        schema:
+          type: string
+      - description: service running on mist edge(mxagent, tunterm etc)
+        in: query
+        name: service
+        schema:
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: countSiteMxEdgeEvents
+      tags:
+      - Sites MxEdges
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/mxedges/events/search:
+    get:
+      description: Search Mist Edge Events
+      operationId: searchMistEdgeEvents
+      parameters:
+      - description: mist edge id
+        in: query
+        name: mxedge_id
+        schema:
+          type: string
+      - description: mist edge cluster id
+        in: query
+        name: mxcluster_id
+        schema:
+          type: string
+      - description: mist edge event type [Supported Events](/#operation/listGatewayApplications)
+        in: query
+        name: type
+        schema:
+          type: string
+      - description: service running on mist edge(mxagent, tunterm etc)
+        in: query
+        name: service
+        schema:
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/MxEdgeEventsSearch'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: searchMistEdgeEvents
+      tags:
+      - Sites MxEdges
+    parameters:
+    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/mxedges/{mxedge_id}:
     delete:
       description: Delete Site Mist Edge
@@ -32991,6 +33190,142 @@ paths:
       summary: preemptSitesMxTunnel
       tags:
       - Sites MxTunnels
+  /api/v1/sites/{site_id}/nac_clients/count:
+    get:
+      description: Count by Distinct Attributes of NAC Clients
+      operationId: countSiteNacClients
+      parameters:
+      - description: NAC Policy Rule ID, if matched
+        in: query
+        name: distinct
+        schema:
+          default: type
+          enum:
+          - type
+          - last_nacrule_id
+          - auth_type
+          - last_vlan_id
+          - last_nas_vendor
+          - last_username
+          - last_ap
+          - mac
+          - last_ssid
+          - last_status
+          - mdm_compliance_status
+          - mdm_provider
+          type: string
+      - description: NAC Policy Rule ID, if matched
+        in: query
+        name: last_nacrule_id
+        schema:
+          type: string
+      - description: NAC Policy Rule Matched
+        in: query
+        name: nacrule_matched
+        schema:
+          type: boolean
+      - description: "authentication type, e.g. \u201Ceap-tls\u201D, \u201Ceap-ttls\u201D\
+          , \u201Ceap-teap\u201D, \u201Cmab\u201D, \u201Cdevice-auth\u201D"
+        in: query
+        name: auth_type
+        schema:
+          type: string
+      - description: Vlan ID
+        in: query
+        name: last_vlan_id
+        schema:
+          type: string
+      - description: vendor of NAS device
+        in: query
+        name: last_nas_vendor
+        schema:
+          type: string
+      - description: SSO ID, if present and used
+        in: query
+        name: idp_id
+        schema:
+          type: string
+      - description: SSID
+        in: query
+        name: last_ssid
+        schema:
+          type: string
+      - description: Username presented by the client
+        in: query
+        name: last_username
+        schema:
+          type: string
+      - description: start time, in epoch
+        in: query
+        name: timestamp
+        schema:
+          type: number
+      - description: org id
+        in: query
+        name: org_id
+        schema:
+          type: string
+      - description: site id if assigned, null if not assigned
+        in: query
+        name: site_id
+        schema:
+          type: string
+      - description: AP MAC connected to by client
+        in: query
+        name: last_ap
+        schema:
+          type: string
+      - description: MAC address
+        in: query
+        name: mac
+        schema:
+          type: string
+      - description: "Connection status of client i.e \u201Cpermitted\u201D, \u201C\
+          denied, \u201Csession_ended\u201D"
+        in: query
+        name: last_status
+        schema:
+          type: string
+      - description: "Client type i.e. \u201Cwireless\u201D, \u201Cwired\u201D etc."
+        in: query
+        name: type
+        schema:
+          type: string
+      - description: "MDM compliancy of client i.e \u201Ccompliant\u201D, \u201Cnot\
+          \ compliant\u201D"
+        in: query
+        name: mdm_compliance_status
+        schema:
+          type: string
+      - description: "MDM provider of client\u2019s organisation eg \u201Cintune\u201D\
+          , \u201Cjamf\u201D"
+        in: query
+        name: mdm_provider
+        schema:
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: countSiteNacClients
+      tags:
+      - Sites Clients - NAC
+    parameters:
+    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/nac_clients/events/count:
     get:
       description: Count by Distinct Attributes of NAC Client-Events
@@ -33002,10 +33337,10 @@ paths:
           enum:
           - type
           - nacrule_id
+          - dryrun_nacrule_id
           - auth_type
           - vlan
           - nas_vendor
-          - eap_type
           - username
           - ap
           - mac
@@ -33055,8 +33390,8 @@ paths:
         name: nacrule_matched
         schema:
           type: boolean
-      - description: "authentication type, e.g. \u201C802.1X\u201D, \u201CMAB\u201D\
-          , \u201CDeviceAuth\u201D"
+      - description: "authentication type, e.g.  \u201Ceap-tls\u201D, \u201Ceap-ttls\u201D\
+          , \u201Ceap-teap\u201D, \u201Cmab\u201D, \u201Cdevice-auth\u201D"
         in: query
         name: auth_type
         schema:
@@ -33074,11 +33409,6 @@ paths:
       - description: SSID
         in: query
         name: bssid
-        schema:
-          type: string
-      - description: "EAP type, e.g. \u201CEAP-TTLS\u201D, \u201CEAP-TLS\u201D"
-        in: query
-        name: eap_type
         schema:
           type: string
       - description: SSO ID, if present and used
@@ -33148,6 +33478,123 @@ paths:
         '429':
           $ref: '#/components/responses/HTTP429'
       summary: searcSitegNacClientEvents
+      tags:
+      - Sites Clients - NAC
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/nac_clients/search:
+    get:
+      description: Search NAC Clients
+      operationId: searchSiteNacClients
+      parameters:
+      - description: NAC Policy Rule ID, if matched
+        in: query
+        name: last_nacrule_id
+        schema:
+          type: string
+      - description: NAC Policy Rule Matched
+        in: query
+        name: nacrule_matched
+        schema:
+          type: boolean
+      - description: "authentication type, e.g. \u201Ceap-tls\u201D, \u201Ceap-ttls\u201D\
+          , \u201Ceap-teap\u201D, \u201Cmab\u201D, \u201Cdevice-auth\u201D"
+        in: query
+        name: auth_type
+        schema:
+          type: string
+      - description: Vlan ID
+        in: query
+        name: last_vlan_id
+        schema:
+          type: string
+      - description: vendor of NAS device
+        in: query
+        name: last_nas_vendor
+        schema:
+          type: string
+      - description: SSO ID, if present and used
+        in: query
+        name: idp_id
+        schema:
+          type: string
+      - description: SSID
+        in: query
+        name: last_ssid
+        schema:
+          type: string
+      - description: Username presented by the client
+        in: query
+        name: last_username
+        schema:
+          type: string
+      - description: start time, in epoch
+        in: query
+        name: timestamp
+        schema:
+          type: number
+      - description: org id
+        in: query
+        name: org_id
+        schema:
+          type: string
+      - description: site id if assigned, null if not assigned
+        in: query
+        name: site_id
+        schema:
+          type: string
+      - description: AP MAC connected to by client
+        in: query
+        name: last_ap
+        schema:
+          type: string
+      - description: MAC address
+        in: query
+        name: mac
+        schema:
+          type: string
+      - description: "Connection status of client i.e \u201Cpermitted\u201D, \u201C\
+          denied, \u201Csession_ended\u201D"
+        in: query
+        name: last_status
+        schema:
+          type: string
+      - description: "Client type i.e. \u201Cwireless\u201D, \u201Cwired\u201D etc."
+        in: query
+        name: type
+        schema:
+          type: string
+      - description: "MDM compliancy of client i.e \u201Ccompliant\u201D, \u201Cnot\
+          \ compliant\u201D"
+        in: query
+        name: mdm_compliance_status
+        schema:
+          type: string
+      - description: "MDM provider of client\u2019s organisation eg \u201Cintune\u201D\
+          , \u201Cjamf\u201D"
+        in: query
+        name: mdm_provider
+        schema:
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/ClientNacSearch'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: searchSiteNacClients
       tags:
       - Sites Clients - NAC
     parameters:
@@ -34614,6 +35061,186 @@ paths:
         '429':
           $ref: '#/components/responses/HTTP429'
       summary: listSiteServicesDerived
+      tags:
+      - Sites Services
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/services/events/count:
+    get:
+      description: Count Service Path Events
+      operationId: countSiteServicePathEvents
+      parameters:
+      - in: query
+        name: distinct
+        schema:
+          default: type
+          enum:
+          - type
+          - mac
+          - vpn_name
+          - vpn_path
+          - policy
+          - port_id
+          - model
+          - site_id
+          type: string
+      - description: Event type, e.g. GW_SERVICE_PATH_DOWN
+        in: query
+        name: type
+        schema:
+          type: string
+      - description: Description of the event including the reason it is triggered
+        in: query
+        name: text
+        schema:
+          type: string
+      - description: Peer name
+        in: query
+        name: vpn_name
+        schema:
+          type: string
+      - description: Peer path name
+        in: query
+        name: vpn_path
+        schema:
+          type: string
+      - description: Service policy associated with that specific path
+        in: query
+        name: policy
+        schema:
+          type: string
+      - description: Network interface
+        in: query
+        name: port_id
+        schema:
+          type: string
+      - description: Device model
+        in: query
+        name: model
+        schema:
+          type: string
+      - description: Device firmware version
+        in: query
+        name: version
+        schema:
+          type: string
+      - description: Start time, in epoch
+        in: query
+        name: timestamp
+        schema:
+          type: number
+      - description: Org id
+        in: query
+        name: org_id
+        schema:
+          type: string
+      - description: Site id
+        in: query
+        name: site_id
+        schema:
+          type: string
+      - description: MAC address
+        in: query
+        name: mac
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: countSiteServicePathEvents
+      tags:
+      - Sites Services
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/services/events/search:
+    get:
+      description: Search Service Path Events
+      operationId: searchSiteServicePathEvents
+      parameters:
+      - description: Event type, e.g. GW_SERVICE_PATH_DOWN
+        in: query
+        name: type
+        schema:
+          type: string
+      - description: Description of the event including the reason it is triggered
+        in: query
+        name: text
+        schema:
+          type: string
+      - description: Peer name
+        in: query
+        name: vpn_name
+        schema:
+          type: string
+      - description: Peer path name
+        in: query
+        name: vpn_path
+        schema:
+          type: string
+      - description: Service policy associated with that specific path
+        in: query
+        name: policy
+        schema:
+          type: string
+      - description: Network interface
+        in: query
+        name: port_id
+        schema:
+          type: string
+      - description: Device model
+        in: query
+        name: model
+        schema:
+          type: string
+      - description: Device firmware version
+        in: query
+        name: version
+        schema:
+          type: string
+      - description: Start time, in epoch
+        in: query
+        name: timestamp
+        schema:
+          type: number
+      - description: Org id
+        in: query
+        name: org_id
+        schema:
+          type: string
+      - description: Site id
+        in: query
+        name: site_id
+        schema:
+          type: string
+      - description: MAC address
+        in: query
+        name: mac
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/ServicePathEventsSearch'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: searchSiteServicePathEvents
       tags:
       - Sites Services
     parameters:
@@ -37197,6 +37824,52 @@ paths:
       - Sites Devices Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/stats/calls/client/{client_mac}/troubleshoot:
+    get:
+      description: Troubleshoot a call
+      operationId: troubleshootSiteCall
+      parameters:
+      - description: meeting_id
+        in: query
+        name: meeting_id
+        required: true
+        schema:
+          type: string
+      - description: device identifier
+        in: query
+        name: mac
+        schema:
+          type: string
+      - description: Third party app name
+        in: query
+        name: app
+        schema:
+          example: zoom
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/CallTroubleshoot'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: troubleshootSiteCall
+      tags:
+      - Sites Calls
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/client_mac'
   /api/v1/sites/{site_id}/stats/calls/count:
     get:
       description: Count by Distinct Attributes of Calls
@@ -41378,7 +42051,6 @@ paths:
                   no_static_ip: false
                   org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
                   portal:
-                    allow_wlan_id_roam: true
                     amazon_client_id: string
                     amazon_client_secret: string
                     amazon_email_domains:
@@ -41573,6 +42245,11 @@ paths:
         schema:
           default: false
           type: boolean
+      - description: filter by WLAN ID
+        in: query
+        name: wlan_id
+        schema:
+          type: string
       responses:
         '200':
           $ref: '#/components/responses/WlansArray'
@@ -41816,7 +42493,6 @@ paths:
                   no_static_ip: false
                   org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
                   portal:
-                    allow_wlan_id_roam: true
                     amazon_client_id: string
                     amazon_client_secret: string
                     amazon_email_domains:
@@ -43351,6 +44027,38 @@ paths:
       summary: clientJoin
       tags:
       - Webhook Samples
+  /webhook_example/_client_latency_:
+    parameters: []
+    post:
+      description: 'Webhook sample for `client-latency` topic
+
+
+        **Note**: The server host will be your own server FQDN where the Mist Cloud
+        is sending the webhook messages'
+      operationId: client_latency
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  events:
+                  - auth: 0.17170219
+                    dhcp: 0.017828934
+                    dns: 0.024532124
+                    org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                    site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+                    timestamp: 1696401600
+                  topic: client-latency
+            schema:
+              $ref: '#/components/schemas/webhook_client_latency'
+        description: ''
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: alarms
+      tags:
+      - Webhook Samples
   /webhook_example/_client_sessions_:
     parameters: []
     post:
@@ -43586,11 +44294,11 @@ paths:
         content:
           application/json:
             examples:
-              Example 1:
+              Example:
                 value:
                   events:
                   - ap: 5c5b355005be
-                    auth_type: 802.1X
+                    auth_type: eap-tls
                     bssid: 5c5b35546bb4
                     client_ip: 172.16.87.4
                     client_type: wireless
@@ -43622,13 +44330,14 @@ paths:
         content:
           application/json:
             examples:
-              Example:
+              Example 1:
                 value:
                   events:
                   - ap: 5c5b35513227
                     auth_type: 802.1X
                     bssid: 5c5b355fafcc
-                    eap_type: EAP-TTLS
+                    dryrun_nacrule_id: 32f27e7d-ff26-4a9b-b3d1-ff9bcb264012
+                    dryrun_nacrule_matched: true
                     idp_id: 912ef72e-2239-4996-b81e-469e87a27cd6
                     idp_role:
                     - itsuperusers
@@ -43982,7 +44691,8 @@ components:
         format: uuid
         type: string
     fields:
-      description: list of additional fields requests, comma separeted
+      description: list of additional fields requests, comma separeted, or `fields=*`
+        for all of them
       in: query
       name: fields
       required: false
@@ -46095,6 +46805,131 @@ components:
                 type: integer
             type: object
       description: Example response
+    CallTroubleshoot:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                mac: 983a78ea4a44
+                meeting_id: b784d744-9a7c-4fad-9af0-f78858a319b1
+                results:
+                - audio_in:
+                    ap_num_clients: -0.6565111
+                    ap_rtt: 0.16559607
+                    client_cpu: 3.7028809
+                    client_n_streams: 0.15803306
+                    client_radio_band: 0.5576923
+                    client_rssi: -1.0839354
+                    client_rx_bytes: 2.2622051
+                    client_rx_rates: 0.62357205
+                    client_rx_retries: 0.26726437
+                    client_tx_bytes: 0.15803306
+                    client_tx_rates: 0.62357205
+                    client_tx_retries: 0.77553505
+                    client_vpn_distaince: 1.6474955
+                    client_wifi_version: 0.18267937
+                    expected: 30.941595
+                    radio_bandwidth: -0.06538621
+                    radio_channel: -0.73391086
+                    radio_tx_power: 0.10027129
+                    radio_util: 12.770318
+                    radio_util_interference: -3.079999
+                    site_num_clients: 0.017364305
+                    wan_avg_download_mbps: 1.4803165
+                    wan_avg_upload_mbps: -0.038184267
+                    wan_jitter: 5.9680853
+                    wan_max_download_mbps: 1.4803165
+                    wan_max_upload_mbps: -0.038184267
+                    wan_rtt: 46.77899
+                  audio_out:
+                    ap_num_clients: -0.6565111
+                    ap_rtt: 0.16559607
+                    client_cpu: 3.7028809
+                    client_n_streams: 0.15803306
+                    client_radio_band: 0.5576923
+                    client_rssi: -1.0839354
+                    client_rx_bytes: 2.2622051
+                    client_rx_rates: 0.62357205
+                    client_rx_retries: 0.26726437
+                    client_tx_bytes: 0.15803306
+                    client_tx_rates: 0.62357205
+                    client_tx_retries: 0.77553505
+                    client_vpn_distaince: 1.6474955
+                    client_wifi_version: 0.18267937
+                    expected: 30.941595
+                    radio_bandwidth: -0.06538621
+                    radio_channel: -0.73391086
+                    radio_tx_power: 0.10027129
+                    radio_util: 12.770318
+                    radio_util_interference: -3.079999
+                    site_num_clients: 0.017364305
+                    wan_avg_download_mbps: 1.4803165
+                    wan_avg_upload_mbps: -0.038184267
+                    wan_jitter: 5.9680853
+                    wan_max_download_mbps: 1.4803165
+                    wan_max_upload_mbps: -0.038184267
+                    wan_rtt: 46.77899
+                  timestamp: 1695425115
+                  video_in:
+                    ap_num_clients: -0.6565111
+                    ap_rtt: 0.16559607
+                    client_cpu: 3.7028809
+                    client_n_streams: 0.15803306
+                    client_radio_band: 0.5576923
+                    client_rssi: -1.0839354
+                    client_rx_bytes: 2.2622051
+                    client_rx_rates: 0.62357205
+                    client_rx_retries: 0.26726437
+                    client_tx_bytes: 0.15803306
+                    client_tx_rates: 0.62357205
+                    client_tx_retries: 0.77553505
+                    client_vpn_distaince: 1.6474955
+                    client_wifi_version: 0.18267937
+                    expected: 30.941595
+                    radio_bandwidth: -0.06538621
+                    radio_channel: -0.73391086
+                    radio_tx_power: 0.10027129
+                    radio_util: 12.770318
+                    radio_util_interference: -3.079999
+                    site_num_clients: 0.017364305
+                    wan_avg_download_mbps: 1.4803165
+                    wan_avg_upload_mbps: -0.038184267
+                    wan_jitter: 5.9680853
+                    wan_max_download_mbps: 1.4803165
+                    wan_max_upload_mbps: -0.038184267
+                    wan_rtt: 46.77899
+                  video_out:
+                    ap_num_clients: -0.6565111
+                    ap_rtt: 0.16559607
+                    client_cpu: 3.7028809
+                    client_n_streams: 0.15803306
+                    client_radio_band: 0.5576923
+                    client_rssi: -1.0839354
+                    client_rx_bytes: 2.2622051
+                    client_rx_rates: 0.62357205
+                    client_rx_retries: 0.26726437
+                    client_tx_bytes: 0.15803306
+                    client_tx_rates: 0.62357205
+                    client_tx_retries: 0.77553505
+                    client_vpn_distaince: 1.6474955
+                    client_wifi_version: 0.18267937
+                    expected: 30.941595
+                    radio_bandwidth: -0.06538621
+                    radio_channel: -0.73391086
+                    radio_tx_power: 0.10027129
+                    radio_util: 12.770318
+                    radio_util_interference: -3.079999
+                    site_num_clients: 0.017364305
+                    wan_avg_download_mbps: 1.4803165
+                    wan_avg_upload_mbps: -0.038184267
+                    wan_jitter: 5.9680853
+                    wan_max_download_mbps: 1.4803165
+                    wan_max_upload_mbps: -0.038184267
+                    wan_rtt: 46.77899
+          schema:
+            $ref: '#/components/schemas/call_troubleshoot'
+      description: Example response
     Certificate:
       content:
         application/json:
@@ -46162,6 +46997,79 @@ components:
             - results
             type: object
       description: OK
+    ClientNacSearch:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                end: 1513362753
+                limit: 3
+                results:
+                - ap:
+                  - 5c5b35bf16bb
+                  - d4dc090041b4
+                  auth_type: eap-tls
+                  cert_cn:
+                  - string
+                  cert_issuer:
+                  - string
+                  idp_id: string
+                  idp_role:
+                  - string
+                  last_ap: string
+                  last_cert_cn: string
+                  last_cert_expiry: 0
+                  last_cert_issuer: string
+                  last_nacrule_id: string
+                  last_nacrule_name: string
+                  last_nas_vendor: string
+                  last_ssid: string
+                  last_status: string
+                  mac: string
+                  nacrule_id:
+                  - string
+                  nacrule_matched: true
+                  nacrule_name:
+                  - string
+                  nas_vendor:
+                  - string
+                  org_id: string
+                  random_mac: true
+                  site_id: string
+                  ssid:
+                  - string
+                  timestamp: 1694689718.612
+                  type: wireless
+                start: 1513276353
+                total: 2
+          schema:
+            properties:
+              end:
+                example: 1513362753
+                type: integer
+              limit:
+                example: 3
+                type: integer
+              results:
+                items:
+                  $ref: '#/components/schemas/client_nac'
+                type: array
+              start:
+                example: 1513276353
+                type: integer
+              total:
+                example: 2
+                type: integer
+            type: object
+            x-examples:
+              Example 1:
+                end: 1513176951
+                limit: 10
+                results: []
+                start: 1512572151
+                total: 1
+      description: Example response
     ClientSessionsSearch:
       content:
         application/json:
@@ -47624,6 +48532,21 @@ components:
               - $ref: '#/components/schemas/const_device_unknown'
             type: array
       description: List of supported device models
+    ConstGatewayApplications:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+              - - app_id: true
+                  key: 4shared
+                  name: 4shared
+                  ssr_app_id: true
+          schema:
+            items:
+              $ref: '#/components/schemas/const_gateway_applications_definition'
+            type: array
+      description: List of Alarm Definitions
     ConstInsightMetrics:
       content:
         application/json:
@@ -52336,9 +53259,8 @@ components:
                 limit: 10
                 results:
                 - ap: 5c5b35513227
-                  auth_type: 802.1X
+                  auth_type: eap-ttls
                   bssid: 5c5b355fafcc
-                  eap_type: EAP-TTLS
                   idp_id: 912ef72e-2239-4996-b81e-469e87a27cd6
                   idp_role:
                   - itsuperusers
@@ -52361,7 +53283,7 @@ components:
                   username: user@deaflyz.net
                   vlan: '750'
                 start: 1512572151
-                total: 0
+                total: 1
           schema:
             properties:
               end:
@@ -53793,6 +54715,43 @@ components:
           schema:
             $ref: '#/components/schemas/Msp'
       description: OK
+    MxEdgeEventsSearch:
+      content:
+        application/json:
+          examples:
+            Example 1:
+              value:
+                end: 1694708579
+                limit: 10
+                page: 3
+                results:
+                - mxcluster_id: 2815c917-58e7-472f-a190-bfd44fb58d05
+                  mxedge_id: 00000000-0000-0000-1000-020000dc585c
+                  org_id: f2695c32-0e83-4936-b1b2-96fc88051213
+                  service: tunterm
+                  timestamp: 1694678225.927
+                  type: ME_SERVICE_STOPPED
+                start: 1694622179
+          schema:
+            properties:
+              end:
+                example: 1694708579
+                type: integer
+              limit:
+                example: 10
+                type: integer
+              page:
+                example: 3
+                type: integer
+              results:
+                items:
+                  $ref: '#/components/schemas/mxedge_event'
+                type: array
+              start:
+                example: 1694622179
+                type: integer
+            type: object
+      description: Example response
     MxEdgeUpgrade:
       content:
         application/json:
@@ -54629,7 +55588,7 @@ components:
                 egress_vlan_names:
                 - 1vlan-30
                 - 1vlan-20
-                - 2-vlan10
+                - 2vlan10
                 name: trunk_ap
                 type: egress_vlan_names
             matches_cert_cn:
@@ -57627,6 +58586,87 @@ components:
           schema:
             $ref: '#/components/schemas/service'
       description: OK
+    ServicePathEventsSearch:
+      content:
+        application/json:
+          examples:
+            Example 1:
+              value:
+                end: 1697096379
+                limit: 10
+                results:
+                - mac: 90ec7734b374
+                  model: SSR120
+                  org_id: a3c6718f-2823-4e48-bf5e-b841768a4c9b
+                  policy: INTERNET
+                  port_id: ge-1/0/6
+                  site_id: 4279edbd-1d24-41ea-9505-2eb26c8590fa
+                  text: Peer Path Down
+                  timestamp: 1697037328.651775
+                  type: GW_SERVICE_PATH_REMOVE
+                  version: 6.1.5-14.lts
+                  vpn_name: Syracuse_HUB
+                  vpn_path: Syracuse_HUB-Wan0
+                start: 1697009979
+                total: 2
+          schema:
+            properties:
+              end:
+                example: 1697096379
+                type: integer
+              limit:
+                example: 10
+                type: integer
+              results:
+                items:
+                  $ref: '#/components/schemas/service_path_event'
+                type: array
+              start:
+                example: 1697009979
+                type: integer
+              total:
+                example: 2
+                type: integer
+            type: object
+            x-examples:
+              Example 1:
+                end: 1697096379
+                limit: 10
+                results:
+                - mac: 90ec7734b374
+                  model: SSR120
+                  org_id: a3c6718f-2823-4e48-bf5e-b841768a4c9b
+                  policy: management
+                  port_id: ge-0/0/0
+                  site_id: 4279edbd-1d24-41ea-9505-2eb26c8590fa
+                  text: Probe Down
+                  timestamp: 1697037334.204
+                  type: GW_SERVICE_PATH_DOWN
+                  version: 6.1.5-14.lts
+                - mac: 90ec7734b374
+                  model: SSR120
+                  org_id: a3c6718f-2823-4e48-bf5e-b841768a4c9b
+                  policy: INTERNET
+                  port_id: ge-1/0/6
+                  site_id: 4279edbd-1d24-41ea-9505-2eb26c8590fa
+                  text: Peer Path Down
+                  timestamp: 1697037328.651775
+                  type: GW_SERVICE_PATH_REMOVE
+                  version: 6.1.5-14.lts
+                  vpn_name: Syracuse_HUB
+                  vpn_path: Syracuse_HUB-Wan0
+                - mac: 90ec7734b374
+                  model: SSR120
+                  org_id: a3c6718f-2823-4e48-bf5e-b841768a4c9b
+                  policy: policy1
+                  port_id: ge-1/0/6
+                  site_id: 4279edbd-1d24-41ea-9505-2eb26c8590fa
+                  timestamp: 1697037325.37843
+                  type: GW_SERVICE_PATH_ADD
+                  version: 6.1.5-14.lts
+                start: 1697009979
+                total: 2
+      description: Example response
     ServicePoliciesArray:
       content:
         application/json:
@@ -61085,7 +62125,6 @@ components:
                 no_static_ip: false
                 org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
                 portal:
-                  allow_wlan_id_roam: true
                   amazon_client_id: string
                   amazon_client_secret: string
                   amazon_email_domains:
@@ -61432,7 +62471,6 @@ components:
                 no_static_ip: false
                 org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
                 portal:
-                  allow_wlan_id_roam: true
                   amazon_client_id: string
                   amazon_client_secret: string
                   amazon_email_domains:
@@ -64862,6 +65900,117 @@ components:
           type: ibeacon
           x: 53.5
           y: 173.1
+    call_troubleshoot:
+      properties:
+        mac:
+          example: 983a78ea4a44
+          type: string
+        meeting_id:
+          example: b784d744-9a7c-4fad-9af0-f78858a319b1
+          format: uuid
+          type: string
+        results:
+          items:
+            properties:
+              audio_in:
+                $ref: '#/components/schemas/call_troubleshoot_data'
+              audio_out:
+                $ref: '#/components/schemas/call_troubleshoot_data'
+              timestamp:
+                example: 1695425115
+                type: integer
+              video_in:
+                $ref: '#/components/schemas/call_troubleshoot_data'
+              video_out:
+                $ref: '#/components/schemas/call_troubleshoot_data'
+            type: object
+          type: array
+      title: ''
+      type: object
+    call_troubleshoot_data:
+      properties:
+        ap_num_clients:
+          example: -0.6565111
+          type: number
+        ap_rtt:
+          example: 0.16559607
+          type: number
+        client_cpu:
+          example: 3.7028809
+          type: number
+        client_n_streams:
+          example: 0.15803306
+          type: number
+        client_radio_band:
+          example: 0.5576923
+          type: number
+        client_rssi:
+          example: -1.0839354
+          type: number
+        client_rx_bytes:
+          example: 2.2622051
+          type: number
+        client_rx_rates:
+          example: 0.62357205
+          type: number
+        client_rx_retries:
+          example: 0.26726437
+          type: number
+        client_tx_bytes:
+          example: 0.15803306
+          type: number
+        client_tx_rates:
+          example: 0.62357205
+          type: number
+        client_tx_retries:
+          example: 0.77553505
+          type: number
+        client_vpn_distaince:
+          example: 1.6474955
+          type: number
+        client_wifi_version:
+          example: 0.18267937
+          type: number
+        expected:
+          example: 30.941595
+          type: number
+        radio_bandwidth:
+          example: -0.06538621
+          type: number
+        radio_channel:
+          example: -0.73391086
+          type: number
+        radio_tx_power:
+          example: 0.10027129
+          type: number
+        radio_util:
+          example: 12.770318
+          type: number
+        radio_util_interference:
+          example: -3.079999
+          type: number
+        site_num_clients:
+          example: 0.017364305
+          type: number
+        wan_avg_download_mbps:
+          example: 1.4803165
+          type: number
+        wan_avg_upload_mbps:
+          example: -0.038184267
+          type: number
+        wan_jitter:
+          example: 5.9680853
+          type: number
+        wan_max_download_mbps:
+          example: 1.4803165
+          type: number
+        wan_max_upload_mbps:
+          example: -0.038184267
+          type: number
+        wan_rtt:
+          example: 46.77899
+          type: number
+      type: object
     capture:
       oneOf:
       - $ref: '#/components/schemas/capture_client'
@@ -65266,18 +66415,7 @@ components:
       - type
       title: capture_radiotap
       type: object
-      x-examples:
-        Radiotap Packet Capture:
-          ap_mac: 'null'
-          band: 24
-          duration: 600
-          format: pcap
-          max_pkt_len: 128
-          num_packets: 1024
-          ssid: atest
-          tcpdump_expression: tcp port 80
-          type: radiotap
-          wlan_id: fac8e973-feb9-421a-b381-aabbc4b61f5a
+      x-examples: {}
       x-stoplight:
         id: s0pgrh9mig45p
     capture_radiotapwired:
@@ -65438,13 +66576,13 @@ components:
           - 80
           - 160
           example: 20
-          type: number
+          type: integer
         channel:
           default: 1
           description: specify the channel value where scan PCAP has to be started,
             default value gets applied when user provides wrong values
           example: 1
-          type: number
+          type: integer
         client_mac:
           description: filter by client mac
           example: 38f9d3972ff1
@@ -65734,6 +66872,83 @@ components:
         - DVH4V-SNMSZ-PDXBR
       x-stoplight:
         id: 0f9retkg6nqxq
+    client_nac:
+      properties:
+        ap:
+          example:
+          - 5c5b35bf16bb
+          - d4dc090041b4
+          items:
+            type: string
+          type: array
+        auth_type:
+          example: eap-tls
+          type: string
+        cert_cn:
+          items:
+            type: string
+          type: array
+        cert_issuer:
+          items:
+            type: string
+          type: array
+        idp_id:
+          type: string
+        idp_role:
+          items:
+            type: string
+          type: array
+        last_ap:
+          type: string
+        last_cert_cn:
+          type: string
+        last_cert_expiry:
+          type: integer
+        last_cert_issuer:
+          type: string
+        last_nacrule_id:
+          type: string
+        last_nacrule_name:
+          type: string
+        last_nas_vendor:
+          type: string
+        last_ssid:
+          type: string
+        last_status:
+          type: string
+        mac:
+          type: string
+        nacrule_id:
+          items:
+            type: string
+          type: array
+        nacrule_matched:
+          type: boolean
+        nacrule_name:
+          items:
+            type: string
+          type: array
+        nas_vendor:
+          items:
+            type: string
+          type: array
+        org_id:
+          type: string
+        random_mac:
+          type: boolean
+        site_id:
+          type: string
+        ssid:
+          items:
+            type: string
+          type: array
+        timestamp:
+          example: 1694689718.612
+          type: number
+        type:
+          example: wireless
+          type: string
+      type: object
     coa_server:
       description: CoA Server
       properties:
@@ -66869,6 +68084,29 @@ components:
       type: object
       x-stoplight:
         id: 69803e81afdda
+    const_gateway_applications_definition:
+      items:
+        properties:
+          app_id:
+            example: true
+            type: boolean
+          key:
+            example: 4shared
+            type: string
+          name:
+            example: 4shared
+            type: string
+          ssr_app_id:
+            example: true
+            type: boolean
+        type: object
+      type: array
+      x-examples:
+        Example 1:
+        - app_id: true
+          key: 4shared
+          name: 4shared
+          ssr_app_id: true
     const_language:
       properties:
         display:
@@ -68356,6 +69594,76 @@ components:
     device_switch_vc:
       description: Virtual Chassis
       properties:
+        members:
+          items:
+            properties:
+              mac:
+                description: fpc0, same as the mac of device_id
+                type: string
+              member:
+                description: Required if `preprovisioned`==`true`
+                type: integer
+              vc_ports:
+                description: Required if `op`==`add` or `op`==`preprovision`
+                items:
+                  type: string
+                type: array
+              vc_role:
+                description: Required if `op`==`add` or `op`==`preprovision`
+                enum:
+                - master
+                - backup
+                - linecard
+                type: string
+            required:
+            - mac
+            - vc_ports
+            - vc_role
+            type: object
+          type: array
+        preprovisioned:
+          default: false
+          description: To create the Virtual Chassis in Pre-Provisioned mode
+          type: boolean
+      type: object
+      x-examples:
+        Create a VC with three members:
+          members:
+          - mac: aff827549235
+            vc_ports:
+            - xe-0/1/0
+            vc_role: master
+          - mac: 8396cd006c8c
+            vc_ports:
+            - xe-0/1/0
+            - xe-0/1/1
+            vc_role: backup
+          - mac: 8396cd00888c
+            vc_ports:
+            - xe-0/1/0
+            vc_role: linecard
+        Create a pre-provisioned VC with three members:
+          members:
+          - mac: aff827549235
+            member_id: 0
+            vc_ports:
+            - xe-0/1/0
+            - xe-0/1/1
+            vc_role: master
+          - mac: 8396cd006c8c
+            member_id: 1
+            vc_ports:
+            - xe-0/1/0
+            vc_role: linecard
+          - mac: 8396cd00888c
+            member_id: 2
+            vc_ports:
+            - xe-0/1/0
+            vc_role: backup
+          preprovisioned: true
+    device_switch_vc_update:
+      description: Virtual Chassis
+      properties:
         member:
           description: Only if `op`==`renumber`
           type: integer
@@ -68363,18 +69671,19 @@ components:
           items:
             properties:
               mac:
-                description: same as the mac of device_id. Required if `op`==`add`
+                description: Required if `op`==`add` or `op`==`preprovision`.
                 type: string
               member:
-                description: Required if `op`==`remove`. Optional if `op`==`add`
+                description: Required if `op`==`remove` or `op`==`preprovision`. Optional
+                  if `op`==`add`
                 type: integer
               vc_ports:
-                description: Optional. Only if `op`==`add`
+                description: Required if `op`==`add` or `op`==`preprovision`
                 items:
                   type: string
                 type: array
               vc_role:
-                description: Optional. Only if `op`==`add`
+                description: Required if `op`==`add` or `op`==`preprovision`
                 enum:
                 - master
                 - backup
@@ -68390,11 +69699,11 @@ components:
           - add
           - remove
           - renumber
+          - preprovision
           type: string
-      title: ''
       type: object
       x-examples:
-        add_member:
+        Adding two new switches as line cards into the VC:
           members:
           - mac: aff827549235
             member: 0
@@ -68406,28 +69715,27 @@ components:
             - xe-0/1/0
             vc_role: linecard
           op: add
-        create:
+        Convert to pre-provisioned VC:
+          member: 0
           members:
-          - mac: aff827549235
+          - mac: string
+            member: 0
             vc_ports:
-            - xe-0/1/0
+            - string
             vc_role: master
-          - mac: 8396cd006c8c
-            vc_ports:
-            - xe-0/1/0
-            - xe-0/1/1
-            vc_role: backup
-          - mac: 8396cd00888c
-            vc_ports:
-            - xe-0/1/0
-            vc_role: linecard
-        remove_member:
+          new-member: 0
+          op: add
+        Removing two switches from VC:
           members:
           - member: 2
           - member: 3
           op: remove
+        Renumber member ID 3 to member ID 2:
+          member: 3
+          new-member: 2
+          op: renumber
       x-stoplight:
-        id: ac5bc7de9d2fd
+        id: ezp9264r0qoqq
     device_upgrade:
       properties:
         canary_phases:
@@ -70266,13 +71574,10 @@ components:
           example: 5c5b35513227
           type: string
         auth_type:
-          example: 802.1X
+          example: eap-ttls
           type: string
         bssid:
           example: 5c5b355fafcc
-          type: string
-        eap_type:
-          example: EAP-TTLS
           type: string
         idp_id:
           example: 912ef72e-2239-4996-b81e-469e87a27cd6
@@ -71286,7 +72591,6 @@ components:
                 - aes128
                 - aes_gcm256
                 - aes_gcm128
-                - null
                 nullable: true
                 type: string
             type: object
@@ -71332,7 +72636,6 @@ components:
                 - aes128
                 - aes_gcm128
                 - aes_gcm256
-                - null
                 nullable: true
                 type: string
             type: object
@@ -74676,7 +75979,6 @@ components:
           - satellite
           - hybrid
           - terrain
-          - null
           nullable: true
           type: string
         wall_path:
@@ -75617,6 +76919,27 @@ components:
             port: 3799
             secret: testing456
           enabled: true
+    mxedge_event:
+      properties:
+        mxcluster_id:
+          example: 2815c917-58e7-472f-a190-bfd44fb58d05
+          type: string
+        mxedge_id:
+          example: 00000000-0000-0000-1000-020000dc585c
+          type: string
+        org_id:
+          example: f2695c32-0e83-4936-b1b2-96fc88051213
+          type: string
+        service:
+          example: tunterm
+          type: string
+        timestamp:
+          example: 1694678225.927
+          type: number
+        type:
+          example: ME_SERVICE_STOPPED
+          type: string
+      type: object
     mxedge_mgmt:
       properties:
         mist_password:
@@ -80073,6 +81396,59 @@ components:
           traffic_type: data_best_effort
           type: custom
           vpn_name: addresses
+    service_path_event:
+      properties:
+        mac:
+          example: 90ec7734b374
+          type: string
+        model:
+          example: SSR120
+          type: string
+        org_id:
+          example: a3c6718f-2823-4e48-bf5e-b841768a4c9b
+          type: string
+        policy:
+          example: INTERNET
+          type: string
+        port_id:
+          example: ge-1/0/6
+          type: string
+        site_id:
+          example: 4279edbd-1d24-41ea-9505-2eb26c8590fa
+          type: string
+        text:
+          example: Peer Path Down
+          type: string
+        timestamp:
+          example: 1697037328.651775
+          type: number
+        type:
+          example: GW_SERVICE_PATH_REMOVE
+          type: string
+        version:
+          example: 6.1.5-14.lts
+          type: string
+        vpn_name:
+          example: Syracuse_HUB
+          type: string
+        vpn_path:
+          example: Syracuse_HUB-Wan0
+          type: string
+      type: object
+      x-examples:
+        Example 1:
+          mac: 90ec7734b374
+          model: SSR120
+          org_id: a3c6718f-2823-4e48-bf5e-b841768a4c9b
+          policy: INTERNET
+          port_id: ge-1/0/6
+          site_id: 4279edbd-1d24-41ea-9505-2eb26c8590fa
+          text: Peer Path Down
+          timestamp: 1697037328.651775
+          type: GW_SERVICE_PATH_REMOVE
+          version: 6.1.5-14.lts
+          vpn_name: Syracuse_HUB
+          vpn_path: Syracuse_HUB-Wan0
     service_policy:
       properties:
         action:
@@ -80317,8 +81693,6 @@ components:
           - fri
           - sat
           - sun
-          - ''
-          - null
           example: sun
           nullable: true
           type: string
@@ -82239,6 +83613,23 @@ components:
                 type: string
               type: array
           type: object
+        radius:
+          description: by default, `radius_config` will be used. if a different one
+            has to be used set `use_different_radius
+          properties:
+            enabled:
+              type: boolean
+              x-stoplight:
+                id: 5gf18ghtl70j1
+            radius_config:
+              $ref: '#/components/schemas/junos_radius_config'
+            use_different_radius:
+              type: string
+              x-stoplight:
+                id: d0h0n8iek1m88
+          type: object
+          x-stoplight:
+            id: i7ip6at6n4q35
         root_password:
           type: string
         tacacs:
@@ -87235,6 +88626,16 @@ components:
           - restarting
           - upgrading
           type: string
+        switch_redundancy:
+          properties:
+            redundant:
+              description: if there are neighbor APs on different switch
+              type: string
+              x-stoplight:
+                id: km9fcou10nbyv
+          type: object
+          x-stoplight:
+            id: 0g7h5ih1mb8u3
         tx_bps:
           type: number
         tx_bytes:
@@ -87579,6 +88980,19 @@ components:
     stats_device_gateway:
       description: Gateway statistics
       properties:
+        ap_redundancy:
+          properties:
+            num_aps:
+              type: integer
+              x-stoplight:
+                id: deftrpuqp7w7b
+            num_aps_with_switch_redundancy:
+              type: integer
+              x-stoplight:
+                id: a7ow2m1mkwrk8
+          type: object
+          x-stoplight:
+            id: 5dy12wpn31t6g
         cluster_stat:
           additionalProperties:
             properties:
@@ -87681,8 +89095,8 @@ components:
                       example: FW_UPGRADE_REQUIRED_BY_FEATURE
                       type: string
                   required:
-                  - type
                   - since
+                  - type
                   type: object
                 type: array
               fans:
@@ -91108,6 +92522,7 @@ components:
             - device-updowns
             - mxedge-events
             - client-join
+            - client-latency
             - client-sessions
             - occupancy-alerts
             - nac-accounting
@@ -91302,7 +92717,7 @@ components:
       x-stoplight:
         id: 8bf41abeb79f8
     webhook_asset_raw:
-      description: asset raw webhook
+      description: asset raw webhook sample
       properties:
         events:
           description: list of events
@@ -91421,7 +92836,7 @@ components:
       x-stoplight:
         id: 9e7641ef7c64a
     webhook_audits:
-      description: audit webhook
+      description: audit webhook sample
       properties:
         events:
           items:
@@ -91481,7 +92896,7 @@ components:
       x-stoplight:
         id: c8616f7028337
     webhook_client_join:
-      description: client join webhook
+      description: client join webhook sample
       properties:
         events:
           items:
@@ -91576,8 +92991,47 @@ components:
           topic: client-join
       x-stoplight:
         id: adf9376c9c6ff
+    webhook_client_latency:
+      properties:
+        events:
+          items:
+            properties:
+              auth:
+                example: 0.17170219
+                type: number
+              dhcp:
+                example: 0.017828934
+                type: number
+              dns:
+                example: 0.024532124
+                type: number
+              org_id:
+                example: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                type: string
+              site_id:
+                example: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+                type: string
+              timestamp:
+                example: 1696401600
+                type: integer
+            type: object
+          type: array
+        topic:
+          example: client-latency
+          type: string
+      type: object
+      x-examples:
+        Example:
+          events:
+          - auth: 0.17170219
+            dhcp: 0.017828934
+            dns: 0.024532124
+            org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+            site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+            timestamp: 1696401600
+          topic: client-latency
     webhook_client_sessions:
-      description: client session webhook
+      description: client session webhook sample
       properties:
         events:
           items:
@@ -91818,7 +93272,7 @@ components:
           topic: alarms
           webhook_id: 7a11b901-f719-4c91-8aef-deb8699a6364
     webhook_device_events:
-      description: device event  webhook
+      description: device event webhook sample
       properties:
         events:
           description: list of events
@@ -91919,7 +93373,7 @@ components:
       x-stoplight:
         id: 8eef709bf0a1e
     webhook_device_updowns:
-      description: device up/down webhook
+      description: device up/down webhook sample
       properties:
         events:
           items:
@@ -92093,7 +93547,7 @@ components:
       x-stoplight:
         id: 5e62ab1fa7fb7
     webhook_location:
-      description: location  webhook
+      description: location webhook sample
       properties:
         events:
           description: list of events
@@ -92229,7 +93683,7 @@ components:
       x-stoplight:
         id: b9aeb10d136c7
     webhook_nac_accounting:
-      description: nac-accounting webhook
+      description: nac-accounting webhook sample
       properties:
         events:
           items:
@@ -92241,7 +93695,7 @@ components:
                 type: string
               auth_type:
                 description: radius authentication type
-                example: 802.1X
+                example: eap-tls
                 type: string
               bssid:
                 description: "it\u2019s the MAC physical address of the access point"
@@ -92335,22 +93789,38 @@ components:
           items:
             properties:
               ap:
+                description: random mac
                 example: 5c5b35513227
                 type: string
               auth_type:
+                description: authentication type, e.g. "eap-tls", "eap-ttls", "eap-teap",
+                  "mab", "device-auth"
                 example: 802.1X
                 type: string
               bssid:
+                description: BSSID
                 example: 5c5b355fafcc
                 type: string
-              eap_type:
-                example: EAP-TTLS
+              dryrun_nacrule_id:
+                description: NAC Policy Dry Run Rule ID, if present and matched
+                example: 32f27e7d-ff26-4a9b-b3d1-ff9bcb264012
+                format: uuid
                 type: string
+                x-stoplight:
+                  id: 12vgwap7pl0ut
+              dryrun_nacrule_matched:
+                description: True - if dryrun rule present and matched with priority,
+                  False - if not matched or not present
+                type: boolean
+                x-stoplight:
+                  id: okz28t9zzxpzz
               idp_id:
+                description: SSO ID, if present and used
                 example: 912ef72e-2239-4996-b81e-469e87a27cd6
                 format: uuid
                 type: string
               idp_role:
+                description: IDP returned roles/groups for the user
                 example:
                 - itsuperusers
                 - vip
@@ -92358,24 +93828,31 @@ components:
                   type: string
                 type: array
               mac:
+                description: MAC address
                 example: ac3eb179e535
                 type: string
               nacrule_id:
+                description: NAC Policy Rule ID, if matched
                 example: 32f27e7d-ff26-4a9b-b3d1-ff9bcb264c62
                 format: uuid
                 type: string
               nacrule_matched:
+                description: NAC Policy Rule Matched
                 type: boolean
               nas_vendor:
+                description: vendor of NAS device
                 example: juniper-mist
                 type: string
               org_id:
+                description: org id
                 example: 27547ac2-d114-4e04-beb1-f3f1e6e81ec6
                 format: uuid
                 type: string
               random_mac:
+                description: AP MAC
                 type: boolean
               resp_attrs:
+                description: Radius attributes returned by NAC to NAS Devive
                 example:
                 - Tunnel-Type=VLAN
                 - Tunnel-Medium-Type=IEEE-802
@@ -92385,22 +93862,28 @@ components:
                   type: string
                 type: array
               site_id:
+                description: site id if assigned, null if not assigned
                 example: 441a1214-6928-442a-8e92-e1d34b8ec6a6
                 format: uuid
                 type: string
               ssid:
+                description: SSID
                 example: '##mist_nac'
                 type: string
               timestamp:
+                description: start time, in epoch
                 example: 1691512031.358188
                 type: number
               type:
+                description: event type, e.g. NAC_CLIENT_PERMIT
                 example: NAC_CLIENT_PERMIT
                 type: string
               username:
+                description: Username presented by the client
                 example: user@deaflyz.net
                 type: string
               vlan:
+                description: Vlan ID
                 example: '750'
                 type: string
             type: object
@@ -92438,7 +93921,7 @@ components:
             vlan: '750'
           topic: nac-events
     webhook_occupancy_alerts:
-      description: occupancy alert  webhook
+      description: occupancy alert webhook sample
       properties:
         events:
           items:
@@ -92790,7 +94273,7 @@ components:
             timestamp: 1694620800
           topic: site-sle
     webhook_zone:
-      description: zone webhook
+      description: zone webhook sample
       properties:
         events:
           description: list of events
@@ -93367,6 +94850,22 @@ components:
           format: uuid
           readOnly: true
           type: string
+        inject_dhcp_option_82:
+          properties:
+            circuit_id:
+              example: '{{SSID}}:{{AP_MAC}}'
+              type: string
+              x-stoplight:
+                id: 93teo1u1gr020
+            enabled:
+              default: false
+              description: whether to inject option 82 when forwarding DHCP packets
+              type: boolean
+              x-stoplight:
+                id: trd9y2m5xvxi1
+          type: object
+          x-stoplight:
+            id: bgk3m6am8ky7h
         interface:
           default: all
           description: where this WLAN will be connected to
@@ -93835,7 +95334,6 @@ components:
           no_static_ip: false
           org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
           portal:
-            allow_wlan_id_roam: true
             amazon_client_id: string
             amazon_client_secret: string
             amazon_email_domains:
@@ -94161,6 +95659,7 @@ components:
           - psk
           - wep
           - eap
+          - eap192
           - psk-tkip
           - psk-wpa2-tkip
           example: psk
@@ -94407,11 +95906,6 @@ components:
     wlan_portal:
       description: portal wlan settings
       properties:
-        allow_wlan_id_roam:
-          default: true
-          description: whether to allow guest roam between different wlan_ids (same
-            ssid). requires cross_site enabled
-          type: boolean
         amazon_client_id:
           description: amazon OAuth2 client id. This is optional. If not provided,
             it will use a default one.
@@ -94442,11 +95936,15 @@ components:
           example: none
           type: string
         azure_client_id:
-          description: azure active directory app client id
+          description: 'Required  if `azure_enabled`==`true`.
+
+            Azure active directory app client id'
           nullable: true
           type: string
         azure_client_secret:
-          description: azure active directory app client secret
+          description: 'Required  if `azure_enabled`==`true`.
+
+            Azure active directory app client secret'
           nullable: true
           type: string
         azure_enabled:
@@ -94454,7 +95952,9 @@ components:
           description: whether Azure Active Directory is enabled as a login method
           type: boolean
         azure_tenant_id:
-          description: azure active directory tenant id.
+          description: 'Required  if `azure_enabled`==`true`.
+
+            Azure active directory tenant id.'
           nullable: true
           type: string
         broadnet_password:
@@ -94480,8 +95980,9 @@ components:
           type: string
         cross_site:
           default: false
-          description: whether to allow guest to roam between sites of same org without
-            reauthentication
+          description: whether to allow guest to roam between WLANs (with same `WLAN.ssid`,
+            regardless of variables) of different sites of same org without reauthentication
+            (disable random_mac for seamless roaming)
           type: boolean
         email_enabled:
           description: whether email (access code verification) is enabled as a login
@@ -94501,13 +96002,17 @@ components:
             our query parameters to
           type: string
         facebook_client_id:
-          description: facebook OAuth2 app id. This is optional. If not provided,
-            it will use a default one.
+          description: 'Required  if `facebook_enabled`==`true`.
+
+            Facebook OAuth2 app id. This is optional. If not provided, it will use
+            a default one.'
           nullable: true
           type: string
         facebook_client_secret:
-          description: facebook OAuth2 app secret. If facebook_client_id was provided,
-            provide a correspoinding value. Else leave blank.
+          description: 'Required  if `facebook_enabled`==`true`.
+
+            Facebook OAuth2 app secret. If facebook_client_id was provided, provide
+            a correspoinding value. Else leave blank.'
           nullable: true
           type: string
         facebook_email_domains:
