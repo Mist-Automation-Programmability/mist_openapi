@@ -4,9 +4,9 @@ info:
     email: tmunzer@juniper.net
     name: Thomas Munzer
   description: |-
-    > Version: **2311.1.0**
+    > Version: **2311.1.1**
     >
-    > Date: **November 17, 2023**
+    > Date: **November 20, 2023**
 
     ---
 
@@ -26,7 +26,7 @@ info:
     name: MIT
     url: 'https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE'
   title: Mist API
-  version: 2311.1.0
+  version: 2311.1.1
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -131,6 +131,7 @@ tags:
       * upgrade (write privilege required)
     name: Orgs JSI
   - name: Orgs Licenses
+  - name: Orgs Linked Applications
   - name: Orgs Logs
   - name: Orgs Marvis
   - name: Orgs Maps
@@ -151,7 +152,6 @@ tags:
       Moreover, this can further be overwriten by individual Site Setting
     name: Orgs Network Templates
   - name: Orgs Networks
-  - name: Orgs OAuth Applications
   - name: Orgs Premium Analytics
   - name: Orgs Psks
   - description: |-
@@ -3908,10 +3908,19 @@ paths:
       summary: listOrgSuppressedAlarms
       tags:
         - Orgs Alarm Templates
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - org
+              - site
+            default: site
+          in: query
+          name: scope
     parameters:
       - $ref: '#/components/parameters/org_id'
     post:
-      description: 'In certain situations, for example, scheduled maintanance, you may want to suspend alarms to be triggered for a period of time.'
+      description: 'In certain situations, for example, scheduled maintenance, you may want to suspend alarms to be triggered against Sites for a period of time.'
       operationId: suppressOrgAlarm
       requestBody:
         content:
@@ -3930,12 +3939,10 @@ paths:
                   duration: 60
               properties:
                 applies:
-                  description: 'Object defines the scope (within the org e.g. whole org, and/or some site-groups, and/or some sites) for which the alarm service has to be suppressed for some `duration`'
+                  description: |-
+                    if `scope`==`site`
+                    Object defines the scope (within the org e.g. whole org, and/or some site-groups, and/or some sites) for which the alarm service has to be suppressed for some `duration`
                   type: object
-                  required:
-                    - org_id
-                    - site_ids
-                    - sitegroup_ids
                   properties:
                     org_id:
                       description: 'UUID of the current org (if provided, the alarms will be suppressed at org level)'
@@ -3963,8 +3970,33 @@ paths:
                 scheduled_time:
                   description: 'poch_time in seconds, Default as now, accepted time range is from now to now + 7 days'
                   type: integer
-              required:
-                - applies
+                scope:
+                  type: string
+                  x-stoplight:
+                    id: qb862kmtai1fv
+                  default: site
+                  enum:
+                    - org
+                    - site
+                  description: level of scope
+            examples:
+              Site suppression:
+                value:
+                  duration: 3600
+                  scheduled_time: 1678232980
+                  scope: site
+                  applies:
+                    org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
+                    sitegroup_ids:
+                      - 581328b6-e382-f54e-c9dc-999983183a34
+                      - f57096b9-0c2f-4df6-c77b-ae6ae87a3d43
+                    site_ids:
+                      - 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+              Org suppression:
+                value:
+                  duration: 3600
+                  scheduled_time: 1678232980
+                  scope: org
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -8591,7 +8623,10 @@ paths:
       - $ref: '#/components/parameters/org_id'
   '/api/v1/orgs/{org_id}/devices/radio_macs':
     get:
-      description: Get List of Org AP Device Mac and Radio MACs
+      description: |-
+        For some scenarios like E911 or security systems, the BSSIDs are required to identify which AP the client is connecting to. Then the location of the AP can be used as the approximate location of the client.
+
+        Each radio MAC can have 16 BSSIDs (enumerate the last octet from 0-F)
       operationId: listOrgApsMacs
       parameters:
         - $ref: '#/components/parameters/page'
@@ -11803,7 +11838,29 @@ paths:
                       warranty_start_time: 1619395200
                       warranty_type: Enhanced Hardware Warranty
               schema:
+                type: array
+                x-examples:
+                  Example 1:
+                    - contract_end_time: 1708214400
+                      contract_id: '68247710'
+                      contract_sku: PAR-SDCE-EX4300T48
+                      contract_start_time: 1629331200
+                      customer_po: '4501942932'
+                      distributor: dist1
+                      eol_time: 1671062400
+                      eos_time: 1828828800
+                      installed_address: Address
+                      model: EX4300-48T
+                      order_id: '15909647'
+                      reseller: reseller1
+                      serial: PE3721050223
+                      sku: EX4300-48T-AFI
+                      type: switch
+                      warranty_end_time: 2258236800
+                      warranty_start_time: 1619395200
+                      warranty_type: Enhanced Hardware Warranty
                 items:
+                  type: object
                   properties:
                     contract_end_time:
                       type: integer
@@ -11855,28 +11912,16 @@ paths:
                       type: integer
                     warranty_type:
                       type: string
-                  type: object
-                type: array
-                x-examples:
-                  Example 1:
-                    - contract_end_time: 1708214400
-                      contract_id: '68247710'
-                      contract_sku: PAR-SDCE-EX4300T48
-                      contract_start_time: 1629331200
-                      customer_po: '4501942932'
-                      distributor: dist1
-                      eol_time: 1671062400
-                      eos_time: 1828828800
-                      installed_address: Address
-                      model: EX4300-48T
-                      order_id: '15909647'
-                      reseller: reseller1
-                      serial: PE3721050223
-                      sku: EX4300-48T-AFI
-                      type: switch
-                      warranty_end_time: 2258236800
-                      warranty_start_time: 1619395200
-                      warranty_type: Enhanced Hardware Warranty
+                    shipped_time:
+                      type: number
+                      x-stoplight:
+                        id: hlimjnzgdksco
+                      description: Shipped date
+                    contract_type:
+                      type: string
+                      x-stoplight:
+                        id: syh8smj1sak5x
+                      description: Contract type (Maintenance / Subscription / Premium / Gov AdvCare / Gov TAC / High Sec / AdvCare / Gov Premium)
           description: OK
         '400':
           content:
@@ -13279,7 +13324,7 @@ paths:
                   apply_tags:
                     - c049dfcd-0c73-5014-1c64-062e9903f1e5"
                   matching:
-                    auth_type: cert
+                    auth_type: eap-tls
                     nactags:
                       - 041d5d36-716c-4cfb-4988-3857c6aa14a2
                       - a809a97f-d599-f812-eb8c-c3f84aabf6ba
@@ -17613,14 +17658,14 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: deleteOrgJamfAppAuthorization
       tags:
-        - Orgs OAuth Applications
+        - Orgs Linked Applications
     get:
       description: |
         Get Jamf Application Linked Status
       operationId: getOrgJamfAppLinkedStatus
       responses:
         '200':
-          $ref: '#/components/responses/OauthAppLinkStatus'
+          $ref: '#/components/responses/JamfAccount'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -17633,7 +17678,7 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: getOrgJamfAppLinkedStatus
       tags:
-        - Orgs OAuth Applications
+        - Orgs Linked Applications
     parameters:
       - $ref: '#/components/parameters/org_id'
     post:
@@ -17643,45 +17688,18 @@ paths:
         content:
           application/json:
             examples:
-              Example 1:
+              Example:
                 value:
-                  instance_url: customer account Jamf instance URL
-                  password: customer account password
-                  smartgroup_name: smart group membership for determining compliance status
-                  username: customer account user name
+                  instance_url: junipertest.jamfcloud.com
+                  username: john@nmo.com
+                  password: password
+                  smartgroup_name: CompliantGroup1
             schema:
-              properties:
-                instance_url:
-                  description: customer account Jamf instance URL
-                  example: customer account Jamf instance URL
-                  type: string
-                password:
-                  description: customer account password
-                  example: customer account password
-                  type: string
-                smartgroup_name:
-                  description: smart group membership for determining compliance status
-                  example: smart group membership for determining compliance status
-                  type: string
-                username:
-                  description: customer account user name
-                  example: customer account user name
-                  type: string
-              required:
-                - instance_url
-                - username
-                - password
-                - smartgroup_name
-              type: object
-              x-examples:
-                Example 1:
-                  instance_url: customer account Jamf instance URL
-                  password: customer account password
-                  smartgroup_name: smart group membership for determining compliance status
-                  username: customer account user name
+              $ref: '#/components/schemas/account_jamf_write'
+        description: ''
       responses:
         '200':
-          $ref: '#/components/responses/OauthAppLinkStatus'
+          $ref: '#/components/responses/JamfAccount'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -17694,7 +17712,7 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: addOrgJamfAppAuthorization
       tags:
-        - Orgs OAuth Applications
+        - Orgs Linked Applications
   '/api/v1/orgs/{org_id}/setting/jse/setup':
     delete:
       description: Delete JSE credential
@@ -17845,46 +17863,24 @@ paths:
         content:
           application/json:
             examples:
-              example-1:
+              Example:
                 value:
-                  password: string
-                  username: string
-            schema:
-              properties:
-                password:
-                  type: string
-                username:
-                  type: string
-              type: object
-              x-examples:
-                example-1:
-                  password: password
                   username: john@nmo.com
+                  password: password
+            schema:
+              $ref: '#/components/schemas/account_juniper_write'
       responses:
         '200':
           content:
             application/json:
               examples:
-                example-1:
+                Example 1:
                   value:
                     account:
-                      linked_by: John Smith (john@abccorp.com)
                       name: ABC Corp
+                      linked_by: John Smith (john@abccorp.com)
               schema:
-                properties:
-                  account:
-                    properties:
-                      linked_by:
-                        type: string
-                      name:
-                        type: string
-                    type: object
-                type: object
-                x-examples:
-                  example-1:
-                    account:
-                      linked_by: John Smith (john@abccorp.com)
-                      name: ABC Corp
+                $ref: '#/components/schemas/account_juniper_read'
           description: account linked
         '400':
           content:
@@ -17913,32 +17909,24 @@ paths:
       summary: linkOrgToJuniperJuniperAccount
       tags:
         - Orgs
-  '/api/v1/orgs/{org_id}/setting/juniper/linked_account':
+  '/api/v1/orgs/{org_id}/setting/juniper/unlink_account':
     delete:
-      description: Unlink Juniper Customer ID
+      description: |-
+        Unlink Juniper Customer ID
+
+        `linked_by` field is only required if there are duplicate account_names.
       operationId: unlinkOrgFromJuniperCustomerId
       requestBody:
         content:
           application/json:
             examples:
-              example-1:
+              Example 1:
                 value:
-                  account_name: ABC Corp
+                  account:
+                    name: ABC Corp
+                    linked_by: John Smith (john@abccorp.com)
             schema:
-              properties:
-                account_name:
-                  example: ABC Corp
-                  type: string
-                linked_by:
-                  description: required only if there are duplicate account_names
-                  example: John Smith (john@abccorp.com)
-                  type: string
-              required:
-                - account_name
-              type: object
-              x-examples:
-                example-1:
-                  account_name: ABC Corp
+              $ref: '#/components/schemas/account_juniper_read'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -18092,29 +18080,7 @@ paths:
       operationId: getOrgZscalerCredential
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                Example 1:
-                  value:
-                    cloud_name: zscalerbeta.net
-                    partner_key: abcd12cK3JvrZc
-                    username: john@abc.com
-              schema:
-                properties:
-                  cloud_name:
-                    type: string
-                  partner_key:
-                    type: string
-                  username:
-                    type: string
-                type: object
-                x-examples:
-                  Example 1:
-                    cloud_name: zscalerbeta.net
-                    partner_key: abcd12cK3JvrZc
-                    username: john@abc.com
-          description: OK
+          $ref: '#/components/responses/ZscalerAccount'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -18138,29 +18104,15 @@ paths:
         content:
           application/json:
             examples:
-              Example 1:
+              Example:
                 value:
+                  parnter_key: K35vrZcK3JvrZc
+                  username: john@nmo.com
+                  password: password
                   cloud_name: zscalerbeta.net
-                  partner_key: K35vrZcK3JvrZc
-                  password: foryoureyesonly
-                  username: john@abc.com
             schema:
-              properties:
-                cloud_name:
-                  type: string
-                partner_key:
-                  type: string
-                password:
-                  type: string
-                username:
-                  type: string
-              type: object
-              x-examples:
-                Example 1:
-                  cloud_name: zscalerbeta.net
-                  partner_key: K35vrZcK3JvrZc
-                  password: foryoureyesonly
-                  username: john@abc.com
+              $ref: '#/components/schemas/account_zscaler_write'
+        description: ''
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -18189,16 +18141,14 @@ paths:
                 value:
                   account_id: iojzXIJWEuiD73ZvydOfg
             schema:
-              properties:
-                account_id:
-                  description: Linked app(zoom/teams) account id
-                  type: string
-              required:
-                - account_id
               type: object
               x-examples:
                 Example 1:
                   account_id: iojzXIJWEuiD73ZvydOfg
+              properties:
+                account_id:
+                  description: 'Required for OAuth Apps: `app_name`==`zoom`, `app_name`==`teams` or `app_name`==`intune`. account id'
+                  type: string
       responses:
         '200':
           description: Successful
@@ -18214,7 +18164,7 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: deleteOrgOauthAppAuthorization
       tags:
-        - Orgs OAuth Applications
+        - Orgs Linked Applications
     get:
       description: Get Org Level OAuth Application Linked Status
       operationId: getOrgOauthAppLinkedStatus
@@ -18224,9 +18174,10 @@ paths:
           name: forward
           schema:
             type: string
+          required: true
       responses:
         '200':
-          $ref: '#/components/responses/OauthAppLinkStatus'
+          $ref: '#/components/responses/OauthAppLink'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -18237,9 +18188,11 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getOrgOauthAppLinkedStatus
+      summary: getOrgOAuthAppAuthorizationUrl
       tags:
-        - Orgs OAuth Applications
+        - Orgs Linked Applications
+      requestBody:
+        content: {}
     parameters:
       - $ref: '#/components/parameters/org_id'
       - description: 'OAuth application name (Example : zoom, teams, intune'
@@ -18248,6 +18201,10 @@ paths:
         required: true
         schema:
           type: string
+          enum:
+            - zomm
+            - teams
+            - intune
     put:
       summary: updateOrgOauthAppAccounts
       operationId: updateOrgOauthAppAccounts
@@ -18260,27 +18217,14 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              x-examples:
-                Example 1:
-                  account_id: iojzXIJWEuiD73ZvydOfg
-                  max_daily_api_requests: 5000
-              properties:
-                account_id:
-                  type: string
-                  description: Linked app(zoom/teams/intune) account id
-                max_daily_api_requests:
-                  type: integer
-                  description: 'Zoom daily api request quota, https://developers.zoom.us/docs/api/rest/rate-limits/'
-              required:
-                - account_id
+              $ref: '#/components/schemas/account_oauth_write'
             examples:
-              Example:
+              Example 1:
                 value:
                   account_id: iojzXIJWEuiD73ZvydOfg
                   max_daily_api_requests: 5000
       tags:
-        - Orgs OAuth Applications
+        - Orgs Linked Applications
   '/api/v1/orgs/{org_id}/sitegroups':
     get:
       description: Get List of Org Site Groups
@@ -22794,20 +22738,14 @@ paths:
         content:
           application/json:
             examples:
-              example-1:
+              Example:
                 value:
                   email: test@mistsys.com
-                  recaptcha: 'see https://www.google.com/recaptcha/'
+                  recaptcha: string
+                  recaptcha_flavor: hcaptcha
             schema:
-              properties:
-                email:
-                  type: string
-                recaptcha:
-                  type: string
-              required:
-                - email
-                - recaptcha
-              type: object
+              $ref: '#/components/schemas/recover'
+        description: ''
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -22852,50 +22790,78 @@ paths:
     post:
       description: |-
         Register a new admin and his/her org
-        An email will also be sent to the user with a link to https://manage.mist.com/verify/register?token=:token
+        An email will also be sent to the user with a link to `/verify/register?token={token}`
+
+        ### reCAPTCHA
+        Google reCAPTCHA is the choice to prevent bot registration
+
+        It needs this 
+
+        &lt;script src='https://www.google.com/recaptcha/api.js' &gt;&lt;/script&gt;
+        
+        and this &lt;div&gt; in the desired place
+        ```html
+        <div class="g-recaptcha" data-sitekey="6LdAewsTAAAAAE25XKQhPEQ2FiMTft-WrZXQ5NUd"></div>
+        ```
+
+        Use GET /api/v1/register/recaptcha to read the current setting.
+        Response example:
+        ```json
+        {    
+          "flavor": "google",
+          "required": true,    
+          "sitekey": "6LdAewsTAAAAAE25XKQhPEQ2FiMTft-WrZXQ5NUd"
+        }
+        ```
+
+        ### hCaptcha
+        Alternative to reCAPTCHA is hCaptcha to prevent bot registration
+
+        It needs this script
+
+        &lt;script src='https://js.hcaptcha.com/1/api.js' async defer &gt;&lt;/script&gt;
+
+        and this &lt;div&gt; in the desired place
+        ```html
+        <div class="h-recaptcha" data-sitekey="6LdAewsTAAAAAE25XKQhPEQ2FiMTft-WrZXQ5NUd"></div>
+        ```
+        
+        Use GET /api/v1/register/recaptcha?recaptcha_flavor=hcaptcha to read the current setting for hcaptcha with reply.
+        Response example:
+        ```json
+        {
+          "flavor": "hcaptcha",
+          "required": true,
+          "sitekey": "6LdAewsTAAAAAE25XKQhPEQ2FiMTft-WrZXQ5NUd"
+        }"
+        ```
       operationId: registerNewAdmin
       requestBody:
         content:
           application/json:
             schema:
-              properties:
-                account_only:
-                  default: false
-                  description: skip creating initial setup if true
-                  type: boolean
-                allow_mist:
-                  default: false
-                  description: whether to allow Mist to look at this org
-                  type: boolean
-                email:
-                  type: string
-                first_name:
-                  type: string
-                invite_code:
-                  description: required initially
-                  type: string
-                last_name:
-                  type: string
-                org_name:
-                  type: string
-                password:
-                  type: string
-                recaptcha:
-                  type: string
-                referer_invite_token:
-                  description: the invite token to apply after account creation
-                  type: string
-                return_to:
-                  description: the url the user should be redirected back to
-                  type: string
-              required:
-                - email
-                - password
-                - first_name
-                - last_name
-                - org_name
-                - recaptcha
-              type: object
+              $ref: '#/components/schemas/new_admin'
+            examples:
+              Example 1:
+                value:
+                  account_only: false
+                  allow_mist: false
+                  email: test@mistsys.com
+                  first_name: John
+                  invite_code: MISTROCKS
+                  last_name: Smith
+                  org_name: Smith LLC
+                  password: foryoureyesonly
+                  zipcode: '95014'
+                  country: United States
+                  state: California
+                  city: Cupertino
+                  street_address: 1601 S De Anza Blvd Ste 248
+                  street_address 2: 1601 S De Anza Blvd Ste 248
+                  recaptcha: string
+                  recaptcha_flavor: hcaptcha
+                  referer_invite_token: Dm2gtT8dwMeM4Bc2E8FLIaA96VHOjPat
+                  return_to: 'http://mist.zendesk.com/hc/quickstart.pdf'
         description: Request Body
       responses:
         '200':
@@ -23481,8 +23447,8 @@ paths:
         - Self Alarms
   /api/v1/self/two_factor/token:
     get:
-      description: Generate QR code for verification
-      operationId: generateQrCodeForVerification
+      description: Generate Secret Key for 2FA verification
+      operationId: generateSecretFor2faVerification
       parameters:
         - in: query
           name: by
@@ -23494,7 +23460,7 @@ paths:
           description: 'if `by`==`qrcode`, returns the secret as a qrcode image'
       responses:
         '200':
-          $ref: '#/components/responses/TwoFactorToken'
+          $ref: '#/components/responses/TwoFactorSecret'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -23505,15 +23471,15 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: generateQrCodeForVerification
+      summary: generateSecretFor2faVerification
       tags:
         - Self MFA
   /api/v1/self/two_factor/verify:
     post:
-      description: |-
+      description: |
         Verify Two-factor (OTP)
 
-        To verify two-factor authentication by using a code generated by app (e.g. Google Authenticator, Authy) or by SMS. Upon successful verification, the otp_verified will be set to true if it hasn’t already been.
+        To verify two-factor authentication by using a code generated by app (e.g. Google Authenticator, Authy). Upon successful verification, the `two_factor_passed` will be set to true if it hasn’t already been.
       operationId: verifyTwoFactor
       requestBody:
         content:
@@ -42757,6 +42723,16 @@ paths:
         - schema:
             type: string
           in: query
+          name: dryrun_nacrule_id
+          description: 'NAC Policy Dry Run Rule ID, if present and matched'
+        - schema:
+            type: boolean
+          in: query
+          name: dryrun_nacrule_matched
+          description: 'True - if dryrun rule present and matched with priority, False - if not matched or not present'
+        - schema:
+            type: string
+          in: query
           name: auth_type
           description: 'authentication type, e.g. “802.1X”, “MAB”, “DeviceAuth”'
         - schema:
@@ -42774,11 +42750,6 @@ paths:
           in: query
           name: bssid
           description: SSID
-        - schema:
-            type: string
-          in: query
-          name: eap_type
-          description: 'EAP type, e.g. “EAP-TTLS”, “EAP-TLS”'
         - schema:
             type: string
             format: uuid
@@ -42837,6 +42808,231 @@ paths:
         - $ref: '#/components/parameters/duration'
         - $ref: '#/components/parameters/limit'
         - $ref: '#/components/parameters/page'
+  '/api/v1/orgs/{org_id}/nac_clients/search':
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+    get:
+      summary: searchOrgNacClients
+      tags:
+        - Orgs Clients - NAC
+      responses:
+        '200':
+          $ref: '#/components/responses/ClientNacSearch'
+      operationId: searchOrgNacClients
+      description: Search Org NAC Clients
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: last_nacrule_id
+          description: 'NAC Policy Rule ID, if matched'
+        - schema:
+            type: boolean
+          in: query
+          name: nacrule_matched
+          description: NAC Policy Rule Matched
+        - schema:
+            type: string
+          in: query
+          name: auth_type
+          description: 'authentication type, e.g. “eap-tls”, “eap-ttls”, “eap-teap”, “mab”, “device-auth”'
+        - schema:
+            type: string
+          in: query
+          name: last_vlan_id
+          description: Vlan ID
+        - schema:
+            type: string
+          in: query
+          name: last_nas_vendor
+          description: vendor of NAS device
+        - schema:
+            type: string
+          in: query
+          name: idp_id
+          description: 'SSO ID, if present and used'
+        - schema:
+            type: string
+          in: query
+          name: last_ssid
+          description: SSID
+        - schema:
+            type: string
+          in: query
+          name: last_username
+          description: Username presented by the client
+        - schema:
+            type: number
+          in: query
+          name: timestamp
+          description: 'start time, in epoch'
+        - schema:
+            type: string
+          in: query
+          name: org_id
+          description: org id
+        - schema:
+            type: string
+          in: query
+          name: site_id
+          description: 'site id if assigned, null if not assigned'
+        - schema:
+            type: string
+          in: query
+          name: last_ap
+          description: AP MAC connected to by client
+        - schema:
+            type: string
+          in: query
+          name: mac
+          description: MAC address
+        - schema:
+            type: string
+          in: query
+          name: last_status
+          description: 'Connection status of client i.e “permitted”, “denied, “session_ended”'
+        - schema:
+            type: string
+          in: query
+          name: type
+          description: 'Client type i.e. “wireless”, “wired” etc.'
+        - schema:
+            type: string
+          in: query
+          name: mdm_compliance_status
+          description: 'MDM compliancy of client i.e “compliant”, “not compliant”'
+        - schema:
+            type: string
+          in: query
+          name: mdm_provider
+          description: 'MDM provider of client’s organisation eg “intune”, “jamf”'
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/end'
+        - $ref: '#/components/parameters/duration'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/page'
+  '/api/v1/orgs/{org_id}/nac_clients/count':
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+    get:
+      summary: countOrgNacClients
+      tags:
+        - Orgs Clients - NAC
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - type
+              - last_nacrule_id
+              - auth_type
+              - last_vlan_id
+              - last_nas_vendor
+              - last_username
+              - last_ap
+              - mac
+              - last_ssid
+              - last_status
+              - mdm_compliance_status
+              - mdm_provider
+            default: type
+          in: query
+          name: distinct
+          description: 'NAC Policy Rule ID, if matched'
+        - schema:
+            type: string
+          in: query
+          name: last_nacrule_id
+          description: 'NAC Policy Rule ID, if matched'
+        - schema:
+            type: boolean
+          in: query
+          name: nacrule_matched
+          description: NAC Policy Rule Matched
+        - schema:
+            type: string
+          in: query
+          name: auth_type
+          description: 'authentication type, e.g. “eap-tls”, “eap-ttls”, “eap-teap”, “mab”, “device-auth”'
+        - schema:
+            type: string
+          in: query
+          name: last_vlan_id
+          description: Vlan ID
+        - schema:
+            type: string
+          in: query
+          name: last_nas_vendor
+          description: vendor of NAS device
+        - schema:
+            type: string
+          in: query
+          name: idp_id
+          description: 'SSO ID, if present and used'
+        - schema:
+            type: string
+          in: query
+          name: last_ssid
+          description: SSID
+        - schema:
+            type: string
+          in: query
+          name: last_username
+          description: Username presented by the client
+        - schema:
+            type: number
+          in: query
+          name: timestamp
+          description: 'start time, in epoch'
+        - schema:
+            type: string
+          in: query
+          name: org_id
+          description: org id
+        - schema:
+            type: string
+          in: query
+          name: site_id
+          description: 'site id if assigned, null if not assigned'
+        - schema:
+            type: string
+          in: query
+          name: last_ap
+          description: AP MAC connected to by client
+        - schema:
+            type: string
+          in: query
+          name: mac
+          description: MAC address
+        - schema:
+            type: string
+          in: query
+          name: last_status
+          description: 'Connection status of client i.e “permitted”, “denied, “session_ended”'
+        - schema:
+            type: string
+          in: query
+          name: type
+          description: 'Client type i.e. “wireless”, “wired” etc.'
+        - schema:
+            type: string
+          in: query
+          name: mdm_compliance_status
+          description: 'MDM compliancy of client i.e “compliant”, “not compliant”'
+        - schema:
+            type: string
+          in: query
+          name: mdm_provider
+          description: 'MDM provider of client’s organisation eg “intune”, “jamf”'
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/end'
+        - $ref: '#/components/parameters/duration'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+      operationId: countOrgNacClients
+      description: Count by Distinct Attributes of NAC Clients
   '/api/v1/orgs/{org_id}/nac_clients/events/count':
     parameters:
       - $ref: '#/components/parameters/org_id'
@@ -42855,10 +43051,10 @@ paths:
             enum:
               - type
               - nacrule_id
+              - dryrun_nacrule_id
               - auth_type
               - vlan
               - nas_vendor
-              - eap_type
               - username
               - ap
               - mac
@@ -42899,6 +43095,16 @@ paths:
           in: query
           name: nacrule_matched
           description: NAC Policy Rule Matched
+        - schema:
+            type: string
+          in: query
+          name: dryrun_nacrule_id
+          description: 'NAC Policy Dry Run Rule ID, if present and matched'
+        - schema:
+            type: boolean
+          in: query
+          name: dryrun_nacrule_matched
+          description: 'True - if dryrun rule present and matched with priority, False - if not matched or not present'
         - schema:
             type: string
           in: query
@@ -43564,14 +43770,14 @@ paths:
     parameters:
       - $ref: '#/components/parameters/site_id'
     get:
-      summary: searchMistEdgeEvents
+      summary: searcSitehMistEdgeEvents
       tags:
         - Sites MxEdges
       responses:
         '200':
           $ref: '#/components/responses/MxEdgeEventsSearch'
-      operationId: searchMistEdgeEvents
-      description: Search Mist Edge Events
+      operationId: searcSitehMistEdgeEvents
+      description: Search Site Mist Edge Events
       parameters:
         - schema:
             type: string
@@ -43693,7 +43899,7 @@ paths:
         '200':
           $ref: '#/components/responses/ClientNacSearch'
       operationId: searchSiteNacClients
-      description: Search NAC Clients
+      description: Search Site NAC Clients
       parameters:
         - schema:
             type: string
@@ -44067,6 +44273,284 @@ paths:
           in: query
           name: mac
           description: MAC address
+  /api/v1/register/recaptcha:
+    get:
+      summary: getAdminRegistrationInfo
+      tags:
+        - Admin
+      responses:
+        '200':
+          $ref: '#/components/responses/Recaptcha'
+      operationId: getAdminRegistrationInfo
+      description: Get Registration Information
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - google
+              - hcaptcha
+            default: google
+          in: query
+          name: recaptcha_flavor
+  '/api/v1/orgs/{org_id}/inventory/create_ha_cluster':
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+    post:
+      summary: createOrgGatewayHaCluster
+      tags:
+        - Orgs Inventory
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      operationId: get-api-v1-orgs-org_id-inventory-create_ha_cluster
+      description: Create HA Cluster from unassigned Gateways
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/create_ha_cluster'
+            examples:
+              Example:
+                value:
+                  nodes:
+                    - mac: aff827549235
+                    - mac: 8396cd006c8c
+                  site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+                  managed: true
+                  disable_auto_config: true
+  '/api/v1/orgs/{org_id}/inventory/delete_ha_cluster':
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+    post:
+      summary: deleteOrgGatewayHaCluster
+      tags:
+        - Orgs Inventory
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      operationId: deleteOrgGatewayHaCluster
+      description: |-
+        Delete HA Cluster
+
+        After HA cluster deleted, both of the nodes will be unassigned.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/delete_ha_cluster'
+  '/api/v1/orgs/{org_id}/mxedges/search':
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+    get:
+      summary: searchOrgMxEdges
+      tags:
+        - Orgs MxEdges
+      responses:
+        '200':
+          $ref: '#/components/responses/MxEdgeSearch'
+      operationId: searchOrgMxEdges
+      description: Search Org Mist Edges
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: mxedge_id
+          description: mist edge id
+        - schema:
+            type: string
+          in: query
+          name: site_id
+          description: mist edge site id
+        - schema:
+            type: string
+          in: query
+          name: mxcluster_id
+          description: mist edge cluster id
+        - schema:
+            type: string
+          in: query
+          name: model
+          description: model name
+        - schema:
+            type: string
+          in: query
+          name: distro
+          description: 'debian code name(buster, bullseye)'
+        - schema:
+            type: string
+          in: query
+          name: tunterm_version
+          description: tunterm version
+        - schema:
+            type: string
+          in: query
+          name: sort
+          description: 'sort options, -prefix represents DESC order, default is -last_seen'
+        - schema:
+            type: boolean
+          in: query
+          name: stats
+          description: 'whether to return device stats, default is false'
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/end'
+        - $ref: '#/components/parameters/duration'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/page'
+  '/api/v1/orgs/{org_id}/mxedges/count':
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+    get:
+      summary: countOrgMxEdges
+      tags:
+        - Orgs MxEdges
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+      operationId: countOrgMxEdges
+      description: Count Org Mist Edges
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - model
+              - mxcluster_id
+              - distro
+              - tunterm_version
+              - site_id
+            default: model
+          in: query
+          name: distinct
+        - schema:
+            type: string
+          in: query
+          name: mxedge_id
+          description: mist edge id
+        - schema:
+            type: string
+          in: query
+          name: site_id
+          description: mist edge site id
+        - schema:
+            type: string
+          in: query
+          name: mxcluster_id
+          description: mist edge cluster id
+        - schema:
+            type: string
+          in: query
+          name: model
+          description: model name
+        - schema:
+            type: string
+          in: query
+          name: distro
+          description: 'debian code name(buster, bullseye)'
+        - schema:
+            type: string
+          in: query
+          name: tunterm_version
+          description: tunterm version
+        - schema:
+            type: string
+          in: query
+          name: sort
+          description: 'sort options, -prefix represents DESC order, default is -last_seen'
+        - schema:
+            type: boolean
+          in: query
+          name: stats
+          description: 'whether to return device stats, default is false'
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/end'
+        - $ref: '#/components/parameters/duration'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/page'
+  '/api/v1/orgs/{org_id}/mxedges/events/search':
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+    get:
+      summary: searchOrgMistEdgeEvents
+      tags:
+        - Orgs MxEdges
+      responses:
+        '200':
+          $ref: '#/components/responses/MxEdgeEventsSearch'
+      operationId: searchOrgMistEdgeEvents
+      description: Search Org Mist Edge Events
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: mxedge_id
+          description: mist edge id
+        - schema:
+            type: string
+          in: query
+          name: mxcluster_id
+          description: mist edge cluster id
+        - schema:
+            type: string
+          in: query
+          name: type
+          description: 'mist edge event type [Supported Events](/#operation/listGatewayApplications)'
+        - schema:
+            type: string
+          in: query
+          name: service
+          description: 'service running on mist edge(mxagent, tunterm etc)'
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/end'
+        - $ref: '#/components/parameters/duration'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
+  '/api/v1/orgs/{org_id}/mxedges/events/count':
+    parameters:
+      - $ref: '#/components/parameters/org_id'
+    get:
+      summary: countOrgSiteMxEdgeEvents
+      tags:
+        - Orgs MxEdges
+      responses:
+        '200':
+          $ref: '#/components/responses/count'
+      operationId: countOrgSiteMxEdgeEvents
+      description: Count Org Mist Edge Events
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - mxedge_id
+              - type
+              - mxcluster_id
+              - package
+            default: mxedge_id
+          in: query
+          name: distinct
+        - schema:
+            type: string
+          in: query
+          name: mxedge_id
+          description: mist edge id
+        - schema:
+            type: string
+          in: query
+          name: mxcluster_id
+          description: mist edge cluster id
+        - schema:
+            type: string
+          in: query
+          name: type
+          description: 'mist edge event type [Supported Events](/#operation/listGatewayApplications)'
+        - schema:
+            type: string
+          in: query
+          name: service
+          description: 'service running on mist edge(mxagent, tunterm etc)'
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/end'
+        - $ref: '#/components/parameters/duration'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/limit'
 components:
   parameters:
     admin_id:
@@ -53730,7 +54214,7 @@ components:
                   created_time: 0
                   id: 455f6eca-6276-4993-bfeb-53cbbbba6208
                   matching:
-                    auth_type: cert
+                    auth_type: eap-tls
                     nactags:
                       - string
                     port_types:
@@ -53742,7 +54226,7 @@ components:
                   modified_time: 0
                   name: string
                   not_matching:
-                    auth_type: cert
+                    auth_type: eap-tls
                     nactags:
                       - string
                     port_types:
@@ -54738,32 +55222,39 @@ components:
           schema:
             type: object
       description: OK
-    OauthAppLinkStatus:
+    OauthAppLink:
       content:
         application/json:
           examples:
-            Example 1:
+            Zoom:
               value:
+                linked: true
                 accounts:
                   - account_id: KkEM7orQSIWHZNFzwMLuRA
-                    last_status: success
                     last_sync: 1665465339000
+                    last_status: success
                     linked_by: Testname1
-                    name: Test Compay1 Ltd
+                    company: Test Compay1 Ltd
+                    max_daily_api_requests: 1500
                   - account_id: kojzWgIJQ0ujR73VvydOdg
-                    error: 'OAuth token refresh failed, please re-link zoom'
-                    last_status: failed
                     last_sync: 1665465346000
+                    last_status: failed
                     linked_by: Testname2
-                    name: Test Compay2 Ltd
+                    company: Test Compay2 Ltd
+                    error: 'OAuth token refresh failed, please re-link your account'
+                    errors:
+                      - 'OAuth token refresh failed, please re-link your account'
+                      - API daily rate limit reached for your account
+                    max_daily_api_requests: 5000
                   - account_id: iojzXIJWEuiD73ZvydOfg
-                    last_status: 1665465538000
                     last_sync: failed
+                    last_status: 1665465538000
                     linked_by: Testname3
-                    name: Test Compay3 Ltd
-                linked: true
+                    company: Test Compay3 Ltd
+                    max_daily_api_requests: 3500
+                authorization_url: 'https://zoom.us/oauth/authorize?response_type=code&client_id=YDyajBmJREjwkyb3TPAbA&redirect_uri=https%3A%2F%2Fapi.local%2Fapi%2Fv1%2Forg%2Fb4e16c72-d50e-4c03-a952-a3217e231e2c%2Foauth2%2Fapp%2Fzoom%2Fcallback&state=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2NDk3NjE0MDQsImZvcndhcmQiOiJodHRwczovL2NsaWVudGZvcndhcmR1cmwuY29tIn0.RIE4XTU5kpF4nKIy7_enJ0PpOCyTTp6DLm9PZsdncpI'
           schema:
-            $ref: '#/components/schemas/oauth_app_status'
+            $ref: '#/components/schemas/account_oauth_read'
       description: OK
     Org:
       content:
@@ -59105,6 +59596,7 @@ components:
                     tx_pkts: 50
                     up: true
                     uptime: 10
+                    wan_name: wan
                 start: 1531776183
                 total: 1
             '`type`==`wxtunnel`':
@@ -62577,6 +63069,8 @@ components:
                   - type: NAC_CLIENT_PERMIT
                     nacrule_id: 32f27e7d-ff26-4a9b-b3d1-ff9bcb264c62
                     nacrule_matched: true
+                    dryrun_nacrule_id: 32f27e7d-ff26-4a9b-b3d1-ff9bcb264012
+                    dryrun_nacrule_matched: true
                     auth_type: eap-ttls
                     vlan: '750'
                     nas_vendor: juniper-mist
@@ -62628,7 +63122,7 @@ components:
                   random_mac: true
                   ssid: Test_Suriya-SSID
                   username: suriyas@juniper.net
-    TwoFactorToken:
+    TwoFactorSecret:
       description: Two Factor configuration Token
       content:
         application/json:
@@ -62640,11 +63134,11 @@ components:
             properties:
               two_factor_secret:
                 type: string
-                example: pYbeqdBaiFemq9qb4UbGGaqJZKcQX1gG
+                example: NRMTSTRWNBVECY3GJVYEY3DDJFRGSNCZGJUDO4RVN5FDM3DUMJSA
           examples:
             Example:
               value:
-                two_factor_secret: pYbeqdBaiFemq9qb4UbGGaqJZKcQX1gG
+                two_factor_secret: NRMTSTRWNBVECY3GJVYEY3DDJFRGSNCZGJUDO4RVN5FDM3DUMJSA
         application/octet-stream:
           schema:
             type: string
@@ -62965,6 +63459,150 @@ components:
                 end: 1697096379
                 limit: 10
                 total: 2
+    Recaptcha:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/recaptcha'
+          examples:
+            Google:
+              value:
+                flavor: google
+                required: true
+                sitekey: 6LdAewsTAAAAAE25XKQhPEQ2FiMTft-WrZXQ5NUd
+            Hcaptcha:
+              value:
+                flavor: hcaptcha
+                required: true
+                sitekey: 6LdAewsTAAAAAE25XKQhPEQ2FiMTft-WrZXQ5NUd
+    MxEdgeSearch:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                results:
+                  - last_seen: 1695151551.833
+                    org_id: 35d96b1a-1a13-4ba8-90f5-1e78dd2a10c5
+                    mxedge_id: 00000000-0000-0000-1000-d420b0f0025d
+                    tunterm_version: 0.1.2813
+                    model: ME-X5
+                    distro: buster
+                    uptime: 5662632
+                  - last_seen: 1695151550.622
+                    org_id: 23ab5425-55d8-4d4e-98a8-f572a11e9282
+                    mxedge_id: 00000000-0000-0000-1000-d420b0f0042b
+                    model: ME-X1
+                    distro: buster
+                    uptime: 2842400
+                start: 1694622179
+                end: 1694708579
+                limit: 10
+                total: 2
+            properties:
+              results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    last_seen:
+                      type: number
+                      example: 1695151551.833
+                    org_id:
+                      type: string
+                      example: 35d96b1a-1a13-4ba8-90f5-1e78dd2a10c5
+                    mxedge_id:
+                      type: string
+                      example: 00000000-0000-0000-1000-d420b0f0025d
+                    tunterm_version:
+                      type: string
+                      example: 0.1.2813
+                    model:
+                      type: string
+                      example: ME-X5
+                    distro:
+                      type: string
+                      example: buster
+                    uptime:
+                      type: integer
+                      example: 5662632
+              start:
+                type: integer
+                example: 1694622179
+              end:
+                type: integer
+                example: 1694708579
+              limit:
+                type: integer
+                example: 10
+              total:
+                type: integer
+                example: 2
+          examples:
+            Example:
+              value:
+                results:
+                  - last_seen: 1695151551.833
+                    org_id: 35d96b1a-1a13-4ba8-90f5-1e78dd2a10c5
+                    mxedge_id: 00000000-0000-0000-1000-d420b0f0025d
+                    tunterm_version: 0.1.2813
+                    model: ME-X5
+                    distro: buster
+                    uptime: 5662632
+                start: 1694622179
+                end: 1694708579
+                limit: 10
+                total: 2
+    JamfAccount:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                linked: true
+                accounts:
+                  - account_id: ae9dee49-69e7-4710-a114-5b827a777738
+                    instance_url: junipertest.jamfcloud.com
+                    smartgroup_name: CompliantGroup1
+                    last_sync: 1665465339000
+                    last_status: success
+                    linked_by: Testname1
+                    name: Test Compay1 Ltd
+            properties:
+              linked:
+                type: boolean
+              accounts:
+                $ref: '#/components/schemas/account_jamf_read'
+          examples:
+            Example:
+              value:
+                linked: true
+                accounts:
+                  instance_url: junipertest.jamfcloud.com
+                  username: john@nmo.com
+                  smartgroup_name: CompliantGroup1
+                  last_sync: 1665465339000
+                  last_status: failed
+                  linked_by: Testname1
+                  name: Test Compay1 Ltd
+                  error: 'OAuth token refresh failed, please re-link your account'
+    ZscalerAccount:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/account_zscaler_read'
+          examples:
+            Example:
+              value:
+                parnter_key: K35vrZcK3JvrZc
+                username: john@nmo.com
+                cloud_name: zscalerbeta.net
   schemas:
     const_alarm_definition:
       properties:
@@ -71363,11 +72001,7 @@ components:
         router_id:
           type: string
           example: 10.2.1.10
-          description: used for inband managment
-        node1_router_id:
-          type: string
-          example: 10.2.1.12
-          description: used for inband managment
+          description: auto assigned if not set
       required:
         - name
     gatewaytemplate_tunnel_configs:
@@ -73767,125 +74401,6 @@ components:
           auth_servers_retries: 3
           auth_servers_timeout: 5
     gateway_routing_policy:
-      properties:
-        terms:
-          description: 'zero or more criteria/filter can be specified to match the term, all criteria have to be met'
-          items:
-            properties:
-              action:
-                description: when used as import policy
-                properties:
-                  accept:
-                    type: boolean
-                  add_community:
-                    items:
-                      example: '65003:10'
-                      type: string
-                    type: array
-                  community:
-                    description: 'when used as export policy, optional'
-                    items:
-                      example: '65003:10'
-                      type: string
-                    type: array
-                  exclude_as_path:
-                    description: 'when used as export policy, optional. To exclude certain AS '
-                    items:
-                      example: '65002'
-                      type: string
-                    type: array
-                  exclude_community:
-                    items:
-                      example: '65003:10'
-                      type: string
-                    type: array
-                  export_communitites:
-                    description: 'when used as export policy, optional'
-                    items:
-                      type: string
-                    type: array
-                  local_preference:
-                    description: 'optional, for an import policy, local_preference can be changed'
-                    type: string
-                  prepend_as_path:
-                    description: 'when used as export policy, optional. By default, the local AS will be prepended, to change it'
-                    items:
-                      example: '65003'
-                      type: string
-                    type: array
-                type: object
-              matching:
-                description: 'zero or more criteria/filter can be specified to match the term, all criteria have to be met'
-                properties:
-                  as_path:
-                    description: takes regular expression
-                    items:
-                      example: '65001'
-                      type: string
-                    type: array
-                  community:
-                    items:
-                      example: '65001:2'
-                      type: string
-                    type: array
-                  network:
-                    items:
-                      type: string
-                    type: array
-                  prefix:
-                    description: 'zero or more criteria/filter can be specified to match the term, all criteria have to be met'
-                    items:
-                      example: 192.168.0.0/16-30
-                      type: string
-                    type: array
-                  protocol:
-                    description: '`direct`, `bgp`, `osp`, ...'
-                    items:
-                      example: direct
-                      type: string
-                    type: array
-                  route_exists:
-                    properties:
-                      route:
-                        example: 192.168.0.0/24
-                        type: string
-                      vrf_name:
-                        default: default
-                        description: |-
-                          name of the vrf instance
-                          it can also be the name of the VPN or wan if they
-                        type: string
-                    type: object
-                  vpn_neighbor_mac:
-                    description: overlay-facing criteria (used for bgp_config where via=vpn)
-                    items:
-                      type: string
-                    type: array
-                  vpn_path:
-                    description: |-
-                      overlay-facing criteria (used for bgp_config where via=vpn)
-                      ordered-
-                    items:
-                      type: string
-                    type: array
-                  vpn_path_sla:
-                    properties:
-                      max_jitter:
-                        nullable: true
-                        type: integer
-                      max_latency:
-                        example: 1500
-                        nullable: true
-                        type: integer
-                      max_loss:
-                        example: 30
-                        nullable: true
-                        type: integer
-                    type: object
-                type: object
-            type: object
-          type: array
-          uniqueItems: true
       type: object
       x-examples:
         example-1:
@@ -73917,6 +74432,134 @@ components:
                   vrf_name: default
       x-stoplight:
         id: 81370d959ebf7
+      properties:
+        terms:
+          description: 'zero or more criteria/filter can be specified to match the term, all criteria have to be met'
+          type: array
+          uniqueItems: true
+          items:
+            type: object
+            properties:
+              action:
+                description: when used as import policy
+                type: object
+                properties:
+                  accept:
+                    type: boolean
+                  add_community:
+                    type: array
+                    items:
+                      example: '65003:10'
+                      type: string
+                  community:
+                    description: 'when used as export policy, optional'
+                    type: array
+                    items:
+                      example: '65003:10'
+                      type: string
+                  exclude_as_path:
+                    description: 'when used as export policy, optional. To exclude certain AS '
+                    type: array
+                    items:
+                      example: '65002'
+                      type: string
+                  exclude_community:
+                    type: array
+                    items:
+                      example: '65003:10'
+                      type: string
+                  export_communitites:
+                    description: 'when used as export policy, optional'
+                    type: array
+                    items:
+                      type: string
+                  local_preference:
+                    description: 'optional, for an import policy, local_preference can be changed'
+                    type: string
+                  prepend_as_path:
+                    description: 'when used as export policy, optional. By default, the local AS will be prepended, to change it'
+                    type: array
+                    items:
+                      example: '65003'
+                      type: string
+                  add_target_vrfs:
+                    type: array
+                    x-stoplight:
+                      id: 54009r3mh8sxh
+                    description: 'for SSR, hub decides how VRF routes are leaked on spoke'
+                    items:
+                      x-stoplight:
+                        id: zua6i2vxns9oi
+                      type: string
+              matching:
+                description: 'zero or more criteria/filter can be specified to match the term, all criteria have to be met'
+                type: object
+                properties:
+                  as_path:
+                    description: takes regular expression
+                    type: array
+                    items:
+                      example: '65001'
+                      type: string
+                  community:
+                    type: array
+                    items:
+                      example: '65001:2'
+                      type: string
+                  network:
+                    type: array
+                    items:
+                      type: string
+                  prefix:
+                    description: 'zero or more criteria/filter can be specified to match the term, all criteria have to be met'
+                    type: array
+                    items:
+                      example: 192.168.0.0/16-30
+                      type: string
+                  protocol:
+                    description: '`direct`, `bgp`, `osp`, ...'
+                    type: array
+                    items:
+                      example: direct
+                      type: string
+                  route_exists:
+                    type: object
+                    properties:
+                      route:
+                        example: 192.168.0.0/24
+                        type: string
+                      vrf_name:
+                        default: default
+                        description: |-
+                          name of the vrf instance
+                          it can also be the name of the VPN or wan if they
+                        type: string
+                  vpn_neighbor_mac:
+                    description: overlay-facing criteria (used for bgp_config where via=vpn)
+                    type: array
+                    items:
+                      type: string
+                  vpn_path:
+                    description: |-
+                      overlay-facing criteria (used for bgp_config where via=vpn)
+                      ordered-
+                    type: array
+                    items:
+                      type: string
+                  vpn_path_sla:
+                    type: object
+                    properties:
+                      max_jitter:
+                        type: integer
+                        nullable: true
+                      max_latency:
+                        example: 1500
+                        type: integer
+                        nullable: true
+                      max_loss:
+                        example: 30
+                        type: integer
+                        nullable: true
     junos_snmp_config:
       properties:
         client_list:
@@ -75957,56 +76600,6 @@ components:
               - wired
           order: 1
     nac_rule_matching:
-      properties:
-        auth_type:
-          default: cert
-          enum:
-            - cert
-            - idp
-            - mab
-            - psk
-            - device-auth
-          type: string
-        nactags:
-          example:
-            - 041d5d36-716c-4cfb-4988-3857c6aa14a2
-            - a809a97f-d599-f812-eb8c-c3f84aabf6ba
-          items:
-            type: string
-          type: array
-        port_types:
-          example:
-            - wired
-          items:
-            enum:
-              - wireless
-              - wired
-            type: string
-          type: array
-        site_ids:
-          description: list of site ids to match
-          example:
-            - bb19fc3e-4124-4b57-80d9-c3f6edce47c4
-            - bb19fc3e-6564-4b57-80d9-c3f6edce47c1
-          items:
-            format: uuid
-            type: string
-          type: array
-        sitegroup_ids:
-          description: list of sitegroup ids to match
-          example:
-            - bb19fc3e-4124-4b57-80d9-c3f6edce47c4
-            - bb19fc3e-6564-4b57-80d9-c3f6edce47c1
-          items:
-            format: uuid
-            type: string
-          type: array
-        vendor:
-          description: list of vendors to match
-          items:
-            example: cisc
-            type: string
-          type: array
       title: nac_rule_matching
       type: object
       x-examples:
@@ -76023,6 +76616,58 @@ components:
           sitegroup_ids:
             - bb19fc3e-4124-4b57-80d9-c3f6edce47c4
             - bb19fc3e-6564-4b57-80d9-c3f6edce47c1
+      properties:
+        auth_type:
+          default: eap-tls
+          enum:
+            - idp
+            - mab
+            - psk
+            - device-auth
+            - eap-tls
+            - eap-ttls
+            - eap-teap
+          type: string
+        nactags:
+          example:
+            - 041d5d36-716c-4cfb-4988-3857c6aa14a2
+            - a809a97f-d599-f812-eb8c-c3f84aabf6ba
+          type: array
+          items:
+            type: string
+        port_types:
+          example:
+            - wired
+          type: array
+          items:
+            enum:
+              - wireless
+              - wired
+            type: string
+        site_ids:
+          description: list of site ids to match
+          example:
+            - bb19fc3e-4124-4b57-80d9-c3f6edce47c4
+            - bb19fc3e-6564-4b57-80d9-c3f6edce47c1
+          type: array
+          items:
+            format: uuid
+            type: string
+        sitegroup_ids:
+          description: list of sitegroup ids to match
+          example:
+            - bb19fc3e-4124-4b57-80d9-c3f6edce47c4
+            - bb19fc3e-6564-4b57-80d9-c3f6edce47c1
+          type: array
+          items:
+            format: uuid
+            type: string
+        vendor:
+          description: list of vendors to match
+          type: array
+          items:
+            example: cisc
+            type: string
     nac_tag:
       properties:
         created_time:
@@ -76646,77 +77291,6 @@ components:
         example:
           value:
             note: maintenance window
-    oauth_app_status:
-      type: object
-      x-examples:
-        Example 1:
-          accounts:
-            - account_id: KkEM7orQSIWHZNFzwMLuRA
-              last_status: success
-              last_sync: 1665465339000
-              linked_by: Testname1
-              name: Test Compay1 Ltd
-            - account_id: kojzWgIJQ0ujR73VvydOdg
-              error: 'OAuth token refresh failed, please re-link zoom'
-              last_sync: 1665465346000
-              linked_by: Testname2
-              name: Test Compay2 Ltd
-            - account_id: iojzXIJWEuiD73ZvydOfg
-              last_status: 1665465538000
-              last_sync: failed
-              linked_by: Testname3
-              name: Test Compay3 Ltd
-          linked: true
-      x-stoplight:
-        id: 1fb753875ddef
-      properties:
-        accounts:
-          description: List of linked apps(zoom/teams) account details
-          type: array
-          items:
-            type: object
-            properties:
-              account_id:
-                description: Linked apps(zoom/teams/intune/jamf) tenant id
-                type: string
-                example: kojzWgIJQ0ujR73VvydOdg
-              error:
-                description: This error is provided only when the apps(zoom) account refresh token fails in the backend
-                type: string
-                example: 'OAuth token refresh failed, please re-link your account'
-              last_status:
-                oneOf:
-                  - type: integer
-                  - type: string
-                    example: failed
-              last_sync:
-                oneOf:
-                  - type: integer
-                  - type: string
-                    example: '1665465346000'
-              linked_by:
-                description: First name of the user who linked the apps(zoom/teams/intune/jamf) account
-                type: string
-                example: Testname2
-              name:
-                description: Name of the company whose (zoom/teams/intune/jamf) account mist has subscribed to
-                type: string
-                example: Test Compay2 Ltd
-              errors:
-                type: array
-                items:
-                  type: string
-                  example: 'OAuth token refresh failed, please re-link your account", "API daily rate limit reached for your account'
-              max_daily_api_requests:
-                type: integer
-                description: This field is specific to Zoom app
-                nullable: true
-        authorization_url:
-          description: Only if `forward_url` is set in the request
-          type: string
-        linked:
-          description: 'OAuth application linked status, is mist portal authorized with the OAuth appliation'
-          type: boolean
     org_auto_rules:
       description: auto_rules in org settings
       properties:
@@ -77298,21 +77872,7 @@ components:
             grace_period:
               type: number
         juniper:
-          type: object
-          properties:
-            accounts:
-              type: array
-              items:
-                type: object
-                properties:
-                  linked_by:
-                    type: string
-                  name:
-                    type: string
-            customer_name:
-              type: string
-            linked:
-              type: boolean
+          $ref: '#/components/schemas/account_juniper_read'
         mgmt:
           description: management-related properties
           type: object
@@ -77381,6 +77941,22 @@ components:
                 By default NAS devices (switches/aps) and proxies(mxedge) are configured to use port TCP2083(radsec) to reach mist-nac. 
                 Set `use_ssl_port`==`true` to override that port with TCP43 (ssl), 
                 This is a org level setting that is applicable to wlans, switch-templates, and mxedge-clusters that have mist-nac enabled
+            eu_only:
+              type: boolean
+              x-stoplight:
+                id: e1r8l0zhxu4zl
+              default: false
+              description: 'for EU, whether to only use Mist NAC servers in EU Clusters'
+            eap_ssl_security_level:
+              type: integer
+              x-stoplight:
+                id: 42vk5uks7wqns
+              minimum: 1
+              maximum: 4
+              default: 2
+              description: |-
+                eap ssl security level
+                see https://www.openssl.org/docs/man1.1.1/man3/SSL_CTX_set_security_level.html#DEFAULT-CALLBACK-BEHAVIOUR
         modified_time:
           type: number
           readOnly: true
@@ -79817,16 +80393,33 @@ components:
             type: string
           type: array
         app_caetgories:
-          description: list of application categories are available through /api/v1/const/app_categories
+          example:
+            - Sports
+          description: |-
+            when `type`==`app_caetgories`
+            list of application categories are available through /api/v1/const/app_categories
+          items:
+            type: string
+          type: array
+        app_subcategories:
+          example:
+            - Shopping
+          description: |-
+            when `type`==`app_caetgories`
+            list of application categories are available through /api/v1/const/app_subcategories
           items:
             type: string
           type: array
         apps:
+          example:
+            - office365
+            - okta
           description: |-
-            when `type`==`app`, comes from `/api/v1/const/apps`
-            when `type`==`ssr_app`, comes from `/api/v1/const/ssr_apps`
-            when `type`==`srx_app`, comes from `/api/v1/const/srx_apps`
-            when `type`==`app_categories`, comes from `/api/v1/const/app_categories`
+            when `type`==`apps`
+            list of applications are available through:
+              - /api/v1/const/applications,
+              - /api/v1/const/gateway_applications
+              - /insight/top-app-by-bytes?wired=true
           items:
             type: string
           type: array
@@ -79913,11 +80506,9 @@ components:
         type:
           default: custom
           enum:
-            - app
+            - apps
             - app_categories
             - custom
-            - ssr_apps
-            - srx_apps
           type: string
         vpn_name:
           enum:
@@ -89607,6 +90198,12 @@ components:
           enum:
             - primary
             - secondary
+        wan_name:
+          type: string
+          x-stoplight:
+            id: cxg66b1icaj5e
+          description: wan interface name
+          example: wan
     stats_wxrule:
       description: Wxrule statistics
       properties:
@@ -95481,9 +96078,6 @@ components:
         nacrule_matched:
           type: boolean
           example: true
-        auth_type:
-          type: string
-          example: eap-ttls
         vlan:
           type: string
           example: '750'
@@ -95539,6 +96133,21 @@ components:
         mac:
           type: string
           example: ac3eb179e535
+        dryrun_nacrule_id:
+          type: string
+          x-stoplight:
+            id: dlzoephkfqe0l
+          format: uuid
+          example: 32f27e7d-ff26-4a9b-b3d1-ff9bcb264012
+        dryrun_nacrule_matched:
+          type: boolean
+          x-stoplight:
+            id: mjkvhc5iz20hh
+        auth_type:
+          type: string
+          x-stoplight:
+            id: g6gok4iy5pe0v
+          example: eap-tls
     const_nac_events:
       type: object
       properties:
@@ -96164,6 +96773,388 @@ components:
         policy:
           type: string
           example: INTERNET
+    new_admin:
+      title: new_admin
+      type: object
+      properties:
+        account_only:
+          default: false
+          description: skip creating initial setup if true
+          type: boolean
+        allow_mist:
+          default: false
+          description: whether to allow Mist to look at this org
+          type: boolean
+        email:
+          type: string
+          example: test@mistsys.com
+          maxLength: 64
+        first_name:
+          type: string
+          example: John
+        invite_code:
+          description: required initially
+          type: string
+          example: MISTROCKS
+        last_name:
+          type: string
+          example: Smith
+        org_name:
+          type: string
+          example: Smith LLC
+        password:
+          type: string
+          example: foryoureyesonly
+        zipcode:
+          type: string
+          example: '95014'
+          description: zipcode of registering user
+        country:
+          type: string
+          example: United States
+          description: country/region of registering user
+        state:
+          type: string
+          example: California
+          description: 'state of registering user, optional (depends on country/region)'
+        city:
+          type: string
+          example: Cupertino
+          description: city of registering user
+        street_address:
+          type: string
+          example: 1601 S De Anza Blvd Ste 248
+          description: street address of registering user
+        street_address 2:
+          type: string
+          example: 1601 S De Anza Blvd Ste 248
+          description: street address 2 of registering user
+        recaptcha:
+          type: string
+          description: 'reCAPTCHA , see https://www.google.com/recaptcha/'
+        recaptcha_flavor:
+          type: string
+          example: hcaptcha
+          enum:
+            - hcaptcha
+            - google
+          default: google
+          description: flavor of the captcha
+        referer_invite_token:
+          description: the invite token to apply after account creation
+          type: string
+          example: Dm2gtT8dwMeM4Bc2E8FLIaA96VHOjPat
+        return_to:
+          description: the url the user should be redirected back to
+          type: string
+          example: 'http://mist.zendesk.com/hc/quickstart.pdf'
+      required:
+        - email
+        - first_name
+        - last_name
+        - org_name
+        - password
+        - recaptcha
+    recover:
+      type: object
+      x-examples:
+        Example 1:
+          email: test@mistsys.com
+          recaptcha: 'see https://www.google.com/recaptcha/'
+          recaptcha_flavor: hcaptcha
+      properties:
+        email:
+          type: string
+          example: test@mistsys.com
+          maxLength: 64
+        recaptcha:
+          type: string
+          description: 'see https://www.google.com/recaptcha/'
+        recaptcha_flavor:
+          type: string
+          enum:
+            - google
+            - hcaptcha
+          example: hcaptcha
+      required:
+        - email
+    recaptcha:
+      type: object
+      x-examples:
+        Example 1:
+          flavor: google
+          required: true
+          sitekey: 6LdAewsTAAAAAE25XKQhPEQ2FiMTft-WrZXQ5NUd
+      properties:
+        flavor:
+          type: string
+          enum:
+            - google
+            - hcaptcha
+        required:
+          type: boolean
+        sitekey:
+          type: string
+    create_ha_cluster:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            type: object
+            maxProperties: 2
+            properties:
+              mac:
+                type: string
+                example: aff827549235
+                description: 'node mac, should be unassigned'
+        site_id:
+          type: string
+          example: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+        managed:
+          type: boolean
+          description: if the device is adopted
+        disable_auto_config:
+          type: boolean
+          description: if the device is claimed
+    delete_ha_cluster:
+      type: object
+      properties:
+        mac:
+          type: string
+          example: aff827549235
+          description: node0 mac address
+    account_jamf_write:
+      type: object
+      description: OAuth linked Jamf apps account details
+      x-stoplight:
+        id: w47inst9vutqz
+      x-examples:
+        Example:
+          instance_url: junipertest.jamfcloud.com
+          username: john@nmo.com
+          password: password
+          smartgroup_name: CompliantGroup1
+      properties:
+        instance_url:
+          type: string
+          description: customer account Jamf instance URL
+          example: junipertest.jamfcloud.com
+        username:
+          type: string
+          example: john@nmo.com
+          description: customer account user name
+        password:
+          type: string
+          example: password
+          description: customer account password
+        smartgroup_name:
+          type: string
+          example: CompliantGroup1
+          description: smart group membership for determining compliance status
+      required:
+        - instance_url
+        - username
+        - password
+        - smartgroup_name
+    account_jamf_read:
+      type: object
+      description: OAuth linked Jamf apps account details
+      x-stoplight:
+        id: xmxg42hkrsyyn
+      x-examples:
+        Example:
+          instance_url: junipertest.jamfcloud.com
+          username: john@nmo.com
+          password: password
+          smartgroup_name: CompliantGroup1
+      properties:
+        instance_url:
+          type: string
+          description: customer account Jamf instance URL
+          example: junipertest.jamfcloud.com
+        username:
+          type: string
+          example: john@nmo.com
+          description: customer account user name
+        smartgroup_name:
+          type: string
+          description: smart group membership for determining compliance status
+          example: CompliantGroup1
+        last_sync:
+          type: integer
+          readOnly: true
+          example: 1665465339000
+          description: 'Last data pull timestamp, background jobs that pull Jamf account data'
+        last_status:
+          type: string
+          readOnly: true
+          example: failed
+          description: Is the last data pull for Jamf account is successful or not
+        linked_by:
+          type: string
+          readOnly: true
+          example: Testname1
+          description: First name of the user who linked the Jamf account
+        name:
+          type: string
+          readOnly: true
+          example: Test Compay1 Ltd
+          description: Name of the company whose Jamf account mist has subscribed to
+        error:
+          type: string
+          readOnly: true
+          example: 'OAuth token refresh failed, please re-link your account'
+          description: This error is provided when the Jamf account fails to fetch token/data
+    account_zscaler_write:
+      type: object
+      x-stoplight:
+        id: '2840197473435'
+      description: OAuth linked Zscaler apps account details
+      properties:
+        parnter_key:
+          type: string
+          example: K35vrZcK3JvrZc
+        username:
+          type: string
+          example: john@nmo.com
+          description: customer account user name
+        password:
+          type: string
+          example: password
+          description: customer account password
+        cloud_name:
+          type: string
+          example: zscalerbeta.net
+      required:
+        - parnter_key
+        - username
+        - password
+        - cloud_name
+    account_zscaler_read:
+      type: object
+      x-stoplight:
+        id: nqtleorgqemez
+      description: OAuth linked Zscaler apps account details
+      properties:
+        parnter_key:
+          type: string
+          example: K35vrZcK3JvrZc
+        username:
+          type: string
+          example: john@nmo.com
+          description: customer account user name
+        cloud_name:
+          type: string
+          example: zscalerbeta.net
+    account_oauth_write:
+      type: object
+      x-stoplight:
+        id: 35ur8a4ytx6op
+      description: OAuth linked apps (zoom/teams/intune) account details
+      x-examples:
+        Example:
+          account_id: iojzXIJWEuiD73ZvydOfg
+          max_daily_api_requests: 5000
+      properties:
+        account_id:
+          type: string
+          example: iojzXIJWEuiD73ZvydOfg
+          description: Linked app(zoom/teams/intune) account id
+        max_daily_api_requests:
+          type: integer
+          example: 5000
+          description: 'Zoom daily api request quota, https://developers.zoom.us/docs/api/rest/rate-limits/'
+      required:
+        - account_id
+    account_oauth_read:
+      type: object
+      x-stoplight:
+        id: 4xe0shvilgjtq
+      description: OAuth linked apps (zoom/teams/intune) account details
+      x-examples:
+        Example:
+          account_id: iojzXIJWEuiD73ZvydOfg
+          max_daily_api_requests: 5000
+      properties:
+        account_id:
+          type: string
+          example: iojzXIJWEuiD73ZvydOfg
+          description: Linked app(zoom/teams/intune) account id
+        max_daily_api_requests:
+          type: integer
+          example: 5000
+          description: 'Zoom daily api request quota, https://developers.zoom.us/docs/api/rest/rate-limits/'
+        last_sync:
+          type: integer
+          readOnly: true
+          example: 1665465339000
+          description: 'Last data pull timestamp, background jobs that pull account data'
+        last_status:
+          type: string
+          readOnly: true
+          example: failed
+          description: Is the last data pull for account is successful or not
+        linked_by:
+          type: string
+          readOnly: true
+          example: Testname1
+          description: First name of the user who linked the account
+        company:
+          type: string
+          readOnly: true
+          example: Test Compay1 Ltd
+          description: Name of the company whose account mist has subscribed to
+        error:
+          type: string
+          readOnly: true
+          example: 'OAuth token refresh failed, please re-link your account'
+          description: This error is provided when the account fails to fetch token/data
+        errors:
+          type: array
+          items:
+            type: string
+          readOnly: true
+          example:
+            - 'OAuth token refresh failed, please re-link your account'
+            - API daily rate limit reached for your account
+    account_juniper_write:
+      type: object
+      x-stoplight:
+        id: isjuraoakn6yn
+      x-examples:
+        Example:
+          username: john@nmo.com
+          password: password
+      properties:
+        username:
+          type: string
+          example: john@nmo.com
+          description: customer account user name
+        password:
+          type: string
+          example: password
+          description: customer account password
+      required:
+        - username
+        - password
+    account_juniper_read:
+      type: object
+      x-examples:
+        Example 1:
+          account:
+            name: ABC Corp
+            linked_by: John Smith (john@abccorp.com)
+      properties:
+        account:
+          type: object
+          properties:
+            name:
+              type: string
+              example: ABC Corp
+            linked_by:
+              type: string
+              example: John Smith (john@abccorp.com)
   securitySchemes:
     apiToken:
       description: |-
@@ -96294,6 +97285,7 @@ x-tagGroups:
       - Orgs JSE
       - Orgs JSI
       - Orgs Licenses
+      - Orgs Linked Applications
       - Orgs Logs
       - Orgs Maps
       - Orgs Marvis
@@ -96305,7 +97297,6 @@ x-tagGroups:
       - Orgs NAC Tags
       - Orgs Network Templates
       - Orgs Networks
-      - Orgs OAuth Applications
       - Orgs Premium Analytics
       - Orgs Psks
       - Orgs Psk Portals
