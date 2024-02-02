@@ -1,0 +1,252 @@
+description: Gateway Template is applied to a site for gateway(s) in a site.
+properties:
+  additional_config_cmds:
+    items:
+      type: string
+    type: array
+  bgp_config:
+    additionalProperties:
+      $ref: ./junos_bgp_config.yml
+    type: object
+  created_time:
+    readOnly: true
+    type: number
+  dhcpd_config:
+    additionalProperties:
+      properties:
+        dns_servers:
+          items:
+            format: ipv4
+            type: string
+          type: array
+        dns_suffix:
+          items:
+            type: string
+          type: array
+        fixed_bindings:
+          additionalProperties:
+            properties:
+              ip:
+                format: ipv4
+                type: string
+              name:
+                type: string
+            required:
+            - ip
+            type: object
+          description: Property key is the device MAC address
+          type: object
+        gateway:
+          format: ipv4
+          type: string
+        ip_end:
+          format: ipv4
+          type: string
+        ip_start:
+          format: ipv4
+          type: string
+        servers:
+          items:
+            format: ipv4
+            type: string
+          type: array
+        type:
+          default: local
+          enum:
+          - local
+          - relay
+          type: string
+      type: object
+    description: Property key is the network name
+    type: object
+  extra_routes:
+    additionalProperties:
+      description: Property key is a CIDR or name from `networks`
+      properties:
+        via:
+          format: ipv4
+          type: string
+      type: object
+    type: object
+  gateway_matching:
+    $ref: ./template_gateway.matching.yml
+  id:
+    format: uuid
+    readOnly: true
+    type: string
+  idp_profiles:
+    description: Property key is the profile name
+    properties:
+      additionalProperties:
+        $ref: ./idpprofile.yml
+    type: object
+  ip_configs:
+    additionalProperties:
+      properties:
+        ip:
+          format: ipv4
+          type: string
+        netmask:
+          example: /24
+          type: string
+        secondary_ips:
+          description: optional list of secondary IPs in CIDR format
+          example:
+          - 192.168.50.1/24
+          - 192.168.60.1/26
+          items:
+            type: string
+          type: array
+      type: object
+    description: Property key is the network name
+    type: object
+  modified_time:
+    readOnly: true
+    type: number
+  name:
+    example: gw_template
+    type: string
+  networks:
+    additionalProperties:
+      $ref: ./network.yml
+    description: Property key is the network name
+    type: object
+  oob_ip_config:
+    $ref: ./junos_oob_ip_config.yml
+  org_id:
+    format: uuid
+    readOnly: true
+    type: string
+  path_preferences:
+    additionalProperties:
+      description: Property key is the path name
+      properties:
+        paths:
+          properties:
+            cost:
+              type: integer
+            gateway_ip:
+              description: if `type`==`local`, if a different gateway is desired
+              type: string
+            internet_access:
+              default: false
+              description: when `type`==`vpn`, if this vpn path can be used for internet
+              type: boolean
+            name:
+              type: string
+            networks:
+              description: if `type`==`local`
+              items:
+                type: string
+              type: array
+            target_ips:
+              description: if `type`==`local`, if destination IP is to be replaced
+              items:
+                type: string
+              type: array
+            type:
+              enum:
+              - local
+              - wan
+              - vpn
+              - tunnel
+              type: string
+          type: object
+        strategy:
+          default: ordered
+          enum:
+          - ordered
+          - weighted
+          - ecmp
+          type: string
+      type: object
+    description: experimental
+    type: object
+  port_config:
+    additionalProperties:
+      $ref: ./gateway_port_config.yml
+    description: Property key is the port(s) name or range (e.g. "ge-0/0/0-10")
+    type: object
+  router_id:
+    description: auto assigned if not set
+    example: 10.2.1.10
+    type: string
+  routing_policies:
+    additionalProperties:
+      $ref: ./gateway_routing_policy.yml
+    description: Property key is the routing policy name
+    type: object
+  service_policies:
+    items:
+      properties:
+        action:
+          default: allow
+          enum:
+          - allow
+          - deny
+          type: string
+        ewf:
+          items:
+            properties:
+              alert_only:
+                type: boolean
+              block_message:
+                example: Access to this URL Category has been blocked
+                type: string
+              enabled:
+                default: false
+                type: boolean
+              profille:
+                default: strict
+                enum:
+                - strict
+                - standard
+                type: string
+            type: object
+          type: array
+        idp:
+          $ref: ./junos_idp_config.yml
+        local_routing:
+          default: false
+          description: access within the same VRF
+          type: boolean
+        name:
+          type: string
+        path_preferences:
+          description: 'by default, we derive all paths available and use them
+
+            optionally, you can customize by using `path_preference`'
+          type: string
+        servicepolicy_id:
+          description: used to link servicepolicy defined at org level and overwrite
+            some attributes
+          format: uuid
+          type: string
+        services:
+          items:
+            type: string
+          type: array
+        tenants:
+          items:
+            type: string
+          type: array
+      type: object
+    type: array
+  tunnel_configs:
+    additionalProperties:
+      $ref: ./gatewaytemplate_tunnel_configs.yml
+    description: Property key is the tunnel name
+    type: object
+  tunnel_provider_options:
+    $ref: ./gatewaytemplate_tunnel_proivder.yml
+  type:
+    default: standalone
+    enum:
+    - standalone
+    - spoke
+    - hub
+    example: standalone
+    type: string
+required:
+- name
+type: object
