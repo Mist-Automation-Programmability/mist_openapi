@@ -1,5 +1,11 @@
 #!/bin/sh
 
+echo "backuping src"
+cp ./mist.openapi.yml ./mist.openapi.yml.bck
+
+echo "removing spotlight entries"
+python3 ./xtags.py
+
 echo "processing files"
 python3 ./process.py
 #mv ./mist.openapi_reordered.yml ./mist.openapi.yml
