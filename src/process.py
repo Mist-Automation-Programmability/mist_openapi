@@ -165,3 +165,4 @@ if __name__ == "__main__":
     data = sort_responses(data)
     data = sort_schemas(data)
     save_yaml(data)
+    save_json(data)
