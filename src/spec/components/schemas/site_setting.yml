@@ -1,0 +1,547 @@
+description: Site Settings
+properties:
+  additional_config_cmds:
+    description: additional CLI commands to override additional CLIs from the netwtemplate
+    items:
+      type: string
+    type: array
+  analytic:
+    properties:
+      enabled:
+        default: false
+        description: enable Advanced Analytic feature (using SUB-ANA license)
+        type: boolean
+    type: object
+  ap_matching:
+    properties:
+      enabled:
+        type: boolean
+      rules:
+        example:
+        - eth1,eth2:
+            port_vlan_id: 1
+            vlan_ids:
+            - 1
+            - 10
+            - 50
+        items:
+          properties:
+            match_model:
+              example: AP12
+              type: string
+            name:
+              example: AP12
+              type: string
+            port_config:
+              additionalProperties:
+                $ref: ./ap_port_config.yml
+              description: Property key is the interface(s) (e.g. "eth1,eth2")
+              type: object
+          type: object
+        type: array
+    type: object
+  ap_port_config:
+    properties:
+      model_specific:
+        additionalProperties:
+          additionalProperties:
+            $ref: ./ap_port_config.yml
+          description: Property key is the interface(s) (e.g. "eth1,eth2")
+          type: object
+        description: Property key is the AP model (e.g "AP32")
+        example:
+          AP32:
+            eth1,eth2:
+              port_vlan_id: 1
+              vlan_ids:
+              - 1
+              - 10
+              - 50
+        type: object
+    type: object
+  auto_placement:
+    description: if we're able to determine its x/y/orientation, this will be populated
+    properties:
+      orientation:
+        example: 45
+        type: number
+      x:
+        example: 30
+        type: number
+      y:
+        example: 60
+        type: number
+    type: object
+  auto_preemption:
+    $ref: ./auto_preemption.yml
+  auto_upgrade:
+    $ref: ./site_auto_upgrade.yml
+  blacklist_url:
+    example: https://papi.s3.amazonaws.com/blacklist/xxx...
+    readOnly: true
+    type: string
+  ble_config:
+    $ref: ./ap_ble.yml
+  config_auto_revert:
+    default: false
+    description: whether to enable ap auto config revert
+    type: boolean
+  created_time:
+    readOnly: true
+    type: number
+  critical_url_monitoring:
+    description: you can define some URLs that's critical to site operaitons the latency
+      will be captured and considered for site health
+    properties:
+      enabled:
+        default: true
+        type: boolean
+      monitors:
+        items:
+          properties:
+            url:
+              example: http://50.1.3.5:8080
+              type: string
+            vlan_id:
+              default: 1
+              type: integer
+          type: object
+        type: array
+    type: object
+  device_updown_threshold:
+    default: 0
+    description: sending AP_DISCONNECTED event in device-updowns only if AP_CONNECTED
+      is not seen within the threshold, in minutes
+    example: 0
+    maximum: 30
+    minimum: 0
+    type: integer
+  dns_servers:
+    description: list of NTP servers
+    items:
+      type: string
+    type: array
+  dns_suffix:
+    description: list of NTP servers
+    items:
+      type: string
+    type: array
+  enable_channel_144:
+    default: false
+    deprecated: true
+    description: whether to enable channel 144 (some older clients may not support
+      it)
+    type: boolean
+  engagement:
+    $ref: ./site_engagement.yml
+  evpn_options:
+    $ref: ./junos_evpn_options.yml
+  flags:
+    additionalProperties:
+      type: string
+    description: name/val pair objects for location engine to use
+    type: object
+  for_site:
+    readOnly: true
+    type: boolean
+  gateway:
+    description: 'when Templates are not used, Site Setting holds settings for multiple
+      device types and they can differ
+
+      to set device-type specific configs, use this
+
+      whatever is defined under `gateway` will overwrite/shadow the one at root-level '
+    type: object
+  gateway_additional_config_cmds:
+    description: 'additional CLI commands to append to the generated config for gateways
+
+
+      **Note**: no check is done'
+    items:
+      type: string
+    type: array
+  gateway_mgmt:
+    $ref: ./site_gateway.yml
+  id:
+    format: uuid
+    readOnly: true
+    type: string
+  led:
+    $ref: ./ap_led.yml
+  modified_time:
+    readOnly: true
+    type: number
+  mxedge:
+    description: site mist edges form a cluster of radsecproxy servers
+    properties:
+      mist_das:
+        $ref: ./mxedge_das.yml
+      radsec:
+        $ref: ./mxcluster_radsec.yml
+    type: object
+  mxedge_mgmt:
+    $ref: ./mxedge_mgmt.yml
+  mxtunnels:
+    $ref: ./site_mxtunnel.yml
+  networks:
+    additionalProperties:
+      $ref: ./junos_networks.yml
+    description: Property key is the network name
+    type: object
+  ntp_servers:
+    description: list of NTP servers
+    items:
+      type: string
+    type: array
+  occupancy:
+    $ref: ./site_occupancy_analytics.yml
+  org_id:
+    format: uuid
+    readOnly: true
+    type: string
+  ospf_areas:
+    additionalProperties:
+      $ref: ./junos_ospf_areas.yml
+    description: OSPF Areas can be configured both in Site Level (Switch/Gateway Template)
+      or Device (Switch/Gateway) Level
+    type: object
+  persist_config_on_device:
+    default: false
+    description: whether to store the config on AP
+    type: boolean
+  port_mirroring:
+    additionalProperties:
+      $ref: ./junos_port_mirroring.yml
+    description: 'Property key is the port mirroring instance name
+
+      port_mirroring can be added under site/settings. It takes interface and ports
+      as input for ingress, interface as input for egress and can take interface and
+      port as output.'
+    type: object
+  port_usages:
+    additionalProperties:
+      $ref: ./junos_port_usages.yml
+    description: Property key is the port usage name
+    properties:
+      dynamic:
+        $ref: ./junos_port_usages_dynamic.yml
+    type: object
+  protect_re:
+    description: restrict inbound-traffic to host  (draft)
+    properties:
+      allowed_services:
+        description: optionally, services we'll allow
+        example:
+        - icmp
+        - ssh
+        items:
+          type: string
+        type: array
+      custom:
+        description: optionally, custom acls
+        items:
+          properties:
+            port_range:
+              description: matched dst port, "0" means any, default is "0"
+              example: 80,1035-1040
+              type: string
+            protocol:
+              enum:
+              - tcp
+              - udp
+              - icmp
+              - any
+              type: string
+            subnet:
+              items:
+                example: 10.1.2.0/24
+                type: string
+              type: array
+          type: object
+        type: array
+      enabled:
+        default: false
+        description: "when enabled, all traffic that is not essential to our operation\
+          \ will be dropped\ne.g. ntp / dns / traffic to mist will be allowed by default\n\
+          \     if dhcpd is enabled, we'll make sure it works"
+        type: boolean
+      trusted_hosts:
+        description: optionally, host/subnets we'll allow traffic to/from
+        items:
+          example: 10.242.3.0/24
+          type: string
+        type: array
+    type: object
+  proxy:
+    description: Proxy Configuration for APs and Site Edges to talk to Mist
+    properties:
+      url:
+        example: http://proxy.internal:8080/
+        type: string
+    type: object
+  radio_config:
+    $ref: ./ap_radio.yml
+  radius_config:
+    $ref: ./junos_radius_config.yml
+  remote_syslog:
+    $ref: ./remote_syslog.yml
+  report_gatt:
+    default: false
+    description: whether AP should periodically connect to BLE devices and report
+      GATT device info (device name, manufacturer name, serial number, battery %,
+      temperature, humidity)
+    type: boolean
+  rogue:
+    $ref: ./site_rogue.yml
+  rtsa:
+    description: managed mobility
+    properties:
+      app_waking:
+        default: false
+        type: boolean
+      disable_dead_reckoning:
+        type: boolean
+      disable_pressure_sensor:
+        default: false
+        type: boolean
+      enabled:
+        type: boolean
+      track_asset:
+        default: false
+        description: asset tracking related
+        type: boolean
+    type: object
+  simple_alert:
+    $ref: ./simple_alert.yml
+  site_id:
+    format: uuid
+    readOnly: true
+    type: string
+  skyatp:
+    properties:
+      enabled:
+        type: boolean
+      send_ip_mac_mapping:
+        type: boolean
+    type: object
+  srx_app:
+    properties:
+      enabled:
+        default: false
+        type: boolean
+    type: object
+  ssh_keys:
+    description: when limit_ssh_access = true in Org Setting, list of SSH public keys
+      provided by Mist Support to install onto APs (see Org:Setting)
+    items:
+      example: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAA...Wxa6p6UW0ZbcP john@host
+      type: string
+    type: array
+  ssr:
+    $ref: ./site_ssr.yml
+  status_portal:
+    properties:
+      enabled:
+        default: false
+        type: boolean
+      hostnames:
+        items:
+          example: my.misty.com
+          type: string
+        type: array
+    type: object
+  switch:
+    description: 'when Templates are not used, Site Setting holds settings for multiple
+      device types and they can differ
+
+      to set device-type specific configs, use this
+
+      whatever is defined under `switch` will overwrite/shadow the one at root-level '
+    type: object
+  switch_matching:
+    properties:
+      additional_config_cmds:
+        description: 'additional CLI commands to append if this rule matches
+
+          NOTE: no check is done'
+        items:
+          example: set snmp community public
+          type: string
+        type: array
+      enabled:
+        default: false
+        type: boolean
+      rules:
+        items:
+          additionalProperties:
+            properties:
+              match_model:
+                type: string
+              name:
+                type: string
+              port_config:
+                additionalProperties:
+                  properties:
+                    usage:
+                      type: string
+                  type: object
+                description: Object key is a comma separated list of interface names
+                  or interface ranges (e.g. ge-0/0/0, ge-0/0/0-5)
+                type: object
+            type: object
+          description: Property key is `match_name[x:y]`, where x and y are the first
+            and the last characters of the string to match. Value is the string to
+            match.
+          type: object
+        type: array
+    type: object
+  switch_mgmt:
+    $ref: ./site_switch.yml
+  synthetic_test:
+    properties:
+      vlans:
+        items:
+          properties:
+            custom_test_urls:
+              example:
+              - http://www.abc.com/
+              - https://10.3.5.1:8080/about
+              items:
+                type: string
+              type: array
+            disabled:
+              default: false
+              description: for some vlans where we don't want this to run
+              type: boolean
+            vlan_ids:
+              example:
+              - 10
+              - 20
+              items:
+                type: integer
+              type: array
+          type: object
+        type: array
+    type: object
+  track_anonymous_devices:
+    default: false
+    description: "whether to track anonymous BLE assets (requires \u2018track_asset\u2019\
+      \ enabled)"
+    type: boolean
+  tunterm_monitoring:
+    items:
+      $ref: ./site_tunterm_monitoring.yml
+    type: array
+  tunterm_monitoring_disabled:
+    default: false
+    type: boolean
+  tunterm_multicast_config:
+    properties:
+      mdns:
+        properties:
+          enabled:
+            default: false
+            type: boolean
+          vlan_ids:
+            example:
+            - 2
+            - 3
+            - 5
+            items:
+              type: integer
+            type: array
+        type: object
+      multicast_all:
+        default: false
+        type: boolean
+      ssdp:
+        properties:
+          enabled:
+            default: false
+            type: boolean
+          vlan_ids:
+            example:
+            - 2
+            - 3
+            - 5
+            items:
+              type: integer
+            type: array
+        type: object
+    type: object
+  vars:
+    additionalProperties:
+      type: string
+    description: Property key is the var name
+    example:
+      RADIUS_IP1: 172.31.2.5
+      RADIUS_SECRET: 11s64632d
+    type: object
+  vna:
+    properties:
+      enabled:
+        default: false
+        description: enable Virtual Network Assistant (using SUB-VNA license). This
+          applied to AP / Switch / Gateway
+        type: boolean
+    type: object
+  vrf_instances:
+    additionalProperties:
+      $ref: ./junos_vrf_instance.yml
+    description: Property key is the network name
+    example:
+      guest:
+        extra_routes:
+          0.0.0.0/0:
+            via: 192.168.31.1
+        networks:
+        - guest
+    type: object
+  vrrp_groups:
+    additionalProperties:
+      $ref: ./junos_vrrp_group.yml
+    description: Property key is the vrrp group
+    type: object
+  vs_instances:
+    additionalProperties:
+      properties:
+        networks:
+          items:
+            example: guest
+            type: string
+          type: array
+      type: object
+    description: 'virtual-switch (for EX92xx and QFX5130)
+
+      all the networks not included here will be placed in default `evpn_vs` virtual-switch
+      RI
+
+      Property key is the instance name'
+    type: object
+  wan_vna:
+    properties:
+      enabled:
+        default: false
+        type: boolean
+    type: object
+  watched_station_url:
+    example: https://papi.s3.amazonaws.com/watched_station/xxx...
+    readOnly: true
+    type: string
+  whitelist_url:
+    example: https://papi.s3.amazonaws.com/whitelist/xxx...
+    readOnly: true
+    type: string
+  wids:
+    $ref: ./site_wids.yml
+  wifi:
+    $ref: ./site_wifi.yml
+  wired_vna:
+    properties:
+      enabled:
+        default: false
+        type: boolean
+    type: object
+  zone_occupancy_alert:
+    $ref: ./site_zone_occupancy_alert.yml
+type: object
