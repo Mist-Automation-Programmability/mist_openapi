@@ -1,7 +1,10 @@
 import yaml
 
-schemas = {}
-with open("./mist.openapi_grp2.yml", "r") as f:
+
+SPEC_FILE_IN="./tmp/mist.openapi_grp2.yml"
+SPEC_FILE_OUT="./tmp/mist.openapi_grp3.yml"
+
+with open(SPEC_FILE_IN, "r") as f:
     data = yaml.load(f, Loader=yaml.loader.SafeLoader)
     PATHS = data.get("paths")
 
@@ -23,29 +26,46 @@ for p in PATHS:
     for verb in properties:
         if verb in ["get", "post", "put", "delete"]:
             operation_id = properties[verb]["operationId"]
-            cat_1 = []
-            cat_2 = []
+            tag_1 = []
+            tag_2 = []
+            tag_3 = []
+            tag_x = []
             new_tags = []
             for t in properties[verb]["tags"]:
-                if t.startswith("cat1:"):
-                    cat_1.append(t.replace("cat1:", ""))
-                elif t.startswith("cat2:"):
-                    cat_2.append(t.replace("cat2:", ""))
+                if t.startswith("tag1:"):
+                    tag_1.append(t.replace("tag1:", ""))
+                elif t.startswith("tag2:"):
+                    tag_2.append(t.replace("tag2:", ""))
                 else:
-                    new_tags.append(t)
-            if not cat_1:
-                print(f"{operation_id} >> missing cat1")
-            elif not cat_2:
-                for c1 in cat_1:
-                    new_tags.append(f"cat:{c1}")
-                properties[verb]["tags"] = new_tags
+                    tag_x.append(t)
+            if len(tag_1) != 1:
+                print(f"{operation_id} >> has {len(tag_1)} tag_1: {tag_1}")
+            if len(tag_2) > 1:
+                print(f"{operation_id} >> has {len(tag_2)} tag_1: {tag_2}")
+            if len(tag_x) != 1:
+                print(f"{operation_id} >> has {len(tag_x)} tag_1: {tag_x}")
+
+            if tag_x[0].split(" ")[0] in ["Orgs", "Sites", "Msps"]:
+                tag_3.append(tag_x[0].split(" ")[0])
+                tag_3.append(" ".join(tag_x[0].split(" ")[1:]))
             else:
-                for c1 in cat_1:
-                    for c2 in cat_2:
-                        new_tags.append(f"cat:{c1}:{c2}")
-                properties[verb]["tags"] = new_tags
+                tag_3 = tag_x
+
+            t1 = tag_1[0]
+            t3 = ":".join(tag_3)
+            if not tag_2:
+                new_tags.append(f"tag:{t1}:{t3}")
+            else:
+                t2 = tag_2[0]
+                if t3.lower() == t2.lower():
+                    new_tags.append(f"tag:{t1}:{t3}")
+                else:
+                    new_tags.append(f"tag:{t1}:{t2}:{t3}")
+            new_tags += tag_x
+            properties[verb]["tags"] = new_tags
 
 
-with open("mist.openapi_grp3.yml", "w") as oas_out_file:
+
+with open(SPEC_FILE_OUT, "w") as oas_out_file:
     for item in ORDER:
         yaml.dump({item: data[item]}, oas_out_file)
