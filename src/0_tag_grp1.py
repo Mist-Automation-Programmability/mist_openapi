@@ -109,6 +109,8 @@ TRIGGERS = {
         "/networktemplates",
     ],
     "WAN": [
+        "/128routers",
+        "/zscaler",
         "/wan_client",
         "/vpn",
         "/gateway",
@@ -230,7 +232,7 @@ HARDCODED = {
     "/api/v1/sites/{site_id}/devices/{device_id}/service_ping": ["MIST"],
     "/api/v1/sites/{site_id}/devices/{device_id}/bounce_port": ["MIST"],
     "/api/v1/sites/{site_id}/devices/{device_id}/cable_test": ["MIST"],
-    "/api/v1/sites/{site_id}/devices/{device_id}/check_radius_server": ["WLAN"],
+    "/api/v1/sites/{site_id}/devices/{device_id}/check_radius_server": ["LAN"],
     "/api/v1/sites/{site_id}/devices/{device_id}/clear_arp": ["WAN"],
     "/api/v1/sites/{site_id}/devices/{device_id}/clear_bgp": ["WAN"],
     "/api/v1/sites/{site_id}/devices/{device_id}/clear_bpdu_error": ["LAN"],

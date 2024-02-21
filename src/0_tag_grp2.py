@@ -57,6 +57,8 @@ for path in data.get("paths", {}):
     properties = data["paths"][path]
     if "/api/v1/const/" in path:
         add_tag("CONSTANTS", properties)
+    elif "/webhook_example/" in path:
+        pass
     elif (
         path.startswith("/api/v1/login")
         or path.startswith("/api/v1/lookup")

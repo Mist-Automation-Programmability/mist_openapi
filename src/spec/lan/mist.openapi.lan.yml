@@ -100,6 +100,7 @@ tags:
   name: Sites EVPN Topologies
 - name: Sites Network Templates
 - name: Sites Stats
+- name: Sites Synthetic Tests
 paths:
   /api/v1/orgs/{org_id}/evpn_topologies:
     get:
@@ -2070,6 +2071,58 @@ paths:
       tags:
       - tag:LAN:CONFIGURE:Sites:Devices - Wireless
       - Sites Devices - Wireless
+  /api/v1/sites/{site_id}/devices/{device_id}/check_radius_server:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: "Ping test from the AP to confirm \u2018reachability\u2019 of the\
+        \ Radius server. Utilize Juniper EX switch(to which an AP is connected to)\
+        \ radius test capabilities to get details on the Radius Server \u2018availability\u2019\
+        ."
+      operationId: startSiteSwitchRadiusSyntheticTest
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  password: string
+                  profile: dot1x
+                  user: string
+            schema:
+              properties:
+                password:
+                  description: Specify the password associated with the username
+                  type: string
+                profile:
+                  default: dot1x
+                  description: Specify the access profile associated with the subscriber
+                  type: string
+                user:
+                  description: Specify the subscriber username to test
+                  type: string
+              required:
+              - user
+              - password
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/Session'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: triggerSiteSwitchRadiusSyntheticTest
+      tags:
+      - tag:LAN:CONFIGURE:Sites:Synthetic Tests
+      - Sites Synthetic Tests
   /api/v1/sites/{site_id}/devices/{device_id}/clear_bpdu_error:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -4502,6 +4555,8 @@ components:
       $ref: ../components/responses/OK.yml
     PortStatsSearch:
       $ref: ../components/responses/PortStatsSearch.yml
+    Session:
+      $ref: ../components/responses/Session.yml
     SwitchPortsSearch:
       $ref: ../components/responses/SwitchPortsSearch.yml
     Vc:

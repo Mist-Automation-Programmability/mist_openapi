@@ -34,7 +34,12 @@ OPERATION_IDS = []
 
 
 def add_endpoint(
-    items: list, operation_id: str, groups: list, level: int = 0, retry: int = 0
+    items: list,
+    operation_id: str,
+    endpoint_group: str,
+    groups: list,
+    level: int = 0,
+    retry: int = 0
 ):
     """
     return destination group where the endpoint must be documented
@@ -63,7 +68,7 @@ def add_endpoint(
             )
         finally:
             if next_groups:
-                add_endpoint(next_items["items"], operation_id, groups, level + 1)
+                add_endpoint(next_items["items"], operation_id, endpoint_group, groups, level + 1)
             else:
                 if len(next_items) == 0:
                     next_items["items"] = [
@@ -79,7 +84,7 @@ def add_endpoint(
                         "generate": {
                             "from": "endpoint",
                             "endpoint-name": operation_id,
-                            "endpoint-group": f"tag:{':'.join(groups)}",
+                            "endpoint-group": endpoint_group,
                         }
                     }
                 )
@@ -99,21 +104,25 @@ def process_spec_file(spec_data: dict, items: list):
                 operation_id = properties[verb]["operationId"]
                 tag = ""
                 groups = []
+                endpoint_group = ""
+                category = ""
                 for t in properties[verb]["tags"]:
                     if t.startswith("tag:"):
                         if not groups:
-                            groups = t.replace("tag:", "").split(":")
+                            endpoint_group = t
+                            category = t.split(":")[1:2][0]
+                            groups = t.split(":")[2:]
                         else:
                             print(f"operationid {operation_id} has too many groups")
                     elif not tag:
                         tag = t
                     else:
                         print(f"operationid {operation_id} has too many tags")
-
-                if not FILTER or groups[0] in FILTER:
+                        
+                if not FILTER or category in FILTER:
                     if not operation_id in OPERATION_IDS:
                         OPERATION_IDS.append(operation_id)
-                        add_endpoint(items, operation_id, groups)
+                        add_endpoint(items, operation_id, endpoint_group, groups)
                     else:
                         print(f"operationid {operation_id} listed more than one time")
 
