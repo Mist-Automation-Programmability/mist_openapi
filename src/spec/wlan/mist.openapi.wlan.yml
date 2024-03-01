@@ -40,10 +40,45 @@ info:
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
   version: 2401.1.5
+  x-codegen-settings:
+    BrandLabel: Juniper Networks
+    EnableAdditionalModelProperties: true
+    GenerateEnums: false
+    ProjectName: MistAPI
+    ReturnCompleteHttpResponse: true
+    SortResources: true
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
     url: https://www.mist.com/wp-content/uploads/logo.png
+  x-server-configuration:
+    default-environment: Mist Global 01
+    default-server: API Host
+    environments:
+    - name: Mist Global 01
+      servers:
+      - name: API Host
+        url: https://api.mist.com
+    - name: Mist Global 02
+      servers:
+      - name: API Host
+        url: https://api.gc1.mist.com
+    - name: Mist Global 03
+      servers:
+      - name: API Host
+        url: https://api.ac2.mist.com
+    - name: Mist Global 04
+      servers:
+      - name: API Host
+        url: https://api.gc2.mist.com
+    - name: Mist Europe 01
+      servers:
+      - name: API Host
+        url: https://api.eu.mist.com
+    - name: Mist APAC 01
+      servers:
+      - name: API Host
+        url: https://api.ac5.mist.com
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -79,14 +114,15 @@ tags:
 - name: Orgs Psks
 - name: Orgs RF Templates
 - name: Orgs Stats
-- name: Orgs Templates
 - name: Orgs Tunnels Stats
+- name: Orgs WLAN Templates
 - name: Orgs Wlans
 - name: Orgs WxRules
 - name: Orgs WxTags
 - name: Orgs WxTunnels
 - name: Sites AP Templates
 - name: Sites Clients - Wireless
+- name: Sites Clients Stats
 - name: Sites Devices - Wireless
 - name: Sites Devices Stats
 - name: Sites Events
@@ -292,7 +328,7 @@ paths:
                     mesh_enabled: true
                     proxy_arp: false
             schema:
-              $ref: '#/components/schemas/aptemplate'
+              $ref: '#/components/schemas/ap_template'
       responses:
         '200':
           $ref: '#/components/responses/Aptemplate'
@@ -515,7 +551,7 @@ paths:
                     mesh_enabled: true
                     proxy_arp: false
             schema:
-              $ref: '#/components/schemas/aptemplate'
+              $ref: '#/components/schemas/ap_template'
       responses:
         '200':
           $ref: '#/components/responses/Aptemplate'
@@ -552,6 +588,7 @@ paths:
           - vlan
           - ssid
           - ip
+          title: Org clients count distinct
           type: string
       - description: partial / full MAC address
         in: query
@@ -647,22 +684,12 @@ paths:
         in: query
         name: proto
         schema:
-          enum:
-          - b
-          - g
-          - n
-          - ac
-          - ax
-          - a
-          type: string
+          $ref: '#/components/schemas/dot11_proto'
       - description: 24 / 5
         in: query
         name: band
         schema:
-          enum:
-          - '24'
-          - '5'
-          type: string
+          $ref: '#/components/schemas/dot11_band'
       - description: wlan_id
         in: query
         name: wlan_id
@@ -788,7 +815,6 @@ paths:
       parameters:
       - in: query
         name: distinct
-        required: true
         schema:
           default: device
           enum:
@@ -800,6 +826,7 @@ paths:
           - os
           - model
           - device
+          title: Org Client Sessions count distinct
           type: string
       - description: AP MAC
         in: query
@@ -810,10 +837,7 @@ paths:
         in: query
         name: band
         schema:
-          enum:
-          - '24'
-          - '5'
-          type: string
+          $ref: '#/components/schemas/dot11_band'
       - description: "E.g. \u201CMac\u201D, \u201CiPhone\u201D, \u201CApple watch\u201D"
         in: query
         name: client_family
@@ -882,10 +906,7 @@ paths:
         in: query
         name: band
         schema:
-          enum:
-          - '24'
-          - '5'
-          type: string
+          $ref: '#/components/schemas/dot11_band'
       - description: "E.g. \u201CMac\u201D, \u201CiPhone\u201D, \u201CApple watch\u201D"
         in: query
         name: client_family
@@ -978,39 +999,7 @@ paths:
       - $ref: '#/components/parameters/limit'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                  - mac: 5c5b35000001
-                    radio_macs:
-                    - 5c5b35000040
-                    - 5c5b35000050
-                    - 5c5b35000060
-                  - mac: 5c5b45000001
-                    radio_macs:
-                    - 5c5b45000040
-                    - 5c5b45000050
-                    - 5c5b45000060
-              schema:
-                items:
-                  properties:
-                    mac:
-                      minLength: 1
-                      type: string
-                    radio_macs:
-                      items:
-                        properties: {}
-                      type: array
-                  required:
-                  - mac
-                  - radio_macs
-                  type: object
-                minItems: 1
-                type: array
-                uniqueItems: true
-          description: OK
+          $ref: '#/components/responses/RadioMacs'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -1055,8 +1044,7 @@ paths:
       description: Count Org Authorized Guest
       operationId: countOrgGuestAuthorizations
       parameters:
-      - example: auth_method
-        in: query
+      - in: query
         name: distinct
         schema:
           default: auth_method
@@ -1064,6 +1052,7 @@ paths:
           - auth_method
           - ssid
           - company
+          title: Org Guests count distinct
           type: string
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
@@ -1378,6 +1367,7 @@ paths:
           - any
           - 'true'
           - 'false'
+          title: mxedge_for_site
           type: string
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/page'
@@ -1481,17 +1471,7 @@ paths:
                   - 387804a7-3474-85ce-15a2-f9a9684c9c90
                   site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
             schema:
-              properties:
-                mxedge_ids:
-                  items:
-                    type: string
-                  type: array
-                site_id:
-                  type: string
-              required:
-              - site_id
-              - mxedge_ids
-              type: object
+              $ref: '#/components/schemas/mxedges_assign'
         description: Request Body
       responses:
         '200':
@@ -1525,6 +1505,7 @@ paths:
           - distro
           - tunterm_version
           - site_id
+          title: Org MxEdge count distinct
           type: string
       - description: mist edge id
         in: query
@@ -1594,6 +1575,7 @@ paths:
           - type
           - mxcluster_id
           - package
+          title: Org Mx Edge events count distinct
           type: string
       - description: mist edge id
         in: query
@@ -1742,14 +1724,7 @@ paths:
                   mxedge_ids:
                   - 387804a7-3474-85ce-15a2-f9a9684c9c90
             schema:
-              properties:
-                mxedge_ids:
-                  items:
-                    type: string
-                  type: array
-              required:
-              - mxedge_ids
-              type: object
+              $ref: '#/components/schemas/mxedges_unassign'
         description: Request Body
       responses:
         '200':
@@ -1807,79 +1782,7 @@ paths:
                     mxagent: current
                     tunterm: default
             schema:
-              properties:
-                allow_downgrades:
-                  description: whether downgrade is allowed when running version is
-                    higher than expected version for each service
-                  properties:
-                    mxagent:
-                      default: false
-                      type: boolean
-                    mxdas:
-                      default: false
-                      type: boolean
-                    mxocproxy:
-                      default: false
-                      type: boolean
-                    radsecproxy:
-                      default: false
-                      type: boolean
-                    tunterm:
-                      default: false
-                      type: boolean
-                  type: object
-                channel:
-                  default: stable
-                  description: upgrade channel to follow, stable (default) / beta
-                    / alpha
-                  enum:
-                  - stable
-                  - beta
-                  - alpha
-                  type: string
-                distro:
-                  description: distro upgrade, optional, to specific codename (e.g.
-                    bullseye) with highest qualified versions
-                  type: string
-                mxedge_ids:
-                  description: list of mxedge IDs to upgrade. If not specified, it
-                    means all the org mxedges.
-                  items:
-                    format: uuid
-                    type: string
-                  type: array
-                strategy:
-                  default: big_bang
-                  description: '* `big_bang`: upgrade all at once
-
-                    * `serial`: one at a time
-
-                    '
-                  enum:
-                  - big_bang
-                  - serial
-                  type: string
-                versions:
-                  description: version to upgrade for each service, optional (ignored
-                    if distro upgrade)
-                  properties:
-                    mxagent:
-                      type: string
-                    mxdas:
-                      type: string
-                    mxocproxy:
-                      type: string
-                    radsecproxy:
-                      type: string
-                    tunterm:
-                      type: string
-                  required:
-                  - mxagent
-                  - tunterm
-                  type: object
-              required:
-              - mxedge_ids
-              type: object
+              $ref: '#/components/schemas/mxedge_upgrade_multi'
         description: Request Body
       responses:
         '200':
@@ -1939,7 +1842,7 @@ paths:
           type: string
       responses:
         '200':
-          $ref: '#/components/responses/MxedgeUpdateInfo'
+          $ref: '#/components/responses/MxedgeUpgradeInfo'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -2052,7 +1955,7 @@ paths:
       tags:
       - tag:WLAN:CONFIGURE:Orgs:MxEdges
       - Orgs MxEdges
-  /api/v1/orgs/{org_id}/mxedges/{mxedge_id}//image{image_number}:
+  /api/v1/orgs/{org_id}/mxedges/{mxedge_id}/image/{image_number}:
     delete:
       description: Remove MxEdge Image
       operationId: deleteOrgMxEdgeImage
@@ -2082,7 +1985,7 @@ paths:
       schema:
         maximum: 3
         minimum: 1
-        type: number
+        type: integer
     post:
       description: Attach up to 3 images to a mxedge
       operationId: addOrgMxEdgeImage
@@ -2157,18 +2060,7 @@ paths:
                   ports:
                   - string
             schema:
-              properties:
-                hold_time:
-                  description: in milli seconds, hold time between multiple port bounces
-                  type: integer
-                ports:
-                  description: list of ports to bounce
-                  items:
-                    type: string
-                  type: array
-              required:
-              - ports
-              type: object
+              $ref: '#/components/schemas/utils_tunterm_bounce_port'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -2200,6 +2092,7 @@ paths:
         - mxagent
         - mxocproxy
         - mxdas
+        title: mxedge_service_name
         type: string
     - description: restart or start or stop
       in: path
@@ -2210,6 +2103,7 @@ paths:
         - restart
         - start
         - stop
+        title: mxedge_service_action
         type: string
     post:
       description: Control Services on a Mist Edge
@@ -2281,71 +2175,6 @@ paths:
       tags:
       - tag:WLAN:CONFIGURE:Orgs:MxEdges
       - Orgs MxEdges
-  /api/v1/orgs/{org_id}/mxedges/{mxedge_id}/upgrade:
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    - $ref: '#/components/parameters/mxedge_id'
-    post:
-      description: Upgrade MxEdge
-      operationId: upgradeOrgMxEdge
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  channel: stable
-                  mxedge_ids:
-                  - string
-                  versions:
-                    mxagent: current
-                    tunterm: current
-            schema:
-              properties:
-                channel:
-                  default: stable
-                  description: upgrade channel to follow, stable (default) / beta
-                    / alpha
-                  enum:
-                  - stable
-                  - beta
-                  - alpha
-                  type: string
-                mxedge_ids:
-                  description: list of mxedge IDs to upgrade
-                  items:
-                    type: string
-                  type: array
-                versions:
-                  description: version to upgrade for each service, optional, current
-                    (assumed) / latest / default / specific version (e.g. 2.5.100)
-                  properties:
-                    mxagent:
-                      default: current
-                      type: string
-                    tunterm:
-                      default: current
-                      type: string
-                  type: object
-              type: object
-        description: Request Body
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: upgradeOrgMxEdge
-      tags:
-      - tag:WLAN:CONFIGURE:Orgs:Devices Upgrades
-      - Orgs Devices Upgrades
   /api/v1/orgs/{org_id}/mxtunnels:
     get:
       description: Get List of Org MxTunnels
@@ -2615,6 +2444,7 @@ paths:
           - psk_id
           - pskportal_id
           - user_id
+          title: Org Psk Portal logs count distinct
           type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -3019,7 +2849,7 @@ paths:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/psk_id'
     put:
-      description: 'Update Org PSK '
+      description: Update Org PSK
       operationId: updateOrgPsk
       requestBody:
         content:
@@ -3108,7 +2938,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/rftemplate'
+              $ref: '#/components/schemas/rf_template'
         description: Request Body
       responses:
         '200':
@@ -3172,13 +3002,13 @@ paths:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/rftemplate_id'
     put:
-      description: 'Update Org RF Template '
+      description: Update Org RF Template
       operationId: updateOrgRfTemplate
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/rftemplate'
+              $ref: '#/components/schemas/rf_template'
         description: Request Body
       responses:
         '200':
@@ -3273,8 +3103,30 @@ paths:
         in: query
         name: distinct
         schema:
+          default: wxtunnel_id
           enum:
           - auth_algo
+          - wxtunnel_id
+          - ap
+          - remote_ip
+          - remote_port
+          - state
+          - mxedge_id
+          - mxcluster_id
+          - site_id
+          - peer_mxedge_id
+          - mac
+          - node
+          - peer_ip
+          - peer_host
+          - ip
+          - tunnel_name
+          - protocol
+          - encrypt_algo
+          - ike_version
+          - last_event
+          - up
+          title: Org Tunnel count distinct
           type: string
       - in: query
         name: type
@@ -3283,6 +3135,7 @@ paths:
           enum:
           - wxtunnel
           - wan
+          title: Org Tunnel type count
           type: string
       responses:
         '200':
@@ -3435,8 +3288,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: listOrgTemplates
       tags:
-      - tag:WLAN:CONFIGURE:Orgs:Templates
-      - Orgs Templates
+      - tag:WLAN:CONFIGURE:Orgs:WLAN Templates
+      - Orgs WLAN Templates
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
@@ -3463,8 +3316,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: createOrgTemplate
       tags:
-      - tag:WLAN:CONFIGURE:Orgs:Templates
-      - Orgs Templates
+      - tag:WLAN:CONFIGURE:Orgs:WLAN Templates
+      - Orgs WLAN Templates
   /api/v1/orgs/{org_id}/templates/{template_id}:
     delete:
       description: Delete Org Template
@@ -3484,8 +3337,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: deleteOrgTemplate
       tags:
-      - tag:WLAN:CONFIGURE:Orgs:Templates
-      - Orgs Templates
+      - tag:WLAN:CONFIGURE:Orgs:WLAN Templates
+      - Orgs WLAN Templates
     get:
       description: Get Org Template Details
       operationId: getOrgTemplate
@@ -3504,8 +3357,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: getOrgTemplate
       tags:
-      - tag:WLAN:CONFIGURE:Orgs:Templates
-      - Orgs Templates
+      - tag:WLAN:CONFIGURE:Orgs:WLAN Templates
+      - Orgs WLAN Templates
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/template_id'
@@ -3533,8 +3386,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: updateOrgTemplate
       tags:
-      - tag:WLAN:CONFIGURE:Orgs:Templates
-      - Orgs Templates
+      - tag:WLAN:CONFIGURE:Orgs:WLAN Templates
+      - Orgs WLAN Templates
   /api/v1/orgs/{org_id}/templates/{template_id}/clone:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -3550,10 +3403,7 @@ paths:
                 value:
                   name: Cloned
             schema:
-              properties:
-                name:
-                  type: string
-              type: object
+              $ref: '#/components/schemas/name'
         description: Request Body
       responses:
         '200':
@@ -3570,8 +3420,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: cloneOrgTemplate
       tags:
-      - tag:WLAN:CONFIGURE:Orgs:Templates
-      - Orgs Templates
+      - tag:WLAN:CONFIGURE:Orgs:WLAN Templates
+      - Orgs WLAN Templates
   /api/v1/orgs/{org_id}/wlans:
     get:
       description: Get List of Org Wlans
@@ -4757,7 +4607,6 @@ paths:
       - example: hostname
         in: query
         name: distinct
-        required: true
         schema:
           default: device
           enum:
@@ -4769,6 +4618,7 @@ paths:
           - os
           - model
           - device
+          title: Site Clients count distinct
           type: string
       - in: query
         name: ssid
@@ -4877,6 +4727,7 @@ paths:
           - channel
           - wlan_id
           - ssid
+          title: Site Client Events count distinct
           type: string
       - description: event type, e.g. MARVIS_EVENT_CLIENT_FBT_FAILURE
         in: query
@@ -4902,22 +4753,12 @@ paths:
         in: query
         name: proto
         schema:
-          enum:
-          - b
-          - g
-          - n
-          - ac
-          - ax
-          - a
-          type: string
-      - description: 24 / 5
+          $ref: '#/components/schemas/dot11_proto'
+      - description: 802.11 Band
         in: query
         name: band
         schema:
-          enum:
-          - '24'
-          - '5'
-          type: string
+          $ref: '#/components/schemas/dot11_band'
       - description: wlan_id
         in: query
         name: wlan_id
@@ -4976,22 +4817,12 @@ paths:
         in: query
         name: proto
         schema:
-          enum:
-          - b
-          - g
-          - n
-          - ac
-          - ax
-          - a
-          type: string
-      - description: 24 / 5
+          $ref: '#/components/schemas/dot11_proto'
+      - description: 802.11 band
         in: query
         name: band
         schema:
-          enum:
-          - '24'
-          - '5'
-          type: string
+          $ref: '#/components/schemas/dot11_band'
       - description: wlan_id
         in: query
         name: wlan_id
@@ -5118,6 +4949,7 @@ paths:
           - client_manufacture
           - client_model
           - client_os
+          title: Site Client Sessions count distinct
           type: string
       - description: AP MAC
         in: query
@@ -5193,14 +5025,11 @@ paths:
         name: ap
         schema:
           type: string
-      - description: 5 / 24
+      - description: 802.11 band
         in: query
         name: band
         schema:
-          enum:
-          - '24'
-          - '5'
-          type: string
+          $ref: '#/components/schemas/dot11_band'
       - description: "E.g. \u201CMac\u201D, \u201CiPhone\u201D, \u201CApple watch\u201D"
         in: query
         name: client_family
@@ -5351,23 +5180,12 @@ paths:
         in: query
         name: type
         schema:
-          enum:
-          - b
-          - g
-          - n
           type: string
       - description: a / b / g / n / ac / ax
         in: query
         name: proto
         schema:
-          enum:
-          - a
-          - b
-          - g
-          - n
-          - ac
-          - ax
-          type: string
+          $ref: '#/components/schemas/dot11_proto'
       - description: 24 / 5
         in: query
         name: band
@@ -5470,7 +5288,7 @@ paths:
     parameters:
     - $ref: '#/components/parameters/site_id'
     post:
-      description: 'To force all APs to reprovision itself again. '
+      description: To force all APs to reprovision itself again.
       operationId: reprovisionSiteAllAps
       responses:
         '200':
@@ -5507,20 +5325,7 @@ paths:
                   - '6'
                   force: false
             schema:
-              properties:
-                bands:
-                  description: list of bands
-                  items:
-                    type: string
-                  type: array
-                force:
-                  default: false
-                  description: whether to reset those with radio disabled. default
-                    is false (i.e. if user intentionally disables a radio, honor it)
-                  type: boolean
-              required:
-              - bands
-              type: object
+              $ref: '#/components/schemas/utils_reset_radio_config'
         description: Request Body
       responses:
         '200':
@@ -5563,36 +5368,54 @@ paths:
                   map_ids:
                   - 845a23bf-bed9-e43c-4c86-6fa474be7ae5
             schema:
-              properties:
-                beacon_frame:
-                  example: 68b329da9893e34099c7d8ad5cb9c940
-                  type: string
-                beacon_freq:
-                  example: 100
-                  type: integer
-                duration:
-                  example: 10
-                  maximum: 60
-                  minimum: 1
-                  type: integer
-                macs:
-                  example:
-                  - 5c5b35584a6f
-                  - 5c5b350ea3b3
-                  items:
-                    type: string
-                  type: array
-                map_ids:
-                  example:
-                  - 845a23bf-bed9-e43c-4c86-6fa474be7ae5
-                  items:
-                    type: string
-                  type: array
-              type: object
+              $ref: '#/components/schemas/utils_send_ble_beacon'
       responses:
         '200':
           $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
       summary: sendSiteDevicesArbitratryBleBeacon
+      tags:
+      - tag:WLAN:CONFIGURE:Sites:Devices - Wireless
+      - Sites Devices - Wireless
+  /api/v1/sites/{site_id}/devices/zeroize:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    post:
+      description: Zeroize all FIPS APs in the Site
+      operationId: zeroizeSiteFipsAllAps
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  password: NUKETHESITE
+            schema:
+              $ref: '#/components/schemas/utils_zeroise_fips'
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: zeroizeSiteFipsAllAps
       tags:
       - tag:WLAN:CONFIGURE:Sites:Devices - Wireless
       - Sites Devices - Wireless
@@ -5716,6 +5539,7 @@ paths:
           - success
           - fail
           - none
+          title: fast_roam_result
           type: string
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
@@ -5785,6 +5609,7 @@ paths:
           - auth_method
           - ssid
           - company
+          title: Site Guests count distinct
           type: string
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
@@ -5900,7 +5725,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/guest_mac'
     put:
-      description: 'Update Guest Authorization  '
+      description: Update Guest Authorization
       operationId: updateSiteGuestAuthorization
       requestBody:
         content:
@@ -6083,6 +5908,7 @@ paths:
           - type
           - mxcluster_id
           - package
+          title: Site Mx Edge Events count distinct
           type: string
       - description: mist edge id
         in: query
@@ -6665,7 +6491,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/rfdiag'
+              $ref: '#/components/schemas/rf_diag'
         description: Request Body
       responses:
         '200':
@@ -6735,7 +6561,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/rfdiag'
+              $ref: '#/components/schemas/rf_diag'
         description: Request Body
       responses:
         '200':
@@ -6839,6 +6665,7 @@ paths:
           - ssid
           - ap
           - type
+          title: Site Rogue Events count distinct
           type: string
       - $ref: '#/components/parameters/rogue_type'
       - description: ssid of the network detected as threat
@@ -6952,27 +6779,9 @@ paths:
     get:
       description: Get Rogue AP Details
       operationId: getSiteRogueAP
-      parameters: []
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    manufacture: Intel Corporate
-                    seen_as_client: true
-              schema:
-                properties:
-                  manufacture:
-                    type: string
-                  seen_as_client:
-                    type: boolean
-                required:
-                - seen_as_client
-                - manufacture
-                type: object
-          description: OK
+          $ref: '#/components/responses/RogueDetails'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -7066,11 +6875,7 @@ paths:
       name: band
       required: true
       schema:
-        enum:
-        - '24'
-        - '5'
-        - '6'
-        type: string
+        $ref: '#/components/schemas/dot11_band'
   /api/v1/sites/{site_id}/rrm/events:
     get:
       description: Get Site RRM Events
@@ -7080,11 +6885,7 @@ paths:
         name: band
         required: true
         schema:
-          enum:
-          - '24'
-          - '5'
-          - '6'
-          type: string
+          $ref: '#/components/schemas/dot11_band'
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
@@ -7126,26 +6927,7 @@ paths:
                   - '5'
                   - '6'
             schema:
-              properties:
-                bands:
-                  description: list of bands
-                  items:
-                    type: string
-                  type: array
-                macs:
-                  description: targeting AP (neighbor APs may get changed, too), default
-                    is empty for ALL APs
-                  items:
-                    example: 5c5b35000001
-                    type: string
-                  type: array
-                txpower_only:
-                  default: false
-                  description: only changng TX Power (will not disconnect clients)
-                  type: boolean
-              required:
-              - bands
-              type: object
+              $ref: '#/components/schemas/utils_rrm_optimize'
         description: Request Body
       responses:
         '200':
@@ -7287,8 +7069,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: listSiteWirelessClientsStats
       tags:
-      - tag:WLAN:MONITOR:Sites:Stats
-      - Sites Stats
+      - tag:WLAN:MONITOR:Sites:Clients Stats
+      - Sites Clients Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/clients/{client_mac}:
@@ -7408,8 +7190,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: getSiteWirelessClientStats
       tags:
-      - tag:WLAN:MONITOR:Sites:Stats
-      - Sites Stats
+      - tag:WLAN:MONITOR:Sites:Clients Stats
+      - Sites Clients Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/client_mac'
@@ -9416,8 +9198,8 @@ components:
       $ref: ../components/responses/MxedgeStats.yml
     MxedgeStatsArray:
       $ref: ../components/responses/MxedgeStatsArray.yml
-    MxedgeUpdateInfo:
-      $ref: ../components/responses/MxedgeUpdateInfo.yml
+    MxedgeUpgradeInfo:
+      $ref: ../components/responses/MxedgeUpgradeInfo.yml
     MxedgesArray:
       $ref: ../components/responses/MxedgesArray.yml
     MxedgesArrayStats:
@@ -9440,6 +9222,8 @@ components:
       $ref: ../components/responses/PskPortalsArray.yml
     PsksArray:
       $ref: ../components/responses/PsksArray.yml
+    RadioMacs:
+      $ref: ../components/responses/RadioMacs.yml
     Rfdiag:
       $ref: ../components/responses/Rfdiag.yml
     RfdiagsArray:
@@ -9448,6 +9232,8 @@ components:
       $ref: ../components/responses/Rftemplate.yml
     RftemplatesArray:
       $ref: ../components/responses/RftemplatesArray.yml
+    RogueDetails:
+      $ref: ../components/responses/RogueDetails.yml
     RogueEventsSearch:
       $ref: ../components/responses/RogueEventsSearch.yml
     Rrm:
@@ -9493,8 +9279,12 @@ components:
     count:
       $ref: ../components/responses/count.yml
   schemas:
-    aptemplate:
-      $ref: ../components/schemas/aptemplate.yml
+    ap_template:
+      $ref: ../components/schemas/ap_template.yml
+    dot11_band:
+      $ref: ../components/schemas/dot11_band.yml
+    dot11_proto:
+      $ref: ../components/schemas/dot11_proto.yml
     guest:
       $ref: ../components/schemas/guest.yml
     image_upload:
@@ -9503,16 +9293,24 @@ components:
       $ref: ../components/schemas/mxcluster.yml
     mxedge:
       $ref: ../components/schemas/mxedge.yml
+    mxedge_upgrade_multi:
+      $ref: ../components/schemas/mxedge_upgrade_multi.yml
+    mxedges_assign:
+      $ref: ../components/schemas/mxedges_assign.yml
+    mxedges_unassign:
+      $ref: ../components/schemas/mxedges_unassign.yml
     mxtunnel:
       $ref: ../components/schemas/mxtunnel.yml
+    name:
+      $ref: ../components/schemas/name.yml
     psk:
       $ref: ../components/schemas/psk.yml
     psk_portal:
       $ref: ../components/schemas/psk_portal.yml
-    rfdiag:
-      $ref: ../components/schemas/rfdiag.yml
-    rftemplate:
-      $ref: ../components/schemas/rftemplate.yml
+    rf_diag:
+      $ref: ../components/schemas/rf_diag.yml
+    rf_template:
+      $ref: ../components/schemas/rf_template.yml
     stats_client:
       $ref: ../components/schemas/stats_client.yml
     stats_client_detail:
@@ -9521,6 +9319,16 @@ components:
       $ref: ../components/schemas/stats_client_wired.yml
     template:
       $ref: ../components/schemas/template.yml
+    utils_reset_radio_config:
+      $ref: ../components/schemas/utils_reset_radio_config.yml
+    utils_rrm_optimize:
+      $ref: ../components/schemas/utils_rrm_optimize.yml
+    utils_send_ble_beacon:
+      $ref: ../components/schemas/utils_send_ble_beacon.yml
+    utils_tunterm_bounce_port:
+      $ref: ../components/schemas/utils_tunterm_bounce_port.yml
+    utils_zeroise_fips:
+      $ref: ../components/schemas/utils_zeroise_fips.yml
     wlan:
       $ref: ../components/schemas/wlan.yml
     wlan_portal_template:

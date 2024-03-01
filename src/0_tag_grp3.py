@@ -1,3 +1,7 @@
+"""
+This script is parsing the main openapi spec (single file) and generate the documentation tag
+(tag:<category>:<type>:<tag>) for each action
+"""
 import yaml
 
 

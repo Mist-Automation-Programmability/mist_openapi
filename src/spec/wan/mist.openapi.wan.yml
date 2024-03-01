@@ -40,10 +40,45 @@ info:
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
   version: 2401.1.5
+  x-codegen-settings:
+    BrandLabel: Juniper Networks
+    EnableAdditionalModelProperties: true
+    GenerateEnums: false
+    ProjectName: MistAPI
+    ReturnCompleteHttpResponse: true
+    SortResources: true
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
     url: https://www.mist.com/wp-content/uploads/logo.png
+  x-server-configuration:
+    default-environment: Mist Global 01
+    default-server: API Host
+    environments:
+    - name: Mist Global 01
+      servers:
+      - name: API Host
+        url: https://api.mist.com
+    - name: Mist Global 02
+      servers:
+      - name: API Host
+        url: https://api.gc1.mist.com
+    - name: Mist Global 03
+      servers:
+      - name: API Host
+        url: https://api.ac2.mist.com
+    - name: Mist Global 04
+      servers:
+      - name: API Host
+        url: https://api.gc2.mist.com
+    - name: Mist Europe 01
+      servers:
+      - name: API Host
+        url: https://api.eu.mist.com
+    - name: Mist APAC 01
+      servers:
+      - name: API Host
+        url: https://api.ac5.mist.com
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -61,11 +96,18 @@ security:
 - apiToken: []
 - basicAuth: []
 tags:
+- name: Orgs 128T
 - name: Orgs Clients - Wan
 - description: API Call for 3rd party devices
   name: Orgs Devices Others
 - name: Orgs Devices Stats
 - name: Orgs Devices Upgrades
+- description: "In Zscaler UI \n 1. add Partner Integration at https://admin.zscalerbeta.net/#administration/partner-integration\
+    \ \n 2. Add Partner Administrator Role at https://admin.zscalerbeta.net/#administration/role-management\
+    \ - Name: Mist - Access: Full \n 3. add Partner Admin at https://admin.zscalerbeta.net/#administration/admin-management\
+    \ with - Login ID: john - email: john@abc.com \n 4. Find the cloud name for ZIA\
+    \ https://help.zscaler.com/zia/what-my-cloud-name-zia\n"
+  name: Orgs Devices Zscaler
 - description: Gateway Template is applied to a site for gateway(s) in a site.
   name: Orgs Gateway Templates
 - name: Orgs IDP Profiles
@@ -76,7 +118,7 @@ tags:
 - name: Orgs VPNs
 - name: Sites Clients - Wan
 - name: Sites Devices - WAN
-- name: Sites Devices - WAN HA
+- name: Sites Devices - WAN Cluster
 - description: API Call for 3rd party devices
   name: Sites Devices Others
 - name: Sites Devices Stats
@@ -86,9 +128,31 @@ tags:
 - name: Sites Services
 - name: Sites Site Templates
 - name: Sites Skyatp
-- name: Sites Stats
 - name: Sites VPNs
 paths:
+  /api/v1/orgs/{org_id}/128routers/register_cmd:
+    get:
+      description: 128T devices can be managed/adopted by Mist.
+      operationId: getOrg128TRegistrationCommands
+      responses:
+        '200':
+          $ref: '#/components/responses/Router128TRegisterCmd'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getOrg128TRegistrationCommands
+      tags:
+      - tag:WAN:CONFIGURE:Orgs:128T
+      - Orgs 128T
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/gatewaytemplates:
     get:
       description: Get List of Org Gateway Templates
@@ -875,7 +939,7 @@ paths:
                       version: '2'
                   type: standalone
             schema:
-              $ref: '#/components/schemas/gatewaytemplate'
+              $ref: '#/components/schemas/gateway_template'
         description: Gateway Template
       responses:
         '200':
@@ -1698,7 +1762,7 @@ paths:
                       version: '2'
                   type: standalone
             schema:
-              $ref: '#/components/schemas/gatewaytemplate'
+              $ref: '#/components/schemas/gateway_template'
         description: Gateway Template
       responses:
         '200':
@@ -1764,7 +1828,7 @@ paths:
                       severity:
                       - major
             schema:
-              $ref: '#/components/schemas/idpprofile'
+              $ref: '#/components/schemas/idp_profile'
       responses:
         '200':
           $ref: '#/components/responses/IdpProfile'
@@ -1847,7 +1911,7 @@ paths:
                       severity:
                       - major
             schema:
-              $ref: '#/components/schemas/idpprofile'
+              $ref: '#/components/schemas/idp_profile'
       responses:
         '200':
           description: OK
@@ -2076,8 +2140,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: getOrgNetwork
       tags:
-      - tag:WAN:CONFIGURE:Orgs:Gateway Templates
-      - Orgs Gateway Templates
+      - tag:WAN:CONFIGURE:Orgs:Networks
+      - Orgs Networks
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/network_id'
@@ -2263,27 +2327,7 @@ paths:
                   op: assign
                   site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
             schema:
-              properties:
-                device_mac:
-                  description: List of otherdevice mac addresses.
-                  type: string
-                macs:
-                  description: The mac address of the peer device.
-                  items:
-                    type: string
-                  type: array
-                op:
-                  description: The operation being performed
-                  enum:
-                  - assign
-                  - unassign
-                  type: string
-                site_id:
-                  description: Either a site_id OR a device_mac must be provided
-                  type: string
-              required:
-              - op
-              type: object
+              $ref: '#/components/schemas/other_device_update_multi'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -2315,6 +2359,7 @@ paths:
           - type
           - vendor
           - site_id
+          title: Org Other Devices events count distinct
           type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -2456,12 +2501,7 @@ paths:
                   device_mac: 0adfea67e65b
                   site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
             schema:
-              properties:
-                device_mac:
-                  type: string
-                site_id:
-                  type: string
-              type: object
+              $ref: '#/components/schemas/other_device_update'
       responses:
         '200':
           description: OK
@@ -2794,6 +2834,82 @@ paths:
       tags:
       - tag:WAN:CONFIGURE:Orgs:Services
       - Orgs Services
+  /api/v1/orgs/{org_id}/setting/zscaler/setup:
+    delete:
+      description: To delete Zscaler credential
+      operationId: deleteOrgZscalerCredential
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: deleteOrgZscalerCredential
+      tags:
+      - tag:WAN:CONFIGURE:Orgs:Devices Zscaler
+      - Orgs Devices Zscaler
+    get:
+      description: To get Zscaler credential
+      operationId: getOrgZscalerCredential
+      responses:
+        '200':
+          $ref: '#/components/responses/ZscalerAccount'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getOrgZscalerCredential
+      tags:
+      - tag:WAN:CONFIGURE:Orgs:Devices Zscaler
+      - Orgs Devices Zscaler
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: To setup Zscaler credential
+      operationId: setupOrgZscalerCredential
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  cloud_name: zscalerbeta.net
+                  parnter_key: K35vrZcK3JvrZc
+                  password: password
+                  username: john@nmo.com
+            schema:
+              $ref: '#/components/schemas/account_zscaler_config'
+        description: ''
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: setupOrgZscalerCredential
+      tags:
+      - tag:WAN:CONFIGURE:Orgs:Devices Zscaler
+      - Orgs Devices Zscaler
   /api/v1/orgs/{org_id}/ssr/upgrade:
     get:
       description: Get List of Org SSR Upgrades
@@ -2833,47 +2949,7 @@ paths:
                   strategy: big_bang
                   version: 5.3.0-93
             schema:
-              properties:
-                channel:
-                  default: stable
-                  description: upgrade channel to follow
-                  enum:
-                  - stable
-                  - beta
-                  - alpha
-                  minLength: 1
-                  type: string
-                device_ids:
-                  description: list of 128T device IDs to upgrade
-                  items:
-                    format: uuid
-                    type: string
-                  type: array
-                reboot_at:
-                  description: reboot start time in epoch seconds, default is start_time,
-                    -1 disables reboot
-                  type: integer
-                start_time:
-                  description: 128T firmware download start time in epoch seconds,
-                    default is now, -1 disables download
-                  type: integer
-                strategy:
-                  default: big_bang
-                  description: '* `big_bang`: upgrade all at once
-
-                    * `serial`: one at a time'
-                  enum:
-                  - big_bang
-                  - serial
-                  minLength: 1
-                  type: string
-                version:
-                  description: 128T firmware version to upgrade (e.g. 5.3.0-93)
-                  minLength: 1
-                  type: string
-              required:
-              - device_ids
-              type: object
+              $ref: '#/components/schemas/ssr_upgrade_multi'
       responses:
         '200':
           $ref: '#/components/responses/SsrUpgrade'
@@ -2933,32 +3009,7 @@ paths:
           type: string
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                  - package: 128T-wheeljack
-                    version: 0.1.0-1212
-              schema:
-                items:
-                  properties:
-                    default:
-                      type: boolean
-                    package:
-                      minLength: 1
-                      type: string
-                    version:
-                      minLength: 1
-                      type: string
-                  required:
-                  - package
-                  - version
-                  type: object
-                minItems: 1
-                type: array
-                uniqueItems: true
-          description: OK
+          $ref: '#/components/responses/SsrVersions'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -2981,42 +3032,7 @@ paths:
       operationId: countOrgBgpStats
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    distinct: mac
-                    end: 1619519007.8000295
-                    limit: 10
-                    results:
-                    - count: 2
-                      mac: 02000111d2dc
-                    start: 1619518707.800029
-                    total: 1
-              schema:
-                properties:
-                  distinct:
-                    type: string
-                  end:
-                    type: number
-                  limit:
-                    type: integer
-                  results:
-                    items:
-                      properties:
-                        count:
-                          type: integer
-                        mac:
-                          type: string
-                      type: object
-                    type: array
-                  start:
-                    type: number
-                  total:
-                    type: integer
-                type: object
-          description: OK
+          $ref: '#/components/responses/count'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -3088,6 +3104,7 @@ paths:
       - in: query
         name: distinct
         schema:
+          title: Org VPN Peers count distinct
           type: string
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
@@ -3124,125 +3141,7 @@ paths:
       - $ref: '#/components/parameters/limit'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    end: 1619518989.4989712
-                    limit: 10
-                    results:
-                    - auth_algo: hmac-sha1-96
-                      enc_algo: aes-cbc-128
-                      ike_version: '1'
-                      is_active: true
-                      last_seen: 1619518709.222
-                      mac: 020001c04668
-                      org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
-                      peer_mac: 020001367edd
-                      peer_port_id: DC_Internet
-                      peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                      port_id: Lte
-                      site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                      type: svr
-                      up: true
-                      uptime: 1527128046
-                    - is_active: true
-                      last_seen: 1619518709.222
-                      latency: 91
-                      mac: 020001c04668
-                      mos: 436
-                      mtu: 1500
-                      org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
-                      peer_mac: 020001367edd
-                      peer_port_id: DC_Internet
-                      peer_router_name: RIDCBBP1
-                      peer_site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                      port_id: Lte
-                      router_name: RIST01544AP1
-                      site_id: 725a8d34-a126-4f2c-b990-d1219421cb75
-                      type: svr
-                      up: true
-                      uptime: 1527128046
-                    start: 1619518689.4989705
-                    total: 2
-              schema:
-                properties:
-                  end:
-                    type: number
-                  limit:
-                    type: integer
-                  next:
-                    type: string
-                  results:
-                    items:
-                      properties:
-                        is_active:
-                          description: Redundancy status of the associated interface
-                          type: boolean
-                        last_seen:
-                          type: number
-                        latency:
-                          type: number
-                        mac:
-                          description: router mac address
-                          minLength: 1
-                          type: string
-                        mos:
-                          type: number
-                        mtu:
-                          type: integer
-                        org_id:
-                          minLength: 1
-                          type: string
-                        peer_mac:
-                          description: peer router mac address
-                          minLength: 1
-                          type: string
-                        peer_port_id:
-                          description: peer router device interface
-                          minLength: 1
-                          type: string
-                        peer_router_name:
-                          minLength: 1
-                          type: string
-                        peer_site_id:
-                          minLength: 1
-                          type: string
-                        port_id:
-                          description: router device interface
-                          minLength: 1
-                          type: string
-                        router_name:
-                          minLength: 1
-                          type: string
-                        site_id:
-                          minLength: 1
-                          type: string
-                        type:
-                          description: '`ipsec`for SRX, `svr` for 128T'
-                          minLength: 1
-                          type: string
-                        up:
-                          type: boolean
-                        uptime:
-                          type: integer
-                      type: object
-                    minItems: 1
-                    type: array
-                    uniqueItems: true
-                  start:
-                    type: number
-                  total:
-                    type: integer
-                required:
-                - end
-                - limit
-                - results
-                - start
-                - total
-                type: object
-          description: OK
+          $ref: '#/components/responses/VpnPeersStats'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -3403,9 +3302,7 @@ paths:
       - Orgs VPNs
   /api/v1/orgs/{org_id}/wan_client/events/count:
     get:
-      description: 'Count by Distinct Attributes of Org WAN Client-Events
-
-        '
+      description: Count by Distinct Attributes of Org WAN Client-Events
       operationId: countOrgWanClientEvents
       parameters:
       - in: query
@@ -3418,6 +3315,7 @@ paths:
           - ip
           - mfg
           - mac
+          title: Org Wan Clients events count distinct
           type: string
       responses:
         '200':
@@ -3452,6 +3350,7 @@ paths:
           - ip
           - mfg
           - mac
+          title: Org Wan Clients count distinct
           type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -3479,9 +3378,7 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/wan_clients/events/search:
     get:
-      description: 'Search Org WAN Client Events
-
-        '
+      description: Search Org WAN Client Events
       operationId: searchOrgWanClientEvents
       parameters:
       - description: Event type, e.g. CLIENT_IP_ASSIGNED, CLIENT_IP_RENEWED, CLIENT_IP_EXPIRED
@@ -3608,46 +3505,10 @@ paths:
                   port_id: wan
                   vlan: 1000
             schema:
-              properties:
-                ip:
-                  description: The IP address for which to clear an ARP entry. port_id
-                    must be specified. Both vlan and ip cannot be specified.
-                  example: 10.1.1.1
-                  type: string
-                node:
-                  description: only for HA
-                  enum:
-                  - node0
-                  - node1
-                  type: string
-                port_id:
-                  description: The device interface on which to clear the ARP cache.
-                  example: wan
-                  type: string
-                vlan:
-                  description: The VLAN on which to clear the ARP cache. port_id must
-                    be specified. Both vlan and ip cannot be specified.
-                  example: 1000
-                  type: integer
-              type: object
-          application/xml:
-            schema:
-              properties:
-                ip:
-                  description: The IP address for which to clear an ARP entry. port_id
-                    must be specified. Both vlan and ip cannot be specified.
-                  type: string
-                port_id:
-                  description: The device interface on which to clear the ARP cache.
-                  type: string
-                vlan:
-                  description: The VLAN on which to clear the ARP cache. port_id must
-                    be specified. Both vlan and ip cannot be specified.
-                  type: integer
-              type: object
+              $ref: '#/components/schemas/utils_clear_arp'
       responses:
         '200':
-          $ref: '#/components/responses/Session'
+          $ref: '#/components/responses/WebsocketSession'
         '400':
           description: 'port_id must be specified with vlan or ip
 
@@ -3681,10 +3542,10 @@ paths:
                   type: in
                   vrf: TestVrf
             schema:
-              $ref: '#/components/schemas/req_clear_bgp'
+              $ref: '#/components/schemas/utils_clear_bgp'
       responses:
         '200':
-          $ref: '#/components/responses/Session'
+          $ref: '#/components/responses/WebsocketSession'
         '400':
           description: parameter neighbor absent
         '401':
@@ -3718,8 +3579,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: deleteSiteDeviceHaCluster
       tags:
-      - tag:WAN:CONFIGURE:Sites:Devices - WAN HA
-      - Sites Devices - WAN HA
+      - tag:WAN:CONFIGURE:Sites:Devices - WAN Cluster
+      - Sites Devices - WAN Cluster
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
@@ -3815,25 +3676,7 @@ paths:
                   - mac: aff827549235
                   - mac: 8396cd006c8c
             schema:
-              properties:
-                nodes:
-                  items:
-                    properties:
-                      mac:
-                        description: when replacing a noce, either mac has to remain
-                          the same as existing cluster
-                        minLength: 1
-                        type: string
-                    required:
-                    - mac
-                    type: object
-                  minItems: 1
-                  type: array
-                  uniqueItems: true
-              required:
-              - nodes
-              type: object
-        description: ''
+              $ref: '#/components/schemas/gateway_cluster_form'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -3849,8 +3692,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: createSiteDeviceHaCluster
       tags:
-      - tag:WAN:CONFIGURE:Sites:Devices - WAN HA
-      - Sites Devices - WAN HA
+      - tag:WAN:CONFIGURE:Sites:Devices - WAN Cluster
+      - Sites Devices - WAN Cluster
     put:
       deprecated: true
       description: Swap nodes on the HA Cluster
@@ -3859,21 +3702,7 @@ paths:
         content:
           application/json:
             schema:
-              properties:
-                mac:
-                  description: "when `op`\_==`replacement_nodeX`, new node1\n's MAC,\
-                    \ the device has to be standalone and assigned to the same site"
-                  type: string
-                op:
-                  default: swap
-                  enum:
-                  - swap
-                  - replace_node1
-                  minLength: 1
-                  type: string
-              required:
-              - op
-              type: object
+              $ref: '#/components/schemas/gateway_cluster_swap'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -3889,8 +3718,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: swapSiteDeviceHaClusterNode
       tags:
-      - tag:WAN:CONFIGURE:Sites:Devices - WAN HA
-      - Sites Devices - WAN HA
+      - tag:WAN:CONFIGURE:Sites:Devices - WAN Cluster
+      - Sites Devices - WAN Cluster
   /api/v1/sites/{site_id}/devices/{device_id}/release_dhcp:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -3907,22 +3736,7 @@ paths:
                   node: node0
                   port: string
             schema:
-              properties:
-                node:
-                  description: only for HA
-                  enum:
-                  - node0
-                  - node1
-                  type: string
-                port:
-                  description: The nework interface on which to release the current
-                    DHCP release
-                  example: wan-interface
-                  minLength: 1
-                  type: string
-              required:
-              - port
-              type: object
+              $ref: '#/components/schemas/utils_release_dhcp'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -3957,7 +3771,7 @@ paths:
       operationId: testSiteSsrDnsResolution
       responses:
         '200':
-          $ref: '#/components/responses/Session'
+          $ref: '#/components/responses/WebsocketSession'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -4007,22 +3821,10 @@ paths:
                   node: node0
                   service_name: any
             schema:
-              description: The exact service name for which to display the service
-                path
-              properties:
-                node:
-                  description: only for HA
-                  enum:
-                  - node0
-                  - node1
-                  type: string
-                service_name:
-                  example: any
-                  type: string
-              type: object
+              $ref: '#/components/schemas/utils_show_service_path'
       responses:
         '200':
-          $ref: '#/components/responses/Session'
+          $ref: '#/components/responses/WebsocketSession'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -4078,22 +3880,10 @@ paths:
                   node: node0
                   service_name: any
             schema:
-              properties:
-                node:
-                  description: 'only for '
-                  enum:
-                  - node0
-                  - node1
-                  type: string
-                service_name:
-                  description: The exact service name for which to display the active
-                    sessions
-                  example: any
-                  type: string
-              type: object
+              $ref: '#/components/schemas/utils_show_session'
       responses:
         '200':
-          $ref: '#/components/responses/Session'
+          $ref: '#/components/responses/WebsocketSession'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -4217,6 +4007,7 @@ paths:
           - type
           - vendor
           - site_id
+          title: Site Other Device Events count distinct
           type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -4369,6 +4160,7 @@ paths:
           - port_id
           - model
           - site_id
+          title: Site Service Events count distinct
           type: string
       - description: Event type, e.g. GW_SERVICE_PATH_DOWN
         in: query
@@ -4507,6 +4299,7 @@ paths:
           - mac
           - device_mac
           - threat_level
+          title: Site SkyATP Events count distinct
           type: string
       - description: event type, e.g. cc, fs, mw
         in: query
@@ -4585,50 +4378,7 @@ paths:
       - $ref: '#/components/parameters/duration'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    end: 1513176951
-                    limit: 10
-                    results:
-                    - device_mac: 658279bb1fa4
-                      ip: 172.16.0.11
-                      mac: b019c66c8348
-                      org_id: 3139f2c2-fac6-11e5-8156-0242ac110006
-                      site_id: 70e0f468-fc13-11e5-85ad-0242ac110008
-                      threat_level: 7
-                      timestamp: 1592524478
-                      type: cc
-                    start: 1512572151
-                    total: 1
-              schema:
-                properties:
-                  end:
-                    type: integer
-                  limit:
-                    type: integer
-                  next:
-                    type: string
-                  results:
-                    items:
-                      $ref: '#/components/schemas/events_skyatp'
-                    minItems: 1
-                    type: array
-                    uniqueItems: true
-                  start:
-                    type: integer
-                  total:
-                    type: integer
-                required:
-                - end
-                - limit
-                - results
-                - start
-                - total
-                type: object
-          description: OK
+          $ref: '#/components/responses/SkyAtpEventsSearch'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -4651,69 +4401,7 @@ paths:
       operationId: getSiteSsrUpgrade
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    channel: stable
-                    device_type: gateway
-                    id: 5cbcee0a-c620-4bb4-a25e-15000934e9d8
-                    status: upgrading
-                    targets:
-                      failed: []
-                      queued: []
-                      success: []
-                      upgrading:
-                      - 8e525f1d-4178-4ae1-a988-2b0176855e55
-                    versions: {}
-              schema:
-                properties:
-                  channel:
-                    minLength: 1
-                    type: string
-                  device_type:
-                    type: string
-                  id:
-                    minLength: 1
-                    type: string
-                  status:
-                    minLength: 1
-                    type: string
-                  targets:
-                    properties:
-                      failed:
-                        items:
-                          type: string
-                        type: array
-                      queued:
-                        items:
-                          type: string
-                        type: array
-                      success:
-                        items:
-                          type: string
-                        type: array
-                      upgrading:
-                        items:
-                          type: string
-                        type: array
-                    required:
-                    - queued
-                    - upgrading
-                    - success
-                    - failed
-                    type: object
-                  versions:
-                    type: object
-                required:
-                - status
-                - versions
-                - channel
-                - id
-                - targets
-                type: object
-          description: OK
+          $ref: '#/components/responses/SsrUpgradeStatus'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -4747,31 +4435,7 @@ paths:
                   channel: stable
                   version: 5.3.1-170-93
             schema:
-              properties:
-                channel:
-                  default: stable
-                  description: upgrade channel to follow
-                  enum:
-                  - stable
-                  - beta
-                  - alpha
-                  type: string
-                reboot_at:
-                  description: eboot start time in epoch seconds, default is start_time,
-                    -1 disables reboot
-                  type: integer
-                start_time:
-                  description: 128T firmware download start time in epoch seconds,
-                    default is now, -1 disables download
-                  type: integer
-                version:
-                  default: stable
-                  description: 128T firmware version to upgrade (e.g. 5.3.0-93)
-                  minLength: 1
-                  type: string
-              required:
-              - version
-              type: object
+              $ref: '#/components/schemas/ssr_upgrade'
       responses:
         '200':
           $ref: '#/components/responses/SsrUpgrade'
@@ -4801,6 +4465,7 @@ paths:
       - in: query
         name: distinct
         schema:
+          title: Site BGP Peers count distinct
           type: string
       responses:
         '200':
@@ -4850,48 +4515,7 @@ paths:
       operationId: getSiteGatewayMetrics
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    config_success: 99.9
-                    version_compliance:
-                      major_version:
-                        SRX320:
-                          major_count: 0
-                          major_version: 19.4R2-S1.2
-                      score: 99.9
-                      type: gateway
-              schema:
-                properties:
-                  config_success:
-                    description: config success score
-                    example: 99.9
-                    type: number
-                  version_compliance:
-                    description: version compliance score, major version for gateway,
-                      type
-                    properties:
-                      major_version:
-                        additionalProperties:
-                          properties:
-                            major_count:
-                              type: integer
-                            major_version:
-                              example: 19.4R2-S1.2
-                              type: string
-                          type: object
-                        type: object
-                      score:
-                        example: 99.9
-                        type: number
-                      type:
-                        example: gateway
-                        type: string
-                    type: object
-                type: object
-          description: OK
+          $ref: '#/components/responses/GatewayMetrics'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -4904,8 +4528,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: getSiteGatewayMetrics
       tags:
-      - tag:WAN:MONITOR:Sites:Stats
-      - Sites Stats
+      - tag:WAN:MONITOR:Sites:Devices Stats
+      - Sites Devices Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/vpns/derived:
@@ -4941,9 +4565,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/wan_client/events/count:
     get:
-      description: 'Count by Distinct Attributes of Site WAN Client-Events
-
-        '
+      description: Count by Distinct Attributes of Site WAN Client-Events
       operationId: countSiteWanClientEvents
       parameters:
       - in: query
@@ -4956,6 +4578,7 @@ paths:
           - ip
           - mfg
           - mac
+          title: Site Wan Client events distinct
           type: string
       responses:
         '200':
@@ -4990,6 +4613,7 @@ paths:
           - ip
           - mfg
           - mac
+          title: Site Wan Clients count distinct
           type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -5170,6 +4794,8 @@ components:
       $ref: ../components/responses/DeviceOtherStats.yml
     EventsOtherDevicesSearch:
       $ref: ../components/responses/EventsOtherDevicesSearch.yml
+    GatewayMetrics:
+      $ref: ../components/responses/GatewayMetrics.yml
     Gatewaytemplate:
       $ref: ../components/responses/Gatewaytemplate.yml
     GatewaytemplatesArray:
@@ -5194,6 +4820,8 @@ components:
       $ref: ../components/responses/NetworksArray.yml
     OK:
       $ref: ../components/responses/OK.yml
+    Router128TRegisterCmd:
+      $ref: ../components/responses/Router128TRegisterCmd.yml
     Service:
       $ref: ../components/responses/Service.yml
     ServicePathEventsSearch:
@@ -5204,39 +4832,69 @@ components:
       $ref: ../components/responses/ServicePolicy.yml
     ServicesArray:
       $ref: ../components/responses/ServicesArray.yml
-    Session:
-      $ref: ../components/responses/Session.yml
+    SkyAtpEventsSearch:
+      $ref: ../components/responses/SkyAtpEventsSearch.yml
     SsrUpgrade:
       $ref: ../components/responses/SsrUpgrade.yml
+    SsrUpgradeStatus:
+      $ref: ../components/responses/SsrUpgradeStatus.yml
     SsrUpgradesArray:
       $ref: ../components/responses/SsrUpgradesArray.yml
+    SsrVersions:
+      $ref: ../components/responses/SsrVersions.yml
     Vpn:
       $ref: ../components/responses/Vpn.yml
+    VpnPeersStats:
+      $ref: ../components/responses/VpnPeersStats.yml
     VpnsArray:
       $ref: ../components/responses/VpnsArray.yml
     WanClientEventsSearch:
       $ref: ../components/responses/WanClientEventsSearch.yml
     WanClientsSearch:
       $ref: ../components/responses/WanClientsSearch.yml
+    WebsocketSession:
+      $ref: ../components/responses/WebsocketSession.yml
+    ZscalerAccount:
+      $ref: ../components/responses/ZscalerAccount.yml
     count:
       $ref: ../components/responses/count.yml
   schemas:
+    account_zscaler_config:
+      $ref: ../components/schemas/account_zscaler_config.yml
     create_ha_cluster:
       $ref: ../components/schemas/create_ha_cluster.yml
-    events_skyatp:
-      $ref: ../components/schemas/events_skyatp.yml
-    gatewaytemplate:
-      $ref: ../components/schemas/gatewaytemplate.yml
-    idpprofile:
-      $ref: ../components/schemas/idpprofile.yml
+    gateway_cluster_form:
+      $ref: ../components/schemas/gateway_cluster_form.yml
+    gateway_cluster_swap:
+      $ref: ../components/schemas/gateway_cluster_swap.yml
+    gateway_template:
+      $ref: ../components/schemas/gateway_template.yml
+    idp_profile:
+      $ref: ../components/schemas/idp_profile.yml
     network:
       $ref: ../components/schemas/network.yml
-    req_clear_bgp:
-      $ref: ../components/schemas/req_clear_bgp.yml
+    other_device_update:
+      $ref: ../components/schemas/other_device_update.yml
+    other_device_update_multi:
+      $ref: ../components/schemas/other_device_update_multi.yml
     service:
       $ref: ../components/schemas/service.yml
     service_policy:
       $ref: ../components/schemas/service_policy.yml
+    ssr_upgrade:
+      $ref: ../components/schemas/ssr_upgrade.yml
+    ssr_upgrade_multi:
+      $ref: ../components/schemas/ssr_upgrade_multi.yml
+    utils_clear_arp:
+      $ref: ../components/schemas/utils_clear_arp.yml
+    utils_clear_bgp:
+      $ref: ../components/schemas/utils_clear_bgp.yml
+    utils_release_dhcp:
+      $ref: ../components/schemas/utils_release_dhcp.yml
+    utils_show_service_path:
+      $ref: ../components/schemas/utils_show_service_path.yml
+    utils_show_session:
+      $ref: ../components/schemas/utils_show_session.yml
     vpn:
       $ref: ../components/schemas/vpn.yml
   securitySchemes:

@@ -1,3 +1,7 @@
+"""
+This script is parsing the main openapi spec (single file) and add the type tag to each
+endpoint based on the path
+"""
 import yaml
 
 

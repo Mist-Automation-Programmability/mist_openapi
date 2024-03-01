@@ -1,3 +1,7 @@
+"""
+This script is parsing the main openapi spec (single file) and add the category tag to each
+endpoint based on the path
+"""
 import yaml
 
 SPEC_FILE_IN="./mist.openapi.yml"
@@ -51,6 +55,7 @@ TRIGGERS = {
         "/license",
         "/msp",
         "/pma",
+        "/maps",
         "/secpolic",
         "/setting",
         "/sitegroup",
@@ -67,7 +72,7 @@ TRIGGERS = {
         "/vars",
         "/webhooks",
         "/self",
-        "/register",
+        "/api/v1/register",
         "/recover",
         "self/logs",
         "{msp_id}/logs",
@@ -127,7 +132,6 @@ TRIGGERS = {
         "{site_id}/servicepolicies",
         "/vpn_peer",
         "/ssr",
-        "128trouter",
         "/idpprofile",
     ],
     "NAC": ["/nac_client", "/nactag", "/nacrule", "/mist_nac"],
@@ -136,7 +140,6 @@ TRIGGERS = {
         "/zone",
         "/vbeacon",
         "/sdkclient",
-        "/map",
         "/filtered_asset",
         "/discovered_asset",
         "/beacon",
@@ -224,7 +227,7 @@ HARDCODED = {
     "/api/v1/sites/{site_id}/devices/restart": ["MIST"],
     "/api/v1/sites/{site_id}/devices/versions": ["MIST"],
     "/api/v1/sites/{site_id}/devices/reset_radio_config": ["WLAN"],
-    "/api/v1/sites/{site_id}/devices/zeroize": ["LAN"],    
+    "/api/v1/sites/{site_id}/devices/zeroize": ["WLAN"],    
     "/api/v1/sites/{site_id}/devices/reprovision": ["WLAN"],
     "/api/v1/sites/{site_id}/insights/device/{device_mac}/{metric}": ["MIST"],
     # DEVICE UTILS
@@ -294,6 +297,11 @@ HARDCODED = {
     # NAC
     "/api/v1/orgs/{org_id}/setting/mist_nac_crls": ["NAC"],
     "/api/v1/orgs/{org_id}/setting/mist_nac_crls/{naccrl_id}": ["NAC"],
+    #ZSCALER
+    "/api/v1/orgs/{org_id}/setting/zscaler/setup": ["WAN"],
+    #LOCATION
+    "/api/v1/sites/{site_id}/stats/maps/{map_id}/discovered_assets": ["LOCATION"],
+    "/api/v1/sites/{site_id}/stats/maps/{map_id}/sdkclients": ["LOCATION"],
 }
 
 

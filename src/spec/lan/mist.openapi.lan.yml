@@ -40,10 +40,45 @@ info:
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
   version: 2401.1.5
+  x-codegen-settings:
+    BrandLabel: Juniper Networks
+    EnableAdditionalModelProperties: true
+    GenerateEnums: false
+    ProjectName: MistAPI
+    ReturnCompleteHttpResponse: true
+    SortResources: true
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
     url: https://www.mist.com/wp-content/uploads/logo.png
+  x-server-configuration:
+    default-environment: Mist Global 01
+    default-server: API Host
+    environments:
+    - name: Mist Global 01
+      servers:
+      - name: API Host
+        url: https://api.mist.com
+    - name: Mist Global 02
+      servers:
+      - name: API Host
+        url: https://api.gc1.mist.com
+    - name: Mist Global 03
+      servers:
+      - name: API Host
+        url: https://api.ac2.mist.com
+    - name: Mist Global 04
+      servers:
+      - name: API Host
+        url: https://api.gc2.mist.com
+    - name: Mist Europe 01
+      servers:
+      - name: API Host
+        url: https://api.eu.mist.com
+    - name: Mist APAC 01
+      servers:
+      - name: API Host
+        url: https://api.ac5.mist.com
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -76,7 +111,6 @@ tags:
 
     Moreover, this can further be overwriten by individual Site Setting'
   name: Orgs Network Templates
-- name: Orgs Stats
 - name: Sites Clients - Wired
 - description: 'Mist provides many ways (device-type specific template, site template,
     device profile, per-device) to configure devices for different kind of scenarios.
@@ -88,18 +122,17 @@ tags:
   name: Sites Devices
 - name: Sites Devices - Wired
 - name: Sites Devices - Wired Virtual Chassis
-- name: Sites Devices - Wireless
 - name: Sites Devices Stats
 - name: Sites Devices Upgrades
 - name: Sites Devices Utilities
+- name: Sites Discovered Switches Stats
 - description: 'EVPN allows an alternative but more efficient LAN architecture utilizing
     VxLAN / MP-BGP - separating control plane (MAC / IP Learning) from forwarding
     plane.
 
-    In our implementation, following the steps to deploy EVPN topologies in a Site '
+    In our implementation, following the steps to deploy EVPN topologies in a Site'
   name: Sites EVPN Topologies
 - name: Sites Network Templates
-- name: Sites Stats
 - name: Sites Synthetic Tests
 paths:
   /api/v1/orgs/{org_id}/evpn_topologies:
@@ -111,7 +144,7 @@ paths:
       - $ref: '#/components/parameters/limit'
       responses:
         '200':
-          $ref: '#/components/responses/EvpnTopology'
+          $ref: '#/components/responses/EvpnTopologiesArray'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -211,7 +244,7 @@ paths:
       operationId: getOrgEvpnTolopogy
       responses:
         '200':
-          description: OK
+          $ref: '#/components/responses/EvpnTopology'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -477,7 +510,7 @@ paths:
                     - contents:
                       - facility: any
                         severity: any
-                      match: '"!alarm|ntp|errors.crc_error[chan]"'
+                      match: '!alarm|ntp|errors.crc_error[chan]'
                       user: '*'
                   snmp_config:
                     client_list:
@@ -641,7 +674,7 @@ paths:
                       networks:
                       - string
             schema:
-              $ref: '#/components/schemas/networktemplate'
+              $ref: '#/components/schemas/network_template'
         description: Request Body
       responses:
         '200':
@@ -689,7 +722,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/networktemplate'
+                $ref: '#/components/schemas/network_template'
           description: OK
         '400':
           $ref: '#/components/responses/HTTP400'
@@ -1061,7 +1094,7 @@ paths:
                       networks:
                       - string
             schema:
-              $ref: '#/components/schemas/networktemplate'
+              $ref: '#/components/schemas/network_template'
         description: Request Body
       responses:
         '200':
@@ -1413,7 +1446,7 @@ paths:
                         networks:
                         - string
               schema:
-                $ref: '#/components/schemas/networktemplate'
+                $ref: '#/components/schemas/network_template'
           description: OK
         '400':
           $ref: '#/components/responses/HTTP400'
@@ -1627,9 +1660,7 @@ paths:
       description: Count by Distinct Attributes of Switch/Gateway Ports
       operationId: countOrgSwitchPorts
       parameters:
-      - description: port_id, port_mac, full_duplex, mac, neighbor_macneighbor_port_desc,
-          neighbor_system_name, poe_disabled, poe_mode, poe_on, speed, up
-        in: query
+      - in: query
         name: distinct
         schema:
           default: mac
@@ -1646,6 +1677,7 @@ paths:
           - poe_on
           - speed
           - up
+          title: Org Switch Port count distinct
           type: string
       - description: indicates full or half duplex
         in: query
@@ -1799,55 +1831,7 @@ paths:
       - $ref: '#/components/parameters/duration'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    distinct: mac
-                    end: 1513177200
-                    limit: 100
-                    results:
-                    - count: 217
-                      mac: '112233445566'
-                    - count: 35
-                      mac: '001122334455'
-                    start: 1511967600
-                    total: 20
-              schema:
-                properties:
-                  distinct:
-                    type: string
-                  end:
-                    type: integer
-                  limit:
-                    type: integer
-                  results:
-                    items:
-                      properties:
-                        count:
-                          type: integer
-                        mac:
-                          type: string
-                      required:
-                      - count
-                      - mac
-                    minItems: 1
-                    type: array
-                    uniqueItems: true
-                  start:
-                    type: integer
-                  total:
-                    type: integer
-                required:
-                - start
-                - end
-                - limit
-                - distinct
-                - total
-                - results
-                type: object
-          description: OK
+          $ref: '#/components/responses/count'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -1860,8 +1844,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: countOrgSwitchPorts
       tags:
-      - tag:LAN:MONITOR:Orgs:Stats
-      - Orgs Stats
+      - tag:LAN:MONITOR:Orgs:Devices Stats
+      - Orgs Devices Stats
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/wired_clients/count:
@@ -1883,6 +1867,7 @@ paths:
           - device_mac
           - site_id
           - type
+          title: Org Wired Clients count distinct
           type: string
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
@@ -2002,29 +1987,7 @@ paths:
                   - EX4400-48T
                   version: CDEN_P_EX1_00.15.01.00
             schema:
-              properties:
-                device_ids:
-                  description: list of device id to upgrade bios
-                  items:
-                    example: 00000000-0000-0000-1000-5c5b35584a6f
-                    format: uuid
-                    type: string
-                  type: array
-                models:
-                  description: list of device model to upgrade bios
-                  items:
-                    example: EX4400-48T
-                    type: string
-                  type: array
-                reboot:
-                  default: false
-                  description: Reboot device immediately after upgrade is completed
-                  type: boolean
-                version:
-                  description: specific bios version
-                  example: CDEN_P_EX1_00.15.01.00
-                  type: string
-              type: object
+              $ref: '#/components/schemas/upgrade_bios_multi'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -2032,45 +1995,6 @@ paths:
       tags:
       - tag:LAN:CONFIGURE:Sites:Devices Upgrades
       - Sites Devices Upgrades
-  /api/v1/sites/{site_id}/devices/zeroize:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    post:
-      description: Zeroize all FIPS APs in the Site
-      operationId: zeroizeSiteFipsAllAps
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  password: NUKETHESITE
-            schema:
-              properties:
-                password:
-                  description: FIPS zeroize password
-                  type: string
-              required:
-              - password
-              type: object
-        description: Request Body
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: zeroizeSiteFipsAllAps
-      tags:
-      - tag:LAN:CONFIGURE:Sites:Devices - Wireless
-      - Sites Devices - Wireless
   /api/v1/sites/{site_id}/devices/{device_id}/check_radius_server:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -2091,24 +2015,10 @@ paths:
                   profile: dot1x
                   user: string
             schema:
-              properties:
-                password:
-                  description: Specify the password associated with the username
-                  type: string
-                profile:
-                  default: dot1x
-                  description: Specify the access profile associated with the subscriber
-                  type: string
-                user:
-                  description: Specify the subscriber username to test
-                  type: string
-              required:
-              - user
-              - password
-              type: object
+              $ref: '#/components/schemas/synthetic_test_radius_server'
       responses:
         '200':
-          $ref: '#/components/responses/Session'
+          $ref: '#/components/responses/WebsocketSession'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -2136,12 +2046,7 @@ paths:
         content:
           application/json:
             schema:
-              properties:
-                port:
-                  description: the port on which to clear the detected BPDU error,
-                    or `all` for all ports
-                  type: string
-              type: object
+              $ref: '#/components/schemas/utils_clear_bpdu'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -2176,14 +2081,7 @@ paths:
                   ports:
                   - ge-0/0/0.0
             schema:
-              properties:
-                ports:
-                  description: the ports on which to clear the detected BPDU error,
-                    or `["all"]` for all ports
-                  items:
-                    type: string
-                  type: array
-              type: object
+              $ref: '#/components/schemas/utils_clear_macs'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -2343,31 +2241,7 @@ paths:
       operationId: createSiteDeviceSnapshot
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    status_id: string
-                    staus: starting
-                    timestamp: 0
-              schema:
-                properties:
-                  status_id:
-                    description: the internal status id
-                    type: string
-                  staus:
-                    enum:
-                    - starting
-                    - inprogress
-                    - success
-                    - error
-                    - scheduled
-                    type: string
-                  timestamp:
-                    type: number
-                type: object
-          description: OK
+          $ref: '#/components/responses/DeviceSnapshot'
         '400':
           content:
             application/json:
@@ -2406,33 +2280,10 @@ paths:
                 value:
                   version: CDEN_P_EX1_00.20.01.00
             schema:
-              properties:
-                reboot:
-                  default: false
-                  description: Reboot device immediately after upgrade is completed
-                  type: boolean
-                version:
-                  description: specific bios version
-                  example: CDEN_P_EX1_00.20.01.00
-                  type: string
-              type: object
+              $ref: '#/components/schemas/upgrade_bios'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                Example:
-                  value:
-                    status: inprogress
-                    timestamp: 1428949501
-              schema:
-                properties:
-                  status:
-                    type: string
-                  timestamp:
-                    type: integer
-                type: object
-          description: OK
+          $ref: '#/components/responses/DeviceBiosUpgrade'
       summary: upgradeSiteDeviceBios
       tags:
       - tag:LAN:CONFIGURE:Sites:Devices Upgrades
@@ -2472,7 +2323,7 @@ paths:
       operationId: getSiteDeviceVirtualChassis
       responses:
         '200':
-          $ref: '#/components/responses/Vc'
+          $ref: '#/components/responses/VirtualChassis'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -2546,11 +2397,11 @@ paths:
                     vc_role: backup
                   preprovisioned: true
             schema:
-              $ref: '#/components/schemas/device_switch_vc'
+              $ref: '#/components/schemas/virtual_chassis_config'
         description: Request Body
       responses:
         '200':
-          $ref: '#/components/responses/Vc'
+          $ref: '#/components/responses/VirtualChassis'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -2660,7 +2511,7 @@ paths:
         description: Request Body
       responses:
         '200':
-          $ref: '#/components/responses/Vc'
+          $ref: '#/components/responses/VirtualChassis'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -2707,32 +2558,7 @@ paths:
                     - xe-0/1/1
                   op: set
             schema:
-              properties:
-                members:
-                  items:
-                    properties:
-                      member:
-                        type: number
-                      vc_ports:
-                        items:
-                          type: string
-                        type: array
-                    required:
-                    - member
-                    type: object
-                  minItems: 1
-                  type: array
-                  uniqueItems: true
-                op:
-                  enum:
-                  - set
-                  - delete
-                  minLength: 1
-                  type: string
-              required:
-              - op
-              - members
-              type: object
+              $ref: '#/components/schemas/config_vc_port'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -2932,7 +2758,7 @@ paths:
       description: Search Discovered Switch Metrics
       operationId: searchSiteDiscoveredSwitchesMetrics
       parameters:
-      - description: metric scope, optional
+      - description: metric scope
         in: query
         name: scope
         schema:
@@ -2941,8 +2767,7 @@ paths:
           - site
           - switch
           type: string
-      - description: metric type, inactive_wired_vlans/switch_ap_affinity/poe_compliance/version_compliance,
-          optional
+      - description: metric type
         in: query
         name: type
         schema:
@@ -2951,6 +2776,7 @@ paths:
           - switch_ap_affinity
           - poe_compliance
           - version_compliance
+          title: Discovered Switch Type
           type: string
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
@@ -2958,63 +2784,7 @@ paths:
       - $ref: '#/components/parameters/duration'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    end: 1675193686.0191767
-                    limit: 1
-                    next: /api/v1/sites/f5fcbee5-fbca-45b3-8bf1-1619ede87879/stats/discovered_switch_metrics/search?end=1675193686.0191767&limit=1&search_after=%5B1675193400000%5D&start=1675107286.0191767
-                    results:
-                    - details: {}
-                      org_id: 203d3d02-dbc0-4c1b-9f41-76896a3330f4
-                      scope: site
-                      score: 100
-                      site_id: f5fcbee5-fbca-45b3-8bf1-1619ede87879
-                      timestamp: 1675193400
-                      type: inactive_wired_vlans
-                    start: 1675107286.0191767
-                    total: 3
-              schema:
-                properties:
-                  end:
-                    type: number
-                  limit:
-                    type: integer
-                  next:
-                    type: string
-                  results:
-                    items:
-                      properties:
-                        details:
-                          type: object
-                        org_id:
-                          type: string
-                        scope:
-                          type: string
-                        score:
-                          type: integer
-                        site_id:
-                          type: string
-                        timestamp:
-                          type: integer
-                        type:
-                          type: string
-                      type: object
-                    type: array
-                  start:
-                    type: number
-                  total:
-                    type: integer
-                required:
-                - results
-                - start
-                - end
-                - limit
-                - total
-                type: object
-          description: OK
+          $ref: '#/components/responses/DiscoveredSwitchMetrics'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -3027,8 +2797,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: searchSiteDiscoveredSwitchesMetrics
       tags:
-      - tag:LAN:MONITOR:Sites:Stats
-      - Sites Stats
+      - tag:LAN:MONITOR:Sites:Discovered Switches Stats
+      - Sites Discovered Switches Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/discovered_switches/count:
@@ -3045,6 +2815,7 @@ paths:
           - version
           - model
           - mgmt_addr
+          title: Site Discovered Switches count distinct
           type: string
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
@@ -3053,59 +2824,7 @@ paths:
       - $ref: '#/components/parameters/duration'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    distinct: system_name
-                    end: 1604496202.3555834
-                    limit: 1000
-                    percentage: 100
-                    results:
-                    - count: 1
-                      system_name: test-ex
-                    - count: 1
-                      system_name: sw-jn-01
-                    start: 1604409802.3555677
-                    total: 2
-              schema:
-                properties:
-                  distinct:
-                    type: string
-                  end:
-                    type: number
-                  limit:
-                    type: integer
-                  percentage:
-                    type: integer
-                  results:
-                    items:
-                      properties:
-                        count:
-                          type: integer
-                        system_name:
-                          type: string
-                      required:
-                      - system_name
-                      - count
-                    minItems: 1
-                    type: array
-                    uniqueItems: true
-                  start:
-                    type: number
-                  total:
-                    type: integer
-                required:
-                - results
-                - start
-                - end
-                - limit
-                - distinct
-                - total
-                - percentage
-                type: object
-          description: OK
+          $ref: '#/components/responses/count'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -3118,8 +2837,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: countSiteDiscoveredSwitches
       tags:
-      - tag:LAN:MONITOR:Sites:Stats
-      - Sites Stats
+      - tag:LAN:MONITOR:Sites:Discovered Switches Stats
+      - Sites Discovered Switches Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/discovered_switches/metrics:
@@ -3140,130 +2859,7 @@ paths:
           type: string
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    inactive_wired_vlans:
-                      details: {}
-                      score: 100
-                    poe_compliance:
-                      details:
-                        total_aps: 63
-                        total_power: 981500
-                      score: 100
-                    switch_ap_affinity:
-                      details:
-                        system_name:
-                        - mist-lab-ex2300c
-                        - switch1
-                        threshold: 12
-                      score: 33.3333
-                    version_compliance:
-                      details:
-                        major_versions:
-                        - major_count: 2
-                          model: EX2300-C-12P
-                          system_names:
-                          - switch1
-                          - mist-lab-ex2300c
-                        - major_count: 1
-                          model: EX4300-48P
-                          system_names: []
-                        total_switch_count: 5
-                      score: 75
-              schema:
-                properties:
-                  inactive_wired_vlans:
-                    properties:
-                      details:
-                        type: object
-                      score:
-                        type: number
-                    required:
-                    - score
-                    - details
-                    type: object
-                  poe_compliance:
-                    properties:
-                      details:
-                        properties:
-                          total_aps:
-                            type: integer
-                          total_power:
-                            type: number
-                        required:
-                        - total_power
-                        - total_aps
-                        type: object
-                      score:
-                        type: number
-                    required:
-                    - score
-                    - details
-                    type: object
-                  switch_ap_affinity:
-                    properties:
-                      details:
-                        properties:
-                          system_name:
-                            items:
-                              type: string
-                            type: array
-                          threshold:
-                            type: number
-                        required:
-                        - threshold
-                        - system_name
-                        type: object
-                      score:
-                        type: number
-                    required:
-                    - score
-                    - details
-                    type: object
-                  version_compliance:
-                    properties:
-                      details:
-                        properties:
-                          major_versions:
-                            items:
-                              properties:
-                                major_count:
-                                  type: number
-                                model:
-                                  type: string
-                                system_names:
-                                  items:
-                                    type: string
-                                  type: array
-                              required:
-                              - model
-                              - major_count
-                              type: object
-                            minItems: 1
-                            type: array
-                            uniqueItems: true
-                          total_switch_count:
-                            type: integer
-                        required:
-                        - major_versions
-                        - total_switch_count
-                        type: object
-                      score:
-                        type: number
-                    required:
-                    - score
-                    - details
-                    type: object
-                required:
-                - version_compliance
-                - switch_ap_affinity
-                - inactive_wired_vlans
-                - poe_compliance
-                type: object
-          description: OK
+          $ref: '#/components/responses/DiscoveredSwitchesMetrics'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -3276,8 +2872,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: getSiteDiscoveredSwitchesMetrics
       tags:
-      - tag:LAN:MONITOR:Sites:Stats
-      - Sites Stats
+      - tag:LAN:MONITOR:Sites:Discovered Switches Stats
+      - Sites Discovered Switches Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/discovered_switches/search:
@@ -3315,116 +2911,7 @@ paths:
       - $ref: '#/components/parameters/duration'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    end: 1604496474.8978634
-                    limit: 1000
-                    results:
-                    - aps:
-                      - hostname: ap41nearlab
-                        inactive_wired_vlans: []
-                        mac: 5c5b352e2001
-                        poe_status: true
-                        when: 2019-06-13T19:53:16.870+0000
-                      mgmt_addr: 10.1.1.1
-                      model: EX2300-C-12P
-                      org_id: 6748cfa6-4e12-11e6-9188-0242ac110007
-                      site_id: 67970e46-4e12-11e6-9188-0242ac110007
-                      system_desc: 'Juniper Networks, Inc. ex2300-c-12p Ethernet Switch,
-                        kernel JUNOS 18.2R2.6, Build date: 2018-12-07 13:19:04 UTC
-                        Copyright (c) 1996-2018 Juniper Networks, Inc.'
-                      system_name: mist-lab-ex2300c
-                      timestamp: 1560457177.037
-                      vendor: Juniper Networks
-                      version: 18.2R2.6
-                    start: 1604410074.8978484
-                    total: 1
-              schema:
-                properties:
-                  end:
-                    type: number
-                  limit:
-                    type: integer
-                  next:
-                    type: string
-                  results:
-                    items:
-                      properties:
-                        adopted:
-                          type: boolean
-                        aps:
-                          items:
-                            properties:
-                              hostname:
-                                type: string
-                              mac:
-                                type: string
-                              poe_status:
-                                type: boolean
-                              port:
-                                type: string
-                              port_id:
-                                type: string
-                              power_draw:
-                                type: number
-                              when:
-                                type: string
-                            type: object
-                          type: array
-                          uniqueItems: true
-                        chassis_id:
-                          items:
-                            type: string
-                          type: array
-                        for_site:
-                          readOnly: true
-                          type: boolean
-                        model:
-                          type: string
-                        org_id:
-                          format: uuid
-                          type: string
-                        site_id:
-                          format: uuid
-                          type: string
-                        system_desc:
-                          type: string
-                        system_name:
-                          type: string
-                        timestamp:
-                          type: number
-                        vendor:
-                          type: string
-                        version:
-                          type: string
-                      required:
-                      - model
-                      - org_id
-                      - site_id
-                      - system_desc
-                      - system_name
-                      - timestamp
-                      - vendor
-                      - version
-                      type: object
-                    minItems: 1
-                    type: array
-                    uniqueItems: true
-                  start:
-                    type: number
-                  total:
-                    type: integer
-                required:
-                - end
-                - limit
-                - results
-                - start
-                - total
-                type: object
-          description: OK
+          $ref: '#/components/responses/DiscoveredSwitches'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -3437,8 +2924,8 @@ paths:
           $ref: '#/components/responses/HTTP429'
       summary: searchSiteDiscoveredSwitches
       tags:
-      - tag:LAN:MONITOR:Sites:Stats
-      - Sites Stats
+      - tag:LAN:MONITOR:Sites:Discovered Switches Stats
+      - Sites Discovered Switches Stats
     parameters:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/ports/count:
@@ -3446,9 +2933,7 @@ paths:
       description: Count by Distinct Attributes of Switch/Gateway Ports
       operationId: countSiteSwOrGwPorts
       parameters:
-      - description: port_id, port_mac, full_duplex, mac, neighbor_macneighbor_port_desc,
-          neighbor_system_name, poe_disabled, poe_mode, poe_on, speed, up
-        in: query
+      - in: query
         name: distinct
         schema:
           default: mac
@@ -3465,6 +2950,7 @@ paths:
           - poe_on
           - speed
           - up
+          title: Site Ports count distinct
           type: string
       - description: indicates full or half duplex
         in: query
@@ -3885,9 +3371,7 @@ paths:
       description: Count by Distinct Attributes of Switch/Gateway Ports
       operationId: countSiteSwitchPorts
       parameters:
-      - description: port_id, port_mac, full_duplex, mac, neighbor_macneighbor_port_desc,
-          neighbor_system_name, poe_disabled, poe_mode, poe_on, speed, up
-        in: query
+      - in: query
         name: distinct
         schema:
           default: mac
@@ -3904,6 +3388,7 @@ paths:
           - poe_on
           - speed
           - up
+          title: Site Switch Ports count distinct
           type: string
       - description: indicates full or half duplex
         in: query
@@ -4249,9 +3734,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/switches/metrics:
     get:
-      description: 'Get version compliance metrics for managed or monitored switches
-
-        '
+      description: Get version compliance metrics for managed or monitored switches
       operationId: getSiteSwitchesMetrics
       parameters:
       - in: query
@@ -4259,6 +3742,7 @@ paths:
         schema:
           enum:
           - active_ports_summary
+          title: Switch Metric Type
           type: string
       - in: query
         name: scope
@@ -4266,6 +3750,7 @@ paths:
           enum:
           - site
           - switch
+          title: Switch Metric Scope
           type: string
       - description: switch mac, used only with metric `type`==`active_ports_summary`
         in: query
@@ -4274,100 +3759,7 @@ paths:
           type: string
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                site-scoped:
-                  value:
-                    active_ports_summary:
-                      details:
-                        active_port_count: 4
-                        total_port_count: 4
-                      score: 100
-                      total_switch_count: 2
-                    config_success:
-                      details:
-                        config_success_count: 2
-                      score: 100
-                      total_switch_count: 2
-                    version_compliance:
-                      details:
-                        major_versions:
-                        - major_count: 1
-                          major_version: 21.4R3.5
-                          model: EX2300-C-12P
-                          system_names: []
-                        - major_count: 1
-                          major_version: 6.0.4-11
-                          model: SSR120
-                          system_names: []
-                      score: 100
-                      total_switch_count: 2
-                switch-scoped:
-                  value:
-                    active_ports_summary:
-                      details:
-                        active_port_count: 1
-                        total_port_count: 2
-                      score: 50
-                      switch_id: 67970e46-4e12-11e6-9188-0242ac110007_fc334262ef00
-                      total_switch_count: 1
-              schema:
-                properties:
-                  active_ports_summary:
-                    properties:
-                      details:
-                        properties:
-                          active_port_count:
-                            type: integer
-                          total_port_count:
-                            type: integer
-                        type: object
-                      score:
-                        type: integer
-                      total_switch_count:
-                        type: integer
-                    type: object
-                  config_success:
-                    properties:
-                      details:
-                        properties:
-                          config_success_count:
-                            type: integer
-                        type: object
-                      score:
-                        type: integer
-                      total_switch_count:
-                        type: integer
-                    type: object
-                  version_compliance:
-                    properties:
-                      details:
-                        properties:
-                          major_versions:
-                            items:
-                              properties:
-                                major_count:
-                                  type: integer
-                                major_version:
-                                  type: string
-                                model:
-                                  type: string
-                                system_names:
-                                  items:
-                                    properties: {}
-                                    type: object
-                                  type: array
-                              type: object
-                            type: array
-                        type: object
-                      score:
-                        type: integer
-                      total_switch_count:
-                        type: integer
-                    type: object
-                type: object
-          description: OK
+          $ref: '#/components/responses/SwitchMetrics'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -4397,6 +3789,7 @@ paths:
           - port_id
           - vlan
           - mac
+          title: Site Wired Clients count distinct
           type: string
       - description: client mac
         in: query
@@ -4533,8 +3926,20 @@ components:
     start:
       $ref: ../components/parameters/start.yml
   responses:
+    DeviceBiosUpgrade:
+      $ref: ../components/responses/DeviceBiosUpgrade.yml
     DeviceConfigCmd:
       $ref: ../components/responses/DeviceConfigCmd.yml
+    DeviceSnapshot:
+      $ref: ../components/responses/DeviceSnapshot.yml
+    DiscoveredSwitchMetrics:
+      $ref: ../components/responses/DiscoveredSwitchMetrics.yml
+    DiscoveredSwitches:
+      $ref: ../components/responses/DiscoveredSwitches.yml
+    DiscoveredSwitchesMetrics:
+      $ref: ../components/responses/DiscoveredSwitchesMetrics.yml
+    EvpnTopologiesArray:
+      $ref: ../components/responses/EvpnTopologiesArray.yml
     EvpnTopology:
       $ref: ../components/responses/EvpnTopology.yml
     HTTP400:
@@ -4555,27 +3960,41 @@ components:
       $ref: ../components/responses/OK.yml
     PortStatsSearch:
       $ref: ../components/responses/PortStatsSearch.yml
-    Session:
-      $ref: ../components/responses/Session.yml
+    SwitchMetrics:
+      $ref: ../components/responses/SwitchMetrics.yml
     SwitchPortsSearch:
       $ref: ../components/responses/SwitchPortsSearch.yml
-    Vc:
-      $ref: ../components/responses/Vc.yml
+    VirtualChassis:
+      $ref: ../components/responses/VirtualChassis.yml
+    WebsocketSession:
+      $ref: ../components/responses/WebsocketSession.yml
     WiredClientsSearch:
       $ref: ../components/responses/WiredClientsSearch.yml
     count:
       $ref: ../components/responses/count.yml
   schemas:
-    device_switch_vc:
-      $ref: ../components/schemas/device_switch_vc.yml
+    config_vc_port:
+      $ref: ../components/schemas/config_vc_port.yml
     device_switch_vc_update:
       $ref: ../components/schemas/device_switch_vc_update.yml
     junos_evpn_topology:
       $ref: ../components/schemas/junos_evpn_topology.yml
     junos_port_config:
       $ref: ../components/schemas/junos_port_config.yml
-    networktemplate:
-      $ref: ../components/schemas/networktemplate.yml
+    network_template:
+      $ref: ../components/schemas/network_template.yml
+    synthetic_test_radius_server:
+      $ref: ../components/schemas/synthetic_test_radius_server.yml
+    upgrade_bios:
+      $ref: ../components/schemas/upgrade_bios.yml
+    upgrade_bios_multi:
+      $ref: ../components/schemas/upgrade_bios_multi.yml
+    utils_clear_bpdu:
+      $ref: ../components/schemas/utils_clear_bpdu.yml
+    utils_clear_macs:
+      $ref: ../components/schemas/utils_clear_macs.yml
+    virtual_chassis_config:
+      $ref: ../components/schemas/virtual_chassis_config.yml
   securitySchemes:
     apiToken:
       description: "Like many other API providers, it\u2019s also possible to generate\

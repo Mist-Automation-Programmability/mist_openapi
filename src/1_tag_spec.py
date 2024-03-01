@@ -1,3 +1,7 @@
+"""
+This script is generating the spec files from the main openapi spec (single file) based on the documentation tag
+Can be filtered to one or multiple spec files based on the .filters file
+"""
 import yaml
 import re
 import json
@@ -7,7 +11,7 @@ SPEC_FILE_IN="./tmp/mist.openapi_grp3.yml"
 FILTER_FILE="./.filters"
 
 with open(FILTER_FILE, 'r') as filter_file:
-    filters_string = filter_file.read().split("=")[1]
+    filters_string = filter_file.read().split("=")[1].split("#")[0]
     FILTER = filters_string.split(",")
 
 with open(SPEC_FILE_IN, "r") as f:

@@ -40,10 +40,45 @@ info:
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
   version: 2401.1.5
+  x-codegen-settings:
+    BrandLabel: Juniper Networks
+    EnableAdditionalModelProperties: true
+    GenerateEnums: false
+    ProjectName: MistAPI
+    ReturnCompleteHttpResponse: true
+    SortResources: true
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
     url: https://www.mist.com/wp-content/uploads/logo.png
+  x-server-configuration:
+    default-environment: Mist Global 01
+    default-server: API Host
+    environments:
+    - name: Mist Global 01
+      servers:
+      - name: API Host
+        url: https://api.mist.com
+    - name: Mist Global 02
+      servers:
+      - name: API Host
+        url: https://api.gc1.mist.com
+    - name: Mist Global 03
+      servers:
+      - name: API Host
+        url: https://api.ac2.mist.com
+    - name: Mist Global 04
+      servers:
+      - name: API Host
+        url: https://api.gc2.mist.com
+    - name: Mist Europe 01
+      servers:
+      - name: API Host
+        url: https://api.eu.mist.com
+    - name: Mist APAC 01
+      servers:
+      - name: API Host
+        url: https://api.ac5.mist.com
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -110,7 +145,6 @@ tags:
     licenses. An Organization can contain multiple sites. A site usually represents
     a deployment at the same location (a campus, an office).
   name: Orgs
-- name: Orgs 128T
 - name: Orgs API Tokens
 - name: Orgs Admins
 - description: An Alarm Template is a set of Alarm Rules that could be applied to
@@ -135,12 +169,6 @@ tags:
 - description: API Call for 3rd party devices
   name: Orgs Devices Others
 - name: Orgs Devices Upgrades
-- description: "In Zscaler UI \n 1. add Partner Integration at https://admin.zscalerbeta.net/#administration/partner-integration\
-    \ \n 2. Add Partner Administrator Role at https://admin.zscalerbeta.net/#administration/role-management\
-    \ - Name: Mist - Access: Full \n 3. add Partner Admin at https://admin.zscalerbeta.net/#administration/admin-management\
-    \ with - Login ID: john - email: john@abc.com \n 4. Find the cloud name for ZIA\
-    \ https://help.zscaler.com/zia/what-my-cloud-name-zia\n"
-  name: Orgs Devices Zscaler
 - name: Orgs Inventory
 - name: Orgs JSE
 - description: "Juniper Support Insight is a free service provided to all Mist customers.\
@@ -151,6 +179,7 @@ tags:
 - name: Orgs Licenses
 - name: Orgs Linked Applications
 - name: Orgs Logs
+- name: Orgs Maps
 - name: Orgs Marvis
 - name: Orgs MxEdges
 - name: Orgs Premium Analytics
@@ -217,6 +246,9 @@ tags:
 - name: Sites Insights
 - name: Sites JSE
 - name: Sites Licenses
+- name: Sites Maps
+- name: Sites Maps Auto-orientation
+- name: Sites Maps Auto-placement
 - name: Sites Pcaps
 - name: Sites SLEs
 - name: Sites Service Policies
@@ -539,9 +571,7 @@ paths:
       - Constants
   /api/v1/const/license_types:
     get:
-      description: 'Get License Types
-
-        '
+      description: Get License Types
       operationId: getLicenseTypes
       responses:
         '200':
@@ -615,9 +645,7 @@ paths:
       - Constants
   /api/v1/const/otherdevice_events:
     get:
-      description: 'Supported Events Type
-
-        '
+      description: Supported Events Type
       operationId: listOtherDeviceEventsDefinitions
       responses:
         '200':
@@ -639,9 +667,7 @@ paths:
     parameters: []
   /api/v1/const/otherdevice_models:
     get:
-      description: 'Supported OtherDevice Models
-
-        '
+      description: Supported OtherDevice Models
       operationId: listSupportedOtherDeviceModels
       responses:
         '200':
@@ -726,29 +752,7 @@ paths:
       parameters: []
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                  - id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
-                    name: DeviceProfile 1
-              schema:
-                items:
-                  properties:
-                    id:
-                      format: uuid
-                      type: string
-                    name:
-                      type: string
-                  required:
-                  - id
-                  - name
-                  type: object
-                minItems: 1
-                type: array
-                uniqueItems: true
-          description: OK
+          $ref: '#/components/responses/InstallerDeviceProfilesArray'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -801,7 +805,7 @@ paths:
                 - 6JG8E-PTFV2-A9Z2N
                 - DVH4V-SNMSZ-PDXBR
             schema:
-              $ref: '#/components/schemas/claimcodes'
+              $ref: '#/components/schemas/claim_codes'
         description: Request Body
       responses:
         '200':
@@ -1453,52 +1457,9 @@ paths:
               $ref: '#/components/schemas/login'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                2FA-required:
-                  value:
-                    email: test@mistsys.com
-                    two_factor_passed: false
-                    two_factor_required: true
-                OK:
-                  value: {}
-              schema:
-                properties:
-                  email:
-                    type: string
-                  two_factor_passed:
-                    type: boolean
-                  two_factor_required:
-                    type: boolean
-                type: object
-          description: Login Success
-          headers:
-            Set-Cookie:
-              description: Session Cookie if login/password authentication is successful
-              schema:
-                example: csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue,
-                  15-Mar-2016 19:47:20 GMT; Max-Age=31449600; Path=/
-                type: string
+          $ref: '#/components/responses/LoginSuccess'
         '400':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    detail: sso admin login needs to be initiated by IdP
-                    forward_url: https://my.sso/idp_sso_url
-              schema:
-                oneOf:
-                - properties:
-                    detail:
-                      type: string
-                    forward_url:
-                      type: string
-                  required:
-                  - detail
-                  type: object
-          description: Login Failed
+          $ref: '#/components/responses/LoginFailure'
       summary: login
       tags:
       - tag:MIST:AUTHENTICATION:Login
@@ -1515,24 +1476,11 @@ paths:
                 value:
                   email: test@mistsys.com
             schema:
-              $ref: '#/components/schemas/Model_object_email'
+              $ref: '#/components/schemas/email'
         description: Request Body
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                SSO-user-exists:
-                  value:
-                    sso_url: https://my.sso/idp_sso_url
-                local-user-exists:
-                  value: {}
-              schema:
-                properties:
-                  sso_url:
-                    type: string
-                type: object
-          description: account exists
+          $ref: '#/components/responses/LoginLookup'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -1550,7 +1498,7 @@ paths:
   /api/v1/login/oauth/{provider}:
     delete:
       description: Unlink OAuth2 Provider
-      operationId: unlinkOAuth2Provider
+      operationId: unlinkOauth2Provider
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -1564,13 +1512,13 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: unlinkOAuth2Provider
+      summary: unlinkOauth2Provider
       tags:
       - tag:MIST:AUTHENTICATION:Login With OAuth2
       - Login With OAuth2
     get:
       description: Obtain Authorization URL for Login
-      operationId: getOAuth2AuthorizationUrlForLogin
+      operationId: getOauth2AuthorizationUrlForLogin
       parameters:
       - in: query
         name: forward
@@ -1579,24 +1527,7 @@ paths:
           type: string
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    authorization_url: https://accounts.google.com/o/oauth2/v2/auth?.....
-                    client_id: 173131512-mpbnju32.apps.googleusercontent.com
-              schema:
-                properties:
-                  authorization_url:
-                    type: string
-                  client_id:
-                    type: string
-                required:
-                - client_id
-                - authorization_url
-                type: object
-          description: OK
+          $ref: '#/components/responses/LoginOauthUrl'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -1607,7 +1538,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getOAuth2AuthorizationUrlForLogin
+      summary: getOauth2AuthorizationUrlForLogin
       tags:
       - tag:MIST:AUTHENTICATION:Login With OAuth2
       - Login With OAuth2
@@ -1619,7 +1550,7 @@ paths:
         type: string
     post:
       description: Login via OAuth2
-      operationId: loginOAuth2
+      operationId: loginOauth2
       requestBody:
         content:
           application/json:
@@ -1628,12 +1559,7 @@ paths:
                 value:
                   code: 4/S9tegDeLkrYg0L9pWNXV4cgMVbbr3SR9t693A2kSHzw
             schema:
-              properties:
-                code:
-                  type: string
-              required:
-              - code
-              type: object
+              $ref: '#/components/schemas/code'
         description: Request Body
       responses:
         '200':
@@ -1648,7 +1574,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: loginOAuth2
+      summary: loginOauth2
       tags:
       - tag:MIST:AUTHENTICATION:Login With OAuth2
       - Login With OAuth2
@@ -1689,19 +1615,7 @@ paths:
       operationId: logout
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    forward_url: https://my.sso/custom_logout_url
-              schema:
-                properties:
-                  forward_url:
-                    description: if configured in SSO as custom_logout_url
-                    type: string
-                type: object
-          description: OK
+          $ref: '#/components/responses/Logout'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -1956,14 +1870,7 @@ paths:
                 value:
                   code: ZHT3K-H36DT-MG85D-M61AC
             schema:
-              properties:
-                code:
-                  description: activation code
-                  minLength: 1
-                  type: string
-              required:
-              - code
-              type: object
+              $ref: '#/components/schemas/code'
       responses:
         '200':
           $ref: '#/components/responses/claimLicense'
@@ -2329,35 +2236,7 @@ paths:
                   amendment_id: 2b9116ab-cd1e-e897-6e08-31fccd88e792
                   op: unamend
             schema:
-              properties:
-                amendment_id:
-                  description: required if `op`==`unamend`
-                  type: string
-                dst_org_id:
-                  description: required if `op`==`amend`, destination org id
-                  minLength: 1
-                  type: string
-                notes:
-                  description: required if `op`== `annotate`
-                  type: string
-                op:
-                  enum:
-                  - amend
-                  - unamend
-                  - delete
-                  - annotate
-                  minLength: 1
-                  type: string
-                quantity:
-                  description: required if `op`==`amend`
-                  type: number
-                subscription_id:
-                  description: required if `op`== `annotate`
-                  minLength: 1
-                  type: string
-              required:
-              - op
-              type: object
+              $ref: '#/components/schemas/msp_license_action'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -2405,10 +2284,7 @@ paths:
         content:
           application/json:
             schema:
-              properties:
-                logo_url:
-                  type: string
-              type: object
+              $ref: '#/components/schemas/msp_logo'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -2494,6 +2370,7 @@ paths:
           - admin_name
           - message
           - org_id
+          title: MSP Logs count distinct
           type: string
       responses:
         '200':
@@ -2711,21 +2588,7 @@ paths:
                   org_ids:
                   - 2b069b358-4c97-5319-1f8c-7c5ca64d6ab1
             schema:
-              properties:
-                op:
-                  enum:
-                  - assign
-                  - unassign
-                  type: string
-                org_ids:
-                  description: list of org_id
-                  items:
-                    type: string
-                  type: array
-              required:
-              - op
-              - org_ids
-              type: object
+              $ref: '#/components/schemas/msp_org_change'
         description: Request Body
       responses:
         '200':
@@ -3252,9 +3115,7 @@ paths:
     - $ref: '#/components/parameters/msp_id'
   /api/v1/msps/{msp_id}/suggestion/count:
     get:
-      description: 'Count Marvis actions
-
-        '
+      description: Count Marvis actions
       operationId: countMspsMarvisActions
       parameters:
       - in: query
@@ -3264,6 +3125,7 @@ paths:
           enum:
           - org_id
           - status
+          title: MSP Marvis Suggestions count distinct
           type: string
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/page'
@@ -3326,6 +3188,7 @@ paths:
           - status
           - type
           - org_id
+          title: MSP tickets count distinct
           type: string
       responses:
         '200':
@@ -3466,46 +3329,6 @@ paths:
       tags:
       - 'tag:MIST:CONFIGURE:Orgs:'
       - Orgs
-  /api/v1/orgs/{org_id}/128routers/register_cmd:
-    get:
-      description: 128T devices can be managed/adopted by Mist.
-      operationId: getOrg128TRegistrationCommands
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    conductor_cmd: register mist eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJvcmdfaWQiOiIyODE4ZTM4Ni04ZGVjLTI1NjItOWVkZS01YjhhMGZiYmRjNzEiLCJzdmMiOiIxMjhyb3V0ZXIiLCJwcm92aWRlciI6ImF3cyIsImVudiI6ImxvY2FsIiwiZXB0ZXJtX3VybCI6IndzczovL2xvY2FsL3dzIiwiaWF0IjoxNjEzODQ3NDg0LCJleHAiOjE2NDUzODM0ODR9.YnhgThKYAj1uaooi6j-zY8dMipp5YqJxnn79B9TB5XQ
-                    registration_code: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJvcmdfaWQiOiIyODE4ZTM4Ni04ZGVjLTI1NjItOWVkZS01YjhhMGZiYmRjNzEiLCJzdmMiOiIxMjhyb3V0ZXIiLCJwcm92aWRlciI6ImF3cyIsImVudiI6ImxvY2FsIiwiZXB0ZXJtX3VybCI6IndzczovL2xvY2FsL3dzIiwiaWF0IjoxNjEzODQ3NDg0LCJleHAiOjE2NDUzODM0ODR9.YnhgThKYAj1uaooi6j-zY8dMipp5YqJxnn79B9TB5XQ
-                    router_shell_cmd: 128agent register --registration-code eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJvcmdfaWQiOiIyODE4ZTM4Ni04ZGVjLTI1NjItOWVkZS01YjhhMGZiYmRjNzEiLCJzdmMiOiIxMjhyb3V0ZXIiLCJwcm92aWRlciI6ImF3cyIsImVudiI6ImxvY2FsIiwiZXB0ZXJtX3VybCI6IndzczovL2xvY2FsL3dzIiwiaWF0IjoxNjEzODQ3NDg0LCJleHAiOjE2NDUzODM0ODR9.YnhgThKYAj1uaooi6j-zY8dMipp5YqJxnn79B9TB5XQ
-              schema:
-                properties:
-                  conductor_cmd:
-                    type: string
-                  registration_code:
-                    type: string
-                  router_shell_cmd:
-                    type: string
-                type: object
-          description: OK
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: getOrg128TRegistrationCommands
-      tags:
-      - tag:MIST:CONFIGURE:Orgs:128T
-      - Orgs 128T
-    parameters:
-    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/admins:
     get:
       description: Get List of people who can manage the Site/Org under the Org
@@ -3632,18 +3455,7 @@ paths:
                   - 98ff4a3d-ec9b-4138-a42e-54fc3335179d
                   note: maintenance window
             schema:
-              properties:
-                alarm_ids:
-                  items:
-                    format: uuid
-                    type: string
-                  type: array
-                note:
-                  description: Some text note describing the intent
-                  type: string
-              required:
-              - alarm_ids
-              type: object
+              $ref: '#/components/schemas/alarm_ids'
         description: Request Body
       responses:
         '200':
@@ -3706,6 +3518,7 @@ paths:
       - in: query
         name: distinct
         schema:
+          title: Org Alarms count distinct
           type: string
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
@@ -3784,18 +3597,7 @@ paths:
                   - 98ff4a3d-ec9b-4138-a42e-54fc3335179d
                   note: maintenance window
             schema:
-              properties:
-                alarm_ids:
-                  items:
-                    format: uuid
-                    type: string
-                  type: array
-                note:
-                  description: Some text note describing the intent
-                  type: string
-              required:
-              - alarm_ids
-              type: object
+              $ref: '#/components/schemas/alarm_ids'
         description: Request Body
       responses:
         '200':
@@ -3969,36 +3771,10 @@ paths:
       - in: query
         name: scope
         schema:
-          default: site
-          enum:
-          - org
-          - site
-          type: string
+          $ref: '#/components/schemas/suppressed_alarm_scope'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                Example:
-                  value:
-                    results:
-                    - duration: 48
-                      site_id: 581328b6-e382-f54e-c9dc-9c998d183a34
-              schema:
-                properties:
-                  results:
-                    items:
-                      properties:
-                        duration:
-                          description: duration, in seconds. Maximum duration is 86400
-                            * 14 (14 days). 0 is to un-suppress alarms.
-                          type: integer
-                        site_id:
-                          type: string
-                      type: object
-                    type: array
-                type: object
-          description: OK
+          $ref: '#/components/responses/OrgSuppressedAlarms'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -4041,56 +3817,7 @@ paths:
                   scheduled_time: 1678232980
                   scope: site
             schema:
-              properties:
-                applies:
-                  description: 'if `scope`==`site`
-
-                    Object defines the scope (within the org e.g. whole org, and/or
-                    some site-groups, and/or some sites) for which the alarm service
-                    has to be suppressed for some `duration`'
-                  properties:
-                    org_id:
-                      description: UUID of the current org (if provided, the alarms
-                        will be suppressed at org level)
-                      format: uuid
-                      minLength: 1
-                      type: string
-                    site_ids:
-                      description: List of UUID of the sites within the org (if provided,
-                        the alarms will be suppressed for all the mentioned sites
-                        under the org)
-                      items:
-                        format: uuid
-                        type: string
-                      type: array
-                    sitegroup_ids:
-                      description: List of UUID of the site groups within the org
-                        (if provided, the alarms will be suppressed for all the sites
-                        under those site groups)
-                      items:
-                        format: uuid
-                        type: string
-                      type: array
-                  type: object
-                duration:
-                  default: 3600
-                  description: duration, in seconds. Maximum duration is 86400 * 180
-                    (180 days). 0 is to un-suppress alarms
-                  maximum: 15552000
-                  minimum: 0
-                  type: number
-                scheduled_time:
-                  description: poch_time in seconds, Default as now, accepted time
-                    range is from now to now + 7 days
-                  type: integer
-                scope:
-                  default: site
-                  description: level of scope
-                  enum:
-                  - org
-                  - site
-                  type: string
-              type: object
+              $ref: '#/components/schemas/suppressed_alarm'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -4652,6 +4379,7 @@ paths:
           enum:
           - type
           - app
+          title: Org call events count distinct
           type: string
       responses:
         '200':
@@ -4774,29 +4502,7 @@ paths:
                   code: ZHT3K-H36DT-MG85D-M61AC
                   type: all
             schema:
-              properties:
-                code:
-                  description: activation code
-                  type: string
-                device_type:
-                  description: if only intended to claim certain device type
-                  enum:
-                  - ap
-                  - switch
-                  - gateway
-                  type: string
-                type:
-                  default: all
-                  description: what to claim
-                  enum:
-                  - all
-                  - license
-                  - inventory
-                  type: string
-              required:
-              - code
-              - type
-              type: object
+              $ref: '#/components/schemas/claim_activation'
         description: Request Body
       responses:
         '200':
@@ -4889,11 +4595,7 @@ paths:
         content:
           application/json:
             schema:
-              properties:
-                days:
-                  default: 30
-                  type: integer
-              type: object
+              $ref: '#/components/schemas/days_number'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -4916,15 +4618,7 @@ paths:
       description: Get List of Org Device Profiles
       operationId: listOrgDeviceProfiles
       parameters:
-      - in: query
-        name: type
-        schema:
-          default: ap
-          enum:
-          - ap
-          - switch
-          - gateway
-          type: string
+      - $ref: '#/components/parameters/device_type'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/page'
       responses:
@@ -5982,7 +5676,7 @@ paths:
                     - alert_only: true
                       block_message: Access to this URL Category has been blocked
                       enabled: false
-                      profille: strict
+                      profile: strict
                     idp:
                       alert_only: string
                       enabled: false
@@ -6976,7 +6670,7 @@ paths:
                     - alert_only: true
                       block_message: Access to this URL Category has been blocked
                       enabled: false
-                      profille: strict
+                      profile: strict
                     idp:
                       alert_only: string
                       enabled: false
@@ -7146,7 +6840,7 @@ paths:
                   - 5c5b350e0001
                   - 5c5b350e0003
             schema:
-              $ref: '#/components/schemas/Model_object_macs_array_string'
+              $ref: '#/components/schemas/mac_addresses'
         description: Request Body
       responses:
         '200':
@@ -7182,7 +6876,7 @@ paths:
                   - 5c5b350e0001
                   - 5c5b350e0003
             schema:
-              $ref: '#/components/schemas/Model_object_macs_array_string'
+              $ref: '#/components/schemas/mac_addresses'
         description: Request Body
       responses:
         '200':
@@ -7229,10 +6923,8 @@ paths:
       description: Count Org Devices
       operationId: countOrgDevices
       parameters:
-      - example: model
-        in: query
+      - in: query
         name: distinct
-        required: true
         schema:
           default: model
           enum:
@@ -7248,6 +6940,7 @@ paths:
           - lldp_system_desc
           - lldp_port_id
           - lldp_mgmt_addr
+          title: Org Devices count distinct
           type: string
       - description: partial / full hostname
         in: query
@@ -7339,7 +7032,6 @@ paths:
       parameters:
       - in: query
         name: distinct
-        required: true
         schema:
           default: model
           enum:
@@ -7351,6 +7043,7 @@ paths:
           - text
           - timestamp
           - type
+          title: Org Devices Events count distinct
           type: string
       - description: site id
         in: query
@@ -7426,16 +7119,7 @@ paths:
         name: model
         schema:
           type: string
-      - description: device type
-        in: query
-        name: device_type
-        schema:
-          default: ap
-          enum:
-          - ap
-          - switch
-          - gateway
-          type: string
+      - $ref: '#/components/parameters/device_type'
       - description: event message
         in: query
         name: text
@@ -7486,15 +7170,7 @@ paths:
         field with given filters
       operationId: countOrgDeviceLastConfigs
       parameters:
-      - in: query
-        name: device_type
-        schema:
-          default: ap
-          enum:
-          - ap
-          - switch
-          - gateway
-          type: string
+      - $ref: '#/components/parameters/device_type'
       - in: query
         name: distinct
         schema:
@@ -7503,6 +7179,7 @@ paths:
           - version
           - name
           - site_id
+          title: Org Devices Last Configs count distinct
           type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -7531,15 +7208,7 @@ paths:
       description: Search Device Last Configs
       operationId: searchOrgDeviceLastConfigs
       parameters:
-      - in: query
-        name: device_type
-        schema:
-          default: ap
-          enum:
-          - ap
-          - switch
-          - gateway
-          type: string
+      - $ref: '#/components/parameters/device_type'
       - in: query
         name: mac
         schema:
@@ -7708,45 +7377,7 @@ paths:
       operationId: listOrgMultiSitesDevicesUpgrades
       responses:
         '200':
-          content:
-            application/json:
-              schema:
-                items:
-                  properties:
-                    id:
-                      description: unique id for the org upgrade
-                      format: uuid
-                      minLength: 1
-                      type: string
-                    upgrades:
-                      description: site upgrades part of this upgrade
-                      items:
-                        properties:
-                          site_id:
-                            description: id of the site upgrade
-                            format: uuid
-                            minLength: 1
-                            type: string
-                          upgrade_id:
-                            description: site the upgrade belongs to
-                            format: uuid
-                            minLength: 1
-                            type: string
-                        required:
-                        - site_id
-                        - upgrade_id
-                        type: object
-                      minItems: 1
-                      type: array
-                      uniqueItems: true
-                  required:
-                  - id
-                  - upgrades
-                  type: object
-                minItems: 1
-                type: array
-                uniqueItems: true
-          description: OK
+          $ref: '#/components/responses/OrgDeviceUpgradeMulti'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -7991,14 +7622,7 @@ paths:
         name: model
         schema:
           type: string
-      - in: query
-        name: type
-        schema:
-          enum:
-          - ap
-          - switch
-          - gateway
-          type: string
+      - $ref: '#/components/parameters/device_type'
       - description: MAC address
         in: query
         name: mac
@@ -8109,60 +7733,7 @@ paths:
                   - FXLH2015150025
                   - FXLH2015150026
             schema:
-              properties:
-                disable_auto_config:
-                  default: false
-                  description: if `op`==`assign`, a **cloud-ready** switch/gateway
-                    will be managed/configured by Mist by default, this disabled the
-                    behavior
-                  type: boolean
-                macs:
-                  description: if `op`==`assign`, `op`==`unassign`,  `op`==`manage`or
-                    `op`==`unmanage` , list of MAC, e.g. ["5c5b350e0001"]
-                  items:
-                    type: string
-                  type: array
-                managed:
-                  default: false
-                  description: if `op`==`assign`, an **adopted** switch/gateway will
-                    not be managed/configured by Mist by default, this enables the
-                    behavior
-                  type: boolean
-                no_reassign:
-                  description: if `op`==`assign`, if true, treat site assignment against
-                    an already assigned AP as error
-                  type: boolean
-                op:
-                  description: '* if `op`== `manage`: Upgrade to mist-managed
-
-                    * if `op`== `unmanage`: Downgrade to basic monitoring
-
-                    * if `op`== `assign`: Assign inventory to a site
-
-                    * if `op`== `unassign`: Unassign inventory to a site
-
-                    * if `op`== `delete`: Delete multiple inventory from org
-
-                    '
-                  enum:
-                  - assign
-                  - unassign
-                  - delete
-                  - manage
-                  - unmanage
-                  type: string
-                serials:
-                  description: if `op`==`delete`, list of serial numbers, e.g. ["FXLH2015150025"]
-                  items:
-                    type: string
-                  type: array
-                site_id:
-                  description: if `op`==`assign`, target site id
-                  format: uuid
-                  type: string
-              required:
-              - op
-              type: object
+              $ref: '#/components/schemas/inventory_update'
       responses:
         '200':
           $ref: '#/components/responses/OrgInventoryChanges'
@@ -8207,12 +7778,6 @@ paths:
     post:
       description: Reevaluate Auto Assignment
       operationId: reevaluateOrgAutoAssignment
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties: {}
-              type: object
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -8257,7 +7822,7 @@ paths:
                   mac: 5c5b35000101
                   site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
             schema:
-              $ref: '#/components/schemas/req_replace_device'
+              $ref: '#/components/schemas/replace_device'
         description: Request Body
       responses:
         '200':
@@ -8415,33 +7980,7 @@ paths:
           type: string
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                  - ext_ip: 73.92.124.103
-                    last_seen: 1654636867
-                    mac: c15353123096
-                    model: EX2300-C-12P
-                    serial: DGCOO0015
-              schema:
-                items:
-                  properties:
-                    ext_ip:
-                      description: when available
-                      type: string
-                    last_seen:
-                      type: integer
-                    mac:
-                      type: string
-                    model:
-                      type: string
-                    serial:
-                      type: string
-                  type: object
-                type: array
-          description: OK
+          $ref: '#/components/responses/JsiDevices'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -8460,28 +7999,11 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/jsi/devices/outbound_ssh_cmd:
     get:
-      description: 'Adopt JSI devices
-
-        '
+      description: Adopt JSI devices
       operationId: adoptOrgJsiDevice
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    cmd: 'set system services ssh...
-
-                      ...
-
-                      set system services outbound-ssh client mist ...'
-              schema:
-                properties:
-                  cmd:
-                    type: string
-                type: object
-          description: OK
+          $ref: '#/components/responses/JunosRegisterCmd'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -8507,21 +8029,7 @@ paths:
       operationId: createOrgJsiDeviceShellSession
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    session: 19e73828-937f-05e6-f709-e29efdb0a82b
-                    url: wss://api-ws.mist.com/ssh?jwt=xxxx
-              schema:
-                properties:
-                  session:
-                    type: string
-                  url:
-                    type: string
-                type: object
-          description: OK
+          $ref: '#/components/responses/JsiShellSession'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -8551,10 +8059,7 @@ paths:
                 value:
                   version: 3.1.5
             schema:
-              properties:
-                version:
-                  type: string
-              type: object
+              $ref: '#/components/schemas/version'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -8759,37 +8264,7 @@ paths:
                   amendment_id: 2b9116ab-cd1e-e897-6e08-31fccd88e792
                   op: unamend
             schema:
-              properties:
-                amendment_id:
-                  description: if `op`==`unamend`, the ID of the operation to cancel
-                  format: uuid
-                  type: string
-                dst_org_id:
-                  description: if `op`==`amend`, the id of the org where the licence
-                    is moved
-                  format: uuid
-                  type: string
-                notes:
-                  description: if `op`==`annotate`
-                  type: string
-                op:
-                  description: to move a license, use the `amend` operation
-                  enum:
-                  - amend
-                  - unamend
-                  - delete
-                  - annotate
-                  type: string
-                quantity:
-                  description: if `op`==`amend`, the number of licences to move
-                  type: integer
-                subscription_id:
-                  description: if `op`==`amend` or `op`==`delete`, the ID of the subscription
-                    to use
-                  type: string
-              required:
-              - op
-              type: object
+              $ref: '#/components/schemas/org_license_action'
         description: Request Body
       responses:
         '200':
@@ -8895,7 +8370,6 @@ paths:
       parameters:
       - in: query
         name: distinct
-        required: true
         schema:
           default: admin_name
           enum:
@@ -8903,6 +8377,7 @@ paths:
           - admin_name
           - message
           - site_id
+          title: Org Logs count distinct
           type: string
       - in: query
         name: admin_id
@@ -8944,6 +8419,59 @@ paths:
       - Orgs Logs
     parameters:
     - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/maps/import:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: 'Import data from files is a multipart POST which has a file, an
+        optional json, and an optional csv, to create floorplan, assign matching inventory
+        to specific site, place ap if name or mac matches
+
+
+        ### CSV File Format
+
+        ```csv
+
+        Vendor AP name,Mist AP Mac
+
+        US Office AP-2 - 5c:5b:35:00:00:02,5c5b35000002
+
+        ```'
+      operationId: importOrgMaps
+      requestBody:
+        content:
+          multipart/form-data:
+            examples:
+              Example:
+                value:
+                  auto_deviceprofile_assignment: false
+                  csv: string
+                  file: string
+                  json:
+                    import_all_floorplans: false
+                    import_height: true
+                    import_orientation: true
+                    site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
+                    vendor_name: ekahau
+            schema:
+              $ref: '#/components/schemas/import_org_map'
+      responses:
+        '200':
+          $ref: '#/components/responses/MapImport'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: importOrgMaps
+      tags:
+      - tag:MIST:CONFIGURE:Orgs:Maps
+      - Orgs Maps
   /api/v1/orgs/{org_id}/mxedges/claim:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -8959,12 +8487,7 @@ paths:
                 value:
                   code: 135-546-673
             schema:
-              properties:
-                code:
-                  type: string
-              required:
-              - code
-              type: object
+              $ref: '#/components/schemas/code'
         description: Request Body
       responses:
         '200':
@@ -9003,24 +8526,7 @@ paths:
           type: string
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    cmd: 'set system services ssh...
-
-                      ...
-
-                      set system services outbound-ssh client mist ...'
-              schema:
-                properties:
-                  cmd:
-                    type: string
-                required:
-                - cmd
-                type: object
-          description: OK
+          $ref: '#/components/responses/JunosRegisterCmd'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -9736,7 +9242,7 @@ paths:
                   - 18-65-90-de-f4-c6
                   - 84-89-ad-5d-69-0d
             schema:
-              $ref: '#/components/schemas/Model_object_macs_array_string'
+              $ref: '#/components/schemas/mac_addresses'
         description: Request Body
       responses:
         '200':
@@ -9784,22 +9290,8 @@ paths:
       requestBody:
         content:
           application/json:
-            examples: {}
             schema:
-              properties:
-                cp_api_id:
-                  example: 84446d61-2206-4ea5-855a-0043f980be54
-                  type: string
-                cp_api_key:
-                  example: 79c329da9893e34099c7d8ad5cb9c941
-                  type: string
-                ecm_api_id:
-                  example: 73446d61-2206-4ea5-855a-0043f980be62
-                  type: string
-                ecm_api_key:
-                  example: 68b329da9893e34099c7d8ad5cb9c9405
-                  type: string
-              type: object
+              $ref: '#/components/schemas/cradlepoint_config'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -9831,16 +9323,7 @@ paths:
                   ecm_api_id: 73446d61-2206-4ea5-855a-0043f980be62
                   ecm_api_key: 68b329da9893e34099c7d8ad5cb9c9405
             schema:
-              properties:
-                cp_api_id:
-                  type: string
-                cp_api_key:
-                  type: string
-                ecm_api_id:
-                  type: string
-                ecm_api_key:
-                  type: string
-              type: object
+              $ref: '#/components/schemas/cradlepoint_config'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -9922,23 +9405,7 @@ paths:
       operationId: getOrgJsecCredential
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                Example:
-                  value:
-                    cloud_name: devcentral.juniperclouds.net
-                    username: john@abc.com
-              schema:
-                properties:
-                  cloud_name:
-                    example: devcentral.juniperclouds.net
-                    type: string
-                  username:
-                    example: john@abc.com
-                    type: string
-                type: object
-          description: OK
+          $ref: '#/components/responses/AccountJseInfo'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -9971,39 +9438,10 @@ paths:
                   password: foryoureyesonly
                   username: john@abc.com
             schema:
-              properties:
-                cloud_name:
-                  example: devcentral.juniperclouds.net
-                  type: string
-                password:
-                  example: foryoureyesonly
-                  type: string
-                username:
-                  example: john@abc.com
-                  type: string
-              required:
-              - username
-              - password
-              type: object
+              $ref: '#/components/schemas/account_jse_config'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                Example:
-                  value:
-                    cloud_name: devcentral.juniperclouds.net
-                    username: john@abc.com
-              schema:
-                properties:
-                  cloud_name:
-                    example: devcentral.juniperclouds.net
-                    type: string
-                  username:
-                    example: john@abc.com
-                    type: string
-                type: object
-          description: OK
+          $ref: '#/components/responses/AccountJseInfo'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -10033,7 +9471,7 @@ paths:
                   password: password
                   username: john@nmo.com
             schema:
-              $ref: '#/components/schemas/account_juniper_write'
+              $ref: '#/components/schemas/account_juniper_config'
       responses:
         '200':
           content:
@@ -10045,7 +9483,7 @@ paths:
                       linked_by: John Smith (john@abccorp.com)
                       name: ABC Corp
               schema:
-                $ref: '#/components/schemas/account_juniper_read'
+                $ref: '#/components/schemas/account_juniper_info'
           description: account linked
         '400':
           content:
@@ -10088,7 +9526,7 @@ paths:
                     linked_by: John Smith (john@abccorp.com)
                     name: ABC Corp
             schema:
-              $ref: '#/components/schemas/account_juniper_read'
+              $ref: '#/components/schemas/account_juniper_info'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -10125,32 +9563,11 @@ paths:
                 value:
                   bucket: company-private-pcap
             schema:
-              properties:
-                bucket:
-                  type: string
-              required:
-              - bucket
-              type: object
+              $ref: '#/components/schemas/pcap_bucket'
         description: Request Body
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                Failed:
-                  value:
-                    bucket: company-private-pcap
-                    detail: failed to write bucket - 403 AccessDenied
-                Success:
-                  value: {}
-              schema:
-                properties:
-                  bucket:
-                    type: string
-                  detail:
-                    type: string
-                type: object
-          description: OK
+          $ref: '#/components/responses/PcapBucketConfig'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -10181,15 +9598,7 @@ paths:
                   bucket: company-private-pcap
                   verify_token: eyJhbGciOiJIUzI1J9.eyJzdWIiOiIxMjM0joiMjgxOG5MDIyfQ.2rzcRvMA3Eg09NnjCAC-1EWMRtxAnFDM
             schema:
-              properties:
-                bucket:
-                  type: string
-                verify_token:
-                  type: string
-              required:
-              - bucket
-              - verify_token
-              type: object
+              $ref: '#/components/schemas/pcap_bucket_verify'
         description: Request Body
       responses:
         '200':
@@ -10208,121 +9617,7 @@ paths:
       tags:
       - tag:MIST:CONFIGURE:Orgs:Setting
       - Orgs Setting
-  /api/v1/orgs/{org_id}/setting/zscaler/setup:
-    delete:
-      description: 'To delete Zscaler credential
-
-        '
-      operationId: deleteOrgZscalerCredential
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: deleteOrgZscalerCredential
-      tags:
-      - tag:MIST:CONFIGURE:Orgs:Devices Zscaler
-      - Orgs Devices Zscaler
-    get:
-      description: To get Zscaler credential
-      operationId: getOrgZscalerCredential
-      responses:
-        '200':
-          $ref: '#/components/responses/ZscalerAccount'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: getOrgZscalerCredential
-      tags:
-      - tag:MIST:CONFIGURE:Orgs:Devices Zscaler
-      - Orgs Devices Zscaler
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    post:
-      description: 'To setup Zscaler credential
-
-        '
-      operationId: setupOrgZscalerCredential
-      requestBody:
-        content:
-          application/json:
-            examples:
-              Example:
-                value:
-                  cloud_name: zscalerbeta.net
-                  parnter_key: K35vrZcK3JvrZc
-                  password: password
-                  username: john@nmo.com
-            schema:
-              $ref: '#/components/schemas/account_zscaler_write'
-        description: ''
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: setupOrgZscalerCredential
-      tags:
-      - tag:MIST:CONFIGURE:Orgs:Devices Zscaler
-      - Orgs Devices Zscaler
   /api/v1/orgs/{org_id}/setting/{app_name}/link_accounts:
-    delete:
-      description: Delete Org Level OAuth Application Authorization With Mist Portal
-      operationId: deleteOrgOauthAppAuthorization
-      requestBody:
-        content:
-          application/json:
-            examples:
-              Example:
-                value:
-                  account_id: iojzXIJWEuiD73ZvydOfg
-            schema:
-              properties:
-                account_id:
-                  description: 'Required for OAuth Apps: `app_name`==`zoom`, `app_name`==`teams`
-                    or `app_name`==`intune`. account id'
-                  type: string
-              type: object
-      responses:
-        '200':
-          description: Successful
-        '400':
-          description: Unsuccessful
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: deleteOrgOauthAppAuthorization
-      tags:
-      - tag:MIST:CONFIGURE:Orgs:Linked Applications
-      - Orgs Linked Applications
     get:
       description: Get Org Level OAuth Application Linked Status
       operationId: getOrgOauthAppLinkedStatus
@@ -10347,7 +9642,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getOrgOAuthAppAuthorizationUrl
+      summary: getOrgOauthAppAuthorizationUrl
       tags:
       - tag:MIST:CONFIGURE:Orgs:Linked Applications
       - Orgs Linked Applications
@@ -10359,11 +9654,12 @@ paths:
       required: true
       schema:
         enum:
-        - zomm
+        - zoom
         - teams
         - intune
         - jamf
         - vmware
+        title: oauth_app_name
         type: string
     post:
       description: Add Jamf, VMware Authorization With Mist Portal
@@ -10374,7 +9670,7 @@ paths:
             schema:
               oneOf:
               - $ref: '#/components/schemas/account_jamf_write'
-              - $ref: '#/components/schemas/account_vmware_write'
+              - $ref: '#/components/schemas/account_vmware_config'
       responses:
         '200':
           description: Successful
@@ -10400,7 +9696,7 @@ paths:
                   account_id: iojzXIJWEuiD73ZvydOfg
                   max_daily_api_requests: 5000
             schema:
-              $ref: '#/components/schemas/account_oauth_write'
+              $ref: '#/components/schemas/account_oauth_config'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -10408,6 +9704,43 @@ paths:
       tags:
       - tag:MIST:CONFIGURE:Orgs:Linked Applications
       - Orgs Linked Applications
+  /api/v1/orgs/{org_id}/setting/{app_name}/link_accounts/{account_id}:
+    delete:
+      description: Delete Org Level OAuth Application Authorization With Mist Portal
+      operationId: deleteOrgOauthAppAuthorization
+      responses:
+        '200':
+          description: Successful
+        '400':
+          description: Unsuccessful
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: deleteOrgOauthAppAuthorization
+      tags:
+      - tag:MIST:CONFIGURE:Orgs:Linked Applications
+      - Orgs Linked Applications
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - description: OAuth application name
+      in: path
+      name: app_name
+      required: true
+      schema:
+        enum:
+        - zoom
+        - teams
+        - intune
+        - jamf
+        - vmware
+        title: oauth_app_name
+        type: string
+    - $ref: '#/components/parameters/account_id'
   /api/v1/orgs/{org_id}/sitegroups:
     get:
       description: Get List of Org Site Groups
@@ -10517,19 +9850,9 @@ paths:
             examples:
               example-1:
                 value:
-                  id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                   name: string
             schema:
-              properties:
-                id:
-                  format: uuid
-                  type: string
-                name:
-                  type: string
-              required:
-              - id
-              - name
-              type: object
+              $ref: '#/components/schemas/name'
         description: Request Body
       responses:
         '200':
@@ -10646,6 +9969,7 @@ paths:
           - rtsa_enabled
           - vna_enabled
           - wifi_enabled
+          title: Org Sites count distinct
           type: string
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
@@ -10779,6 +10103,67 @@ paths:
       - Orgs Sites
     parameters:
     - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/sites/{site_name}/maps/import:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/site_name'
+    post:
+      description: 'Import data from files is a multipart POST which has a file, an
+        optional json, and an optional csv, to create floorplan, assign matching inventory
+        to specific site, place ap if name or mac matches
+
+
+        #### Request
+
+
+        ```
+
+        "json": a JSON string describing your upload
+
+        "file": a binary file
+
+        ```'
+      operationId: importOrgMapToSite
+      requestBody:
+        content:
+          multipart/form-data:
+            examples:
+              Example:
+                value:
+                  auto_deviceprofile_assignment: true
+                  csv: string
+                  file: string
+                  json:
+                    import_all_floorplans: false
+                    import_height: true
+                    import_orientation: true
+                    vendor_name: ekahau
+            schema:
+              $ref: '#/components/schemas/import_site_map'
+        description: 'a JSON string, site id required, vendor option: ekahau, ibwave,
+          etc., import_all_floorplans: optional, default: false, import_height: optional,
+          default: true, import_orientation: optional, default: true
+
+          "file": a binary file, option: .esx
+
+          "csv": a csv file for ap name mapping, optional'
+      responses:
+        '200':
+          $ref: '#/components/responses/MapImport'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: importOrgMapToSite
+      tags:
+      - tag:MIST:CONFIGURE:Orgs:Maps
+      - Orgs Maps
   /api/v1/orgs/{org_id}/sitetemplates:
     get:
       description: Get List of Org Site Templates
@@ -10812,7 +10197,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/sitetemplate'
+              $ref: '#/components/schemas/site_template'
       responses:
         '200':
           $ref: '#/components/responses/SiteTemplate'
@@ -10881,7 +10266,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/sitetemplate'
+              $ref: '#/components/schemas/site_template'
       responses:
         '200':
           $ref: '#/components/responses/SiteTemplate'
@@ -11322,16 +10707,7 @@ paths:
         in response header (as the response is an array)'
       operationId: listOrgDevicesStats
       parameters:
-      - in: query
-        name: type
-        schema:
-          default: ap
-          enum:
-          - ap
-          - switch
-          - gateway
-          - all
-          type: string
+      - $ref: '#/components/parameters/device_type_with_all'
       - in: query
         name: status
         schema:
@@ -11505,6 +10881,7 @@ paths:
           enum:
           - status
           - type
+          title: Org Tickets count distinct
           type: string
       responses:
         '200':
@@ -11758,6 +11135,7 @@ paths:
                           type: string
                         var:
                           type: string
+                      title: org_var_search_result
                       type: object
                     type: array
                   start:
@@ -12130,72 +11508,15 @@ paths:
       operationId: verifyRegistration
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                success:
-                  value:
-                    return_to: http://mist.zendesk.com/hc/quickstart.pdf
-                success-but-failed-to-apply-the-invitation-automatically:
-                  value:
-                    detail: password policy not met
-                    invite_not_applied: true
-                    min_length: 8
-              schema:
-                properties:
-                  detail:
-                    type: string
-                  invite_not_applied:
-                    type: boolean
-                  min_length:
-                    type: integer
-                  return_to:
-                    type: string
-                type: object
-          description: OK
-          headers:
-            Set-Cookie:
-              schema:
-                example: csrftoken=vwvBuq9qkqaKh7lu8tNc0gkvBfEaLAmx; expires=Tue,
-                  15-Mar-2016 19:47:20 GMT; Max-Age=31449600; Path=/
-                type: string
+          $ref: '#/components/responses/VerifyRegisterTokenSuccess'
         '400':
-          content:
-            application/json:
-              examples:
-                already-registered:
-                  value:
-                    detail: already registered
-                verification-expired:
-                  value:
-                    detail: expired
-              schema:
-                properties:
-                  detail:
-                    type: string
-                required:
-                - detail
-                type: object
-          description: Response if verification expired or already registered
+          $ref: '#/components/responses/VerifyRegisterTokenAlreadyRegistered'
         '401':
           $ref: '#/components/responses/HTTP401'
         '403':
           $ref: '#/components/responses/HTTP403'
         '404':
-          content:
-            application/json:
-              examples:
-                not-found:
-                  value:
-                    detail: Not found.
-              schema:
-                properties:
-                  detail:
-                    type: string
-                required:
-                - detail
-                type: object
-          description: Response if secret is invalid
+          $ref: '#/components/responses/VerifyRegisterTokenInvalid'
         '429':
           $ref: '#/components/responses/HTTP429'
       summary: verifyRegistration
@@ -12427,113 +11748,7 @@ paths:
       - $ref: '#/components/parameters/duration'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    end: 1428954000
-                    limit: 100
-                    page: 1
-                    results:
-                    - admin_id: 72bfa2bd-e58a-4670-9d20-a1468f7a6f58
-                      admin_name: test@mistsys.com
-                      after:
-                        auth:
-                          type: open
-                      before:
-                        auth:
-                          type: psk
-                      id: c6f9347b-b0a4-4a23-b927-fa9249f2ffb2
-                      message: Update WLAN "Corporate"
-                      org_id: 423f6eca-6276-4994-bfeb-53cbbbba6f04
-                      site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-                      timestamp: 1431382121
-                    start: 1428939600
-                    total: 135
-              schema:
-                properties:
-                  end:
-                    type: integer
-                  limit:
-                    type: integer
-                  page:
-                    type: integer
-                  results:
-                    items:
-                      properties:
-                        admin_id:
-                          format: uuid
-                          type: string
-                        admin_name:
-                          type: string
-                        after:
-                          description: field values after the change
-                          properties:
-                            auth:
-                              properties:
-                                type:
-                                  type: string
-                              required:
-                              - type
-                              type: object
-                          required:
-                          - auth
-                          type: object
-                        before:
-                          description: field values prior to the change
-                          properties:
-                            auth:
-                              properties:
-                                type:
-                                  type: string
-                              required:
-                              - type
-                              type: object
-                          required:
-                          - auth
-                          type: object
-                        for_site:
-                          readOnly: true
-                          type: boolean
-                        id:
-                          format: uuid
-                          type: string
-                        message:
-                          type: string
-                        org_id:
-                          format: uuid
-                          type: string
-                        site_id:
-                          format: uuid
-                          type: string
-                        timestamp:
-                          type: number
-                      required:
-                      - admin_id
-                      - admin_name
-                      - id
-                      - message
-                      - org_id
-                      - site_id
-                      - timestamp
-                      type: object
-                    minItems: 1
-                    type: array
-                    uniqueItems: true
-                  start:
-                    type: integer
-                  total:
-                    type: integer
-                required:
-                - end
-                - limit
-                - page
-                - results
-                - start
-                - total
-                type: object
-          description: OK
+          $ref: '#/components/responses/SelfAuditLogs'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -12551,7 +11766,7 @@ paths:
   /api/v1/self/oauth/{provider}:
     get:
       description: Obtain Authorization URL for Linking
-      operationId: getOAuth2UrlForLinking
+      operationId: getOauth2UrlForLinking
       parameters:
       - in: query
         name: forward
@@ -12560,24 +11775,7 @@ paths:
           type: string
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    authorization_url: https://accounts.google.com/o/oauth2/v2/auth?.....
-                    linked: false
-              schema:
-                properties:
-                  authorization_url:
-                    type: string
-                  linked:
-                    type: boolean
-                required:
-                - linked
-                - authorization_url
-                type: object
-          description: OK
+          $ref: '#/components/responses/SelfOauthUrl'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -12588,7 +11786,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getOAuth2UrlForLinking
+      summary: getOauth2UrlForLinking
       tags:
       - tag:MIST:AUTHENTICATION:Self OAuth2
       - Self OAuth2
@@ -12600,7 +11798,7 @@ paths:
         type: string
     post:
       description: Link Mist account with an OAuth2 Provider
-      operationId: linkOAuth2MistAccount
+      operationId: linkOauth2MistAccount
       requestBody:
         content:
           application/json:
@@ -12609,53 +11807,13 @@ paths:
                 value:
                   code: 4/S9tegDeLkrYg0L9pWNXV4cgMVbbr3SR9t693A2kSHzw
             schema:
-              properties:
-                code:
-                  type: string
-              required:
-              - code
-              type: object
+              $ref: '#/components/schemas/code'
         description: Request Body
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    action: oauth account linked
-                    id: google-user-id
-              schema:
-                properties:
-                  action:
-                    type: string
-                  id:
-                    type: string
-                required:
-                - action
-                - id
-                type: object
-          description: OK
+          $ref: '#/components/responses/SelfOauthLinkSuccess'
         '400':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    error: access_denied
-                    error_description: The resource owner or authorization server
-                      denied the request.
-              schema:
-                properties:
-                  error:
-                    type: string
-                  error_description:
-                    type: string
-                required:
-                - error
-                - error_description
-                type: object
-          description: Authorization Error
+          $ref: '#/components/responses/SelfOauthLinkFailure'
         '401':
           $ref: '#/components/responses/HTTP401'
         '403':
@@ -12664,7 +11822,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: linkOAuth2MistAccount
+      summary: linkOauth2MistAccount
       tags:
       - tag:MIST:AUTHENTICATION:Self OAuth2
       - Self OAuth2
@@ -12674,21 +11832,7 @@ paths:
       operationId: listAlarmSubscriptions
       responses:
         '200':
-          content:
-            application/json:
-              schema:
-                items:
-                  properties:
-                    org_id:
-                      format: uuid
-                      type: string
-                  required:
-                  - org_id
-                  type: object
-                minItems: 1
-                type: array
-                uniqueItems: true
-          description: OK
+          $ref: '#/components/responses/SelfSubscriptions'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -12715,6 +11859,7 @@ paths:
           default: qrcode
           enum:
           - qrcode
+          title: mfa_secret_type
           type: string
       responses:
         '200':
@@ -12807,7 +11952,7 @@ paths:
                 value:
                   email: new@mistsys.com
             schema:
-              $ref: '#/components/schemas/Model_object_email'
+              $ref: '#/components/schemas/email'
         description: Request Body
       responses:
         '200':
@@ -13071,6 +12216,7 @@ paths:
           - acked
           - severity
           - group
+          title: Site Alarms count distinct
           type: string
       - description: Name of the admins who have acked the alarms; accepts multiple
           values separated by comma
@@ -13464,6 +12610,7 @@ paths:
           enum:
           - type
           - app
+          title: Site Call Events count distinct
           type: string
       responses:
         '200':
@@ -13560,17 +12707,7 @@ paths:
       description: Get list of devices on the site.
       operationId: listSiteDevices
       parameters:
-      - description: device type
-        in: query
-        name: type
-        schema:
-          default: ap
-          enum:
-          - ap
-          - switch
-          - gateway
-          - all
-          type: string
+      - $ref: '#/components/parameters/device_type_with_all'
       - $ref: '#/components/parameters/name'
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
@@ -13602,6 +12739,7 @@ paths:
       - in: query
         name: distinct
         schema:
+          title: Site Device Config History count distinct
           type: string
       - in: query
         name: mac
@@ -13636,15 +12774,7 @@ paths:
       description: Search for entries in device config history
       operationId: searchSiteDeviceConfigHistory
       parameters:
-      - in: query
-        name: device_type
-        schema:
-          default: ap
-          enum:
-          - ap
-          - switch
-          - gateway
-          type: string
+      - $ref: '#/components/parameters/device_type'
       - description: Device MAC Address
         in: query
         name: mac
@@ -13694,6 +12824,7 @@ paths:
           - lldp_system_desc
           - lldp_port_id
           - lldp_mgmt_addr
+          title: Site Devices count distinct
           type: string
       - in: query
         name: hostname
@@ -13746,59 +12877,7 @@ paths:
       - $ref: '#/components/parameters/duration'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    distinct: model
-                    end: 1604304258.674506
-                    limit: 10
-                    percentage: 100
-                    results:
-                    - count: 1
-                      model: AP41
-                    - count: 1
-                      model: AP43
-                    start: 1604217858.6744902
-                    total: 2
-              schema:
-                properties:
-                  distinct:
-                    type: string
-                  end:
-                    type: number
-                  limit:
-                    type: integer
-                  percentage:
-                    type: integer
-                  results:
-                    items:
-                      properties:
-                        count:
-                          type: integer
-                        model:
-                          type: string
-                      required:
-                      - model
-                      - count
-                    minItems: 1
-                    type: array
-                    uniqueItems: true
-                  start:
-                    type: number
-                  total:
-                    type: integer
-                required:
-                - results
-                - start
-                - end
-                - limit
-                - distinct
-                - total
-                - percentage
-                type: object
-          description: OK
+          $ref: '#/components/responses/count'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -13830,6 +12909,7 @@ paths:
           - type
           - type_code
           - mac
+          title: Site Device Events count distinct
           type: string
       - in: query
         name: model
@@ -13850,59 +12930,7 @@ paths:
       - $ref: '#/components/parameters/duration'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    distinct: type
-                    end: 1531862583
-                    limit: 10
-                    percentage: 100
-                    results:
-                    - count: 10
-                      type: AP_CONNECT_STATUS
-                    - count: 4
-                      type: AP_CONFIGURED
-                    start: 1531776183
-                    total: 2
-              schema:
-                properties:
-                  distinct:
-                    type: string
-                  end:
-                    type: integer
-                  limit:
-                    type: integer
-                  percentage:
-                    type: integer
-                  results:
-                    items:
-                      properties:
-                        count:
-                          type: integer
-                        type:
-                          type: string
-                      required:
-                      - count
-                      - type
-                    minItems: 1
-                    type: array
-                    uniqueItems: true
-                  start:
-                    type: integer
-                  total:
-                    type: integer
-                required:
-                - end
-                - distinct
-                - results
-                - start
-                - limit
-                - percentage
-                - total
-                type: object
-          description: OK
+          $ref: '#/components/responses/count'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -13924,14 +12952,7 @@ paths:
       description: Search Devices Events
       operationId: searchSiteDeviceEvents
       parameters:
-      - in: query
-        name: device_type
-        schema:
-          enum:
-          - ap
-          - switch
-          - gateway
-          type: string
+      - $ref: '#/components/parameters/device_type'
       - description: device mac
         in: query
         name: mac
@@ -14467,6 +13488,7 @@ paths:
           - name
           - site_id
           - mac
+          title: Site Device Last Config count distinct
           type: string
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
@@ -14475,59 +13497,7 @@ paths:
       - $ref: '#/components/parameters/duration'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    distinct: ap
-                    end: 1604310805
-                    limit: 10
-                    percentage: 100
-                    results:
-                    - ap: 5c5b35000000
-                      count: 1
-                    - ap: 5c5b35000001
-                      count: 1
-                    start: 1604307205
-                    total: 2
-              schema:
-                properties:
-                  distinct:
-                    type: string
-                  end:
-                    type: integer
-                  limit:
-                    type: integer
-                  percentage:
-                    type: integer
-                  results:
-                    items:
-                      properties:
-                        ap:
-                          type: string
-                        count:
-                          type: integer
-                      required:
-                      - ap
-                      - count
-                    minItems: 1
-                    type: array
-                    uniqueItems: true
-                  start:
-                    type: integer
-                  total:
-                    type: integer
-                required:
-                - results
-                - start
-                - end
-                - limit
-                - distinct
-                - total
-                - percentage
-                type: object
-          description: OK
+          $ref: '#/components/responses/count'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -14549,15 +13519,7 @@ paths:
       description: Search Device Last Configs
       operationId: searchSiteDeviceLastConfigs
       parameters:
-      - in: query
-        name: device_type
-        schema:
-          default: ap
-          enum:
-          - ap
-          - switch
-          - gateway
-          type: string
+      - $ref: '#/components/parameters/device_type'
       - in: query
         name: mac
         schema:
@@ -14614,21 +13576,7 @@ paths:
                   - 421f6eca-6276-4893-bfeb-53cbbbba6f02
                   node: node0
             schema:
-              properties:
-                device_ids:
-                  items:
-                    format: uuid
-                    type: string
-                  type: array
-                node:
-                  description: 'only for SSR: if node is not present, both nodes are
-                    restarted
-
-                    for other devices: node should not be present'
-                  type: string
-              required:
-              - device_ids
-              type: object
+              $ref: '#/components/schemas/utils_devices_restart_multi'
         description: Request Body
       responses:
         '200':
@@ -14657,16 +13605,7 @@ paths:
         name: hostname
         schema:
           type: string
-      - description: device type
-        in: query
-        name: type
-        schema:
-          default: ap
-          enum:
-          - ap
-          - switch
-          - gateway
-          type: string
+      - $ref: '#/components/parameters/device_type'
       - description: device model
         in: query
         name: model
@@ -14944,16 +13883,7 @@ paths:
       description: Get List of Available Device Versions
       operationId: listSiteAvailableDeviceVersions
       parameters:
-      - description: fetch version for device type (E.g. switch)
-        in: query
-        name: type
-        schema:
-          default: ap
-          enum:
-          - ap
-          - switch
-          - gateway
-          type: string
+      - $ref: '#/components/parameters/device_type'
       - description: fetch version for device model, use/combine with `type` as needed
           (for switch and gateway devices)
         in: query
@@ -15079,17 +14009,10 @@ paths:
                 value:
                   node: node0
             schema:
-              properties:
-                node:
-                  description: only for HA
-                  enum:
-                  - node0
-                  - node1
-                  type: string
-              type: object
+              $ref: '#/components/schemas/utils_cluster_node'
       responses:
         '200':
-          $ref: '#/components/responses/Session'
+          $ref: '#/components/responses/WebsocketSession'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -15132,16 +14055,7 @@ paths:
                 value:
                   port: ge-0/0/0
             schema:
-              properties:
-                port:
-                  description: the port to bounce
-                  type: string
-                ports:
-                  description: list of ports to bounce
-                  items:
-                    type: string
-                  type: array
-              type: object
+              $ref: '#/components/schemas/utils_bounce_port'
         description: Request Body
       responses:
         '200':
@@ -15184,16 +14098,10 @@ paths:
                 value:
                   port: ge-0/0/0
             schema:
-              properties:
-                port:
-                  description: the port to run the cable test
-                  type: string
-              required:
-              - port
-              type: object
+              $ref: '#/components/schemas/utils_cable_test'
       responses:
         '200':
-          $ref: '#/components/responses/Session'
+          $ref: '#/components/responses/WebsocketSession'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -15289,35 +14197,11 @@ paths:
                   count: 10
                   host: 1.1.1.1
             schema:
-              properties:
-                count:
-                  default: 10
-                  type: integer
-                egress_interface:
-                  description: Interface through which packet needs to egress
-                  type: string
-                host:
-                  example: 1.1.1.1
-                  format: ipv4
-                  type: string
-                node:
-                  description: Only for HA
-                  enum:
-                  - node0
-                  - node1
-                  type: string
-                size:
-                  default: 56
-                  maximum: 65535
-                  minimum: 56
-                  type: integer
-              required:
-              - host
-              type: object
+              $ref: '#/components/schemas/utils_ping'
         description: Request Body
       responses:
         '200':
-          $ref: '#/components/responses/Session'
+          $ref: '#/components/responses/WebsocketSession'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -15370,13 +14254,7 @@ paths:
                   value:
                     root_password: ef8070ef8f924edb592e1819ed64b31172ab8de9d5cde75d3f46acd9506202ab9b1cbb97e381c5aa11037f17e5ed7b4b609461cd813d944670549d410ef82f2e
               schema:
-                properties:
-                  root_password:
-                    minLength: 1
-                    type: string
-                required:
-                - root_password
-                type: object
+                $ref: '#/components/schemas/root_password'
           description: OK
         '400':
           $ref: '#/components/responses/HTTP400'
@@ -15403,17 +14281,7 @@ paths:
         content:
           application/json:
             schema:
-              properties:
-                member:
-                  description: optional for VC member
-                  type: string
-                node:
-                  description: 'only for SSR: if node is not present, both nodes are
-                    restarted
-
-                    for other devices: node should not be present'
-                  type: string
-              type: object
+              $ref: '#/components/schemas/utils_devices_restart'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -15458,32 +14326,11 @@ paths:
                   host: 1.1.1.1
                   service: web-session
             schema:
-              properties:
-                count:
-                  default: 10
-                  type: integer
-                host:
-                  format: ipv4
-                  type: string
-                service:
-                  description: ping packet takes the same path as the service
-                  type: string
-                size:
-                  default: 56
-                  maximum: 65535
-                  minimum: 56
-                  type: integer
-                tenant:
-                  description: tenant context in which the packet is sent
-                  type: string
-              required:
-              - host
-              - service
-              type: object
+              $ref: '#/components/schemas/utils_service_ping'
         description: Request Body
       responses:
         '200':
-          $ref: '#/components/responses/Session'
+          $ref: '#/components/responses/WebsocketSession'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -15522,21 +14369,11 @@ paths:
                   route: advertised
                   vrf_name: default
             schema:
-              properties:
-                ip:
-                  example: 192.168.30.7
-                  type: string
-                port:
-                  example: ge-0/0/0.0
-                  type: string
-                vrf:
-                  example: guest
-                  type: string
-              type: object
+              $ref: '#/components/schemas/utils_show_arp'
         description: all attributes are optional
       responses:
         '200':
-          $ref: '#/components/responses/Session'
+          $ref: '#/components/responses/WebsocketSession'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -15575,21 +14412,11 @@ paths:
                   route: advertised
                   vrf_name: default
             schema:
-              properties:
-                mac_address:
-                  example: '112233445566'
-                  type: string
-                port:
-                  example: ge-0/0/0.0
-                  type: string
-                vlan_id:
-                  example: ge-0/0/0.0
-                  type: string
-              type: object
+              $ref: '#/components/schemas/utils_show_mac_table'
         description: all attributes are optional
       responses:
         '200':
-          $ref: '#/components/responses/Session'
+          $ref: '#/components/responses/WebsocketSession'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -15637,11 +14464,11 @@ paths:
                   route: advertised
                   vrf_name: default
             schema:
-              $ref: '#/components/schemas/req_show_route'
+              $ref: '#/components/schemas/utils_show_route'
         description: all attributes are optional
       responses:
         '200':
-          $ref: '#/components/responses/Session'
+          $ref: '#/components/responses/WebsocketSession'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -15681,31 +14508,7 @@ paths:
                 value:
                   info: full
             schema:
-              properties:
-                info:
-                  default: full
-                  description: 'optional choice: process, outbound-ssh, and full (default)'
-                  enum:
-                  - process
-                  - outbound-ssh
-                  - messages
-                  - code-dumps
-                  - full
-                  - var-logs
-                  - jma-logs
-                  type: string
-                node:
-                  description: 'optional: for SSR, if node is not present, both nodes
-                    support files are uploaded'
-                  type: string
-                num_messages_files:
-                  default: 1
-                  description: 'optional: number of most recent messages files to
-                    upload.'
-                  maximum: 10
-                  minimum: 1
-                  type: integer
-              type: object
+              $ref: '#/components/schemas/utils_send_support_logs'
         description: Request Body
       responses:
         '200':
@@ -15729,9 +14532,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: 'Device Synthetic Test
-
-        '
+      description: Device Synthetic Test
       operationId: triggerSiteDeviceSyntheticTest
       requestBody:
         content:
@@ -15777,11 +14578,11 @@ paths:
                   port: 33434
                   protocol: udp
             schema:
-              $ref: '#/components/schemas/req_traceroute'
+              $ref: '#/components/schemas/utils_traceroute'
         description: Request Body
       responses:
         '200':
-          $ref: '#/components/responses/Session'
+          $ref: '#/components/responses/WebsocketSession'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -15858,6 +14659,7 @@ paths:
           default: type
           enum:
           - type
+          title: Site System Events count distinct
           type: string
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
@@ -16006,6 +14808,833 @@ paths:
       - Sites Licenses
     parameters:
     - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/maps:
+    get:
+      description: Get List of Site Maps
+      operationId: listSiteMaps
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/MapsArray'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listSiteMaps
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps
+      - Sites Maps
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    post:
+      description: Create Site Map
+      operationId: createSiteMap
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  flags: {}
+                  height: 0
+                  height_m: 0
+                  latlng_br:
+                    lat: string
+                    lng: string
+                  latlng_tl:
+                    lat: string
+                    lng: string
+                  locked: true
+                  name: string
+                  occupancy_limit: 0
+                  orientation: 0
+                  origin_x: 0
+                  origin_y: 0
+                  ppm: 0
+                  sitesurvey_path:
+                  - coordinate: string
+                    id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                    name: string
+                    nodes:
+                    - edges:
+                        N2: string
+                      name: string
+                      position:
+                        x: 0
+                        y: 0
+                  thumbnail_url: string
+                  type: image
+                  url: string
+                  view: roadmap
+                  wall_path:
+                    coordinate: string
+                    nodes:
+                    - edges:
+                        N2: string
+                      name: string
+                      position:
+                        x: 0
+                        y: 0
+                  wayfinding:
+                    micello:
+                      account_key: string
+                      default_level_id: 0
+                      map_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                    snap_to_path: true
+                  wayfinding_path:
+                    coordinate: string
+                    nodes:
+                    - edges:
+                        N2: string
+                      name: string
+                      position:
+                        x: 0
+                        y: 0
+                  width: 0
+                  width_m: 0
+            schema:
+              $ref: '#/components/schemas/map'
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/Map'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: createSiteMap
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps
+      - Sites Maps
+  /api/v1/sites/{site_id}/maps/import:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    post:
+      description: 'Import data from files is a multipart POST which has an file,
+        an optional json, and an optional csv, to create floorplan, assign matching
+        inventory to specific site, place ap if name or mac matches.
+
+
+        # Note
+
+        This endpoint (at the site level), the AP must be already assigned to the
+        site to be placed on the floorplan. If you want to place APs from the Org
+        inventory, it is required to use the endpoint at the Org level [importOrgMaps](#operation/importOrgMaps)
+
+
+        # CSV File Format
+
+        ```csv
+
+        Vendor AP name,Mist AP Mac
+
+        US Office AP-2,5c:5b:35:00:00:02
+
+        US Office AP-3,5c5b35000002
+
+        ```'
+      operationId: importSiteMaps
+      requestBody:
+        content:
+          multipart/form-data:
+            examples:
+              Example:
+                value:
+                  auto_deviceprofile_assignment: true
+                  csv: string
+                  file: string
+                  json:
+                    import_all_floorplans: false
+                    import_height: true
+                    import_orientation: true
+                    vendor_name: ekahau
+            schema:
+              $ref: '#/components/schemas/import_site_map'
+      responses:
+        '200':
+          $ref: '#/components/responses/MapImport'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: importSiteMaps
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps
+      - Sites Maps
+  /api/v1/sites/{site_id}/maps/{map_id}:
+    delete:
+      description: Delete Site Map
+      operationId: deleteSiteMap
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: deleteSiteMap
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps
+      - Sites Maps
+    get:
+      description: Get Site Map Details
+      operationId: getSiteMap
+      responses:
+        '200':
+          $ref: '#/components/responses/Map'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteMap
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps
+      - Sites Maps
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    put:
+      description: Update Site Map
+      operationId: updateSiteMap
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  flags: {}
+                  height: 0
+                  height_m: 0
+                  latlng_br:
+                    lat: string
+                    lng: string
+                  latlng_tl:
+                    lat: string
+                    lng: string
+                  locked: true
+                  name: string
+                  occupancy_limit: 0
+                  orientation: 0
+                  origin_x: 0
+                  origin_y: 0
+                  ppm: 0
+                  sitesurvey_path:
+                  - coordinate: string
+                    id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                    name: string
+                    nodes:
+                    - edges:
+                        N2: string
+                      name: string
+                      position:
+                        x: 0
+                        y: 0
+                  thumbnail_url: string
+                  type: image
+                  url: string
+                  view: roadmap
+                  wall_path:
+                    coordinate: string
+                    nodes:
+                    - edges:
+                        N2: string
+                      name: string
+                      position:
+                        x: 0
+                        y: 0
+                  wayfinding:
+                    micello:
+                      account_key: string
+                      default_level_id: 0
+                      map_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                    snap_to_path: true
+                  wayfinding_path:
+                    coordinate: string
+                    nodes:
+                    - edges:
+                        N2: string
+                      name: string
+                      position:
+                        x: 0
+                        y: 0
+                  width: 0
+                  width_m: 0
+            schema:
+              $ref: '#/components/schemas/map'
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/Map'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: updateSiteMap
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps
+      - Sites Maps
+  /api/v1/sites/{site_id}/maps/{map_id}/auto_orient:
+    delete:
+      description: This API is called to force stop auto placement for a given map
+      operationId: deleteSiteApAutoOrientation
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          description: Autoplacement was not triggered
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: deleteSiteApAutoOrientation
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps Auto-orientation
+      - Sites Maps Auto-orientation
+    parameters:
+    - $ref: '#/components/parameters/map_id'
+    - $ref: '#/components/parameters/site_id'
+    post:
+      description: 'This API is called to trigger a map for auto orientation. For
+        auto orient feature to work, BLE data needs to be collected from the APs on
+        the map. This precess is not disruptive unlike FTM collection. Repeated POST
+        to this endpoint while a map is still running will be rejected.
+
+
+        List of devices to provide suggestions for is an optional parameter that can
+        be given to this API. This will provide auto orient suggestions only for the
+        devices specified. If no list of devices is provided, all APs asociated with
+        that map are considered by default'
+      operationId: startSiteApAutoOrientation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/auto_orient'
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                enqueued:
+                  value:
+                    state: Not Started
+                    time_queued: 1675414259
+                not-started:
+                  value:
+                    state: Not Started
+                    time_queued: -1
+                oriented:
+                  value:
+                    state: Oriented
+                    time_queued: 1675414259
+              schema:
+                properties:
+                  state:
+                    description: The state of auto orient for a given map derived
+                      from an Enum
+                    enum:
+                    - Not Started
+                    - Enqueued
+                    - Oriented
+                    type: string
+                  time_queued:
+                    description: Time when auto orient process was last queued for
+                      this map
+                    type: number
+                type: object
+          description: Map queued for auto orientation
+        '400':
+          content:
+            application/json:
+              examples:
+                Example:
+                  value:
+                    detail: Map has less than 3 APs associated with it to perform
+                      auto orient
+                Example-2:
+                  value:
+                    detail: Auto AP orient is already in progress for this Map
+                Example-3:
+                  value:
+                    detail: Auto orient data does not exist or has gone stale
+              schema:
+                properties:
+                  detail:
+                    type: string
+                type: object
+          description: Bad Request
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: startSiteApAutoOrientation
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps Auto-orientation
+      - Sites Maps Auto-orientation
+  /api/v1/sites/{site_id}/maps/{map_id}/auto_placement:
+    delete:
+      description: This API is called to force stop auto placement for a given map
+      operationId: deleteSiteApAutoplacement
+      responses:
+        '200':
+          description: Autoplacement Process has stopped for this map
+        '400':
+          description: Autoplacement was not triggered
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: deleteSiteApAutoplacement
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps Auto-placement
+      - Sites Maps Auto-placement
+    get:
+      description: 'This API is called to view the current status of auto placement
+        for a given map.
+
+
+
+        #### Status Descriptions
+
+
+        | Status | Description |
+
+        | --- | --- |
+
+        | `pending` | Autoplacement has not been requested for this map |
+
+        | `inprogress` | Autoplacement is currently processing |
+
+        | `done` | The autoplacement process has completed |
+
+        | `data_needed` | Additional position data is required for autoplacement.
+        Users should verify the requested anchor APs have a position on the map |
+
+        | `invalid_model` | Autoplacement is not supported on the model of the APs
+        on the map |
+
+        | `invalid_version` | Autoplacement is not supported with the APs current
+        firmware version |
+
+        | `error` | There was an error in the autoplacement process |'
+      operationId: getSiteApAutoPlacement
+      responses:
+        '200':
+          $ref: '#/components/responses/AutoPlacementInfo'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteApAutoplacement
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps Auto-placement
+      - Sites Maps Auto-placement
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: 'This API is called to trigger a map for auto placement. For auto
+        placement feature to work, RTT-FTM data need to be collected from the APs
+        on the map. This scan is disruptive and therefore the user must be notified
+        of service disrution during the functioning of auto placement Repeated POST
+        to this endpoint while a map is still running will be rejected.
+
+
+        List of devices to provide suggestions for is an optional parameter that can
+        be given to this API. This will provide autoplacement suggestions only for
+        the devices specified. If no list of devices is provided, all APs asociated
+        with that map are considered by default'
+      operationId: runSiteApAutoplacement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/auto_placement'
+      responses:
+        '200':
+          description: Autoplacement Process has begun for this map
+        '400':
+          description: "* Map has less than 3 APs associated with it to perform auto\
+            \ placement \n* Auto AP Placement is already in progress for this Map\n\
+            * Autoplacement data does not exist or has gone stale"
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: runSiteApAutoplacement
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps Auto-placement
+      - Sites Maps Auto-placement
+  /api/v1/sites/{site_id}/maps/{map_id}/clear_auto_orient:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: This API is used to destroy the autoorientations of a map or subset
+        of APs on a map.
+      operationId: clearSiteApAutoOrient
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mac_addresses'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: clearSiteApAutoOrient
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps Auto-orientation
+      - Sites Maps Auto-orientation
+  /api/v1/sites/{site_id}/maps/{map_id}/clear_autoplacement:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: This API is used to destroy the cached autoplacement locations
+        of a map or subset of APs on a map.
+      operationId: clearSiteApAutoplacement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mac_addresses'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: clearSiteApAutoplacement
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps Auto-placement
+      - Sites Maps Auto-placement
+  /api/v1/sites/{site_id}/maps/{map_id}/image:
+    delete:
+      description: Delete Site Map Image
+      operationId: deleteSiteMapImage
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: deleteSiteMapImage
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps
+      - Sites Maps
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: Add image map is a multipart POST which has an file (Image) and
+        an optional json parameter
+      operationId: addSiteMapImage
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/image_upload'
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: addSiteMapImage
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps
+      - Sites Maps
+  /api/v1/sites/{site_id}/maps/{map_id}/replace:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: 'Replace Map Image
+
+
+
+        This works like an PUT where the image will be replaced. If transform is provided,
+        all the locations of the objects on the map (AP, Zone, Vbeacon, Beacon) will
+        be transformed as well (relative to the new Map)'
+      operationId: replaceSiteMapImage
+      requestBody:
+        content:
+          multipart/form-data:
+            examples:
+              Example:
+                value:
+                  file: string
+                  json:
+                    transform:
+                      rotate: 0
+                      scale: 0
+                      x: 0
+                      y: 0
+            schema:
+              properties:
+                file:
+                  format: binary
+                  minLength: 1
+                  type: string
+                json:
+                  properties:
+                    transform:
+                      description: If `transform` is provided, all the locations of
+                        the objects on the map (AP, Zone, Vbeacon, Beacon) will be
+                        transformed as well (relative to the new Map)
+                      properties:
+                        rotate:
+                          type: number
+                        scale:
+                          type: number
+                        x:
+                          type: number
+                        y:
+                          type: number
+                      type: object
+                  title: map_replage_json
+                  type: object
+              required:
+              - file
+              type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: replaceSiteMapImage
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps
+      - Sites Maps
+  /api/v1/sites/{site_id}/maps/{map_id}/set_map:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: "This API can be used to assign a list of AP Macs associated with\
+        \ site_id to the specified map_id. Note that map_id must be associated with\
+        \ corresponding site_id. This API obeys the following rules \n1. if AP is\
+        \ unassigned to any Map, it gets associated with map_id \n2. Any moved APs\
+        \ are returned in the response \n3. If the AP is considered a locked AP, no\
+        \ action will be taken"
+      operationId: bulkAssignSiteApsToMap
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  macs:
+                  - 5c5b35000001
+                  - 5c5b35584a6f
+            schema:
+              $ref: '#/components/schemas/mac_addresses'
+      responses:
+        '200':
+          $ref: '#/components/responses/SetDevicesMap'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: bulkAssignSiteApsToMap
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps
+      - Sites Maps
+  /api/v1/sites/{site_id}/maps/{map_id}/use_auto_ap_values:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: This API is used to accept or reject the cached autoplacement and
+        auto orientation values of a map or subset of APs on a map. A rejected AP
+        will retain its current X,Y and orientation until accpeted.
+      operationId: confirmSiteApLocalizationData
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  accept: false
+                  device_macs:
+                  - string
+                  for: placement
+            schema:
+              $ref: '#/components/schemas/use_auto_ap_values'
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: 'Invalid localization service expected: placement or orientation'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: confirmSiteApLocalizationData
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps Auto-placement
+      - Sites Maps Auto-placement
+  /api/v1/sites/{site_id}/maps/{map_id}/wayfinding/import:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+    post:
+      description: This imports the vendor map meta data into the Map JSON. This is
+        required by the SDK and App in order to access/render the vendor Map properly.
+      operationId: importSiteWayfindings
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Jimbstream:
+                value:
+                  client_id: 199d6770-0f6f-407a-9bd5-fc33c7840194
+                  client_secret: /9Nog3yDzcYj0bY91XJZQLCt+m9DXaIVhx+Ghk3ddd
+                  customer_id: 123
+                  endpoint_url: https://api.jibestream.com
+                  map_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  mmpp: 223
+                  ppm: 4
+                  vendor_name: jibestream
+                  venue_id: 123
+              Micello:
+                value:
+                  account_key: adasdf
+                  default_level_id: 5
+                  map_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
+                  vendor_name: micello
+            schema:
+              oneOf:
+              - $ref: '#/components/schemas/map_jibestream'
+              - $ref: '#/components/schemas/map_micello'
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: importSiteWayfindings
+      tags:
+      - tag:MIST:CONFIGURE:Sites:Maps
+      - Sites Maps
   /api/v1/sites/{site_id}/pcaps:
     get:
       description: Get List of Site Packet Captures
@@ -16267,11 +15896,7 @@ paths:
                 value:
                   notes: wired pcap test
             schema:
-              properties:
-                notes:
-                  example: wired pcap test
-                  type: string
-              type: object
+              $ref: '#/components/schemas/notes'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -17064,7 +16689,7 @@ paths:
                   - 18-65-90-de-f4-c6
                   - 84-89-ad-5d-69-0d
             schema:
-              $ref: '#/components/schemas/Model_object_macs_array_string'
+              $ref: '#/components/schemas/mac_addresses'
         description: Request Body
       responses:
         '200':
@@ -17136,7 +16761,7 @@ paths:
                   - 18-65-90-de-f4-c6
                   - 84-89-ad-5d-69-0d
             schema:
-              $ref: '#/components/schemas/Model_object_macs_array_string'
+              $ref: '#/components/schemas/mac_addresses'
         description: Request Body
       responses:
         '200':
@@ -17195,7 +16820,7 @@ paths:
                   - 18-65-90-de-f4-c6
                   - 84-89-ad-5d-69-0d
             schema:
-              $ref: '#/components/schemas/Model_object_macs_array_string'
+              $ref: '#/components/schemas/mac_addresses'
         description: Request Body
       responses:
         '200':
@@ -17994,6 +17619,7 @@ paths:
         - switch
         - gateway
         - client
+        title: sle_threshold_scope
         type: string
     - description: '* site_id if `scope`==`site`
 
@@ -18249,6 +17875,7 @@ paths:
           - app
           - category
           - service
+          title: Site Apps count distinct
           type: string
       - description: MAC of the device
         in: query
@@ -18415,16 +18042,7 @@ paths:
       description: Get List of Site Devices Stats
       operationId: listSiteDevicesStats
       parameters:
-      - in: query
-        name: type
-        schema:
-          default: ap
-          enum:
-          - ap
-          - switch
-          - gateway
-          - all
-          type: string
+      - $ref: '#/components/parameters/device_type_with_all'
       - in: query
         name: status
         schema:
@@ -18861,6 +18479,141 @@ paths:
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
+  /api/v1/sites/{site_id}/stats/maps/{map_id}/clients:
+    get:
+      description: Get Site Clients Stats By Map
+      operationId: getSiteWirelessClientsStatsByMap
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                  - _ttl: 0
+                    accuracy: 0
+                    airespace_ifname: string
+                    airwatch:
+                      authorized: true
+                    ap_id: 325b588d-147b-4fa4-bb40-83383f83c77e
+                    ap_mac: string
+                    band: '24'
+                    channel: 0
+                    dual_band: true
+                    family: string
+                    guest:
+                      authorized: false
+                      authorized_expiring_time: 0
+                      authorized_time: 0
+                      company: string
+                      email: string
+                      field1: string
+                      name: string
+                    hostname: string
+                    idle_time: 0
+                    ip: 192.168.0.1
+                    ip6: 2001:0db8:85a3:0000:0000:8a2e:0370:7334
+                    is_guest: false
+                    key_mgmt: string
+                    last_seen: 0
+                    mac: string
+                    manufacture: string
+                    map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
+                    model: string
+                    num_locating_aps: 0
+                    os: string
+                    power_saving: true
+                    proto: a
+                    psk_id: 4cb94c10-4e99-46b0-8261-4c71d0b2cb9d
+                    rssi: 0
+                    rx_bps: 0
+                    rx_bytes: 0
+                    rx_packets: 0
+                    rx_rate: 0
+                    rx_retries: 0
+                    snr: 0
+                    ssid: string
+                    tx_bps: 0
+                    tx_bytes: 0
+                    tx_packets: 0
+                    tx_rate: 0
+                    tx_retries: 0
+                    type: string
+                    uptime: 0
+                    username: string
+                    vlan_id: 0
+                    wlan_id: 5028e92b-fc59-4056-91d1-ea4b4ca1617a
+                    x: 0
+                    y: 0
+              schema:
+                items:
+                  $ref: '#/components/schemas/stats_client'
+                type: array
+          description: OK
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteWirelessClientsStatsByMap
+      tags:
+      - tag:MIST:MONITOR:Sites:Stats
+      - Sites Stats
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
+  /api/v1/sites/{site_id}/stats/maps/{map_id}/unconnected_clients:
+    get:
+      description: Get List of Site Unconnected Client Location
+      operationId: listSiteUnconnectedClientStats
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                example-1:
+                  value:
+                  - ap_mac: 5c5b350e0410
+                    last_seen: 1428939600
+                    mac: 5684dae9ac8b
+                    manufacture: Apple
+                    map_id: ea77be98-ab51-4ff8-a863-ac3c8e1b1c3a
+                    rssi: -75
+                    x: 60
+                    y: 80
+              schema:
+                items:
+                  $ref: '#/components/schemas/stats_unconnected_clients'
+                type: array
+          description: OK
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listSiteUnconnectedClientStats
+      tags:
+      - tag:MIST:MONITOR:Sites:Stats
+      - Sites Stats
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/map_id'
   /api/v1/sites/{site_id}/subscriptions:
     delete:
       description: Unsubscribe to Site Alarms
@@ -19422,6 +19175,7 @@ paths:
           - device-updowns
           - occupancy-alerts
           - ping
+          title: Webhook Topic
           type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -19546,6 +19300,8 @@ paths:
       - Sites Wlans
 components:
   parameters:
+    account_id:
+      $ref: ../components/parameters/account_id.yml
     admin_id:
       $ref: ../components/parameters/admin_id.yml
     alarm_id:
@@ -19562,6 +19318,10 @@ components:
       $ref: ../components/parameters/device_id.yml
     device_mac:
       $ref: ../components/parameters/device_mac.yml
+    device_type:
+      $ref: ../components/parameters/device_type.yml
+    device_type_with_all:
+      $ref: ../components/parameters/device_type_with_all.yml
     deviceprofile_id:
       $ref: ../components/parameters/deviceprofile_id.yml
     duration:
@@ -19625,6 +19385,8 @@ components:
     webhook_id:
       $ref: ../components/parameters/webhook_id.yml
   responses:
+    AccountJseInfo:
+      $ref: ../components/responses/AccountJseInfo.yml
     Admin:
       $ref: ../components/responses/Admin.yml
     AdminsArray:
@@ -19645,6 +19407,8 @@ components:
       $ref: ../components/responses/ApitokensOrgArray.yml
     ApitokensUserArray:
       $ref: ../components/responses/ApitokensUserArray.yml
+    AutoPlacementInfo:
+      $ref: ../components/responses/AutoPlacementInfo.yml
     CallEventsArraySearch:
       $ref: ../components/responses/CallEventsArraySearch.yml
     CallStatsArray:
@@ -19731,6 +19495,8 @@ components:
       $ref: ../components/responses/InsightMetric.yml
     InstallerAlarmtemplatesArray:
       $ref: ../components/responses/InstallerAlarmtemplatesArray.yml
+    InstallerDeviceProfilesArray:
+      $ref: ../components/responses/InstallerDeviceProfilesArray.yml
     InstallerDevicesArray:
       $ref: ../components/responses/InstallerDevicesArray.yml
     InstallerRftemplatesArray:
@@ -19743,10 +19509,26 @@ components:
       $ref: ../components/responses/InstallerSitesArray.yml
     JseInfo:
       $ref: ../components/responses/JseInfo.yml
+    JsiDevices:
+      $ref: ../components/responses/JsiDevices.yml
+    JsiShellSession:
+      $ref: ../components/responses/JsiShellSession.yml
+    JunosRegisterCmd:
+      $ref: ../components/responses/JunosRegisterCmd.yml
     Licence:
       $ref: ../components/responses/Licence.yml
     LicenceUsage:
       $ref: ../components/responses/LicenceUsage.yml
+    LoginFailure:
+      $ref: ../components/responses/LoginFailure.yml
+    LoginLookup:
+      $ref: ../components/responses/LoginLookup.yml
+    LoginOauthUrl:
+      $ref: ../components/responses/LoginOauthUrl.yml
+    LoginSuccess:
+      $ref: ../components/responses/LoginSuccess.yml
+    Logout:
+      $ref: ../components/responses/Logout.yml
     LogsSearch:
       $ref: ../components/responses/LogsSearch.yml
     MacsArray:
@@ -19767,6 +19549,8 @@ components:
       $ref: ../components/responses/Org.yml
     OrgDeviceUpgrade:
       $ref: ../components/responses/OrgDeviceUpgrade.yml
+    OrgDeviceUpgradeMulti:
+      $ref: ../components/responses/OrgDeviceUpgradeMulti.yml
     OrgDevices:
       $ref: ../components/responses/OrgDevices.yml
     OrgInventory:
@@ -19781,6 +19565,8 @@ components:
       $ref: ../components/responses/OrgSiteSle.yml
     OrgStats:
       $ref: ../components/responses/OrgStats.yml
+    OrgSuppressedAlarms:
+      $ref: ../components/responses/OrgSuppressedAlarms.yml
     Orggroup:
       $ref: ../components/responses/Orggroup.yml
     OrggroupsArray:
@@ -19793,6 +19579,8 @@ components:
       $ref: ../components/responses/OrgsArrayStats.yml
     OrgsSearch:
       $ref: ../components/responses/OrgsSearch.yml
+    PcapBucketConfig:
+      $ref: ../components/responses/PcapBucketConfig.yml
     PcapStart:
       $ref: ../components/responses/PcapStart.yml
     PcapStatus:
@@ -19805,8 +19593,18 @@ components:
       $ref: ../components/responses/SecpoliciesArray.yml
     Secpolicy:
       $ref: ../components/responses/Secpolicy.yml
-    Session:
-      $ref: ../components/responses/Session.yml
+    SelfAuditLogs:
+      $ref: ../components/responses/SelfAuditLogs.yml
+    SelfOauthLinkFailure:
+      $ref: ../components/responses/SelfOauthLinkFailure.yml
+    SelfOauthLinkSuccess:
+      $ref: ../components/responses/SelfOauthLinkSuccess.yml
+    SelfOauthUrl:
+      $ref: ../components/responses/SelfOauthUrl.yml
+    SelfSubscriptions:
+      $ref: ../components/responses/SelfSubscriptions.yml
+    SetDevicesMap:
+      $ref: ../components/responses/SetDevicesMap.yml
     Site:
       $ref: ../components/responses/Site.yml
     SiteSettings:
@@ -19879,14 +19677,20 @@ components:
       $ref: ../components/responses/UiSettingsArray.yml
     UpgradeStatus:
       $ref: ../components/responses/UpgradeStatus.yml
+    VerifyRegisterTokenAlreadyRegistered:
+      $ref: ../components/responses/VerifyRegisterTokenAlreadyRegistered.yml
+    VerifyRegisterTokenInvalid:
+      $ref: ../components/responses/VerifyRegisterTokenInvalid.yml
+    VerifyRegisterTokenSuccess:
+      $ref: ../components/responses/VerifyRegisterTokenSuccess.yml
     Webhook:
       $ref: ../components/responses/Webhook.yml
     WebhookDeliverySearch:
       $ref: ../components/responses/WebhookDeliverySearch.yml
     WebhooksArray:
       $ref: ../components/responses/WebhooksArray.yml
-    ZscalerAccount:
-      $ref: ../components/responses/ZscalerAccount.yml
+    WebsocketSession:
+      $ref: ../components/responses/WebsocketSession.yml
     assignSuccess:
       $ref: ../components/responses/assignSuccess.yml
     claimLicense:
@@ -19900,32 +19704,42 @@ components:
     getLicenceUsage:
       $ref: ../components/responses/getLicenceUsage.yml
   schemas:
-    Model_object_email:
-      $ref: ../components/schemas/Model_object_email.yml
-    Model_object_macs_array_string:
-      $ref: ../components/schemas/Model_object_macs_array_string.yml
     Msp:
       $ref: ../components/schemas/Msp.yml
     account_jamf_write:
       $ref: ../components/schemas/account_jamf_write.yml
-    account_juniper_read:
-      $ref: ../components/schemas/account_juniper_read.yml
-    account_juniper_write:
-      $ref: ../components/schemas/account_juniper_write.yml
-    account_oauth_write:
-      $ref: ../components/schemas/account_oauth_write.yml
-    account_vmware_write:
-      $ref: ../components/schemas/account_vmware_write.yml
-    account_zscaler_write:
-      $ref: ../components/schemas/account_zscaler_write.yml
+    account_jse_config:
+      $ref: ../components/schemas/account_jse_config.yml
+    account_juniper_config:
+      $ref: ../components/schemas/account_juniper_config.yml
+    account_juniper_info:
+      $ref: ../components/schemas/account_juniper_info.yml
+    account_oauth_config:
+      $ref: ../components/schemas/account_oauth_config.yml
+    account_vmware_config:
+      $ref: ../components/schemas/account_vmware_config.yml
     admin:
       $ref: ../components/schemas/admin.yml
+    alarm_ids:
+      $ref: ../components/schemas/alarm_ids.yml
     alarmtemplate:
       $ref: ../components/schemas/alarmtemplate.yml
+    auto_orient:
+      $ref: ../components/schemas/auto_orient.yml
+    auto_placement:
+      $ref: ../components/schemas/auto_placement.yml
     capture:
       $ref: ../components/schemas/capture.yml
-    claimcodes:
-      $ref: ../components/schemas/claimcodes.yml
+    claim_activation:
+      $ref: ../components/schemas/claim_activation.yml
+    claim_codes:
+      $ref: ../components/schemas/claim_codes.yml
+    code:
+      $ref: ../components/schemas/code.yml
+    cradlepoint_config:
+      $ref: ../components/schemas/cradlepoint_config.yml
+    days_number:
+      $ref: ../components/schemas/days_number.yml
     delete_ha_cluster:
       $ref: ../components/schemas/delete_ha_cluster.yml
     device_ap:
@@ -19938,56 +19752,84 @@ components:
       $ref: ../components/schemas/device_upgrade.yml
     deviceprofile:
       $ref: ../components/schemas/deviceprofile.yml
+    email:
+      $ref: ../components/schemas/email.yml
     events_device_ap:
       $ref: ../components/schemas/events_device_ap.yml
     image_upload:
       $ref: ../components/schemas/image_upload.yml
+    import_org_map:
+      $ref: ../components/schemas/import_org_map.yml
     import_site_map:
       $ref: ../components/schemas/import_site_map.yml
     installer_provision_device:
       $ref: ../components/schemas/installer_provision_device.yml
     installer_site:
       $ref: ../components/schemas/installer_site.yml
+    inventory_update:
+      $ref: ../components/schemas/inventory_update.yml
     login:
       $ref: ../components/schemas/login.yml
+    mac_addresses:
+      $ref: ../components/schemas/mac_addresses.yml
     map:
       $ref: ../components/schemas/map.yml
+    map_jibestream:
+      $ref: ../components/schemas/map_jibestream.yml
+    map_micello:
+      $ref: ../components/schemas/map_micello.yml
+    msp_license_action:
+      $ref: ../components/schemas/msp_license_action.yml
+    msp_logo:
+      $ref: ../components/schemas/msp_logo.yml
+    msp_org_change:
+      $ref: ../components/schemas/msp_org_change.yml
+    name:
+      $ref: ../components/schemas/name.yml
     new_admin:
       $ref: ../components/schemas/new_admin.yml
     note:
       $ref: ../components/schemas/note.yml
+    notes:
+      $ref: ../components/schemas/notes.yml
     org:
       $ref: ../components/schemas/org.yml
     org_apitoken:
       $ref: ../components/schemas/org_apitoken.yml
+    org_license_action:
+      $ref: ../components/schemas/org_license_action.yml
     org_setting:
       $ref: ../components/schemas/org_setting.yml
     orggroup:
       $ref: ../components/schemas/orggroup.yml
+    pcap_bucket:
+      $ref: ../components/schemas/pcap_bucket.yml
+    pcap_bucket_verify:
+      $ref: ../components/schemas/pcap_bucket_verify.yml
     recover:
       $ref: ../components/schemas/recover.yml
-    req_replace_device:
-      $ref: ../components/schemas/req_replace_device.yml
-    req_show_route:
-      $ref: ../components/schemas/req_show_route.yml
-    req_traceroute:
-      $ref: ../components/schemas/req_traceroute.yml
+    replace_device:
+      $ref: ../components/schemas/replace_device.yml
+    root_password:
+      $ref: ../components/schemas/root_password.yml
     secpolicy:
       $ref: ../components/schemas/secpolicy.yml
     site:
       $ref: ../components/schemas/site.yml
     site_setting:
       $ref: ../components/schemas/site_setting.yml
+    site_template:
+      $ref: ../components/schemas/site_template.yml
     sitegroup:
       $ref: ../components/schemas/sitegroup.yml
-    sitetemplate:
-      $ref: ../components/schemas/sitetemplate.yml
     sle_threshold:
       $ref: ../components/schemas/sle_threshold.yml
     sso:
       $ref: ../components/schemas/sso.yml
     ssorole:
       $ref: ../components/schemas/ssorole.yml
+    stats_client:
+      $ref: ../components/schemas/stats_client.yml
     stats_device_ap:
       $ref: ../components/schemas/stats_device_ap.yml
     stats_device_gateway:
@@ -19996,6 +19838,12 @@ components:
       $ref: ../components/schemas/stats_device_switch_site.yml
     stats_site:
       $ref: ../components/schemas/stats_site.yml
+    stats_unconnected_clients:
+      $ref: ../components/schemas/stats_unconnected_clients.yml
+    suppressed_alarm:
+      $ref: ../components/schemas/suppressed_alarm.yml
+    suppressed_alarm_scope:
+      $ref: ../components/schemas/suppressed_alarm_scope.yml
     synthetic_test:
       $ref: ../components/schemas/synthetic_test.yml
     synthetic_test_device:
@@ -20010,8 +19858,36 @@ components:
       $ref: ../components/schemas/two_factor.yml
     ui_settings:
       $ref: ../components/schemas/ui_settings.yml
+    use_auto_ap_values:
+      $ref: ../components/schemas/use_auto_ap_values.yml
     user_apitoken:
       $ref: ../components/schemas/user_apitoken.yml
+    utils_bounce_port:
+      $ref: ../components/schemas/utils_bounce_port.yml
+    utils_cable_test:
+      $ref: ../components/schemas/utils_cable_test.yml
+    utils_cluster_node:
+      $ref: ../components/schemas/utils_cluster_node.yml
+    utils_devices_restart:
+      $ref: ../components/schemas/utils_devices_restart.yml
+    utils_devices_restart_multi:
+      $ref: ../components/schemas/utils_devices_restart_multi.yml
+    utils_ping:
+      $ref: ../components/schemas/utils_ping.yml
+    utils_send_support_logs:
+      $ref: ../components/schemas/utils_send_support_logs.yml
+    utils_service_ping:
+      $ref: ../components/schemas/utils_service_ping.yml
+    utils_show_arp:
+      $ref: ../components/schemas/utils_show_arp.yml
+    utils_show_mac_table:
+      $ref: ../components/schemas/utils_show_mac_table.yml
+    utils_show_route:
+      $ref: ../components/schemas/utils_show_route.yml
+    utils_traceroute:
+      $ref: ../components/schemas/utils_traceroute.yml
+    version:
+      $ref: ../components/schemas/version.yml
     webhook:
       $ref: ../components/schemas/webhook.yml
   securitySchemes:

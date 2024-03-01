@@ -57,57 +57,7 @@ properties:
   evpn_config:
     $ref: '../schemas/junos_evpn_config.yml'
   extra_routes:
-    additionalProperties:
-      properties:
-        discard:
-          default: false
-          description: this takes precedence
-          type: boolean
-        metric:
-          example: null
-          nullable: true
-          type: integer
-        next_qualified:
-          additionalProperties:
-            properties:
-              metric:
-                nullable: true
-                type: integer
-              preference:
-                nullable: true
-                type: integer
-            type: object
-          example:
-            10.3.1.1:
-              metric: null
-              preference: 40
-          type: object
-        no_resolve:
-          default: false
-          type: boolean
-        preference:
-          example: 30
-          nullable: true
-          type: integer
-        via:
-          description: next-hop IP Address
-          type: string
-      type: object
-    description: Property key is the network name or a CIDR
-    example:
-      172.16.3.0/24:
-        via: 10.2.1.1
-      it_mgmt:
-        discard: false
-        metric: null
-        next_qualified:
-          10.3.1.1:
-            metric: null
-            preference: 40
-        no_resolve: false
-        preference: 30
-        via: 10.2.1.1
-      type: object
+    $ref: '../schemas/switch_extra_routes.yml'
   id:
     format: uuid
     readOnly: true
@@ -172,7 +122,7 @@ properties:
     description: Property key is the port profile name
     properties:
       dynamic:
-        $ref: '../schemas/junos_port_usages_dynamic.yml'
+        $ref: '../schemas/dynamic_port_usage.yml'
     type: object
   radius_config:
     $ref: '../schemas/junos_radius_config.yml'
@@ -199,52 +149,8 @@ properties:
         minimum: 1
         type: integer
       protect_re:
-        description: "restrict inbound-traffic to host\nwhen enabled, all traffic\
-          \ that is not essential to our operation will be dropped \ne.g. ntp / dns\
-          \ / traffic to mist will be allowed by default, if dhcpd is enabled, we'll\
-          \ make sure it works"
-        properties:
-          allowed_services:
-            description: optionally, services we'll allow
-            items:
-              example: e
-              type: string
-            type: array
-          custom:
-            items:
-              properties:
-                port_range:
-                  default: '0'
-                  example: 80,1035-1040
-                  type: string
-                protocol:
-                  default: any
-                  enum:
-                  - tcp
-                  - udp
-                  - icmp
-                  - any
-                  example: tcp
-                  type: string
-                subnets:
-                  items:
-                    example: 10.1.2.0/24
-                    type: string
-                  type: array
-              type: object
-            type: array
-          enabled:
-            type: boolean
-          trusted_hosts:
-            description: optionally, host/subnets we'll allow traffic to/from
-            items:
-              example: 10.242.3.0/24
-              type: string
-            type: array
-        type: object
-      root_password:
-        type: string
-    type: object
+        $ref: '../schemas/protect_re.yml'
+    title: device_switch_mgmt
   use_router_id_as_source_ip:
     default: false
     description: whether to use it for snmp / syslog / tacplus / radius
@@ -257,7 +163,7 @@ properties:
     description: required for preprovisioned Virtual Chassis
     properties:
       members:
-        description: list of Virtual Chassis mem
+        description: list of Virtual Chassis members
         items:
           properties:
             mac:
@@ -272,15 +178,18 @@ properties:
               - linecard
               - backup
               type: string
+          title: switch_virtual_chassis_member
           type: object
         type: array
       preprovisioned:
         default: false
         description: to configure whether the VC is preprovisioned or nonprovisioned
         type: boolean
+    title: virtual_chassis_info
     type: object
   vrf_config:
     $ref: '../schemas/junos_vrf_config.yml'
   vrrp_config:
     $ref: '../schemas/junos_vrrp_config.yml'
+title: Device_Switch
 type: object

@@ -1,7 +1,11 @@
-import yaml
+"""
+This script is generating the toc files from the main openapi spec (single file) based on the documentation tag
+Can be filtered to one or multiple spec files based on the .filters file
+"""
 import re
 import os
 import sys
+import yaml
 
 TOC_FILE_IN = "./src_toc.yml"
 TOC_FILE_OUT = "./content/toc.yml"
@@ -10,37 +14,20 @@ TOC_FOLDER = "./content/api/"
 FILTER_FILE = "./.filters"
 
 with open(FILTER_FILE, "r") as filter_file:
-    filters_string = filter_file.read().split("=")[1]
+    filters_string = filter_file.read().split("=")[1].split("#")[0]
     FILTER = filters_string.split(",")
-
-TAG_NAMES = {
-    "MIST": "Mist",
-    "WLAN": "Wi-Fi Assurance",
-    "LAN": "LAN Assurance",
-    "WAN": "WAN Assurance",
-    "NAC": "ACCESS Assurance",
-    "LOCATION": "Indoor Location",
-    "SAMPLES": "Samples",
-    "CONSTANTS": "Constants",
-    "AUTHENTICATION": "Authentication",
-    "MONITOR": "Monitor",
-    "CONFIGURE": "Configure",
-}
-
-ITEMS = []
-
 
 OPERATION_IDS = []
 
 
 def add_endpoint(
-    items: list,
-    operation_id: str,
-    endpoint_group: str,
-    groups: list,
-    level: int = 0,
-    retry: int = 0
-):
+        items: list,
+        operation_id: str,
+        endpoint_group: str,
+        groups: list,
+        level: int = 0,
+        retry: int = 0
+    ):
     """
     return destination group where the endpoint must be documented
     if the group (or group path) doesn't exist, create it
@@ -57,15 +44,15 @@ def add_endpoint(
         sys.exit(0)
     else:
         try:
-            next_items = next(
-                item for item in items if item.get("group") == current_group
-            )
+            next_items = next(item for item in items if item.get("group").lower() == current_group.lower())
         except:
-            items.append({"group": current_group, "items": []})
+            if len(next_groups) == 0:
+                group_title = current_group
+            else:
+                group_title = current_group.title()
+            items.append({"group": group_title, "items": []})
             items.sort(key=lambda item: item.get("group"))
-            next_items = next(
-                item for item in items if item.get("group") == current_group
-            )
+            next_items = next(item for item in items if item.get("group").lower() == current_group.lower())
         finally:
             if next_groups:
                 add_endpoint(next_items["items"], operation_id, endpoint_group, groups, level + 1)
@@ -119,6 +106,8 @@ def process_spec_file(spec_data: dict, items: list):
                     else:
                         print(f"operationid {operation_id} has too many tags")
                         
+                if category == groups[-1:]:
+                    groups = groups[:-1]
                 if not FILTER or category in FILTER:
                     if not operation_id in OPERATION_IDS:
                         OPERATION_IDS.append(operation_id)

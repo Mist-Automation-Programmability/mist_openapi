@@ -1,18 +1,32 @@
 FILTER_FILE="./.filters"
+REGEN=0
+if echo $@ | grep -q "^-a$"
+then 
+    REGEN=1
+fi
+if [ $REGEN -eq 1 ]
+then 
+    echo "python3 ./0_tag_grp1.py"
+    python3 ./0_tag_grp1.py
+    echo "python3 ./0_tag_grp2.py"
+    python3 ./0_tag_grp2.py
+    echo "python3 ./0_tag_grp3.py"
+    python3 ./0_tag_grp3.py
+fi
 
+rm -rf ./spec/components/*
+mkdir ./spec/components/parameters
+mkdir ./spec/components/responses
+mkdir ./spec/components/schemas
 
-echo "python3 ./0_tag_grp1.py"
-python3 ./0_tag_grp1.py
-echo "python3 ./0_tag_grp2.py"
-python3 ./0_tag_grp2.py
-echo "python3 ./0_tag_grp3.py"
-python3 ./0_tag_grp3.py
+echo "python3 ./1_components.py"
+python3 ./1_components.py
 echo "python3 ./1_tag_spec.py"
 python3 ./1_tag_spec.py
 echo "python3 ./2_tag_toc.py"
 python3 ./2_tag_toc.py
 
-FILTERS=`cat $FILTER_FILE | cut -d"=" -f2`
+FILTERS=`cat $FILTER_FILE | cut -d"=" -f2 | cut -d"#" -f1`
 copy_files(){
     local IFS=,
     for filter in $FILTERS

@@ -40,10 +40,45 @@ info:
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
   version: 2401.1.5
+  x-codegen-settings:
+    BrandLabel: Juniper Networks
+    EnableAdditionalModelProperties: true
+    GenerateEnums: false
+    ProjectName: MistAPI
+    ReturnCompleteHttpResponse: true
+    SortResources: true
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
     url: https://www.mist.com/wp-content/uploads/logo.png
+  x-server-configuration:
+    default-environment: Mist Global 01
+    default-server: API Host
+    environments:
+    - name: Mist Global 01
+      servers:
+      - name: API Host
+        url: https://api.mist.com
+    - name: Mist Global 02
+      servers:
+      - name: API Host
+        url: https://api.gc1.mist.com
+    - name: Mist Global 03
+      servers:
+      - name: API Host
+        url: https://api.ac2.mist.com
+    - name: Mist Global 04
+      servers:
+      - name: API Host
+        url: https://api.gc2.mist.com
+    - name: Mist Europe 01
+      servers:
+      - name: API Host
+        url: https://api.eu.mist.com
+    - name: Mist APAC 01
+      servers:
+      - name: API Host
+        url: https://api.ac5.mist.com
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -64,18 +99,13 @@ tags:
 - name: Mobile
 - name: Orgs Asset Filters
 - name: Orgs Assets
-- name: Orgs Maps
 - name: Orgs SDK Clients
 - name: Orgs SDK Templates
-- name: Orgs Sites
 - name: Orgs Stats
 - name: Sites Asset Filters
 - name: Sites Assets
 - name: Sites Beacons
 - name: Sites Location
-- name: Sites Maps
-- name: Sites Maps Auto-orientation
-- name: Sites Maps Auto-placement
 - name: Sites Rssizones
 - name: Sites Stats
 - name: Sites Zones
@@ -98,29 +128,7 @@ paths:
               $ref: '#/components/schemas/Model_object_device_id'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    name: Macy's
-                    org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                    secret: device-specific-secret
-              schema:
-                properties:
-                  name:
-                    type: string
-                  org_id:
-                    format: uuid
-                    type: string
-                  secret:
-                    type: string
-                required:
-                - name
-                - org_id
-                - secret
-                type: object
-          description: OK
+          $ref: '#/components/responses/MobileVerifySecret'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -473,59 +481,6 @@ paths:
       tags:
       - tag:LOCATION:CONFIGURE:Orgs:Assets
       - Orgs Assets
-  /api/v1/orgs/{org_id}/maps/import:
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    post:
-      description: 'Import data from files is a multipart POST which has a file, an
-        optional json, and an optional csv, to create floorplan, assign matching inventory
-        to specific site, place ap if name or mac matches
-
-
-        ### CSV File Format
-
-        ```csv
-
-        Vendor AP name,Mist AP Mac
-
-        US Office AP-2 - 5c:5b:35:00:00:02,5c5b35000002
-
-        ``` '
-      operationId: importOrgMaps
-      requestBody:
-        content:
-          multipart/form-data:
-            examples:
-              Example:
-                value:
-                  auto_deviceprofile_assignment: false
-                  csv: string
-                  file: string
-                  json:
-                    import_all_floorplans: false
-                    import_height: true
-                    import_orientation: true
-                    site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
-                    vendor_name: ekahau
-            schema:
-              $ref: '#/components/schemas/import_org_map'
-      responses:
-        '200':
-          $ref: '#/components/responses/MapImport'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: importOrgMaps
-      tags:
-      - tag:LOCATION:CONFIGURE:Orgs:Maps
-      - Orgs Maps
   /api/v1/orgs/{org_id}/sdkclients/{sdkclient_id}:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -541,10 +496,7 @@ paths:
                 value:
                   name: John Smith
             schema:
-              properties:
-                name:
-                  type: string
-              type: object
+              $ref: '#/components/schemas/name_model'
         description: Request Body
       responses:
         '200':
@@ -704,7 +656,7 @@ paths:
                 value:
                   email: test@abc.com
             schema:
-              $ref: '#/components/schemas/Model_object_email'
+              $ref: '#/components/schemas/email_model'
         description: Request Body
       responses:
         '200':
@@ -762,12 +714,7 @@ paths:
                 value:
                   number: '14081234567'
             schema:
-              properties:
-                number:
-                  type: string
-              required:
-              - number
-              type: object
+              $ref: '#/components/schemas/sdk_invite_sms'
         description: Request Body
       responses:
         '200':
@@ -905,67 +852,6 @@ paths:
       tags:
       - tag:LOCATION:CONFIGURE:Orgs:SDK Templates
       - Orgs SDK Templates
-  /api/v1/orgs/{org_id}/sites/{site_name}/maps/import:
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    - $ref: '#/components/parameters/site_name'
-    post:
-      description: 'Import data from files is a multipart POST which has a file, an
-        optional json, and an optional csv, to create floorplan, assign matching inventory
-        to specific site, place ap if name or mac matches
-
-
-        #### Request
-
-
-        ```
-
-        "json": a JSON string describing your upload
-
-        "file": a binary file
-
-        ```'
-      operationId: importOrgMapToSite
-      requestBody:
-        content:
-          multipart/form-data:
-            examples:
-              Example:
-                value:
-                  auto_deviceprofile_assignment: true
-                  csv: string
-                  file: string
-                  json:
-                    import_all_floorplans: false
-                    import_height: true
-                    import_orientation: true
-                    vendor_name: ekahau
-            schema:
-              $ref: '#/components/schemas/import_site_map'
-        description: 'a JSON string, site id required, vendor option: ekahau, ibwave,
-          etc., import_all_floorplans: optional, default: false, import_height: optional,
-          default: true, import_orientation: optional, default: true
-
-          "file": a binary file, option: .esx
-
-          "csv": a csv file for ap name mapping, optional'
-      responses:
-        '200':
-          $ref: '#/components/responses/MapImport'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: importOrgMapToSite
-      tags:
-      - tag:LOCATION:CONFIGURE:Orgs:Sites
-      - Orgs Sites
   /api/v1/orgs/{org_id}/stats/assets:
     get:
       description: Get List of Org Assets Stats
@@ -1010,6 +896,7 @@ paths:
           - ibeacon_uuid
           - ibeacon_major
           - ibeacon_minor
+          title: Org Asset count distinct
           type: string
       responses:
         '200':
@@ -1607,101 +1494,20 @@ paths:
           - client
           - asset
           type: string
-      - description: where the start time will be calculated (with end time is now)
-        in: query
-        name: duration
-        schema:
-          default: 1h
-          enum:
-          - 1d
-          - 5h
-          - 1h
-          - 30m
-          type: string
-      - $ref: '#/components/parameters/resolution'
+        title: coverage_zone_type
       - description: client_type (as filter. optional)
         in: query
         name: client_type
         schema:
           type: string
+        title: coverage_client_type
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/resolution'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       responses:
         '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                    beams_means:
-                    - - 1
-                      - 3
-                      - 3.2
-                    - - 6
-                      - 10
-                      - 6.5
-                    end: 1428954000
-                    gridsize: 1
-                    result_def:
-                    - x
-                    - y
-                    - beams_mean
-                    - beacons_mean
-                    - max_rssi
-                    - avg_rssi
-                    results:
-                    - - 1
-                      - 3
-                      - 3.2
-                      - 18.5
-                      - -68
-                      - -70
-                    - - 6
-                      - 10
-                      - 6.5
-                      - 30
-                      - 1
-                      - -72.5
-                      - -75
-                    start: 1428939600
-              schema:
-                properties:
-                  beams_means:
-                    description: list of [x, y, mean]s, x/y are in meters (UI would
-                      need to use map.ppm to calulate the pixel location from top-left).
-                    items:
-                      items:
-                        type: number
-                      type: array
-                    type: array
-                  end:
-                    type: integer
-                  gridsize:
-                    description: the size of grid, in meter
-                    type: number
-                  result_def:
-                    description: list of names annotating the fields in results
-                    items:
-                      type: string
-                    type: array
-                  results:
-                    description: list of results, see result_def.
-                    items:
-                      items:
-                        type: number
-                      type: array
-                    type: array
-                  start:
-                    type: integer
-                required:
-                - start
-                - end
-                - beams_means
-                - gridsize
-                - result_def
-                - results
-                type: object
-          description: OK
+          $ref: '#/components/responses/LocationCoverage'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -1919,1023 +1725,6 @@ paths:
       tags:
       - tag:LOCATION:CONFIGURE:Sites:Location
       - Sites Location
-  /api/v1/sites/{site_id}/maps:
-    get:
-      description: Get List of Site Maps
-      operationId: listSiteMaps
-      parameters:
-      - $ref: '#/components/parameters/page'
-      - $ref: '#/components/parameters/limit'
-      responses:
-        '200':
-          $ref: '#/components/responses/MapsArray'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: listSiteMaps
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps
-      - Sites Maps
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    post:
-      description: Create Site Map
-      operationId: createSiteMap
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  flags: {}
-                  height: 0
-                  height_m: 0
-                  latlng_br:
-                    lat: string
-                    lng: string
-                  latlng_tl:
-                    lat: string
-                    lng: string
-                  locked: true
-                  name: string
-                  occupancy_limit: 0
-                  orientation: 0
-                  origin_x: 0
-                  origin_y: 0
-                  ppm: 0
-                  sitesurvey_path:
-                  - coordinate: string
-                    id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                    name: string
-                    nodes:
-                    - edges:
-                        N2: string
-                      name: string
-                      position:
-                        x: 0
-                        y: 0
-                  thumbnail_url: string
-                  type: image
-                  url: string
-                  view: roadmap
-                  wall_path:
-                    coordinate: string
-                    nodes:
-                    - edges:
-                        N2: string
-                      name: string
-                      position:
-                        x: 0
-                        y: 0
-                  wayfinding:
-                    micello:
-                      account_key: string
-                      default_level_id: 0
-                      map_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                    snap_to_path: true
-                  wayfinding_path:
-                    coordinate: string
-                    nodes:
-                    - edges:
-                        N2: string
-                      name: string
-                      position:
-                        x: 0
-                        y: 0
-                  width: 0
-                  width_m: 0
-            schema:
-              $ref: '#/components/schemas/map'
-        description: Request Body
-      responses:
-        '200':
-          $ref: '#/components/responses/Map'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: createSiteMap
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps
-      - Sites Maps
-  /api/v1/sites/{site_id}/maps/import:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    post:
-      description: 'Import data from files is a multipart POST which has an file,
-        an optional json, and an optional csv, to create floorplan, assign matching
-        inventory to specific site, place ap if name or mac matches.
-
-
-        # Note
-
-        This endpoint (at the site level), the AP must be already assigned to the
-        site to be placed on the floorplan. If you want to place APs from the Org
-        inventory, it is required to use the endpoint at the Org level [importOrgMaps](#operation/importOrgMaps)
-
-
-        # CSV File Format
-
-        ```csv
-
-        Vendor AP name,Mist AP Mac
-
-        US Office AP-2,5c:5b:35:00:00:02
-
-        US Office AP-3,5c5b35000002
-
-        ``` '
-      operationId: importSiteMaps
-      requestBody:
-        content:
-          multipart/form-data:
-            examples:
-              Example:
-                value:
-                  auto_deviceprofile_assignment: true
-                  csv: string
-                  file: string
-                  json:
-                    import_all_floorplans: false
-                    import_height: true
-                    import_orientation: true
-                    vendor_name: ekahau
-            schema:
-              $ref: '#/components/schemas/import_site_map'
-      responses:
-        '200':
-          $ref: '#/components/responses/MapImport'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: importSiteMaps
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps
-      - Sites Maps
-  /api/v1/sites/{site_id}/maps/{map_id}:
-    delete:
-      description: Delete Site Map
-      operationId: deleteSiteMap
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: deleteSiteMap
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps
-      - Sites Maps
-    get:
-      description: Get Site Map Details
-      operationId: getSiteMap
-      responses:
-        '200':
-          $ref: '#/components/responses/Map'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: getSiteMap
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps
-      - Sites Maps
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/map_id'
-    put:
-      description: Update Site Map
-      operationId: updateSiteMap
-      requestBody:
-        content:
-          application/json:
-            examples:
-              example-1:
-                value:
-                  flags: {}
-                  height: 0
-                  height_m: 0
-                  latlng_br:
-                    lat: string
-                    lng: string
-                  latlng_tl:
-                    lat: string
-                    lng: string
-                  locked: true
-                  name: string
-                  occupancy_limit: 0
-                  orientation: 0
-                  origin_x: 0
-                  origin_y: 0
-                  ppm: 0
-                  sitesurvey_path:
-                  - coordinate: string
-                    id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                    name: string
-                    nodes:
-                    - edges:
-                        N2: string
-                      name: string
-                      position:
-                        x: 0
-                        y: 0
-                  thumbnail_url: string
-                  type: image
-                  url: string
-                  view: roadmap
-                  wall_path:
-                    coordinate: string
-                    nodes:
-                    - edges:
-                        N2: string
-                      name: string
-                      position:
-                        x: 0
-                        y: 0
-                  wayfinding:
-                    micello:
-                      account_key: string
-                      default_level_id: 0
-                      map_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                    snap_to_path: true
-                  wayfinding_path:
-                    coordinate: string
-                    nodes:
-                    - edges:
-                        N2: string
-                      name: string
-                      position:
-                        x: 0
-                        y: 0
-                  width: 0
-                  width_m: 0
-            schema:
-              $ref: '#/components/schemas/map'
-        description: Request Body
-      responses:
-        '200':
-          $ref: '#/components/responses/Map'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: updateSiteMap
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps
-      - Sites Maps
-  /api/v1/sites/{site_id}/maps/{map_id}/auto_orient:
-    delete:
-      description: This API is called to force stop auto placement for a given map
-      operationId: deleteSiteApAutoOrientation
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          description: Autoplacement was not triggered
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: deleteSiteApAutoOrientation
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps Auto-orientation
-      - Sites Maps Auto-orientation
-    parameters:
-    - $ref: '#/components/parameters/map_id'
-    - $ref: '#/components/parameters/site_id'
-    post:
-      description: 'This API is called to trigger a map for auto orientation. For
-        auto orient feature to work, BLE data needs to be collected from the APs on
-        the map. This precess is not disruptive unlike FTM collection. Repeated POST
-        to this endpoint while a map is still running will be rejected.
-
-
-        List of devices to provide suggestions for is an optional parameter that can
-        be given to this API. This will provide auto orient suggestions only for the
-        devices specified. If no list of devices is provided, all APs asociated with
-        that map are considered by default'
-      operationId: startSiteApAutoOrientation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                force_collection:
-                  default: false
-                  description: "If `force_collection`==`false`, the API attempts to\
-                    \ start auto orientation with existing BLE data. \nIf `force_collection`==`true`,\
-                    \ the API attempts to start BLE orchestration."
-                  type: boolean
-                macs:
-                  description: list of device macs
-                  items:
-                    type: string
-                  type: array
-              type: object
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                enqueued:
-                  value:
-                    state: Not Started
-                    time_queued: 1675414259
-                not-started:
-                  value:
-                    state: Not Started
-                    time_queued: -1
-                oriented:
-                  value:
-                    state: Oriented
-                    time_queued: 1675414259
-              schema:
-                properties:
-                  state:
-                    description: The state of auto orient for a given map derived
-                      from an Enum
-                    enum:
-                    - Not Started
-                    - Enqueued
-                    - Oriented
-                    type: string
-                  time_queued:
-                    description: Time when auto orient process was last queued for
-                      this map
-                    type: number
-                type: object
-          description: Map queued for auto orientation
-        '400':
-          content:
-            application/json:
-              examples:
-                Example:
-                  value:
-                    detail: Map has less than 3 APs associated with it to perform
-                      auto orient
-                Example-2:
-                  value:
-                    detail: Auto AP orient is already in progress for this Map
-                Example-3:
-                  value:
-                    detail: Auto orient data does not exist or has gone stale
-              schema:
-                properties:
-                  detail:
-                    type: string
-                type: object
-          description: Bad Request
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: startSiteApAutoOrientation
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps Auto-orientation
-      - Sites Maps Auto-orientation
-  /api/v1/sites/{site_id}/maps/{map_id}/auto_placement:
-    delete:
-      description: This API is called to force stop auto placement for a given map
-      operationId: deleteSiteApAutoplacement
-      responses:
-        '200':
-          description: Autoplacement Process has stopped for this map
-        '400':
-          description: Autoplacement was not triggered
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: deleteSiteApAutoplacement
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps Auto-placement
-      - Sites Maps Auto-placement
-    get:
-      description: 'This API is called to view the current status of auto placement
-        for a given map.
-
-
-
-        #### Status Descriptions
-
-
-        | Status | Description |
-
-        | --- | --- |
-
-        | `pending` | Autoplacement has not been requested for this map |
-
-        | `inprogress` | Autoplacement is currently processing |
-
-        | `done` | The autoplacement process has completed |
-
-        | `data_needed` | Additional position data is required for autoplacement.
-        Users should verify the requested anchor APs have a position on the map |
-
-        | `invalid_model` | Autoplacement is not supported on the model of the APs
-        on the map |
-
-        | `invalid_version` | Autoplacement is not supported with the APs current
-        firmware version |
-
-        | `error` | There was an error in the autoplacement process |'
-      operationId: getSiteApAutoPlacement
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                done:
-                  value:
-                    end_time: 1678900362
-                    start_time: 1678900062
-                    status: done
-                error:
-                  value:
-                    end_time: 1678900362
-                    start_time: 1678900062
-                    status: error
-                in-Progress:
-                  value:
-                    est_time_left: 300
-                    start_time: 1678900062
-                    status: inprogress
-                pending:
-                  value:
-                    status: pending
-              schema:
-                properties:
-                  end_time:
-                    description: time when autoplacement completed or was manually
-                      stopped
-                    type: number
-                  est_time_left:
-                    description: (Only when inprogress) estimate of the time to completion
-                    type: number
-                  start_time:
-                    description: time when autoplacement process was last queued for
-                      this map
-                    type: number
-                  status:
-                    description: the status of autoplacement for a given map
-                    enum:
-                    - pending
-                    - inprogress
-                    - done
-                    - error
-                    type: string
-                type: object
-          description: OK
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: getSiteApAutoplacement
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps Auto-placement
-      - Sites Maps Auto-placement
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/map_id'
-    post:
-      description: 'This API is called to trigger a map for auto placement. For auto
-        placement feature to work, RTT-FTM data need to be collected from the APs
-        on the map. This scan is disruptive and therefore the user must be notified
-        of service disrution during the functioning of auto placement Repeated POST
-        to this endpoint while a map is still running will be rejected.
-
-
-        List of devices to provide suggestions for is an optional parameter that can
-        be given to this API. This will provide autoplacement suggestions only for
-        the devices specified. If no list of devices is provided, all APs asociated
-        with that map are considered by default'
-      operationId: runSiteApAutoplacement
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                force_collection:
-                  default: false
-                  description: "* If `force_collection`==`false`: the API Iattempts\
-                    \ to start localization with existing data. \n* If `force_collection`==`true`:\
-                    \ maintenance the API attempts to start orchestration."
-                  type: boolean
-                macs:
-                  description: list of device macs
-                  items:
-                    type: string
-                  type: array
-              type: object
-      responses:
-        '200':
-          description: Autoplacement Process has begun for this map
-        '400':
-          description: "* Map has less than 3 APs associated with it to perform auto\
-            \ placement \n* Auto AP Placement is already in progress for this Map\n\
-            * Autoplacement data does not exist or has gone stale"
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: runSiteApAutoplacement
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps Auto-placement
-      - Sites Maps Auto-placement
-  /api/v1/sites/{site_id}/maps/{map_id}/clear_auto_orient:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/map_id'
-    post:
-      description: This API is used to destroy the autoorientations of a map or subset
-        of APs on a map.
-      operationId: clearSiteApAutoOrient
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                macs:
-                  description: list of device macs
-                  items:
-                    type: string
-                  type: array
-              type: object
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: clearSiteApAutoOrient
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps Auto-orientation
-      - Sites Maps Auto-orientation
-  /api/v1/sites/{site_id}/maps/{map_id}/clear_autoplacement:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/map_id'
-    post:
-      description: This API is used to destroy the cached autoplacement locations
-        of a map or subset of APs on a map.
-      operationId: clearSiteApAutoplacement
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                macs:
-                  description: list of device macs
-                  items:
-                    type: string
-                  type: array
-              type: object
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: clearSiteApAutoplacement
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps Auto-placement
-      - Sites Maps Auto-placement
-  /api/v1/sites/{site_id}/maps/{map_id}/image:
-    delete:
-      description: Delete Site Map Image
-      operationId: deleteSiteMapImage
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: deleteSiteMapImage
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps
-      - Sites Maps
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/map_id'
-    post:
-      description: Add image map is a multipart POST which has an file (Image) and
-        an optional json parameter
-      operationId: addSiteMapImage
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/image_upload'
-        description: Request Body
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: addSiteMapImage
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps
-      - Sites Maps
-  /api/v1/sites/{site_id}/maps/{map_id}/replace:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/map_id'
-    post:
-      description: 'Replace Map Image
-
-
-
-        This works like an PUT where the image will be replaced. If transform is provided,
-        all the locations of the objects on the map (AP, Zone, Vbeacon, Beacon) will
-        be transformed as well (relative to the new Map)'
-      operationId: replaceSiteMapImage
-      requestBody:
-        content:
-          multipart/form-data:
-            examples:
-              Example:
-                value:
-                  file: string
-                  json:
-                    transform:
-                      rotate: 0
-                      scale: 0
-                      x: 0
-                      y: 0
-            schema:
-              properties:
-                file:
-                  format: binary
-                  minLength: 1
-                  type: string
-                json:
-                  properties:
-                    transform:
-                      description: If `transform` is provided, all the locations of
-                        the objects on the map (AP, Zone, Vbeacon, Beacon) will be
-                        transformed as well (relative to the new Map)
-                      properties:
-                        rotate:
-                          type: number
-                        scale:
-                          type: number
-                        x:
-                          type: number
-                        y:
-                          type: number
-                      type: object
-                  type: object
-              required:
-              - file
-              type: object
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: replaceSiteMapImage
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps
-      - Sites Maps
-  /api/v1/sites/{site_id}/maps/{map_id}/set_map:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/map_id'
-    post:
-      description: "This API can be used to assign a list of AP Macs associated with\
-        \ site_id to the specified map_id. Note that map_id must be associated with\
-        \ corresponding site_id. This API obeys the following rules \n1. if AP is\
-        \ unassigned to any Map, it gets associated with map_id \n2. Any moved APs\
-        \ are returned in the response \n3. If the AP is considered a locked AP, no\
-        \ action will be taken"
-      operationId: bulkAssignSiteApsToMap
-      requestBody:
-        content:
-          application/json:
-            examples:
-              Example:
-                value:
-                  macs:
-                  - 5c5b35000001
-                  - 5c5b35584a6f
-            schema:
-              properties:
-                macs:
-                  items:
-                    type: string
-                  type: array
-              type: object
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                Example:
-                  value:
-                    locked:
-                    - 5c5b35584a6f
-                    moved:
-                    - 5c5b35000001
-              schema:
-                properties:
-                  locked:
-                    items:
-                      example: 5c5b35584a6f
-                      type: string
-                    type: array
-                  moved:
-                    items:
-                      example: 5c5b35000001
-                      type: string
-                    type: array
-                type: object
-          description: OK
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: bulkAssignSiteApsToMap
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps
-      - Sites Maps
-  /api/v1/sites/{site_id}/maps/{map_id}/use_auto_ap_values:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/map_id'
-    post:
-      description: This API is used to accept or reject the cached autoplacement and
-        auto orientation values of a map or subset of APs on a map. A rejected AP
-        will retain its current X,Y and orientation until accpeted.
-      operationId: confirmSiteApLocalizationData
-      requestBody:
-        content:
-          application/json:
-            examples:
-              Example:
-                value:
-                  accept: false
-                  device_macs:
-                  - string
-                  for: placement
-            schema:
-              properties:
-                accept:
-                  default: false
-                  description: If accept is true, accepts placement for devices in
-                    list otherwise. If false, reject for devices in list.
-                  type: boolean
-                for:
-                  default: placement
-                  description: 'The selector to choose auto placement or auto orientation. '
-                  enum:
-                  - placement
-                  - orientation
-                  type: string
-                macs:
-                  description: A list of macs to accept/reject. If a list is not provided
-                    the API will accept/reject for the full map.
-                  items:
-                    type: string
-                  type: array
-              type: object
-      responses:
-        '200':
-          description: Success
-        '400':
-          description: 'Invalid localization service expected: placement or orientation'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: confirmSiteApLocalizationData
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps Auto-placement
-      - Sites Maps Auto-placement
-  /api/v1/sites/{site_id}/maps/{map_id}/wayfinding/import:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/map_id'
-    post:
-      description: This imports the vendor map meta data into the Map JSON. This is
-        required by the SDK and App in order to access/render the vendor Map properly.
-      operationId: importSiteWayfindings
-      requestBody:
-        content:
-          application/json:
-            examples:
-              Jimbstream:
-                value:
-                  client_id: 199d6770-0f6f-407a-9bd5-fc33c7840194
-                  client_secret: /9Nog3yDzcYj0bY91XJZQLCt+m9DXaIVhx+Ghk3ddd
-                  customer_id: 123
-                  endpoint_url: https://api.jibestream.com
-                  map_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  mmpp: 223
-                  ppm: 4
-                  vendor_name: jibestream
-                  venue_id: 123
-              Micello:
-                value:
-                  account_key: adasdf
-                  default_level_id: 5
-                  map_id: 6f4bf402-45f9-2a56-6c8b-7f83d3bc98e9
-                  vendor_name: micello
-            schema:
-              oneOf:
-              - properties:
-                  client_id:
-                    description: the client id
-                    format: uuid
-                    type: string
-                  client_secret:
-                    description: the client secret
-                    type: string
-                  customer_id:
-                    description: the jibestream customer record id
-                    format: uuid
-                    type: integer
-                  endpoint_url:
-                    description: the map contents endpoint host
-                    type: string
-                  map_id:
-                    description: the jibestream map id
-                    format: uuid
-                    type: string
-                  mmpp:
-                    description: millimeter per pixel
-                    type: integer
-                  ppm:
-                    description: pixel per meter, same as the map JSON value.
-                    type: number
-                  vendor_name:
-                    default: jibestream
-                    description: "the vendor \u2018jibestream\u2019"
-                    enum:
-                    - jibestream
-                    type: string
-                  venue_id:
-                    description: the venue or organization id
-                    format: uuid
-                    type: integer
-                required:
-                - vendor_name
-                - venue_id
-                - map_id
-                - ppm
-                - client_id
-                - client_secret
-                - customer_id
-                - endpoint_url
-                - mmpp
-              - properties:
-                  account_key:
-                    description: the account key that has access to the map
-                    type: string
-                  default_level_id:
-                    description: micello floor/level id
-                    type: integer
-                  map_id:
-                    description: micello map id
-                    format: uuid
-                    type: string
-                  vendor_name:
-                    default: micello
-                    description: "the vendor \u2018micello\u2019"
-                    enum:
-                    - micello
-                    type: string
-                required:
-                - vendor_name
-                - account_key
-                - map_id
-                - default_level_id
-              type: object
-        description: Request Body
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: importSiteWayfindings
-      tags:
-      - tag:LOCATION:CONFIGURE:Sites:Maps
-      - Sites Maps
   /api/v1/sites/{site_id}/rssizones:
     get:
       description: Get List of Site RSSI Zone (RSSI-based)
@@ -3181,6 +1970,7 @@ paths:
           - by
           - name
           - device_name
+          title: Site Assets count distinct
           type: string
       responses:
         '200':
@@ -3301,10 +2091,7 @@ paths:
         '200':
           content:
             application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/stats_beacon'
-                type: array
+              $ref: '#/components/schemas/stats_beacon'
           description: OK
         '400':
           $ref: '#/components/responses/HTTP400'
@@ -3387,100 +2174,6 @@ paths:
       - Sites Assets
     parameters:
     - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/stats/maps/{map_id}/clients:
-    get:
-      description: Get Site Clients Stats By Map
-      operationId: getSiteWirelessClientsStatsByMap
-      parameters:
-      - $ref: '#/components/parameters/page'
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                  - _ttl: 0
-                    accuracy: 0
-                    airespace_ifname: string
-                    airwatch:
-                      authorized: true
-                    ap_id: 325b588d-147b-4fa4-bb40-83383f83c77e
-                    ap_mac: string
-                    band: '24'
-                    channel: 0
-                    dual_band: true
-                    family: string
-                    guest:
-                      authorized: false
-                      authorized_expiring_time: 0
-                      authorized_time: 0
-                      company: string
-                      email: string
-                      field1: string
-                      name: string
-                    hostname: string
-                    idle_time: 0
-                    ip: 192.168.0.1
-                    ip6: 2001:0db8:85a3:0000:0000:8a2e:0370:7334
-                    is_guest: false
-                    key_mgmt: string
-                    last_seen: 0
-                    mac: string
-                    manufacture: string
-                    map_id: 09d2b626-2e4e-45ef-a3c4-e6aeb6c83db1
-                    model: string
-                    num_locating_aps: 0
-                    os: string
-                    power_saving: true
-                    proto: a
-                    psk_id: 4cb94c10-4e99-46b0-8261-4c71d0b2cb9d
-                    rssi: 0
-                    rx_bps: 0
-                    rx_bytes: 0
-                    rx_packets: 0
-                    rx_rate: 0
-                    rx_retries: 0
-                    snr: 0
-                    ssid: string
-                    tx_bps: 0
-                    tx_bytes: 0
-                    tx_packets: 0
-                    tx_rate: 0
-                    tx_retries: 0
-                    type: string
-                    uptime: 0
-                    username: string
-                    vlan_id: 0
-                    wlan_id: 5028e92b-fc59-4056-91d1-ea4b4ca1617a
-                    x: 0
-                    y: 0
-              schema:
-                items:
-                  $ref: '#/components/schemas/stats_client'
-                type: array
-          description: OK
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: getSiteWirelessClientsStatsByMap
-      tags:
-      - tag:LOCATION:MONITOR:Sites:Stats
-      - Sites Stats
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/map_id'
   /api/v1/sites/{site_id}/stats/maps/{map_id}/discovered_assets:
     get:
       description: "Get a list of BLE beacons that we discovered (whether they\u2019\
@@ -3569,47 +2262,6 @@ paths:
         '429':
           $ref: '#/components/responses/HTTP429'
       summary: getSiteSdkStatsByMap
-      tags:
-      - tag:LOCATION:MONITOR:Sites:Stats
-      - Sites Stats
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/map_id'
-  /api/v1/sites/{site_id}/stats/maps/{map_id}/unconnected_clients:
-    get:
-      description: Get List of Site Unconnected Client Location
-      operationId: listSiteUnconnectedClientStats
-      responses:
-        '200':
-          content:
-            application/json:
-              examples:
-                example-1:
-                  value:
-                  - ap_mac: 5c5b350e0410
-                    last_seen: 1428939600
-                    mac: 5684dae9ac8b
-                    manufacture: Apple
-                    map_id: ea77be98-ab51-4ff8-a863-ac3c8e1b1c3a
-                    rssi: -75
-                    x: 60
-                    y: 80
-              schema:
-                items:
-                  $ref: '#/components/schemas/stats_unconnected_clients'
-                type: array
-          description: OK
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: listSiteUnconnectedClientStats
       tags:
       - tag:LOCATION:MONITOR:Sites:Stats
       - Sites Stats
@@ -3898,7 +2550,7 @@ paths:
     parameters:
     - $ref: '#/components/parameters/site_id'
     post:
-      description: 'Create Site Zone '
+      description: Create Site Zone
       operationId: createSiteZone
       requestBody:
         content:
@@ -4024,6 +2676,7 @@ paths:
           - user
           - scope_id
           - scope
+          title: Site Zone count distinct
           type: string
       - description: user type
         in: query
@@ -4034,6 +2687,7 @@ paths:
           - client
           - sdkclient
           - asset
+          title: Zone Clients
           type: string
       - description: client MAC / Asset MAC / SDK UUID
         in: query
@@ -4055,6 +2709,7 @@ paths:
           - map
           - zone
           - rssizone
+          title: Zone Scope
           type: string
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
@@ -4095,6 +2750,7 @@ paths:
           - client
           - sdkclient
           - asset
+          title: Visits Clients
           type: string
       - description: client MAC / Asset MAC / SDK UUID
         in: query
@@ -4116,6 +2772,7 @@ paths:
           - map
           - zone
           - rssizone
+          title: Visits Scope
           type: string
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
@@ -4178,8 +2835,6 @@ components:
       $ref: ../components/parameters/secret.yml
     site_id:
       $ref: ../components/parameters/site_id.yml
-    site_name:
-      $ref: ../components/parameters/site_name.yml
     start:
       $ref: ../components/parameters/start.yml
     vbeacon_id:
@@ -4221,14 +2876,12 @@ components:
       $ref: ../components/responses/HTTP404.yml
     HTTP429:
       $ref: ../components/responses/HTTP429.yml
-    Map:
-      $ref: ../components/responses/Map.yml
-    MapImport:
-      $ref: ../components/responses/MapImport.yml
-    MapsArray:
-      $ref: ../components/responses/MapsArray.yml
+    LocationCoverage:
+      $ref: ../components/responses/LocationCoverage.yml
     Ml:
       $ref: ../components/responses/Ml.yml
+    MobileVerifySecret:
+      $ref: ../components/responses/MobileVerifySecret.yml
     OK:
       $ref: ../components/responses/OK.yml
     Rssizone:
@@ -4264,24 +2917,20 @@ components:
       $ref: ../components/schemas/Model_ml.yml
     Model_object_device_id:
       $ref: ../components/schemas/Model_object_device_id.yml
-    Model_object_email:
-      $ref: ../components/schemas/Model_object_email.yml
     asset:
       $ref: ../components/schemas/asset.yml
     asset_filter:
       $ref: ../components/schemas/asset_filter.yml
     beacon:
       $ref: ../components/schemas/beacon.yml
-    image_upload:
-      $ref: ../components/schemas/image_upload.yml
-    import_org_map:
-      $ref: ../components/schemas/import_org_map.yml
-    import_site_map:
-      $ref: ../components/schemas/import_site_map.yml
-    map:
-      $ref: ../components/schemas/map.yml
+    email_model:
+      $ref: ../components/schemas/email_model.yml
+    name_model:
+      $ref: ../components/schemas/name_model.yml
     rssizone:
       $ref: ../components/schemas/rssizone.yml
+    sdk_invite_sms:
+      $ref: ../components/schemas/sdk_invite_sms.yml
     sdkinvite:
       $ref: ../components/schemas/sdkinvite.yml
     sdktemplate:
@@ -4290,14 +2939,10 @@ components:
       $ref: ../components/schemas/stats_asset.yml
     stats_beacon:
       $ref: ../components/schemas/stats_beacon.yml
-    stats_client:
-      $ref: ../components/schemas/stats_client.yml
     stats_sdkclient:
       $ref: ../components/schemas/stats_sdkclient.yml
     stats_sdkclient_details:
       $ref: ../components/schemas/stats_sdkclient_details.yml
-    stats_unconnected_clients:
-      $ref: ../components/schemas/stats_unconnected_clients.yml
     vbeacon:
       $ref: ../components/schemas/vbeacon.yml
     zone:
