@@ -9,6 +9,7 @@ import sys
 
 SPEC_FILE_IN="./tmp/mist.openapi_grp3.yml"
 FILTER_FILE="./.filters"
+PRE_TAG="op"
 
 with open(FILTER_FILE, 'r') as filter_file:
     filters_string = filter_file.read().split("=")[1].split("#")[0]
@@ -31,7 +32,8 @@ TAG_NAMES = {
     "CONSTANTS": "Constants",
     "AUTHENTICATION": "Authentication",
     "MONITOR": "Monitor",
-    "CONFIGURE": "Configure"
+    "CONFIGURE": "Configure",
+    "UTILITIES": "Utilities"
 }
 
 ITEMS = {
@@ -42,6 +44,7 @@ ITEMS = {
     "NAC": {},
     "LOCATION": {},
     "SAMPLES": {},
+    "CONSTANTS": {}
 }
 
 TAGS = {
@@ -52,6 +55,7 @@ TAGS = {
     "NAC": [],
     "LOCATION": [],
     "SAMPLES": [],
+    "CONSTANTS": [],
 }
 
 VERBS = ["get", "post", "put", "delete"]
@@ -81,8 +85,8 @@ for path in PATHS:
         tags = []
 
         for t in properties[verb]["tags"]:
-            if t.startswith("tag:"):
-                tag = t.replace("tag:","").split(":")[0]
+            if t.startswith(f"{PRE_TAG}:"):
+                tag = t.replace(f"{PRE_TAG}:","").split(":")[0]
                 if not tag in tags:
                     tags.append(tag)
 

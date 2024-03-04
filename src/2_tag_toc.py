@@ -12,6 +12,8 @@ TOC_FILE_OUT = "./content/toc.yml"
 SPEC_FOLDER = "./spec/"
 TOC_FOLDER = "./content/api/"
 FILTER_FILE = "./.filters"
+PRE_TAG="op"
+
 
 with open(FILTER_FILE, "r") as filter_file:
     filters_string = filter_file.read().split("=")[1].split("#")[0]
@@ -39,29 +41,36 @@ def add_endpoint(
         sys.exit(0)
     next_groups = groups[level + 1 :]
     next_items = None
+    ##
+    print(f"{operation_id}".ljust(80, "-"))
+    print(items)
+    print(endpoint_group)
+    print(groups)
+    print(current_group)
+    ##
     if retry >= 5:
         print(f"unable to create the group entry for {groups}, {group_name}")
         sys.exit(0)
     else:
         try:
-            next_items = next(item for item in items if item.get("group").lower() == current_group.lower())
+            next_items = next(item for item in items if item.get("group", "").lower() == current_group.lower())
         except:
-            if len(next_groups) == 0:
-                group_title = current_group
-            else:
-                group_title = current_group.title()
+            # if len(next_groups) == 0:
+            #     group_title = current_group
+            # else:
+            group_title = current_group.title()
             items.append({"group": group_title, "items": []})
-            items.sort(key=lambda item: item.get("group"))
-            next_items = next(item for item in items if item.get("group").lower() == current_group.lower())
+            items.sort(key=lambda item: item.get("group", "0"))
+            next_items = next(item for item in items if item.get("group", "").lower() == current_group.lower())
         finally:
             if next_groups:
                 add_endpoint(next_items["items"], operation_id, endpoint_group, groups, level + 1)
             else:
-                if len(next_items) == 0:
+                if next_items and len(next_items) == 0:
                     next_items["items"] = [
                         {
                             "generate": {
-                                "endpoint-group": f"tag:{':'.join(groups)}",
+                                "endpoint-group": f"{PRE_TAG}:{':'.join(groups)}",
                                 "from": "endpoint-group-overview",
                             }
                         }
@@ -76,7 +85,7 @@ def add_endpoint(
                     }
                 )
                 next_items["items"].sort(
-                    key=lambda item: item["generate"].get("endpoint-name", "0")
+                    key=lambda item: item.get("generate", {}).get("endpoint-name", "0")
                 )
 
 
@@ -94,7 +103,7 @@ def process_spec_file(spec_data: dict, items: list):
                 endpoint_group = ""
                 category = ""
                 for t in properties[verb]["tags"]:
-                    if t.startswith("tag:"):
+                    if t.startswith(f"{PRE_TAG}:"):
                         if not groups:
                             endpoint_group = t
                             category = t.split(":")[1:2][0]
@@ -106,7 +115,7 @@ def process_spec_file(spec_data: dict, items: list):
                     else:
                         print(f"operationid {operation_id} has too many tags")
                         
-                if category == groups[-1:]:
+                if groups and category == groups[-1:]:
                     groups = groups[:-1]
                 if not FILTER or category in FILTER:
                     if not operation_id in OPERATION_IDS:
