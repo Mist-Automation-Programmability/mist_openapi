@@ -3,7 +3,7 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2401.1.5**
+  description: '> Version: **2401.1.6**
 
     >
 
@@ -782,6 +782,27 @@ paths:
       tags:
       - op:CONSTANTS:Models
       - Constants Models
+  /api/v1/const/system_events:
+    get:
+      description: Get List of List of available System Events
+      operationId: listSystemEventsDefinitions
+      responses:
+        '200':
+          $ref: '#/components/responses/ConstSystemEvents'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listSystemEventsDefinitions
+      tags:
+      - op:CONSTANTS:Events
+      - Constants Events
   /api/v1/const/traffic_types:
     get:
       description: Get List of identified traffic
@@ -5093,79 +5114,6 @@ paths:
       tags:
       - op:LOCATION:CONFIGURE:Orgs:Assets
       - Orgs Assets
-  /api/v1/orgs/{org_id}/call/events/count:
-    get:
-      description: Count Org Call Events
-      operationId: countOrgCallEvents
-      parameters:
-      - in: query
-        name: distinct
-        schema:
-          enum:
-          - type
-          - app
-          title: Org call events count distinct
-          type: string
-      responses:
-        '200':
-          $ref: '#/components/responses/count'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: countOrgCallEvents
-      tags:
-      - op:MIST:MONITOR:Orgs:Calls
-      - Orgs Calls
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-  /api/v1/orgs/{org_id}/call/events/search:
-    get:
-      description: Search Org Call Events
-      operationId: searchOrgCallEvents
-      parameters:
-      - description: Event Type. See [listCallEventsDefinitions](/#operation/listCallEventsDefinitions)
-        in: query
-        name: type
-        schema:
-          type: string
-      - in: query
-        name: ap
-        schema:
-          type: string
-      - in: query
-        name: mac
-        schema:
-          type: string
-      - in: query
-        name: app
-        schema:
-          type: string
-      responses:
-        '200':
-          $ref: '#/components/responses/CallEventsArraySearch'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: searchOrgCallEvents
-      tags:
-      - op:MIST:MONITOR:Orgs:Calls
-      - Orgs Calls
-    parameters:
-    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/cert:
     get:
       description: Get Org Certificates
@@ -5337,11 +5285,7 @@ paths:
       description: Get Org Clients Events
       operationId: searchOrgWirelessClientEvents
       parameters:
-      - description: event type, e.g. MARVIS_EVENT_CLIENT_FBT_FAILURE
-        in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/client_event_type'
       - description: for assoc/disassoc events
         in: query
         name: reason_code
@@ -5357,16 +5301,8 @@ paths:
         name: ap
         schema:
           type: string
-      - description: 802.11 standard
-        in: query
-        name: proto
-        schema:
-          $ref: '#/components/schemas/dot11_proto'
-      - description: 24 / 5
-        in: query
-        name: band
-        schema:
-          $ref: '#/components/schemas/dot11_band'
+      - $ref: '#/components/parameters/dot11_proto'
+      - $ref: '#/components/parameters/dot11_band'
       - description: wlan_id
         in: query
         name: wlan_id
@@ -5510,11 +5446,7 @@ paths:
         name: ap
         schema:
           type: string
-      - description: 5 / 24
-        in: query
-        name: band
-        schema:
-          $ref: '#/components/schemas/dot11_band'
+      - $ref: '#/components/parameters/dot11_band'
       - description: "E.g. \u201CMac\u201D, \u201CiPhone\u201D, \u201CApple watch\u201D"
         in: query
         name: client_family
@@ -5579,11 +5511,7 @@ paths:
         name: ap
         schema:
           type: string
-      - description: 5 / 24
-        in: query
-        name: band
-        schema:
-          $ref: '#/components/schemas/dot11_band'
+      - $ref: '#/components/parameters/dot11_band'
       - description: "E.g. \u201CMac\u201D, \u201CiPhone\u201D, \u201CApple watch\u201D"
         in: query
         name: client_family
@@ -8216,12 +8144,7 @@ paths:
         name: timestamp
         schema:
           type: string
-      - description: Events Type
-        in: query
-        name: type
-        schema:
-          type: string
-      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/device_event_type'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -8260,7 +8183,16 @@ paths:
         name: model
         schema:
           type: string
-      - $ref: '#/components/parameters/device_type'
+      - in: query
+        name: device_type
+        schema:
+          default: ap
+          enum:
+          - ap
+          - switch
+          - gateway
+          title: device_type
+          type: string
       - description: event message
         in: query
         name: text
@@ -8271,11 +8203,7 @@ paths:
         name: timestamp
         schema:
           type: string
-      - description: see [listDeviceEventsDefinitions](/#operation/listDeviceEventsDefinitions)
-        in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/device_event_type'
       - description: Return last/recent event for passed in field
         example: port_id
         in: query
@@ -12075,11 +12003,7 @@ paths:
         name: mxcluster_id
         schema:
           type: string
-      - description: mist edge event type [Supported Events](/#operation/listGatewayApplications)
-        in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/mxedge_event_type'
       - description: service running on mist edge(mxagent, tunterm etc)
         in: query
         name: service
@@ -12088,7 +12012,6 @@ paths:
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       responses:
         '200':
@@ -12114,11 +12037,7 @@ paths:
         name: mxcluster_id
         schema:
           type: string
-      - description: mist edge event type [Supported Events](/#operation/listGatewayApplications)
-        in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/mxedge_event_type'
       - description: service running on mist edge(mxagent, tunterm etc)
         in: query
         name: service
@@ -12127,7 +12046,6 @@ paths:
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       responses:
         '200':
@@ -12953,11 +12871,11 @@ paths:
           - ssid
           title: Org Nac Client events count distinct
           type: string
+      - $ref: '#/components/parameters/nac_event_type'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/count'
@@ -12972,11 +12890,7 @@ paths:
       description: Search NAC Client Events
       operationId: searchOrgNacClientEvents
       parameters:
-      - description: event type, e.g. NAC_CLIENT_PERMIT
-        in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/nac_event_type'
       - description: NAC Policy Rule ID, if matched
         in: query
         name: nacrule_id
@@ -13077,7 +12991,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/EventsNacClientSearch'
@@ -15061,11 +14974,11 @@ paths:
           - site_id
           title: Org Other Devices events count distinct
           type: string
+      - $ref: '#/components/parameters/otherdevice_event_type'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/count'
@@ -15115,16 +15028,11 @@ paths:
         name: vendor
         schema:
           type: string
-      - description: event type
-        in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/otherdevice_event_type'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/EventsOtherDevicesSearch'
@@ -20607,6 +20515,11 @@ paths:
           - mac
           title: Org Wan Clients events count distinct
           type: string
+      - $ref: '#/components/parameters/client_event_type'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/count'
@@ -20671,11 +20584,7 @@ paths:
       description: Search Org WAN Client Events
       operationId: searchOrgWanClientEvents
       parameters:
-      - description: Event type, e.g. CLIENT_IP_ASSIGNED, CLIENT_IP_RENEWED, CLIENT_IP_EXPIRED
-        in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/client_event_type'
       - description: partial / full MAC address
         in: query
         name: mac
@@ -20705,7 +20614,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/WanClientEventsSearch'
@@ -23921,79 +23829,6 @@ paths:
       tags:
       - op:LOCATION:CONFIGURE:Sites:Beacons
       - Sites Beacons
-  /api/v1/sites/{site_id}/call/events/count:
-    get:
-      description: Count Site Call Events
-      operationId: countSiteCallEvents
-      parameters:
-      - in: query
-        name: distinct
-        schema:
-          enum:
-          - type
-          - app
-          title: Site Call Events count distinct
-          type: string
-      responses:
-        '200':
-          $ref: '#/components/responses/count'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: countSiteCallEvents
-      tags:
-      - op:MIST:MONITOR:Sites:Calls
-      - Sites Calls
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/call/events/search:
-    get:
-      description: Search Site Call Events
-      operationId: searchSiteCallEvents
-      parameters:
-      - description: Event Type. See [listCallEventsDefinitions](/#operation/listCallEventsDefinitions)
-        in: query
-        name: type
-        schema:
-          type: string
-      - in: query
-        name: ap
-        schema:
-          type: string
-      - in: query
-        name: mac
-        schema:
-          type: string
-      - in: query
-        name: app
-        schema:
-          type: string
-      responses:
-        '200':
-          $ref: '#/components/responses/CallEventsArraySearch'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: searchSiteCallEvents
-      tags:
-      - op:MIST:MONITOR:Sites:Calls
-      - Sites Calls
-    parameters:
-    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/clients/count:
     get:
       description: Count by Distinct Attributes of Clients
@@ -24110,8 +23945,7 @@ paths:
       description: Count by Distinct Attributes of Client-Events
       operationId: countSiteWirelessClientEvents
       parameters:
-      - description: type / proto / band / channel / wlan_id / ssid
-        example: type
+      - example: type
         in: query
         name: distinct
         schema:
@@ -24124,11 +23958,7 @@ paths:
           - ssid
           title: Site Client Events count distinct
           type: string
-      - description: event type, e.g. MARVIS_EVENT_CLIENT_FBT_FAILURE
-        in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/client_event_type'
       - description: for assoc/disassoc events
         in: query
         name: reason_code
@@ -24144,22 +23974,13 @@ paths:
         name: ap
         schema:
           type: string
-      - description: 802.11 standard
-        in: query
-        name: proto
-        schema:
-          $ref: '#/components/schemas/dot11_proto'
-      - description: 802.11 Band
-        in: query
-        name: band
-        schema:
-          $ref: '#/components/schemas/dot11_band'
+      - $ref: '#/components/parameters/dot11_proto'
+      - $ref: '#/components/parameters/dot11_band'
       - description: wlan_id
         in: query
         name: wlan_id
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -24188,11 +24009,7 @@ paths:
       description: Get Site Clients Events
       operationId: searchSiteWirelessClientEvents
       parameters:
-      - description: event type, e.g. MARVIS_EVENT_CLIENT_FBT_FAILURE
-        in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/client_event_type'
       - description: for assoc/disassoc events
         in: query
         name: reason_code
@@ -24208,16 +24025,8 @@ paths:
         name: ap
         schema:
           type: string
-      - description: 802.11 standard
-        in: query
-        name: proto
-        schema:
-          $ref: '#/components/schemas/dot11_proto'
-      - description: 802.11 band
-        in: query
-        name: band
-        schema:
-          $ref: '#/components/schemas/dot11_band'
+      - $ref: '#/components/parameters/dot11_proto'
+      - $ref: '#/components/parameters/dot11_band'
       - description: wlan_id
         in: query
         name: wlan_id
@@ -24351,11 +24160,7 @@ paths:
         name: ap
         schema:
           type: string
-      - description: 24 /5
-        in: query
-        name: band
-        schema:
-          type: string
+      - $ref: '#/components/parameters/dot11_band'
       - description: "E.g. \u201CMac\u201D, \u201CiPhone\u201D, \u201CApple watch\u201D"
         in: query
         name: client_family
@@ -24420,11 +24225,7 @@ paths:
         name: ap
         schema:
           type: string
-      - description: 802.11 band
-        in: query
-        name: band
-        schema:
-          $ref: '#/components/schemas/dot11_band'
+      - $ref: '#/components/parameters/dot11_band'
       - description: "E.g. \u201CMac\u201D, \u201CiPhone\u201D, \u201CApple watch\u201D"
         in: query
         name: client_family
@@ -24576,16 +24377,8 @@ paths:
         name: type
         schema:
           type: string
-      - description: a / b / g / n / ac / ax
-        in: query
-        name: proto
-        schema:
-          $ref: '#/components/schemas/dot11_proto'
-      - description: 24 / 5
-        in: query
-        name: band
-        schema:
-          type: string
+      - $ref: '#/components/parameters/dot11_proto'
+      - $ref: '#/components/parameters/dot11_band'
       - in: query
         name: channel
         schema:
@@ -24922,15 +24715,11 @@ paths:
         name: model
         schema:
           type: string
-      - in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/device_event_type'
       - in: query
         name: type_code
         schema:
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -24959,7 +24748,6 @@ paths:
       description: Search Devices Events
       operationId: searchSiteDeviceEvents
       parameters:
-      - $ref: '#/components/parameters/device_type'
       - description: device mac
         in: query
         name: mac
@@ -24980,11 +24768,7 @@ paths:
         name: timestamp
         schema:
           type: string
-      - description: see [Event Types Definition](/#operation/listDeviceEventsDefinitions)
-        in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/device_event_type'
       - description: Return last/recent event for passed in field
         example: port_id
         in: query
@@ -27890,7 +27674,6 @@ paths:
           - none
           title: fast_roam_result
           type: string
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -27927,7 +27710,7 @@ paths:
           - type
           title: Site System Events count distinct
           type: string
-      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/system_event_type'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -27956,10 +27739,7 @@ paths:
       description: Search System Events
       operationId: searchSiteSystemEvents
       parameters:
-      - in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/system_event_type'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -29678,11 +29458,7 @@ paths:
         name: mxcluster_id
         schema:
           type: string
-      - description: mist edge event type [Supported Events](/#operation/listGatewayApplications)
-        in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/mxedge_event_type'
       - description: service running on mist edge(mxagent, tunterm etc)
         in: query
         name: service
@@ -29691,7 +29467,6 @@ paths:
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       responses:
         '200':
@@ -29717,11 +29492,7 @@ paths:
         name: mxcluster_id
         schema:
           type: string
-      - description: mist edge event type [Supported Events](/#operation/listGatewayApplications)
-        in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/mxedge_event_type'
       - description: service running on mist edge(mxagent, tunterm etc)
         in: query
         name: service
@@ -29730,7 +29501,6 @@ paths:
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       responses:
         '200':
@@ -29998,11 +29768,11 @@ paths:
           - ssid
           title: Site Nac Client Events count distinct
           type: string
+      - $ref: '#/components/parameters/nac_event_type'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/count'
@@ -30017,11 +29787,7 @@ paths:
       description: Search NAC Client Events
       operationId: searcSitegNacClientEvents
       parameters:
-      - description: event type, e.g. NAC_CLIENT_PERMIT
-        in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/nac_event_type'
       - description: NAC Policy Rule ID, if matched
         in: query
         name: nacrule_id
@@ -30117,7 +29883,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/EventsNacClientSearch'
@@ -30336,11 +30101,11 @@ paths:
           - site_id
           title: Site Other Device Events count distinct
           type: string
+      - $ref: '#/components/parameters/otherdevice_event_type'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/count'
@@ -30380,16 +30145,11 @@ paths:
         name: vendor
         schema:
           type: string
-      - description: event type
-        in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/otherdevice_event_type'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/EventsOtherDevicesSearch'
@@ -31185,7 +30945,6 @@ paths:
         name: seen_on_lan
         schema:
           type: boolean
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -31360,22 +31119,13 @@ paths:
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
-    - description: radio band
-      in: path
-      name: band
-      required: true
-      schema:
-        $ref: '#/components/schemas/dot11_band'
+    - $ref: '#/components/parameters/dot11_band'
   /api/v1/sites/{site_id}/rrm/events:
     get:
       description: Get Site RRM Events
       operationId: getSiteRrmEvents
       parameters:
-      - in: query
-        name: band
-        required: true
-        schema:
-          $ref: '#/components/schemas/dot11_band'
+      - $ref: '#/components/parameters/dot11_band'
       - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
@@ -31734,6 +31484,10 @@ paths:
         name: mac
         schema:
           type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/count'
@@ -31798,6 +31552,10 @@ paths:
         name: mac
         schema:
           type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/ServicePathEventsSearch'
@@ -32788,7 +32546,6 @@ paths:
         schema:
           type: integer
       - $ref: '#/components/parameters/ip'
-      - $ref: '#/components/parameters/page'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -35042,9 +34799,9 @@ paths:
                     version: 18.4R1.8
               schema:
                 oneOf:
-                - $ref: '#/components/schemas/stats_device_ap'
-                - $ref: '#/components/schemas/stats_device_switch_site'
-                - $ref: '#/components/schemas/stats_device_gateway'
+                - $ref: '#/components/schemas/ap_stats'
+                - $ref: '#/components/schemas/switch_stats'
+                - $ref: '#/components/schemas/gateway_stats'
           description: OK
         '400':
           $ref: '#/components/responses/HTTP400'
@@ -37218,6 +36975,11 @@ paths:
           - mac
           title: Site Wan Client events distinct
           type: string
+      - $ref: '#/components/parameters/client_event_type'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/count'
@@ -37282,11 +37044,7 @@ paths:
       description: Search Site WAN Client Events
       operationId: searchSiteWanClientEvents
       parameters:
-      - description: Event type, e.g. CLIENT_IP_ASSIGNED, CLIENT_IP_RENEWED, CLIENT_IP_EXPIRED
-        in: query
-        name: type
-        schema:
-          type: string
+      - $ref: '#/components/parameters/client_event_type'
       - description: partial / full MAC address
         in: query
         name: mac
@@ -37316,7 +37074,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/WanClientEventsSearch'
@@ -40614,6 +40371,12 @@ components:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
         format: uuid
         type: string
+    client_event_type:
+      description: see [listDeviceEventsDefinitions](/#operation/listClientEventsDefinitions)
+      in: query
+      name: type
+      schema:
+        type: string
     client_mac:
       in: path
       name: client_mac
@@ -40629,6 +40392,12 @@ components:
       schema:
         example: US
         pattern: ^[a-zA-Z]{2}$
+        type: string
+    device_event_type:
+      description: see [listDeviceEventsDefinitions](/#operation/listDeviceEventsDefinitions)
+      in: query
+      name: type
+      schema:
         type: string
     device_id:
       in: path
@@ -40677,6 +40446,18 @@ components:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
         format: uuid
         type: string
+    dot11_band:
+      description: 802.11 Band
+      in: query
+      name: band
+      schema:
+        $ref: '#/components/schemas/dot11_band'
+    dot11_proto:
+      description: a / b / g / n / ac / ax
+      in: query
+      name: proto
+      schema:
+        $ref: '#/components/schemas/dot11_proto'
     duration:
       description: duration like 7d, 2w
       in: query
@@ -40804,6 +40585,12 @@ components:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
         format: uuid
         type: string
+    mxedge_event_type:
+      description: see [listDeviceEventsDefinitions](/#operation/listMxedgeEventsDefinitions)
+      in: query
+      name: type
+      schema:
+        type: string
     mxedge_id:
       in: path
       name: mxedge_id
@@ -40819,6 +40606,12 @@ components:
       schema:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
         format: uuid
+        type: string
+    nac_event_type:
+      description: see [listDeviceEventsDefinitions](/#operation/listNacEventsDefinitions)
+      in: query
+      name: type
+      schema:
         type: string
     naccrl_id:
       in: path
@@ -40881,6 +40674,12 @@ components:
       schema:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
         format: uuid
+        type: string
+    otherdevice_event_type:
+      description: see [listDeviceEventsDefinitions](/#operation/listOtherDeviceEventsDefinitions)
+      in: query
+      name: type
+      schema:
         type: string
     page:
       in: query
@@ -41091,6 +40890,12 @@ components:
       name: start
       schema:
         type: integer
+    system_event_type:
+      description: see [listDeviceEventsDefinitions](/#operation/listSystemEventsDefinitions)
+      in: query
+      name: type
+      schema:
+        type: string
     template_id:
       in: path
       name: template_id
@@ -42799,59 +42604,6 @@ components:
                 type: integer
             type: object
       description: Example response
-    CallEventsArraySearch:
-      content:
-        application/json:
-          examples:
-            Example:
-              value:
-                end: 1674819324
-                limit: 10
-                results:
-                - app: zoom
-                  audio_quality: good
-                  meeting_id: '87609329850'
-                  org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
-                  reason: Host ended the meeting.
-                  screen_share_quality: good
-                  site_id: 1916d52a-4a90-11e5-8b45-1258369c38a9
-                  timestamp: 1674199827
-                  type: CLIENT_LEFT_CALL
-                  video_quality: good
-                  wcid: 82c70a73-e2e1-42f9-6da0-97db44b7b9ad
-                - app: zoom
-                  meeting_id: '87609329850'
-                  org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
-                  reason: Network connection error.
-                  site_id: 1916d52a-4a90-11e5-8b45-1258369c38a9
-                  timestamp: 1674199827
-                  type: CLIENT_DISCONNECTED_FROM_CALL
-                  wcid: 82c70a73-e2e1-42f9-6da0-97db44b7b9ad
-                - app: zoom
-                  meeting_id: '87609329850'
-                  org_id: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
-                  site_id: 1916d52a-4a90-11e5-8b45-1258369c38a9
-                  timestamp: 1674199827
-                  type: CLIENTS_JOINED_CALL
-                  wcid: 82c70a73-e2e1-42f9-6da0-97db44b7b9ad
-                start: 1674153000
-                total: 3
-          schema:
-            properties:
-              end:
-                type: integer
-              limit:
-                type: integer
-              results:
-                items:
-                  $ref: '#/components/schemas/event_call'
-                type: array
-              start:
-                type: integer
-              total:
-                type: integer
-            type: object
-      description: Example response
     CallStatsArray:
       content:
         application/json:
@@ -44488,6 +44240,20 @@ components:
               type: object
             type: array
       description: OK
+    ConstSystemEvents:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+              - display: AP Disconnect
+                group: ap_health
+                key: ap_disconnected
+          schema:
+            items:
+              $ref: '#/components/schemas/const_event'
+            type: array
+      description: List of System Events definitions
     ConstTrafficTypes:
       content:
         application/json:
@@ -48434,9 +48200,9 @@ components:
           schema:
             items:
               anyOf:
-              - $ref: '#/components/schemas/stats_device_ap'
-              - $ref: '#/components/schemas/stats_device_switch_org'
-              - $ref: '#/components/schemas/stats_device_gateway'
+              - $ref: '#/components/schemas/ap_stats'
+              - $ref: '#/components/schemas/switch_stats'
+              - $ref: '#/components/schemas/gateway_stats'
             type: array
       description: OK
     DevicesArrayStatsSite:
@@ -48824,9 +48590,9 @@ components:
           schema:
             items:
               anyOf:
-              - $ref: '#/components/schemas/stats_device_ap'
-              - $ref: '#/components/schemas/stats_device_switch_site'
-              - $ref: '#/components/schemas/stats_device_gateway'
+              - $ref: '#/components/schemas/ap_stats'
+              - $ref: '#/components/schemas/switch_stats'
+              - $ref: '#/components/schemas/gateway_stats'
             type: array
       description: OK
     DevicesSearch:
@@ -55216,7 +54982,7 @@ components:
                     band:
                       $ref: '#/components/schemas/dot11_band'
                     bandwidth:
-                      $ref: '#/components/schemas/dot11_ bandwidth'
+                      $ref: '#/components/schemas/dot11_bandwidth'
                     channel:
                       description: channel for the band from rrm
                       type: integer
@@ -62363,7 +62129,7 @@ components:
           example: default
           type: string
         bandwidth:
-          $ref: '#/components/schemas/dot11_ bandwidth'
+          $ref: '#/components/schemas/dot11_bandwidth'
         channel:
           description: For Device. (primary) channel for the band, 0 means using the
             Site Setting
@@ -62434,6 +62200,56 @@ components:
       minItems: 1
       type: array
       uniqueItems: true
+    ap_radio_stats:
+      description: radio stat
+      properties:
+        bandwidth:
+          $ref: '#/components/schemas/dot11_bandwidth'
+        channel:
+          description: current channel the radio is running on
+          type: integer
+        dynamic_chaining_enalbed:
+          description: Use dynamic chaining for downlink
+          type: boolean
+        mac:
+          description: radio (base) mac, it can have 16 bssids (e.g. 5c5b350001a0-5c5b350001af)
+          type: string
+        num_clients:
+          type: integer
+        power:
+          description: transmit power (in dBm)
+          type: integer
+        rx_bytes:
+          type: number
+        rx_pkts:
+          type: number
+        tx_bytes:
+          type: number
+        tx_pkts:
+          type: number
+        util_all:
+          description: all utilization in percentage
+          type: integer
+        util_non_wifi:
+          description: "reception of \u201CNo Packets\u201D utilization in percentage,\
+            \ received frames with invalid PLCPs and CRS glitches as noise"
+          type: integer
+        util_rx_in_bss:
+          description: "reception of \u201CIn BSS\u201D utilization in percentage,\
+            \ only frames that are received from AP/STAs within the BSS"
+          type: integer
+        util_rx_other_bss:
+          description: "reception of \u201COther BSS\u201D utilization in percentage,\
+            \ all frames received from AP/STAs that are outside the BSS"
+          type: integer
+        util_tx:
+          description: transmission utilization in percentage
+          type: integer
+        util_unknown_wifi:
+          description: "reception of \u201CNo Category\u201D utilization in percentage,\
+            \ all 802.11 frames that are corrupted at the receiver"
+          type: integer
+      type: object
     ap_search:
       properties:
         band_24_bandwith:
@@ -62516,6 +62332,588 @@ components:
         version:
           description: version
           type: string
+      type: object
+    ap_stats:
+      description: AP statistics
+      properties:
+        auto_placement:
+          properties:
+            _id:
+              example: 5c5b35000010
+              type: string
+            info:
+              description: Additional information about auto placements AP data
+              properties:
+                cluster_number:
+                  description: All APs sharing a given cluster number can be placed
+                    relative to each other
+                  example: 0
+                  type: integer
+                orientation_stats:
+                  description: The orientation of an AP
+                  example: 0
+                  type: integer
+                probability_surface:
+                  description: Coordinates representing a circle where the AP is most
+                    likely exists in the event of an inaccurate placement result
+                  properties:
+                    radius:
+                      description: The radius representing placement uncertainty,
+                        measured in pixels
+                      example: 2.1
+                      type: number
+                    radius_m:
+                      description: The radius representing placement uncertainty,
+                        measured in meters
+                      type: number
+                    x:
+                      description: "X-coordinate of the potential placement\u2019\
+                        s center, measured in pixels"
+                      example: 5.65
+                      type: number
+                    y:
+                      description: "Y-coordinate of the potential placement\u2019\
+                        s center, measured in pixels"
+                      example: 17
+                      type: number
+                  type: object
+              type: object
+            recommended_anchor:
+              description: Flag to represent if AP is recommended as an anchor by
+                auto placement service
+              type: boolean
+            status:
+              description: Basic Placement Status
+              example: localized
+              type: string
+            status_detail:
+              description: Additional info about placement status
+              example: localized
+              type: string
+            use_auto_placement:
+              description: Flag to represent if auto_placement values are currently
+                utilized
+              type: boolean
+            x:
+              description: X Autoplaced Position in pixels
+              example: 53.5
+              type: number
+            x_m:
+              description: X Autoplaced Position in meters
+              example: 5.35
+              type: number
+            y:
+              description: Y Autoplaced Position in pixels
+              example: 173.1
+              type: number
+            y_m:
+              description: X Autoplaced Position in meters
+              example: 17.31
+              type: number
+          type: object
+        ble_config:
+          properties:
+            beacon_rate:
+              type: integer
+            beacon_rate_model:
+              example: custom
+              type: string
+            beam_disabled:
+              items:
+                type: integer
+              type: array
+            power:
+              type: integer
+            power_mode:
+              example: custom
+              type: string
+          type: object
+        ble_stat:
+          properties:
+            beacon_rate:
+              type: integer
+            eddystone_uid_enabled:
+              type: boolean
+            eddystone_uid_freq_msec:
+              type: integer
+            eddystone_uid_instance:
+              type: string
+            eddystone_uid_namespace:
+              type: string
+            eddystone_url_enabled:
+              type: boolean
+            eddystone_url_freq_msec:
+              description: Frequency (msec) of data emmit by Eddystone-UID beacon
+              type: integer
+            eddystone_url_url:
+              type: string
+            ibeacon_enabled:
+              type: boolean
+            ibeacon_major:
+              type: integer
+            ibeacon_minor:
+              type: integer
+            ibeacon_uuid:
+              format: uuid
+              type: string
+            major:
+              type: integer
+            minors:
+              items:
+                type: integer
+              type: array
+            power:
+              type: integer
+            rx_bytes:
+              type: integer
+            rx_pkts:
+              type: integer
+            tx_bytes:
+              type: integer
+            tx_pkts:
+              type: integer
+            tx_resets:
+              description: resets due to tx hung
+              type: integer
+            uuid:
+              format: uuid
+              type: string
+          type: object
+        cert_expiry:
+          type: number
+        env_stat:
+          description: device environment, including CPU temperature, Ambient temperature,
+            Humidity, Attitude, Pressure, Accelerometers, Magnetometers and vCore
+            Voltage
+          properties:
+            accel_x:
+              type: number
+            accel_y:
+              type: number
+            accel_z:
+              type: number
+            ambient_temp:
+              type: integer
+            attitude:
+              type: integer
+            cpu_temp:
+              type: integer
+            humidity:
+              type: integer
+            magne_x:
+              type: number
+            magne_y:
+              type: number
+            magne_z:
+              type: number
+            pressure:
+              type: integer
+            vcore_voltage:
+              type: number
+          type: object
+        esl_stat:
+          properties:
+            channel:
+              type: integer
+            connected:
+              type: boolean
+            type:
+              type: string
+            up:
+              type: boolean
+          type: object
+        ext_ip:
+          type: string
+        fwupdate:
+          properties:
+            progress:
+              type: integer
+            status:
+              type: string
+            status_id:
+              type: integer
+            timestamp:
+              type: integer
+          type: object
+        iot_stat:
+          properties:
+            DI2:
+              properties:
+                value:
+                  type: integer
+              type: object
+          type: object
+        ip:
+          type: string
+        ip_config:
+          properties:
+            dns:
+              items:
+                example: 8.8.8.8
+                type: string
+              type: array
+            dns_suffix:
+              items:
+                example: .mist.local
+                type: string
+              type: array
+            gateway:
+              example: 10.2.1.254
+              type: string
+            ip:
+              example: 10.2.1.1
+              type: string
+            netmask:
+              type: string
+            type:
+              example: static
+              type: string
+          type: object
+        ip_stat:
+          $ref: '#/components/schemas/ip_stat'
+        l2tp_stat:
+          additionalProperties:
+            description: Property key is the L2TP tunnel id
+            properties:
+              sessions:
+                description: list of sessions
+                items:
+                  properties:
+                    local_sid:
+                      description: remote sessions id (dynamically unless Tunnel is
+                        said to be static)
+                      type: integer
+                    remote_id:
+                      description: WxlanTunnel Remote ID (user-configured)
+                      type: string
+                    remote_sid:
+                      description: remote sessions id (dynamically unless Tunnel is
+                        said to be static)
+                      type: integer
+                    state:
+                      type: string
+                  title: stats_device_ap_session
+                  type: object
+                minItems: 1
+                type: array
+                uniqueItems: true
+              state:
+                description: idle / wait-ctrl-reply / wait-ctrl-conn / established
+                  / established_with_sessions
+                type: string
+              uptime:
+                description: uptime
+                type: integer
+              wxtunnel_id:
+                description: WxlanTunnel ID
+                format: uuid
+                type: string
+            type: object
+          description: l2tp tunnel status (key is the wxtunnel_id)
+          type: object
+        last_seen:
+          description: last seen timestamp
+          example: 1470417522
+          type: number
+        last_trouble:
+          $ref: '#/components/schemas/last_trouble'
+        led:
+          properties:
+            brightness:
+              type: integer
+            enabled:
+              type: boolean
+          type: object
+        lldp_stat:
+          description: LLDP Stat (neighbor information, power negotiations)
+          properties:
+            chassis_id:
+              type: string
+            lldp_med_supported:
+              description: whether it support LLDP-MED
+              type: boolean
+            mgmt_addr:
+              description: "switch\u2019s management address (if advertised), can\
+                \ be IPv4, IPv6, or MAC"
+              type: string
+            port_desc:
+              description: "port description, e.g. \u201C2/20\u201D, \u201CPort 2\
+                \ on Switch0\u201D"
+              type: string
+            power_allocated:
+              description: in mW, provided/allocated by PSE
+              type: number
+            power_draw:
+              description: in mW, total power needed by PD
+              type: number
+            power_request_count:
+              description: "number of negotiations, if it keeps increasing, we don\u2019\
+                t have a stable power"
+              type: integer
+            power_requested:
+              description: in mW, the current power requested by PD
+              type: number
+            system_desc:
+              description: "description provided by switch, e.g. \u201CHP J9729A 2920-48G-POE+\
+                \ Switch\u201D"
+              type: string
+            system_name:
+              description: "name of the switch, e.g. \u201CTC2-OWL-Stack-01\u201D"
+              type: string
+          type: object
+        locating:
+          type: boolean
+        locked:
+          description: whether this AP is considered locked (placement / orientation
+            has been vetted)
+          type: boolean
+        mac:
+          description: device mac
+          example: 5c5b35000010
+          type: string
+        map_id:
+          example: 63eda950-c6da-11e4-a628-60f81dd250cc
+          format: uuid
+          type: string
+        mesh_downlinks:
+          additionalProperties:
+            description: Property key is the mesh downlink id
+            properties:
+              band:
+                type: string
+              channel:
+                type: integer
+              idle_time:
+                type: integer
+              last_seen:
+                type: integer
+              proto:
+                type: string
+              rssi:
+                type: integer
+              rx_bps:
+                type: integer
+              rx_bytes:
+                type: integer
+              rx_packets:
+                type: integer
+              rx_rate:
+                type: integer
+              rx_retries:
+                type: integer
+              site_id:
+                $ref: '#/components/schemas/site_id'
+              snr:
+                type: integer
+              tx_bps:
+                type: integer
+              tx_bytes:
+                type: integer
+              tx_packets:
+                type: integer
+              tx_rate:
+                type: integer
+              tx_retries:
+                type: integer
+            type: object
+          type: object
+        mesh_uplink:
+          properties:
+            band:
+              type: string
+            channel:
+              type: integer
+            idle_time:
+              type: integer
+            last_seen:
+              type: integer
+            proto:
+              type: string
+            rssi:
+              type: integer
+            rx_bps:
+              type: integer
+            rx_bytes:
+              type: integer
+            rx_packets:
+              type: integer
+            rx_rate:
+              type: integer
+            rx_retries:
+              type: integer
+            snr:
+              type: integer
+            tx_bps:
+              type: integer
+            tx_bytes:
+              type: integer
+            tx_packets:
+              type: integer
+            tx_rate:
+              type: integer
+            tx_retries:
+              type: integer
+            uplink_ap_id:
+              format: uuid
+              type: string
+            uplink_site_id:
+              format: uuid
+              type: string
+          type: object
+        model:
+          description: device model
+          example: AP200
+          type: string
+        mount:
+          example: faceup
+          type: string
+        name:
+          example: conference room
+          type: string
+        num_clients:
+          description: how many wireless clients are currently connected
+          type: integer
+        port_stat:
+          additionalProperties:
+            properties:
+              full_duplex:
+                type: boolean
+              rx_bytes:
+                type: number
+              rx_errors:
+                type: number
+              rx_pkts:
+                type: number
+              speed:
+                type: integer
+              tx_bytes:
+                type: number
+              tx_pkts:
+                type: number
+              up:
+                type: boolean
+            type: object
+          type: object
+        power_budget:
+          description: in mW, surplus if positie or deficit if negative
+          type: number
+        power_constrained:
+          description: whether insufficient power
+          type: boolean
+        power_opmode:
+          description: constrained mode
+          example: '[20] 6GHz(2x2) 5GHz(4x4) 2.4GHz(2x2).'
+          type: string
+        power_src:
+          description: DC Input / PoE 802.3at / PoE 802.3af / LLDP / ? (unknown)
+          type: string
+        radio_config:
+          properties:
+            band_24:
+              properties:
+                bandwidth:
+                  type: number
+                channel:
+                  type: integer
+                dynamic_chaining_enabled:
+                  type: boolean
+                power:
+                  type: number
+                rx_chain:
+                  type: integer
+                tx_chain:
+                  type: integer
+              type: object
+            band_5:
+              properties:
+                bandwidth:
+                  type: number
+                channel:
+                  type: integer
+                dynamic_chaining_enabled:
+                  type: boolean
+                power:
+                  type: number
+                rx_chain:
+                  type: integer
+                tx_chain:
+                  type: integer
+              type: object
+            band_6:
+              properties:
+                bandwidth:
+                  type: number
+                channel:
+                  type: integer
+                dynamic_chaining_enabled:
+                  type: boolean
+                power:
+                  type: number
+                rx_chain:
+                  type: integer
+                tx_chain:
+                  type: integer
+              type: object
+            scanning_enabled:
+              type: boolean
+          type: object
+        radio_stat:
+          properties:
+            band_24:
+              $ref: '#/components/schemas/ap_radio_stats'
+            band_5:
+              $ref: '#/components/schemas/ap_radio_stats'
+            band_6:
+              $ref: '#/components/schemas/ap_radio_stats'
+          type: object
+        rx_bps:
+          type: number
+        rx_bytes:
+          type: integer
+        rx_pkts:
+          type: integer
+        serial:
+          description: serial
+          example: FXLH2015170017
+          type: string
+        status:
+          enum:
+          - connected
+          - disconnected
+          - restarting
+          - upgrading
+          title: stat_ap_status
+          type: string
+        switch_redundancy:
+          properties:
+            redundant:
+              description: if there are neighbor APs on different switch
+              type: string
+          type: object
+        tx_bps:
+          type: number
+        tx_bytes:
+          type: number
+        tx_pkts:
+          type: number
+        type:
+          description: device type, ap / ble
+          example: ap
+          type: string
+        uptime:
+          description: how long, in seconds, has the device been up (or rebooted)
+          type: number
+        version:
+          type: string
+        x:
+          example: 53.5
+          type: number
+        y:
+          example: 173.1
+          type: number
+      required:
+      - mac
+      - model
       type: object
     ap_switch:
       deprecated: true
@@ -63435,17 +63833,7 @@ components:
           nullable: true
           type: string
         bandwidth:
-          default: 20
-          description: "channel width for the band, 20 / 40 / 80 / 160, 80 is only\
-            \ applicable for band_5 and 160 is only for band_6, defaults to \u2018\
-            20\u2019 when user provides wrong values"
-          enum:
-          - 20
-          - 40
-          - 80
-          - 160
-          example: 20
-          type: integer
+          $ref: '#/components/schemas/dot11_bandwidth'
         channel:
           default: 1
           description: specify the channel value where scan PCAP has to be started,
@@ -63579,7 +63967,7 @@ components:
           description: pcap format
           enum:
           - pcap
-          - string
+          - stream
           type: string
         max_pkt_len:
           default: 128
@@ -65336,21 +65724,24 @@ components:
       items:
         $ref: '#/components/schemas/discovered_switch_metric'
       type: array
-    dot11_ bandwidth:
-      description: channel width for the band, 20 / 40 / 80 / 160, 80 is only applicable
-        for band_5 and 160 is only for band_6, ignored if channel is 0
-      enum:
-      - 20
-      - 40
-      - 80
-      example: 20
-      type: integer
     dot11_band:
       enum:
       - '24'
       - '5'
       - '6'
       type: string
+    dot11_bandwidth:
+      default: 20
+      description: "channel width for the band, 20 / 40 / 80 / 160, 80 is only applicable\
+        \ for band_5 and 160 is only for band_6, defaults to \u201820\u2019 when user\
+        \ provides wrong values"
+      enum:
+      - 20
+      - 40
+      - 80
+      - 160
+      example: 20
+      type: integer
     dot11_proto:
       enum:
       - a
@@ -65429,31 +65820,6 @@ components:
       required:
       - email
       title: email
-      type: object
-    event_call:
-      properties:
-        app:
-          type: string
-        audio_quality:
-          type: string
-        meeting_id:
-          type: string
-        org_id:
-          $ref: '#/components/schemas/org_id'
-        reason:
-          type: string
-        screen_share_quality:
-          type: string
-        site_id:
-          $ref: '#/components/schemas/site_id'
-        timestamp:
-          type: integer
-        type:
-          type: string
-        video_quality:
-          type: string
-        wcid:
-          type: string
       type: object
     event_nac_client:
       properties:
@@ -66253,6 +66619,102 @@ components:
         version:
           type: string
       type: object
+    gateway_stats:
+      description: Gateway statistics
+      properties:
+        ap_redundancy:
+          properties:
+            modules:
+              description: for a VC / stacked switches
+              properties:
+                '1':
+                  properties:
+                    num_aps:
+                      type: integer
+                    num_aps_with_switch_redundancy:
+                      type: string
+                  type: object
+              type: object
+            num_aps:
+              type: integer
+            num_aps_with_switch_redundancy:
+              type: integer
+          type: object
+        cluster_stat:
+          additionalProperties:
+            properties:
+              status:
+                type: string
+            type: object
+          type: object
+        cpu2_stat:
+          $ref: '#/components/schemas/cpu_stat'
+        cpu_stat:
+          $ref: '#/components/schemas/cpu_stat'
+        hostname:
+          description: hostname reported by the device
+          type: string
+        ip:
+          description: IP address
+          type: string
+        ip_stat:
+          $ref: '#/components/schemas/ip_stat'
+        last_seen:
+          description: last seen timestamp
+          type: number
+        mac:
+          description: device mac
+          type: string
+        memory_stat:
+          $ref: '#/components/schemas/memory_stat'
+        model:
+          description: device model
+          type: string
+        module2_stat:
+          type: string
+        module_stat:
+          items:
+            $ref: '#/components/schemas/module_stat'
+          minItems: 1
+          type: array
+          uniqueItems: true
+        name:
+          description: device name if configured
+          type: string
+        serial:
+          description: serial
+          type: string
+        spu2_stat:
+          type: string
+        spu_stat:
+          properties:
+            cpu:
+              type: number
+            memory:
+              type: number
+            sessions:
+              properties:
+                current:
+                  type: number
+                max:
+                  type: number
+                pending:
+                  type: number
+                valid:
+                  type: number
+              type: object
+          type: object
+        status:
+          type: string
+        type:
+          type: string
+        uptime:
+          type: number
+        version:
+          type: string
+      required:
+      - mac
+      type: object
     gateway_template:
       description: Gateway Template is applied to a site for gateway(s) in a site.
       properties:
@@ -66851,14 +67313,16 @@ components:
           type: string
       type: object
     ha_cluster_node:
-      description: only for HA
       properties:
-        enum:
-        - node0
-        - node1
-        title: ha_cluster_node
-        type: string
+        node:
+          $ref: '#/components/schemas/ha_cluster_node_enum'
       type: object
+    ha_cluster_node_enum:
+      description: only for HA
+      enum:
+      - node0
+      - node1
+      type: string
     idp_config:
       properties:
         alert_only:
@@ -73615,7 +74079,7 @@ components:
     rrm_band:
       properties:
         bandwidth:
-          $ref: '#/components/schemas/dot11_ bandwidth'
+          $ref: '#/components/schemas/dot11_bandwidth'
         channel:
           description: proposed channel
           type: integer
@@ -74236,18 +74700,7 @@ components:
             AP61: 0.1.7215
           type: object
         day_of_week:
-          enum:
-          - any
-          - mon
-          - tue
-          - wed
-          - thu
-          - fri
-          - sat
-          - sun
-          example: sun
-          nullable: true
-          type: string
+          $ref: '#/components/schemas/day_of_week'
         enabled:
           default: false
           description: whether auto upgrade should happen (Note that Mist may auto-upgrade
@@ -74428,16 +74881,7 @@ components:
         auto_preemption:
           properties:
             day_of_week:
-              enum:
-              - mon
-              - tue
-              - wed
-              - thu
-              - fri
-              - sat
-              - sun
-              example: sun
-              type: string
+              $ref: '#/components/schemas/day_of_week'
             enabled:
               default: false
               type: boolean
@@ -75150,8 +75594,8 @@ components:
         auto_signature_update:
           properties:
             day_of_week:
+              $ref: '#/components/schemas/day_of_week'
               description: optional, daily if omitted
-              type: string
             enable:
               default: true
               type: boolean
@@ -75193,7 +75637,7 @@ components:
         auto_upgrade:
           properties:
             day_of_week:
-              type: string
+              $ref: '#/components/schemas/day_of_week'
             enabled:
               type: boolean
             time_of_day:
@@ -77289,854 +77733,6 @@ components:
           example: 8bbe7389-212b-c65d-2208-00fab2017936
           type: string
       type: object
-    stats_device_ap:
-      description: AP statistics
-      properties:
-        auto_placement:
-          properties:
-            _id:
-              example: 5c5b35000010
-              type: string
-            info:
-              description: Additional information about auto placements AP data
-              properties:
-                cluster_number:
-                  description: All APs sharing a given cluster number can be placed
-                    relative to each other
-                  example: 0
-                  type: integer
-                orientation_stats:
-                  description: The orientation of an AP
-                  example: 0
-                  type: integer
-                probability_surface:
-                  description: Coordinates representing a circle where the AP is most
-                    likely exists in the event of an inaccurate placement result
-                  properties:
-                    radius:
-                      description: The radius representing placement uncertainty,
-                        measured in pixels
-                      example: 2.1
-                      type: number
-                    radius_m:
-                      description: The radius representing placement uncertainty,
-                        measured in meters
-                      type: number
-                    x:
-                      description: "X-coordinate of the potential placement\u2019\
-                        s center, measured in pixels"
-                      example: 5.65
-                      type: number
-                    y:
-                      description: "Y-coordinate of the potential placement\u2019\
-                        s center, measured in pixels"
-                      example: 17
-                      type: number
-                  type: object
-              type: object
-            recommended_anchor:
-              description: Flag to represent if AP is recommended as an anchor by
-                auto placement service
-              type: boolean
-            status:
-              description: Basic Placement Status
-              example: localized
-              type: string
-            status_detail:
-              description: Additional info about placement status
-              example: localized
-              type: string
-            use_auto_placement:
-              description: Flag to represent if auto_placement values are currently
-                utilized
-              type: boolean
-            x:
-              description: X Autoplaced Position in pixels
-              example: 53.5
-              type: number
-            x_m:
-              description: X Autoplaced Position in meters
-              example: 5.35
-              type: number
-            y:
-              description: Y Autoplaced Position in pixels
-              example: 173.1
-              type: number
-            y_m:
-              description: X Autoplaced Position in meters
-              example: 17.31
-              type: number
-          type: object
-        ble_config:
-          properties:
-            beacon_rate:
-              type: integer
-            beacon_rate_model:
-              example: custom
-              type: string
-            beam_disabled:
-              items:
-                type: integer
-              type: array
-            power:
-              type: integer
-            power_mode:
-              example: custom
-              type: string
-          type: object
-        ble_stat:
-          properties:
-            beacon_rate:
-              type: integer
-            eddystone_uid_enabled:
-              type: boolean
-            eddystone_uid_freq_msec:
-              type: integer
-            eddystone_uid_instance:
-              type: string
-            eddystone_uid_namespace:
-              type: string
-            eddystone_url_enabled:
-              type: boolean
-            eddystone_url_freq_msec:
-              description: Frequency (msec) of data emmit by Eddystone-UID beacon
-              type: integer
-            eddystone_url_url:
-              type: string
-            ibeacon_enabled:
-              type: boolean
-            ibeacon_major:
-              type: integer
-            ibeacon_minor:
-              type: integer
-            ibeacon_uuid:
-              format: uuid
-              type: string
-            major:
-              type: integer
-            minors:
-              items:
-                type: integer
-              type: array
-            power:
-              type: integer
-            rx_bytes:
-              type: integer
-            rx_pkts:
-              type: integer
-            tx_bytes:
-              type: integer
-            tx_pkts:
-              type: integer
-            tx_resets:
-              description: resets due to tx hung
-              type: integer
-            uuid:
-              format: uuid
-              type: string
-          type: object
-        cert_expiry:
-          type: number
-        env_stat:
-          description: device environment, including CPU temperature, Ambient temperature,
-            Humidity, Attitude, Pressure, Accelerometers, Magnetometers and vCore
-            Voltage
-          properties:
-            accel_x:
-              type: number
-            accel_y:
-              type: number
-            accel_z:
-              type: number
-            ambient_temp:
-              type: integer
-            attitude:
-              type: integer
-            cpu_temp:
-              type: integer
-            humidity:
-              type: integer
-            magne_x:
-              type: number
-            magne_y:
-              type: number
-            magne_z:
-              type: number
-            pressure:
-              type: integer
-            vcore_voltage:
-              type: number
-          type: object
-        esl_stat:
-          properties:
-            channel:
-              type: integer
-            connected:
-              type: boolean
-            type:
-              type: string
-            up:
-              type: boolean
-          type: object
-        ext_ip:
-          type: string
-        fwupdate:
-          properties:
-            progress:
-              type: integer
-            status:
-              type: string
-            status_id:
-              type: integer
-            timestamp:
-              type: integer
-          type: object
-        iot_stat:
-          properties:
-            DI2:
-              properties:
-                value:
-                  type: integer
-              type: object
-          type: object
-        ip:
-          type: string
-        ip_config:
-          properties:
-            dns:
-              items:
-                example: 8.8.8.8
-                type: string
-              type: array
-            dns_suffix:
-              items:
-                example: .mist.local
-                type: string
-              type: array
-            gateway:
-              example: 10.2.1.254
-              type: string
-            ip:
-              example: 10.2.1.1
-              type: string
-            netmask:
-              type: string
-            type:
-              example: static
-              type: string
-          type: object
-        ip_stat:
-          $ref: '#/components/schemas/ip_stat'
-        l2tp_stat:
-          additionalProperties:
-            description: Property key is the L2TP tunnel id
-            properties:
-              sessions:
-                description: list of sessions
-                items:
-                  properties:
-                    local_sid:
-                      description: remote sessions id (dynamically unless Tunnel is
-                        said to be static)
-                      type: integer
-                    remote_id:
-                      description: WxlanTunnel Remote ID (user-configured)
-                      type: string
-                    remote_sid:
-                      description: remote sessions id (dynamically unless Tunnel is
-                        said to be static)
-                      type: integer
-                    state:
-                      type: string
-                  title: stats_device_ap_session
-                  type: object
-                minItems: 1
-                type: array
-                uniqueItems: true
-              state:
-                description: idle / wait-ctrl-reply / wait-ctrl-conn / established
-                  / established_with_sessions
-                type: string
-              uptime:
-                description: uptime
-                type: integer
-              wxtunnel_id:
-                description: WxlanTunnel ID
-                format: uuid
-                type: string
-            type: object
-          description: l2tp tunnel status (key is the wxtunnel_id)
-          type: object
-        last_seen:
-          description: last seen timestamp
-          example: 1470417522
-          type: number
-        last_trouble:
-          $ref: '#/components/schemas/last_trouble'
-        led:
-          properties:
-            brightness:
-              type: integer
-            enabled:
-              type: boolean
-          type: object
-        lldp_stat:
-          description: LLDP Stat (neighbor information, power negotiations)
-          properties:
-            chassis_id:
-              type: string
-            lldp_med_supported:
-              description: whether it support LLDP-MED
-              type: boolean
-            mgmt_addr:
-              description: "switch\u2019s management address (if advertised), can\
-                \ be IPv4, IPv6, or MAC"
-              type: string
-            port_desc:
-              description: "port description, e.g. \u201C2/20\u201D, \u201CPort 2\
-                \ on Switch0\u201D"
-              type: string
-            power_allocated:
-              description: in mW, provided/allocated by PSE
-              type: number
-            power_draw:
-              description: in mW, total power needed by PD
-              type: number
-            power_request_count:
-              description: "number of negotiations, if it keeps increasing, we don\u2019\
-                t have a stable power"
-              type: integer
-            power_requested:
-              description: in mW, the current power requested by PD
-              type: number
-            system_desc:
-              description: "description provided by switch, e.g. \u201CHP J9729A 2920-48G-POE+\
-                \ Switch\u201D"
-              type: string
-            system_name:
-              description: "name of the switch, e.g. \u201CTC2-OWL-Stack-01\u201D"
-              type: string
-          type: object
-        locating:
-          type: boolean
-        locked:
-          description: whether this AP is considered locked (placement / orientation
-            has been vetted)
-          type: boolean
-        mac:
-          description: device mac
-          example: 5c5b35000010
-          type: string
-        map_id:
-          example: 63eda950-c6da-11e4-a628-60f81dd250cc
-          format: uuid
-          type: string
-        mesh_downlinks:
-          additionalProperties:
-            description: Property key is the mesh downlink id
-            properties:
-              band:
-                type: string
-              channel:
-                type: integer
-              idle_time:
-                type: integer
-              last_seen:
-                type: integer
-              proto:
-                type: string
-              rssi:
-                type: integer
-              rx_bps:
-                type: integer
-              rx_bytes:
-                type: integer
-              rx_packets:
-                type: integer
-              rx_rate:
-                type: integer
-              rx_retries:
-                type: integer
-              site_id:
-                $ref: '#/components/schemas/site_id'
-              snr:
-                type: integer
-              tx_bps:
-                type: integer
-              tx_bytes:
-                type: integer
-              tx_packets:
-                type: integer
-              tx_rate:
-                type: integer
-              tx_retries:
-                type: integer
-            type: object
-          type: object
-        mesh_uplink:
-          properties:
-            band:
-              type: string
-            channel:
-              type: integer
-            idle_time:
-              type: integer
-            last_seen:
-              type: integer
-            proto:
-              type: string
-            rssi:
-              type: integer
-            rx_bps:
-              type: integer
-            rx_bytes:
-              type: integer
-            rx_packets:
-              type: integer
-            rx_rate:
-              type: integer
-            rx_retries:
-              type: integer
-            snr:
-              type: integer
-            tx_bps:
-              type: integer
-            tx_bytes:
-              type: integer
-            tx_packets:
-              type: integer
-            tx_rate:
-              type: integer
-            tx_retries:
-              type: integer
-            uplink_ap_id:
-              format: uuid
-              type: string
-            uplink_site_id:
-              format: uuid
-              type: string
-          type: object
-        model:
-          description: device model
-          example: AP200
-          type: string
-        mount:
-          example: faceup
-          type: string
-        name:
-          example: conference room
-          type: string
-        num_clients:
-          description: how many wireless clients are currently connected
-          type: integer
-        port_stat:
-          additionalProperties:
-            properties:
-              full_duplex:
-                type: boolean
-              rx_bytes:
-                type: number
-              rx_errors:
-                type: number
-              rx_pkts:
-                type: number
-              speed:
-                type: integer
-              tx_bytes:
-                type: number
-              tx_pkts:
-                type: number
-              up:
-                type: boolean
-            type: object
-          type: object
-        power_budget:
-          description: in mW, surplus if positie or deficit if negative
-          type: number
-        power_constrained:
-          description: whether insufficient power
-          type: boolean
-        power_opmode:
-          description: constrained mode
-          example: '[20] 6GHz(2x2) 5GHz(4x4) 2.4GHz(2x2).'
-          type: string
-        power_src:
-          description: DC Input / PoE 802.3at / PoE 802.3af / LLDP / ? (unknown)
-          type: string
-        radio_config:
-          properties:
-            band_24:
-              properties:
-                bandwidth:
-                  type: number
-                channel:
-                  type: integer
-                dynamic_chaining_enabled:
-                  type: boolean
-                power:
-                  type: number
-                rx_chain:
-                  type: integer
-                tx_chain:
-                  type: integer
-              type: object
-            band_5:
-              properties:
-                bandwidth:
-                  type: number
-                channel:
-                  type: integer
-                dynamic_chaining_enabled:
-                  type: boolean
-                power:
-                  type: number
-                rx_chain:
-                  type: integer
-                tx_chain:
-                  type: integer
-              type: object
-            band_6:
-              properties:
-                bandwidth:
-                  type: number
-                channel:
-                  type: integer
-                dynamic_chaining_enabled:
-                  type: boolean
-                power:
-                  type: number
-                rx_chain:
-                  type: integer
-                tx_chain:
-                  type: integer
-              type: object
-            scanning_enabled:
-              type: boolean
-          type: object
-        radio_stat:
-          description: a map of radio stats, key can be band_24 / band_5
-          properties:
-            band_24:
-              description: radio stat of 2.4G radio
-              properties:
-                bandwidth:
-                  description: current channel bandwidth
-                  enum:
-                  - 20
-                  - 40
-                  type: integer
-                channel:
-                  description: current channel the radio is running on
-                  type: integer
-                dynamic_chaining_enalbed:
-                  description: Use dynamic chaining for downlink
-                  type: boolean
-                mac:
-                  description: radio (base) mac, it can have 16 bssids (e.g. 5c5b350001a0-5c5b350001af)
-                  type: string
-                num_clients:
-                  description: number of clients
-                  type: integer
-                power:
-                  description: transmit power (in dBm)
-                  type: integer
-                rx_bytes:
-                  type: number
-                rx_pkts:
-                  type: number
-                tx_bytes:
-                  type: number
-                tx_pkts:
-                  type: number
-                util_all:
-                  description: all utilization in percentage
-                  type: integer
-                util_non_wifi:
-                  description: "reception of \u201CNo Packets\u201D utilization in\
-                    \ percentage, received frames with invalid PLCPs and CRC glitches\
-                    \ as noise"
-                  type: integer
-                util_rx_in_bss:
-                  description: "reception of \u201CIn BSS\u201D utilization in percentage,\
-                    \ only frames that are received from AP/STAs within the BSS"
-                  type: integer
-                util_rx_other_bss:
-                  description: "reception of \u201COther BSS\u201D utilization in\
-                    \ percentage, all frames received from AP/STAs that are outside\
-                    \ the BSS"
-                  type: integer
-                util_tx:
-                  description: transmission utilization in percentage
-                  type: integer
-                util_unknown_wifi:
-                  description: "reception of \u201CNo Category\u201D utilization in\
-                    \ percentage, all 802.11 frames that are corrupted at the receiver"
-                  type: integer
-              title: ap_stats_band_24
-              type: object
-            band_5:
-              description: radio stat of 5G radio
-              properties:
-                bandwidth:
-                  description: current channel bandwidth
-                  enum:
-                  - 20
-                  - 40
-                  - 80
-                  type: integer
-                channel:
-                  description: current channel the radio is running on
-                  type: integer
-                dynamic_chaining_enalbed:
-                  description: Use dynamic chaining for downlink
-                  type: boolean
-                mac:
-                  description: radio (base) mac, it can have 16 bssids (e.g. 5c5b350001a0-5c5b350001af)
-                  type: string
-                num_clients:
-                  type: integer
-                power:
-                  description: transmit power (in dBm)
-                  type: integer
-                rx_bytes:
-                  type: number
-                rx_pkts:
-                  type: number
-                tx_bytes:
-                  type: number
-                tx_pkts:
-                  type: number
-                util_all:
-                  description: all utilization in percentage
-                  type: integer
-                util_non_wifi:
-                  description: "reception of \u201CNo Packets\u201D utilization in\
-                    \ percentage, received frames with invalid PLCPs and CRS glitches\
-                    \ as noise"
-                  type: integer
-                util_rx_in_bss:
-                  description: "reception of \u201CIn BSS\u201D utilization in percentage,\
-                    \ only frames that are received from AP/STAs within the BSS"
-                  type: integer
-                util_rx_other_bss:
-                  description: "reception of \u201COther BSS\u201D utilization in\
-                    \ percentage, all frames received from AP/STAs that are outside\
-                    \ the BSS"
-                  type: integer
-                util_tx:
-                  description: transmission utilization in percentage
-                  type: integer
-                util_unknown_wifi:
-                  description: "reception of \u201CNo Category\u201D utilization in\
-                    \ percentage, all 802.11 frames that are corrupted at the receiver"
-                  type: integer
-              title: ap_stats_band_5
-              type: object
-            band_6:
-              description: radio stat of 6G radio
-              properties:
-                bandwidth:
-                  description: current channel bandwidth
-                  enum:
-                  - 20
-                  - 40
-                  - 80
-                  - 160
-                  type: integer
-                channel:
-                  description: current channel the radio is running on
-                  type: integer
-                dynamic_chaining_enalbed:
-                  description: Use dynamic chaining for downlink
-                  type: boolean
-                mac:
-                  description: radio (base) mac, it can have 16 bssids (e.g. 5c5b350001a0-5c5b350001af)
-                  type: string
-                num_clients:
-                  type: integer
-                power:
-                  description: transmit power (in dBm)
-                  type: integer
-                rx_bytes:
-                  type: number
-                rx_pkts:
-                  type: number
-                tx_bytes:
-                  type: number
-                tx_pkts:
-                  type: number
-                util_all:
-                  description: all utilization in percentage
-                  type: integer
-                util_non_wifi:
-                  description: "reception of \u201CNo Packets\u201D utilization in\
-                    \ percentage, received frames with invalid PLCPs and CRS glitches\
-                    \ as noise"
-                  type: integer
-                util_rx_in_bss:
-                  description: "reception of \u201CIn BSS\u201D utilization in percentage,\
-                    \ only frames that are received from AP/STAs within the BSS"
-                  type: integer
-                util_rx_other_bss:
-                  description: "reception of \u201COther BSS\u201D utilization in\
-                    \ percentage, all frames received from AP/STAs that are outside\
-                    \ the BSS"
-                  type: integer
-                util_tx:
-                  description: transmission utilization in percentage
-                  type: integer
-                util_unknown_wifi:
-                  description: "reception of \u201CNo Category\u201D utilization in\
-                    \ percentage, all 802.11 frames that are corrupted at the receiver"
-                  type: integer
-              title: ap_stats_band_6
-              type: object
-          type: object
-        rx_bps:
-          type: number
-        rx_bytes:
-          type: integer
-        rx_pkts:
-          type: integer
-        serial:
-          description: serial
-          example: FXLH2015170017
-          type: string
-        status:
-          enum:
-          - connected
-          - disconnected
-          - restarting
-          - upgrading
-          title: stat_ap_status
-          type: string
-        switch_redundancy:
-          properties:
-            redundant:
-              description: if there are neighbor APs on different switch
-              type: string
-          type: object
-        tx_bps:
-          type: number
-        tx_bytes:
-          type: number
-        tx_pkts:
-          type: number
-        type:
-          description: device type, ap / ble
-          example: ap
-          type: string
-        uptime:
-          description: how long, in seconds, has the device been up (or rebooted)
-          type: number
-        version:
-          type: string
-        x:
-          example: 53.5
-          type: number
-        y:
-          example: 173.1
-          type: number
-      required:
-      - mac
-      - model
-      type: object
-    stats_device_gateway:
-      description: Gateway statistics
-      properties:
-        ap_redundancy:
-          properties:
-            modules:
-              description: for a VC / stacked switches
-              properties:
-                '1':
-                  properties:
-                    num_aps:
-                      type: integer
-                    num_aps_with_switch_redundancy:
-                      type: string
-                  type: object
-              type: object
-            num_aps:
-              type: integer
-            num_aps_with_switch_redundancy:
-              type: integer
-          type: object
-        cluster_stat:
-          additionalProperties:
-            properties:
-              status:
-                type: string
-            type: object
-          type: object
-        cpu2_stat:
-          $ref: '#/components/schemas/cpu_stat'
-        cpu_stat:
-          $ref: '#/components/schemas/cpu_stat'
-        hostname:
-          description: hostname reported by the device
-          type: string
-        ip:
-          description: IP address
-          type: string
-        ip_stat:
-          $ref: '#/components/schemas/ip_stat'
-        last_seen:
-          description: last seen timestamp
-          type: number
-        mac:
-          description: device mac
-          type: string
-        memory_stat:
-          $ref: '#/components/schemas/memory_stat'
-        model:
-          description: device model
-          type: string
-        module2_stat:
-          type: string
-        module_stat:
-          items:
-            $ref: '#/components/schemas/module_stat'
-          minItems: 1
-          type: array
-          uniqueItems: true
-        name:
-          description: device name if configured
-          type: string
-        serial:
-          description: serial
-          type: string
-        spu2_stat:
-          type: string
-        spu_stat:
-          properties:
-            cpu:
-              type: number
-            memory:
-              type: number
-            sessions:
-              properties:
-                current:
-                  type: number
-                max:
-                  type: number
-                pending:
-                  type: number
-                valid:
-                  type: number
-              type: object
-          type: object
-        status:
-          type: string
-        type:
-          type: string
-        uptime:
-          type: number
-        version:
-          type: string
-      required:
-      - mac
-      type: object
     stats_device_other:
       properties:
         config_status:
@@ -78206,166 +77802,6 @@ components:
           type: object
         version:
           example: 7.22.70
-          type: string
-      type: object
-    stats_device_switch_org:
-      description: Switch statistics
-      properties:
-        cpu_stat:
-          $ref: '#/components/schemas/cpu_stat'
-        hostname:
-          description: hostname reported by the device
-          type: string
-        if_stat:
-          additionalProperties:
-            properties:
-              ips:
-                items:
-                  type: string
-                type: array
-              port_id:
-                type: string
-              rx_bytes:
-                type: integer
-              rx_pkts:
-                type: integer
-              tx_bytes:
-                type: integer
-              tx_pkts:
-                type: integer
-              up:
-                type: boolean
-            type: object
-          description: Property key is the interface name
-          type: object
-        ip:
-          type: string
-        ip_stat:
-          $ref: '#/components/schemas/ip_stat'
-        last_seen:
-          type: number
-        last_trouble:
-          $ref: '#/components/schemas/last_trouble'
-        mac:
-          type: string
-        memory_stat:
-          $ref: '#/components/schemas/memory_stat'
-        model:
-          type: string
-        module_stat:
-          items:
-            $ref: '#/components/schemas/module_stat'
-          minItems: 1
-          type: array
-          uniqueItems: true
-        name:
-          description: device name if configured
-          type: string
-        serial:
-          type: string
-        status:
-          type: string
-        type:
-          type: string
-        uptime:
-          type: number
-        version:
-          type: string
-      type: object
-    stats_device_switch_site:
-      description: Switch statistics
-      properties:
-        clients:
-          items:
-            properties:
-              device_mac:
-                type: string
-              hostname:
-                type: string
-              mac:
-                type: string
-              port_id:
-                type: string
-            type: object
-          type: array
-        cpu_stat:
-          $ref: '#/components/schemas/cpu_stat'
-        has_pcap:
-          description: whether the switch supports packet capture
-          type: boolean
-        hostname:
-          description: hostname reported by the device
-          type: string
-        if_stat:
-          additionalProperties:
-            properties:
-              ips:
-                items:
-                  type: string
-                type: array
-              port_id:
-                type: string
-              rx_bytes:
-                type: integer
-              rx_pkts:
-                type: integer
-              tx_bytes:
-                type: integer
-              tx_pkts:
-                type: integer
-              up:
-                type: boolean
-            type: object
-          description: Property key is the interface name
-          type: object
-        ip:
-          type: string
-        ip_stat:
-          $ref: '#/components/schemas/ip_stat'
-        last_seen:
-          type: number
-        last_trouble:
-          $ref: '#/components/schemas/last_trouble'
-        mac:
-          $ref: '#/components/schemas/memory_stat'
-        model:
-          type: string
-        module_stat:
-          items:
-            $ref: '#/components/schemas/module_stat'
-          minItems: 1
-          type: array
-          uniqueItems: true
-        name:
-          description: device name if configured
-          type: string
-        num_clients:
-          properties:
-            total:
-              additionalProperties:
-                description: propery key is the FPC number
-                properties:
-                  num_aps:
-                    type: string
-                  num_clients:
-                    type: string
-                type: object
-              properties:
-                num_aps:
-                  type: string
-                num_clients:
-                  type: string
-              type: object
-          type: object
-        serial:
-          type: string
-        status:
-          type: string
-        type:
-          type: string
-        uptime:
-          type: number
-        version:
           type: string
       type: object
     stats_mxedge:
@@ -80074,6 +79510,102 @@ components:
         version:
           type: string
       type: object
+    switch_stats:
+      description: Switch statistics
+      properties:
+        clients:
+          items:
+            properties:
+              device_mac:
+                type: string
+              hostname:
+                type: string
+              mac:
+                type: string
+              port_id:
+                type: string
+            type: object
+          type: array
+        cpu_stat:
+          $ref: '#/components/schemas/cpu_stat'
+        has_pcap:
+          description: whether the switch supports packet capture
+          type: boolean
+        hostname:
+          description: hostname reported by the device
+          type: string
+        if_stat:
+          additionalProperties:
+            properties:
+              ips:
+                items:
+                  type: string
+                type: array
+              port_id:
+                type: string
+              rx_bytes:
+                type: integer
+              rx_pkts:
+                type: integer
+              tx_bytes:
+                type: integer
+              tx_pkts:
+                type: integer
+              up:
+                type: boolean
+            type: object
+          description: Property key is the interface name
+          type: object
+        ip:
+          type: string
+        ip_stat:
+          $ref: '#/components/schemas/ip_stat'
+        last_seen:
+          type: number
+        last_trouble:
+          $ref: '#/components/schemas/last_trouble'
+        mac:
+          $ref: '#/components/schemas/memory_stat'
+        model:
+          type: string
+        module_stat:
+          items:
+            $ref: '#/components/schemas/module_stat'
+          minItems: 1
+          type: array
+          uniqueItems: true
+        name:
+          description: device name if configured
+          type: string
+        num_clients:
+          properties:
+            total:
+              additionalProperties:
+                description: propery key is the FPC number
+                properties:
+                  num_aps:
+                    type: string
+                  num_clients:
+                    type: string
+                type: object
+              properties:
+                num_aps:
+                  type: string
+                num_clients:
+                  type: string
+              type: object
+          type: object
+        serial:
+          type: string
+        status:
+          type: string
+        type:
+          type: string
+        uptime:
+          type: number
+        version:
+          type: string
+      type: object
     synthetic_test:
       properties:
         email:
@@ -80738,7 +80270,7 @@ components:
           example: 10.1.1.1
           type: string
         node:
-          $ref: '#/components/schemas/ha_cluster_node'
+          $ref: '#/components/schemas/ha_cluster_node_enum'
         port_id:
           description: The device interface on which to clear the ARP cache.
           example: wan
@@ -80825,7 +80357,7 @@ components:
           format: ipv4
           type: string
         node:
-          $ref: '#/components/schemas/ha_cluster_node'
+          $ref: '#/components/schemas/ha_cluster_node_enum'
         size:
           default: 56
           maximum: 65535
@@ -80837,7 +80369,7 @@ components:
     utils_release_dhcp:
       properties:
         node:
-          $ref: '#/components/schemas/ha_cluster_node'
+          $ref: '#/components/schemas/ha_cluster_node_enum'
         port:
           description: The nework interface on which to release the current DHCP release
           example: wan-interface
@@ -81011,7 +80543,7 @@ components:
       description: The exact service name for which to display the service path
       properties:
         node:
-          $ref: '#/components/schemas/ha_cluster_node'
+          $ref: '#/components/schemas/ha_cluster_node_enum'
         service_name:
           example: any
           type: string
@@ -81019,7 +80551,7 @@ components:
     utils_show_session:
       properties:
         node:
-          $ref: '#/components/schemas/ha_cluster_node'
+          $ref: '#/components/schemas/ha_cluster_node_enum'
         service_name:
           description: The exact service name for which to display the active sessions
           example: any
