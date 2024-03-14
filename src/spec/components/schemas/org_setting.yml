@@ -174,6 +174,18 @@ properties:
       grace_period:
         type: number
     type: object
+  jcloud:
+    properties:
+      org_apitoken:
+        description: JCloud Org Token
+        type: string
+      org_apitoken_name:
+        description: JCloud Org Token Name
+        type: string
+      org_id:
+        description: JCloud Org ID
+        type: string
+    type: object
   juniper:
     $ref: '../schemas/account_juniper_info.yml'
   mgmt:
@@ -196,6 +208,17 @@ properties:
         description: whether to use wxtunnel for mgmt connectivity
         type: boolean
     type: object
+  mist_api:
+    properties:
+      secret_policy:
+        default: show
+        description: by default, API hides password/secrets when the user doesn't
+          have write access it can be more strictly controlled
+        enum:
+        - show
+        - strict
+        type: string
+    type: object
   mist_nac:
     properties:
       cacerts:
@@ -217,7 +240,14 @@ properties:
         type: integer
       eu_only:
         default: false
-        description: for EU, whether to only use Mist NAC servers in EU Clusters
+        description: 'By default NAC POD failover considers all NAC pods available
+          around the globe, i.e. EU, US, or APAC based, failover happens based on
+          geo IP of the originating site.
+
+          For strict GDPR compliancy NAC POD failover would only happen between the
+          PODs located within the EU environment, and no authentication would take
+          place outside of EU. This is an org setting that is applicable to WLANs,
+          switch templates, mxedge clusters that have mist_nac enabled'
         type: boolean
       idps:
         items:
@@ -373,6 +403,27 @@ properties:
           30,40:
             disabled: true
         type: object
+      wan_speedtest:
+        properties:
+          enabled:
+            default: false
+            type: boolean
+          port_ids:
+            description: by default, we'll identify the WAN ports automatically, use
+              this to only allow the following ports to run use `ge-0/0/1.3` for vlan'ed
+              ports
+            example:
+            - ge-0/0/0
+            - ge-0/0/1.3
+            items:
+              type: string
+            type: array
+          time_of_day:
+            description: by default, we'll look at the tarffic pattern and determine
+              when to run automatically
+            example: 02:00
+            type: string
+        type: object
     title: org_synthetic_test_settings
     type: object
   tags:
@@ -394,6 +445,10 @@ properties:
         maximum: 4294967295
         minimum: 1
         type: integer
+      ssr_st_subnet:
+        default: 10.224.0.0/12
+        description: equiring /12 or bigger to support 16 private IPs for 65535 gateways
+        type: string
     type: object
   wan_pma:
     properties:

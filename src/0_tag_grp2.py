@@ -70,6 +70,9 @@ HARDCODED_PATH = {
     "/api/v1/sites/{site_id}/devices/{device_id}/upgrade_bios": "UTILITIES",
     "/api/v1/sites/{site_id}/devices/{device_id}/config_cmd": "UTILITIES",
     "/api/v1/sites/{site_id}/devices/{device_id}/ping": "UTILITIES",
+    "/api/v1/orgs/{org_id}/pcaps": "UTILITIES",
+    "/api/v1/orgs/{org_id}/pcaps/capture": "UTILITIES",
+    "/api/v1/orgs/{org_id}/pcaps/{pcap_id}": "UTILITIES",
     "/api/v1/sites/{site_id}/pcaps": "UTILITIES",
     "/api/v1/sites/{site_id}/pcaps/capture": "UTILITIES",
     "/api/v1/sites/{site_id}/pcaps/{pcap_id}": "UTILITIES",
@@ -142,7 +145,7 @@ HARDCODED_OPERATION = {
     "getSiteLicenseUsage": "MONITOR",
     "getSiteBeamCoverageOverview": "MONITOR",
     "getSiteCurrentChannelPlanning": "MONITOR",
-    "getSiteCurrentRrmConsiderationsForAnApOnASpecificBand": "MONITOR",
+    "getSiteCurrentRrmConsiderations": "MONITOR",
     "getSiteEventsForClient": "MONITOR",
     "listSiteDiscoveredAssets": "MONITOR",
     "getSiteDiscoveredSwitchesMetrics": "MONITOR",
@@ -160,13 +163,13 @@ HARDCODED_OPERATION = {
 }
 
 
-def ask_tag():
+def ask_tag(operationId):
     while True:
         print("1) AUTHENTICATION")
         print("2) MONITOR")
         print("3) CONFIGURE")
-        print("4) CONSTANTS")
-        resp = input("tags? ")
+        print("4) UTILITIES")
+        resp = input(f"tag for {operationId}? ")
         if resp == "1":
             return "AUTHENTICATION"
         if resp == "2":
@@ -174,7 +177,7 @@ def ask_tag():
         if resp == "3":
             return "CONFIGURE"
         if resp == "3":
-            return "CONSTANTS"
+            return "UTILITIES"
 
 
 def add_tag(new_tag, properties):
@@ -231,8 +234,8 @@ for path in data.get("paths", {}):
                         HARDCODED_OPERATION[properties[verb]["operationId"]],
                         properties
                     )
-                else:
-                    new_tag = ask_tag()
+                else:                    
+                    new_tag = ask_tag(properties[verb]["operationId"])
                     add_tag(new_tag, properties)
 
 

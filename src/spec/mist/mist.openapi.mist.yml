@@ -280,7 +280,8 @@ paths:
     get:
       description: Get List of Device Profiles
       operationId: listInstallerDeviceProfiles
-      parameters: []
+      parameters:
+      - $ref: '#/components/parameters/device_type'
       responses:
         '200':
           $ref: '#/components/responses/InstallerDeviceProfiles'
@@ -521,6 +522,224 @@ paths:
         '429':
           $ref: '#/components/responses/HTTP429'
       summary: addInstallerDeviceImage
+      tags:
+      - op:MIST:CONFIGURE:Installer
+      - Installer
+  /api/v1/installer/orgs/{org_id}/devices/{fpc0_mac}/vc:
+    get:
+      description: 'Get VC Status
+
+
+        The API returns a combined view of the VC status which includes topology and
+        stats'
+      operationId: getInstallerDeviceVirtualChassis
+      responses:
+        '200':
+          $ref: '#/components/responses/VirtualChassis'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getInstallerDeviceVirtualChassis
+      tags:
+      - op:MIST:CONFIGURE:Installer
+      - Installer
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - description: FPC0 MAC Address
+      in: path
+      name: fpc0_mac
+      required: true
+      schema:
+        type: string
+    post:
+      description: "For models (e.g. EX3400 and up) having dedicated VC ports, it\
+        \ is easier to form a VC by just connecting cables with the dedicated VC ports.\
+        \ Cloud will detect the new VC and update the inventory.\n\nIn case that the\
+        \ user would like to choose the dedicated switch as a VC master. Or for EX2300-C-12P\
+        \ and EX2300-C-12T which doesn\u2019t have dedicated VC ports, below are procedures\
+        \ to automate the VC creation:\n\n1. Power on the switch that is choosen as\
+        \ the VC master first. And the powering on the other member switches.\n2.\
+        \ Claim or adopt all these switches under the same organization\u2019s Inventory\n\
+        3. Assign these switches into the same Site\n4. Invoke vc command on the switch\
+        \ choosen to be the VC master. For EX2300-C-12P, VC ports will be created\
+        \ automatically.\n5. Connect the cables to the VC ports for these switches\n\
+        6. Wait for the VC to be formed. The Org\u2019s inventory will be updated\
+        \ for the new VC."
+      operationId: createInstallerVirtualChassis
+      requestBody:
+        content:
+          application/json:
+            examples:
+              create-a-VC-with-three-members:
+                value:
+                  members:
+                  - mac: aff827549235
+                    vc_ports:
+                    - xe-0/1/0
+                    vc_role: master
+                  - mac: 8396cd006c8c
+                    vc_ports:
+                    - xe-0/1/0
+                    - xe-0/1/1
+                    vc_role: backup
+                  - mac: 8396cd00888c
+                    vc_ports:
+                    - xe-0/1/0
+                    vc_role: linecard
+              create-a-pre-provisioned-VC-with-three-members:
+                value:
+                  members:
+                  - mac: aff827549235
+                    member_id: 0
+                    vc_ports:
+                    - xe-0/1/0
+                    - xe-0/1/1
+                    vc_role: master
+                  - mac: 8396cd006c8c
+                    member_id: 1
+                    vc_ports:
+                    - xe-0/1/0
+                    vc_role: linecard
+                  - mac: 8396cd00888c
+                    member_id: 2
+                    vc_ports:
+                    - xe-0/1/0
+                    vc_role: backup
+                  preprovisioned: true
+            schema:
+              $ref: '#/components/schemas/virtual_chassis_config'
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/VirtualChassis'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: createInstallerVirtualChassis
+      tags:
+      - op:MIST:CONFIGURE:Installer
+      - Installer
+    put:
+      description: "The VC creation and adding member switch API will update the device\u2019\
+        s virtual chassis config which is applied after VC is formed to create JUNOS\
+        \ pre-provisioned virtual chassis configuration.\n\n## Change to use preprovisioned\
+        \ VC\nTo switch the VC to use preprovisioned VC, enable preprovisioned in\
+        \ virtual_chassis config. Both vc_role master and backup will be matched to\
+        \ routing-engine role in Junos preprovisioned VC config.\n\nIn this config,\
+        \ fpc0 has to be the same as the mac of device_id. Use renumber if you want\
+        \ to replace fpc0 which involves device_id change.\n\nNotice: to configure\
+        \ preprovisioned VC, every member of the VC must be in the inventory.\n\n\
+        ## Add new members\nFor models (e.g. EX4300 and up) having dedicated VC ports,\
+        \ it is easier to add new member switches into a VC by just connecting cables\
+        \ with the dedicated VC ports. Cloud will detect the new members and update\
+        \ the inventory.\n\nFor EX2300 VC, adding new members requires to follow the\
+        \ procedures below:\n1. Powering on the new member switches and ensuring cables\
+        \ are not connected to any VC ports.\n2. Claim or adopt all new member switches\
+        \ under the VC\u2019s organization Inventory\n3. Assign all new member switches\
+        \ to the same Site as the VC\n4. Invoke vc command to add switches to the\
+        \ VC.\n5. Connect the cables to the VC ports for these switches\n6. After\
+        \ a while, the Org\u2019s Inventory shows this new switches has been added\
+        \ into the VC.\n\n## Removing member switch\nTo remove a member switch from\
+        \ the VC, following the procedures below:\n\n1. Ensuring the VC is connected\
+        \ to the cloud first\n2. Unplug the cable from the VC port of the switch\n\
+        3. Waiting for the VC state (vc_state) of this switch is changed to not-present\n\
+        4. Invoke update_vc with remove to remove this switch from the VC\n5. The\
+        \ Org\u2019s Inventory shows the switch is removed.\n\nPlease notice that\
+        \ member ID 0 (fpc0) cannot be removed. When a VC has two switches left, unpluging\
+        \ the cable may result in the situation that fpc0 becomes a line card (LC).\
+        \ When this situation is happened, please re-plug in the cable, wait for both\
+        \ switches becoming present (show virtual-chassis) and then removing the cable\
+        \ again.\n\n## Renumber a member switch\nWhen a member switch doesn\u2019\
+        t work properly and needed to be replaced, the renumber API could be used.\
+        \ The following two types of renumber are supported:\n\n1. Replace a non-fpc0\
+        \ member switch\n2. Replace fpc0. When fpc0 is relaced, PAPI device config\
+        \ and JUNOS config will be both updated.\n\nFor renumber to work, the following\
+        \ procedures are needed: \n1. Ensuring the VC is connected to the cloud and\
+        \ the state of the member switch to be replaced must be non present. \n2.\
+        \ Adding the new member switch to the VC \n3. Waiting for the VC state (vc_state)\
+        \ of this VC to be updated to API server \n4. Invoke vc with renumber to replace\
+        \ the new member switch from fpc X to\n\n## Perprovision VC members\nBy specifying\
+        \ \u201Cpreprovision\u201D op, you can convert the current VC to pre-provisioned\
+        \ mode, update VC members as well as specify vc_ports when adding new members\
+        \ for device models without dedicated vc ports. Use renumber for fpc0 replacement\
+        \ which involves device_id change.\n\nNote: \n1. vc_ports is used for adding\
+        \ new members and not needed if * the device model has dedicated vc ports,\
+        \ or * no new member is added \n2. New VC members to be added should exist\
+        \ in the same Site as the VC\n\nUpdate Device\u2019s VC config can achieve\
+        \ similar purpose by directly modifying current virtual_chassis config. However,\
+        \ it cannot fulfill requests to enabling vc_ports on new members that are\
+        \ yet to belong to current VC."
+      operationId: updateInstallerVirtualChassisMember
+      requestBody:
+        content:
+          application/json:
+            examples:
+              adding-two-new-switches-as-line-cards-into-the-VC:
+                value:
+                  members:
+                  - mac: aff827549235
+                    member: 0
+                    vc_ports:
+                    - xe-0/1/1
+                    vc_role: linecard
+                  - mac: 8396cd00777c
+                    vc_ports:
+                    - xe-0/1/0
+                    vc_role: linecard
+                  op: add
+              convert-to-pre-provisioned-VC:
+                value:
+                  member: 0
+                  members:
+                  - mac: string
+                    member: 0
+                    vc_ports:
+                    - string
+                    vc_role: master
+                  new-member: 0
+                  op: add
+              removing-two-switches-from-VC:
+                value:
+                  members:
+                  - member: 2
+                  - member: 3
+                  op: remove
+              renumber-member-ID-3-to-member-ID-2:
+                value:
+                  member: 3
+                  new-member: 2
+                  op: renumber
+            schema:
+              $ref: '#/components/schemas/virtual_chassis_update'
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/VirtualChassis'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: updateInstallerVirtualChassisMember
       tags:
       - op:MIST:CONFIGURE:Installer
       - Installer
@@ -2103,7 +2322,7 @@ paths:
       operationId: listMspSsoRoles
       responses:
         '200':
-          $ref: '#/components/responses/SsorolesArray'
+          $ref: '#/components/responses/SsoRolesOrgArray'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -2127,11 +2346,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ssorole'
+              $ref: '#/components/schemas/sso_role_msp'
         description: Request Body
       responses:
         '200':
-          $ref: '#/components/responses/Ssorole'
+          $ref: '#/components/responses/SsoRoleMsp'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -2177,11 +2396,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ssorole'
+              $ref: '#/components/schemas/sso_role_msp'
         description: Request Body
       responses:
         '200':
-          $ref: '#/components/responses/Ssorole'
+          $ref: '#/components/responses/SsoRoleMsp'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -2765,8 +2984,7 @@ paths:
                     site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
                     sitegroup_ids:
                     - 497f6eca-6276-4993-bfeb-53d6bbba6f08
-                    views:
-                    - string
+                    views: switch_admin
                   session_expiry: 1440
                   tags:
                   - string
@@ -3615,16 +3833,6 @@ paths:
       requestBody:
         content:
           application/json:
-            examples:
-              Example:
-                value:
-                  created_by: user@mycorp.com
-                  name: org_token_xyz
-                  org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-                  privileges:
-                  - org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-                    role: admin
-                    scope: org
             schema:
               $ref: '#/components/schemas/org_apitoken'
       responses:
@@ -4305,7 +4513,7 @@ paths:
                   bgp_config:
                     property1:
                       auth_key: string
-                      bfd_minimum_interval: 0
+                      bfd_minimum_interval: 150
                       communities:
                       - id: string
                         local_preference: 0
@@ -4343,7 +4551,7 @@ paths:
                       wan_name: string
                     property2:
                       auth_key: string
-                      bfd_minimum_interval: 0
+                      bfd_minimum_interval: 150
                       communities:
                       - id: string
                         local_preference: 0
@@ -4472,206 +4680,204 @@ paths:
                   modified_time: 0
                   name: string
                   networks:
-                    property1:
-                      created_time: 0
-                      disallow_mist_services: false
-                      gateway: 192.168.70.1
-                      hosts:
+                  - created_time: 0
+                    disallow_mist_services: false
+                    gateway: 192.168.70.1
+                    hosts:
+                      property1:
+                        external_ips: 172.16.10.32-172.16.10.35
+                        ips: 192.168.70.32-192.168.70.35
+                      property2:
+                        external_ips: 172.16.10.32-172.16.10.35
+                        ips: 192.168.70.32-192.168.70.35
+                    id: 497f6eca-6276-4993-bfeb-53cbbbba6f1d
+                    internal_access:
+                      enabled: true
+                    internet_access:
+                      create_simple_service_policy: false
+                      destination_nat:
                         property1:
-                          external_ips: 172.16.10.32-172.16.10.35
-                          ips: 192.168.70.32-192.168.70.35
+                          internal_ip: 192.168.70.30
+                          name: web server
+                          port: 443
                         property2:
-                          external_ips: 172.16.10.32-172.16.10.35
-                          ips: 192.168.70.32-192.168.70.35
-                      id: 497f6eca-6276-4993-bfeb-53cbbbba6f1d
-                      internal_access:
-                        enabled: true
-                      internet_access:
-                        create_simple_service_policy: false
+                          internal_ip: 192.168.70.30
+                          name: web server
+                          port: 443
+                      enabled: true
+                      restricted: false
+                      static_nat:
+                        property1:
+                          internal_ip: 192.168.70.3
+                          name: printer-1
+                        property2:
+                          internal_ip: 192.168.70.3
+                          name: printer-1
+                    isolation: true
+                    modified_time: 0
+                    name: string
+                    org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                    subnet: 192.168.70.0/24
+                    tenants:
+                      property1:
+                        addresses: string
+                      property2:
+                        addresses: string
+                    vlan_id: 0
+                    vpn_access:
+                      property1:
+                        affinity: hub
+                        allow_ping: true
                         destination_nat:
                           property1:
-                            internal_ip: 192.168.70.30
                             name: web server
                             port: 443
+                            to: 192.168.70.5/30
                           property2:
-                            internal_ip: 192.168.70.30
                             name: web server
                             port: 443
-                        enabled: true
-                        restricted: false
+                            to: 192.168.70.5/30
+                        nat_pool: 172.16.0.0/26
+                        no_readvertise_to_lan_bgp: false
+                        no_readvertise_to_overlay: true
+                        routed: true
+                        source_nat:
+                          exteral_ip: 172.16.0.8/30
                         static_nat:
                           property1:
                             internal_ip: 192.168.70.3
-                            name: printer-1
+                            name: pos-station-1
                           property2:
                             internal_ip: 192.168.70.3
-                            name: printer-1
-                      isolation: true
-                      modified_time: 0
-                      name: string
-                      org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-                      subnet: 192.168.70.0/24
-                      tenants:
-                        property1:
-                          addresses: string
-                        property2:
-                          addresses: string
-                      vlan_id: 0
-                      vpn_access:
-                        property1:
-                          affinity: hub
-                          allow_ping: true
-                          destination_nat:
-                            property1:
-                              name: web server
-                              port: 443
-                              to: 192.168.70.5/30
-                            property2:
-                              name: web server
-                              port: 443
-                              to: 192.168.70.5/30
-                          nat_pool: 172.16.0.0/26
-                          no_readvertise_to_lan_bgp: false
-                          no_readvertise_to_overlay: true
-                          routed: true
-                          source_nat:
-                            exteral_ip: 172.16.0.8/30
-                          static_nat:
-                            property1:
-                              internal_ip: 192.168.70.3
-                              name: pos-station-1
-                            property2:
-                              internal_ip: 192.168.70.3
-                              name: pos-station-1
-                          summarized_subnet: 172.16.0.0/16
-                          summarized_subnet_to_lan_bgp: 172.16.0.0/16
-                        property2:
-                          affinity: hub
-                          allow_ping: true
-                          destination_nat:
-                            property1:
-                              name: web server
-                              port: 443
-                              to: 192.168.70.5/30
-                            property2:
-                              name: web server
-                              port: 443
-                              to: 192.168.70.5/30
-                          nat_pool: 172.16.0.0/26
-                          no_readvertise_to_lan_bgp: false
-                          no_readvertise_to_overlay: true
-                          routed: true
-                          source_nat:
-                            exteral_ip: 172.16.0.8/30
-                          static_nat:
-                            property1:
-                              internal_ip: 192.168.70.3
-                              name: pos-station-1
-                            property2:
-                              internal_ip: 192.168.70.3
-                              name: pos-station-1
-                          summarized_subnet: 172.16.0.0/16
-                          summarized_subnet_to_lan_bgp: 172.16.0.0/16
-                    property2:
-                      created_time: 0
-                      disallow_mist_services: false
-                      gateway: 192.168.70.1
-                      hosts:
-                        property1:
-                          external_ips: 172.16.10.32-172.16.10.35
-                          ips: 192.168.70.32-192.168.70.35
-                        property2:
-                          external_ips: 172.16.10.32-172.16.10.35
-                          ips: 192.168.70.32-192.168.70.35
-                      id: 497f6eca-6276-4993-bfeb-53cbbbba6f1e
-                      internal_access:
-                        enabled: true
-                      internet_access:
-                        create_simple_service_policy: false
+                            name: pos-station-1
+                        summarized_subnet: 172.16.0.0/16
+                        summarized_subnet_to_lan_bgp: 172.16.0.0/16
+                      property2:
+                        affinity: hub
+                        allow_ping: true
                         destination_nat:
                           property1:
-                            internal_ip: 192.168.70.30
                             name: web server
                             port: 443
+                            to: 192.168.70.5/30
                           property2:
-                            internal_ip: 192.168.70.30
                             name: web server
                             port: 443
-                        enabled: true
-                        restricted: false
+                            to: 192.168.70.5/30
+                        nat_pool: 172.16.0.0/26
+                        no_readvertise_to_lan_bgp: false
+                        no_readvertise_to_overlay: true
+                        routed: true
+                        source_nat:
+                          exteral_ip: 172.16.0.8/30
                         static_nat:
                           property1:
                             internal_ip: 192.168.70.3
-                            name: printer-1
+                            name: pos-station-1
                           property2:
                             internal_ip: 192.168.70.3
-                            name: printer-1
-                      isolation: true
-                      modified_time: 0
-                      name: string
-                      org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-                      subnet: 192.168.70.0/24
-                      tenants:
+                            name: pos-station-1
+                        summarized_subnet: 172.16.0.0/16
+                        summarized_subnet_to_lan_bgp: 172.16.0.0/16
+                  - created_time: 0
+                    disallow_mist_services: false
+                    gateway: 192.168.70.1
+                    hosts:
+                      property1:
+                        external_ips: 172.16.10.32-172.16.10.35
+                        ips: 192.168.70.32-192.168.70.35
+                      property2:
+                        external_ips: 172.16.10.32-172.16.10.35
+                        ips: 192.168.70.32-192.168.70.35
+                    id: 497f6eca-6276-4993-bfeb-53cbbbba6f1e
+                    internal_access:
+                      enabled: true
+                    internet_access:
+                      create_simple_service_policy: false
+                      destination_nat:
                         property1:
-                          addresses: string
+                          internal_ip: 192.168.70.30
+                          name: web server
+                          port: 443
                         property2:
-                          addresses: string
-                      vlan_id: 0
-                      vpn_access:
+                          internal_ip: 192.168.70.30
+                          name: web server
+                          port: 443
+                      enabled: true
+                      restricted: false
+                      static_nat:
                         property1:
-                          affinity: hub
-                          allow_ping: true
-                          destination_nat:
-                            property1:
-                              name: web server
-                              port: 443
-                              to: 192.168.70.5/30
-                            property2:
-                              name: web server
-                              port: 443
-                              to: 192.168.70.5/30
-                          nat_pool: 172.16.0.0/26
-                          no_readvertise_to_lan_bgp: false
-                          no_readvertise_to_overlay: true
-                          routed: true
-                          source_nat:
-                            exteral_ip: 172.16.0.8/30
-                          static_nat:
-                            property1:
-                              internal_ip: 192.168.70.3
-                              name: pos-station-1
-                            property2:
-                              internal_ip: 192.168.70.3
-                              name: pos-station-1
-                          summarized_subnet: 172.16.0.0/16
-                          summarized_subnet_to_lan_bgp: 172.16.0.0/16
+                          internal_ip: 192.168.70.3
+                          name: printer-1
                         property2:
-                          affinity: hub
-                          allow_ping: true
-                          destination_nat:
-                            property1:
-                              name: web server
-                              port: 443
-                              to: 192.168.70.5/30
-                            property2:
-                              name: web server
-                              port: 443
-                              to: 192.168.70.5/30
-                          nat_pool: 172.16.0.0/26
-                          no_readvertise_to_lan_bgp: false
-                          no_readvertise_to_overlay: true
-                          routed: true
-                          source_nat:
-                            exteral_ip: 172.16.0.8/30
-                          static_nat:
-                            property1:
-                              internal_ip: 192.168.70.3
-                              name: pos-station-1
-                            property2:
-                              internal_ip: 192.168.70.3
-                              name: pos-station-1
-                          summarized_subnet: 172.16.0.0/16
-                          summarized_subnet_to_lan_bgp: 172.16.0.0/16
+                          internal_ip: 192.168.70.3
+                          name: printer-1
+                    isolation: true
+                    modified_time: 0
+                    name: string
+                    org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                    subnet: 192.168.70.0/24
+                    tenants:
+                      property1:
+                        addresses: string
+                      property2:
+                        addresses: string
+                    vlan_id: 0
+                    vpn_access:
+                      property1:
+                        affinity: hub
+                        allow_ping: true
+                        destination_nat:
+                          property1:
+                            name: web server
+                            port: 443
+                            to: 192.168.70.5/30
+                          property2:
+                            name: web server
+                            port: 443
+                            to: 192.168.70.5/30
+                        nat_pool: 172.16.0.0/26
+                        no_readvertise_to_lan_bgp: false
+                        no_readvertise_to_overlay: true
+                        routed: true
+                        source_nat:
+                          exteral_ip: 172.16.0.8/30
+                        static_nat:
+                          property1:
+                            internal_ip: 192.168.70.3
+                            name: pos-station-1
+                          property2:
+                            internal_ip: 192.168.70.3
+                            name: pos-station-1
+                        summarized_subnet: 172.16.0.0/16
+                        summarized_subnet_to_lan_bgp: 172.16.0.0/16
+                      property2:
+                        affinity: hub
+                        allow_ping: true
+                        destination_nat:
+                          property1:
+                            name: web server
+                            port: 443
+                            to: 192.168.70.5/30
+                          property2:
+                            name: web server
+                            port: 443
+                            to: 192.168.70.5/30
+                        nat_pool: 172.16.0.0/26
+                        no_readvertise_to_lan_bgp: false
+                        no_readvertise_to_overlay: true
+                        routed: true
+                        source_nat:
+                          exteral_ip: 172.16.0.8/30
+                        static_nat:
+                          property1:
+                            internal_ip: 192.168.70.3
+                            name: pos-station-1
+                          property2:
+                            internal_ip: 192.168.70.3
+                            name: pos-station-1
+                        summarized_subnet: 172.16.0.0/16
+                        summarized_subnet_to_lan_bgp: 172.16.0.0/16
                   oob_ip_config:
                     dns:
                     - string
@@ -4774,7 +4980,7 @@ paths:
                         - 0
                         enabled: false
                       usage: lan
-                      vlan_id: 0
+                      vlan_id: 10
                       vpn_paths:
                         property1:
                           bfd_profile: broadband
@@ -4845,7 +5051,7 @@ paths:
                         - 0
                         enabled: false
                       usage: lan
-                      vlan_id: 0
+                      vlan_id: 10
                       vpn_paths:
                         property1:
                           bfd_profile: broadband
@@ -5299,7 +5505,7 @@ paths:
                   bgp_config:
                     property1:
                       auth_key: string
-                      bfd_minimum_interval: 0
+                      bfd_minimum_interval: 150
                       communities:
                       - id: string
                         local_preference: 0
@@ -5337,7 +5543,7 @@ paths:
                       wan_name: string
                     property2:
                       auth_key: string
-                      bfd_minimum_interval: 0
+                      bfd_minimum_interval: 150
                       communities:
                       - id: string
                         local_preference: 0
@@ -5466,206 +5672,204 @@ paths:
                   modified_time: 0
                   name: string
                   networks:
-                    property1:
-                      created_time: 0
-                      disallow_mist_services: false
-                      gateway: 192.168.70.1
-                      hosts:
+                  - created_time: 0
+                    disallow_mist_services: false
+                    gateway: 192.168.70.1
+                    hosts:
+                      property1:
+                        external_ips: 172.16.10.32-172.16.10.35
+                        ips: 192.168.70.32-192.168.70.35
+                      property2:
+                        external_ips: 172.16.10.32-172.16.10.35
+                        ips: 192.168.70.32-192.168.70.35
+                    id: 497f6eca-6276-4993-bfeb-53dbbbba6f08
+                    internal_access:
+                      enabled: true
+                    internet_access:
+                      create_simple_service_policy: false
+                      destination_nat:
                         property1:
-                          external_ips: 172.16.10.32-172.16.10.35
-                          ips: 192.168.70.32-192.168.70.35
+                          internal_ip: 192.168.70.30
+                          name: web server
+                          port: 443
                         property2:
-                          external_ips: 172.16.10.32-172.16.10.35
-                          ips: 192.168.70.32-192.168.70.35
-                      id: 497f6eca-6276-4993-bfeb-53dbbbba6f08
-                      internal_access:
-                        enabled: true
-                      internet_access:
-                        create_simple_service_policy: false
+                          internal_ip: 192.168.70.30
+                          name: web server
+                          port: 443
+                      enabled: true
+                      restricted: false
+                      static_nat:
+                        property1:
+                          internal_ip: 192.168.70.3
+                          name: printer-1
+                        property2:
+                          internal_ip: 192.168.70.3
+                          name: printer-1
+                    isolation: true
+                    modified_time: 0
+                    name: string
+                    org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                    subnet: 192.168.70.0/24
+                    tenants:
+                      property1:
+                        addresses: string
+                      property2:
+                        addresses: string
+                    vlan_id: 0
+                    vpn_access:
+                      property1:
+                        affinity: hub
+                        allow_ping: true
                         destination_nat:
                           property1:
-                            internal_ip: 192.168.70.30
                             name: web server
                             port: 443
+                            to: 192.168.70.5/30
                           property2:
-                            internal_ip: 192.168.70.30
                             name: web server
                             port: 443
-                        enabled: true
-                        restricted: false
+                            to: 192.168.70.5/30
+                        nat_pool: 172.16.0.0/26
+                        no_readvertise_to_lan_bgp: false
+                        no_readvertise_to_overlay: true
+                        routed: true
+                        source_nat:
+                          exteral_ip: 172.16.0.8/30
                         static_nat:
                           property1:
                             internal_ip: 192.168.70.3
-                            name: printer-1
+                            name: pos-station-1
                           property2:
                             internal_ip: 192.168.70.3
-                            name: printer-1
-                      isolation: true
-                      modified_time: 0
-                      name: string
-                      org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-                      subnet: 192.168.70.0/24
-                      tenants:
-                        property1:
-                          addresses: string
-                        property2:
-                          addresses: string
-                      vlan_id: 0
-                      vpn_access:
-                        property1:
-                          affinity: hub
-                          allow_ping: true
-                          destination_nat:
-                            property1:
-                              name: web server
-                              port: 443
-                              to: 192.168.70.5/30
-                            property2:
-                              name: web server
-                              port: 443
-                              to: 192.168.70.5/30
-                          nat_pool: 172.16.0.0/26
-                          no_readvertise_to_lan_bgp: false
-                          no_readvertise_to_overlay: true
-                          routed: true
-                          source_nat:
-                            exteral_ip: 172.16.0.8/30
-                          static_nat:
-                            property1:
-                              internal_ip: 192.168.70.3
-                              name: pos-station-1
-                            property2:
-                              internal_ip: 192.168.70.3
-                              name: pos-station-1
-                          summarized_subnet: 172.16.0.0/16
-                          summarized_subnet_to_lan_bgp: 172.16.0.0/16
-                        property2:
-                          affinity: hub
-                          allow_ping: true
-                          destination_nat:
-                            property1:
-                              name: web server
-                              port: 443
-                              to: 192.168.70.5/30
-                            property2:
-                              name: web server
-                              port: 443
-                              to: 192.168.70.5/30
-                          nat_pool: 172.16.0.0/26
-                          no_readvertise_to_lan_bgp: false
-                          no_readvertise_to_overlay: true
-                          routed: true
-                          source_nat:
-                            exteral_ip: 172.16.0.8/30
-                          static_nat:
-                            property1:
-                              internal_ip: 192.168.70.3
-                              name: pos-station-1
-                            property2:
-                              internal_ip: 192.168.70.3
-                              name: pos-station-1
-                          summarized_subnet: 172.16.0.0/16
-                          summarized_subnet_to_lan_bgp: 172.16.0.0/16
-                    property2:
-                      created_time: 0
-                      disallow_mist_services: false
-                      gateway: 192.168.70.1
-                      hosts:
-                        property1:
-                          external_ips: 172.16.10.32-172.16.10.35
-                          ips: 192.168.70.32-192.168.70.35
-                        property2:
-                          external_ips: 172.16.10.32-172.16.10.35
-                          ips: 192.168.70.32-192.168.70.35
-                      id: 497f6eca-6276-4993-bfeb-53dcbbba6f08
-                      internal_access:
-                        enabled: true
-                      internet_access:
-                        create_simple_service_policy: false
+                            name: pos-station-1
+                        summarized_subnet: 172.16.0.0/16
+                        summarized_subnet_to_lan_bgp: 172.16.0.0/16
+                      property2:
+                        affinity: hub
+                        allow_ping: true
                         destination_nat:
                           property1:
-                            internal_ip: 192.168.70.30
                             name: web server
                             port: 443
+                            to: 192.168.70.5/30
                           property2:
-                            internal_ip: 192.168.70.30
                             name: web server
                             port: 443
-                        enabled: true
-                        restricted: false
+                            to: 192.168.70.5/30
+                        nat_pool: 172.16.0.0/26
+                        no_readvertise_to_lan_bgp: false
+                        no_readvertise_to_overlay: true
+                        routed: true
+                        source_nat:
+                          exteral_ip: 172.16.0.8/30
                         static_nat:
                           property1:
                             internal_ip: 192.168.70.3
-                            name: printer-1
+                            name: pos-station-1
                           property2:
                             internal_ip: 192.168.70.3
-                            name: printer-1
-                      isolation: true
-                      modified_time: 0
-                      name: string
-                      org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-                      subnet: 192.168.70.0/24
-                      tenants:
+                            name: pos-station-1
+                        summarized_subnet: 172.16.0.0/16
+                        summarized_subnet_to_lan_bgp: 172.16.0.0/16
+                  - created_time: 0
+                    disallow_mist_services: false
+                    gateway: 192.168.70.1
+                    hosts:
+                      property1:
+                        external_ips: 172.16.10.32-172.16.10.35
+                        ips: 192.168.70.32-192.168.70.35
+                      property2:
+                        external_ips: 172.16.10.32-172.16.10.35
+                        ips: 192.168.70.32-192.168.70.35
+                    id: 497f6eca-6276-4993-bfeb-53dcbbba6f08
+                    internal_access:
+                      enabled: true
+                    internet_access:
+                      create_simple_service_policy: false
+                      destination_nat:
                         property1:
-                          addresses: string
+                          internal_ip: 192.168.70.30
+                          name: web server
+                          port: 443
                         property2:
-                          addresses: string
-                      vlan_id: 0
-                      vpn_access:
+                          internal_ip: 192.168.70.30
+                          name: web server
+                          port: 443
+                      enabled: true
+                      restricted: false
+                      static_nat:
                         property1:
-                          affinity: hub
-                          allow_ping: true
-                          destination_nat:
-                            property1:
-                              name: web server
-                              port: 443
-                              to: 192.168.70.5/30
-                            property2:
-                              name: web server
-                              port: 443
-                              to: 192.168.70.5/30
-                          nat_pool: 172.16.0.0/26
-                          no_readvertise_to_lan_bgp: false
-                          no_readvertise_to_overlay: true
-                          routed: true
-                          source_nat:
-                            exteral_ip: 172.16.0.8/30
-                          static_nat:
-                            property1:
-                              internal_ip: 192.168.70.3
-                              name: pos-station-1
-                            property2:
-                              internal_ip: 192.168.70.3
-                              name: pos-station-1
-                          summarized_subnet: 172.16.0.0/16
-                          summarized_subnet_to_lan_bgp: 172.16.0.0/16
+                          internal_ip: 192.168.70.3
+                          name: printer-1
                         property2:
-                          affinity: hub
-                          allow_ping: true
-                          destination_nat:
-                            property1:
-                              name: web server
-                              port: 443
-                              to: 192.168.70.5/30
-                            property2:
-                              name: web server
-                              port: 443
-                              to: 192.168.70.5/30
-                          nat_pool: 172.16.0.0/26
-                          no_readvertise_to_lan_bgp: false
-                          no_readvertise_to_overlay: true
-                          routed: true
-                          source_nat:
-                            exteral_ip: 172.16.0.8/30
-                          static_nat:
-                            property1:
-                              internal_ip: 192.168.70.3
-                              name: pos-station-1
-                            property2:
-                              internal_ip: 192.168.70.3
-                              name: pos-station-1
-                          summarized_subnet: 172.16.0.0/16
-                          summarized_subnet_to_lan_bgp: 172.16.0.0/16
+                          internal_ip: 192.168.70.3
+                          name: printer-1
+                    isolation: true
+                    modified_time: 0
+                    name: string
+                    org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
+                    subnet: 192.168.70.0/24
+                    tenants:
+                      property1:
+                        addresses: string
+                      property2:
+                        addresses: string
+                    vlan_id: 0
+                    vpn_access:
+                      property1:
+                        affinity: hub
+                        allow_ping: true
+                        destination_nat:
+                          property1:
+                            name: web server
+                            port: 443
+                            to: 192.168.70.5/30
+                          property2:
+                            name: web server
+                            port: 443
+                            to: 192.168.70.5/30
+                        nat_pool: 172.16.0.0/26
+                        no_readvertise_to_lan_bgp: false
+                        no_readvertise_to_overlay: true
+                        routed: true
+                        source_nat:
+                          exteral_ip: 172.16.0.8/30
+                        static_nat:
+                          property1:
+                            internal_ip: 192.168.70.3
+                            name: pos-station-1
+                          property2:
+                            internal_ip: 192.168.70.3
+                            name: pos-station-1
+                        summarized_subnet: 172.16.0.0/16
+                        summarized_subnet_to_lan_bgp: 172.16.0.0/16
+                      property2:
+                        affinity: hub
+                        allow_ping: true
+                        destination_nat:
+                          property1:
+                            name: web server
+                            port: 443
+                            to: 192.168.70.5/30
+                          property2:
+                            name: web server
+                            port: 443
+                            to: 192.168.70.5/30
+                        nat_pool: 172.16.0.0/26
+                        no_readvertise_to_lan_bgp: false
+                        no_readvertise_to_overlay: true
+                        routed: true
+                        source_nat:
+                          exteral_ip: 172.16.0.8/30
+                        static_nat:
+                          property1:
+                            internal_ip: 192.168.70.3
+                            name: pos-station-1
+                          property2:
+                            internal_ip: 192.168.70.3
+                            name: pos-station-1
+                        summarized_subnet: 172.16.0.0/16
+                        summarized_subnet_to_lan_bgp: 172.16.0.0/16
                   oob_ip_config:
                     dns:
                     - string
@@ -5768,7 +5972,7 @@ paths:
                         - 0
                         enabled: false
                       usage: lan
-                      vlan_id: 0
+                      vlan_id: 10
                       vpn_paths:
                         property1:
                           bfd_profile: broadband
@@ -5839,7 +6043,7 @@ paths:
                         - 0
                         enabled: false
                       usage: lan
-                      vlan_id: 0
+                      vlan_id: 150
                       vpn_paths:
                         property1:
                           bfd_profile: broadband
@@ -6685,7 +6889,7 @@ paths:
               $ref: '#/components/schemas/device_upgrade'
       responses:
         '200':
-          $ref: '#/components/responses/Id'
+          $ref: '#/components/responses/Uuid'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -7612,6 +7816,138 @@ paths:
       - Orgs Devices
     parameters:
     - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/pcaps:
+    get:
+      description: Get List of Org  Packet Captures
+      operationId: listOrgPacketCaptures
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          $ref: '#/components/responses/PcapsSearch'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listOrgPacketCaptures
+      tags:
+      - op:MIST:UTILITIES:PCAPs
+      - Utilities PCAPs
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/pcaps/capture:
+    delete:
+      description: Stop current Org capture
+      operationId: stopOrgPacketCapture
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: stopOrgPacketCapture
+      tags:
+      - op:MIST:UTILITIES:PCAPs
+      - Utilities PCAPs
+    get:
+      description: Get Org Capturing status
+      operationId: getOrgCapturingStatus
+      responses:
+        '200':
+          $ref: '#/components/responses/PcapStatus'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getOrgCapturingStatus
+      tags:
+      - op:MIST:UTILITIES:PCAPs
+      - Utilities PCAPs
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: "Initiate a Packet Capture\n\nThe output will be available through\
+        \ websocket. As there can be multiple command issued against the same AP at\
+        \ the same time and the output all goes through the same websocket stream,\
+        \ session is introduced for demux.\n\n#### Subscribe to Device Command outputs\n\
+        `WS /api-ws/v1/stream`\n\n```json\n{\n    subscribe: \"/sites/{site_id}/pcaps\"\
+        \n}\n```\n#### Response (Wireless/RadioTap)\n```json\n{\n  \"event\": \"data\"\
+        \n  \"channel\": \"/orgs/67970e46-4e12-11e6-9188-0242ac110007/pcaps\"\n  \"\
+        data\": {\n      \"capture_id\": \"f039b1b4-a23e-48b2-906a-0da40524de73\"\
+        , \n      \"pcap_dict\": {\n          \"dst_mac\": \"68:ec:c5:09:2e:87\",\n\
+        \          \"src_mac\": \"8c:3b:ad:e0:47:40\", \n          \"vlan\": 1, \n\
+        \          \"src_ip\": \"34.224.147.117\", \n          \"dst_ip\": \"192.168.1.55\"\
+        ,\n          \"dst_port\": 51635, \n          \"src_port\": 443,\n       \
+        \   \"protocol\": \"TCP\", \n          \"mxedge_id\": \"00000000-0000-0000-1000-001122334455\"\
+        ,\n          \"direction\": \"tx\", \n          \"timestamp\": 1652247615,\
+        \ \n          \"length\": 159.0, \n          \"interface\": \"port0\",\n \
+        \         \"info\": \"1652247616.007409 IP ec2-34-224-147-117.compute-1.amazonaws.com.https\
+        \ > ip-192-168-1-55.ec2.internal.51635: Flags [P.], seq \n               \
+        \     2192123968:2192124057, ack 4035166782, win 12, options [nop,nop,TS val\
+        \ 597467050 ecr 740580660], length 89\\\\n\",\n          }, \n      \"pcap_raw\"\
+        : \"1MOyoQIABAAAAAAAAAAAAP//AAABAAAAQEx7YhMzAACfAAAAnwAAAGjsxQkuh4w7reBHQIEAAAEIAEUAAI1bLEAAKAZ/CiLgk3XAqAE3AbvJs4KpKEDwg8I+gBgADFf9AAABAQgKI5yfqiwkXTQXAwMAVKY5JopoKQrVEn0/3ld4YntctGEH/rTZuwtCvzSncFw71QJveJi9uxHs57KC8w9Apph3YvXJrmWg7M37+o+YV0KH/xmr626s5Bkhb3QhKOu+NoNEmA==\\\
+        \"\n    }\n}\n```"
+      operationId: startOrgPacketCapture
+      requestBody:
+        content:
+          application/json:
+            examples:
+              MxEdge-Packet-Capture:
+                value:
+                  duration: 600
+                  format: stream
+                  max_pkt_len: 1500
+                  mxedges:
+                    00000000-0000-0000-1000-001122334455:
+                      interfaces:
+                        port1:
+                          tcpdump_expression: udp port 67 or udp port 68
+                  num_packets: 100
+                  tcpdump_expression: vlan 999
+                  type: mxedge
+            schema:
+              $ref: '#/components/schemas/capture_org'
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/PcapStart'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: startOrgPacketCapture
+      tags:
+      - op:MIST:UTILITIES:PCAPs
+      - Utilities PCAPs
   /api/v1/orgs/{org_id}/pma/dashboards:
     get:
       description: Get List of premium analytics dashboards for this Org
@@ -9312,7 +9648,7 @@ paths:
       - $ref: '#/components/parameters/limit'
       responses:
         '200':
-          $ref: '#/components/responses/SsorolesArray'
+          $ref: '#/components/responses/SsoRolesMspArray'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -9353,11 +9689,11 @@ paths:
                     sitegroup_ids:
                     - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
             schema:
-              $ref: '#/components/schemas/ssorole'
+              $ref: '#/components/schemas/sso_role_org'
         description: Request Body
       responses:
         '200':
-          $ref: '#/components/responses/Ssorole'
+          $ref: '#/components/responses/SsoRoleOrg'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -9398,7 +9734,7 @@ paths:
       operationId: getOrgSsoRole
       responses:
         '200':
-          $ref: '#/components/responses/Ssorole'
+          $ref: '#/components/responses/SsoRoleOrg'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -9440,11 +9776,11 @@ paths:
                     sitegroup_ids:
                     - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
             schema:
-              $ref: '#/components/schemas/ssorole'
+              $ref: '#/components/schemas/sso_role_org'
         description: Request Body
       responses:
         '200':
-          $ref: '#/components/responses/Ssorole'
+          $ref: '#/components/responses/SsoRoleOrg'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -10167,7 +10503,7 @@ paths:
       description: 'Create Org Webhook
 
 
-        **N.B**. For org webhooks, only device-events/alarms/audits/client-join/client-sessions/device-updowns/mxedge-events
+        **N.B**. For org webhooks, only alarms/audits/client-info/client-join/client-sessions/device-events/device-updowns/mxedge-events
         Infrastructure topics are supported.'
       operationId: createOrgWebhook
       requestBody:
@@ -10293,7 +10629,7 @@ paths:
           - audits
           - device-updowns
           - ping
-          title: webhook_topic
+          title: webhook_org_topic
           type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -10833,7 +11169,7 @@ paths:
           type: string
       responses:
         '200':
-          $ref: '#/components/responses/TwoFactorSecret'
+          $ref: '#/components/responses/TwoFactor'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -13214,11 +13550,31 @@ paths:
       - op:MIST:UTILITIES:Common
       - Utilities Common
   /api/v1/sites/{site_id}/devices/{device_id}/synthetic_test:
+    get:
+      description: Get Device Synthetic Test
+      operationId: getSiteDeviceSyntheticTest
+      responses:
+        '200':
+          description: scheduled
+        '400':
+          description: Device not online / Device not supported / Already in progress
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteDeviceSyntheticTest
+      tags:
+      - op:MIST:UTILITIES:Synthetic Tests
+      - Synthetic Tests
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: Device Synthetic Test
+      description: Trigger Device Synthetic Test
       operationId: triggerSiteDeviceSyntheticTest
       requestBody:
         content:
@@ -14345,9 +14701,9 @@ paths:
     parameters:
     - $ref: '#/components/parameters/site_id'
     post:
-      description: "Initiate a Packet Capture\n\nThe output will be available through\
-        \ websocket. As there can be multiple command issued against the same AP at\
-        \ the same time and the output all goes through the same websocket stream,\
+      description: "Initiate a Site Packet Capture\n\nThe output will be available\
+        \ through websocket. As there can be multiple command issued against the same\
+        \ AP at the same time and the output all goes through the same websocket stream,\
         \ session is introduced for demux.\n\n#### Subscribe to Device Command outputs\n\
         `WS /api-ws/v1/stream`\n\n```json\n{\n    subscribe: \"/sites/{site_id}/pcaps\"\
         \n}\n```\n#### Response (Wireless/RadioTap)\n```json\n{\n    \"event\": \"\
@@ -14494,7 +14850,7 @@ paths:
                   tcpdump_expression: port 443
                   type: switch
             schema:
-              $ref: '#/components/schemas/capture'
+              $ref: '#/components/schemas/capture_site'
         description: Request Body
       responses:
         '200':
@@ -14710,7 +15066,7 @@ paths:
                       enabled: true
                     app_usage: true
                     auto_signature_update:
-                      day_of_week: string
+                      day_of_week: any
                       enable: true
                       time_of_day: string
                     config_revert_timer: 10
@@ -15165,15 +15521,15 @@ paths:
                     root_password: string
                     tacacs:
                       acct_servers:
-                      - host: string
-                        port: 0
+                      - host: 198.51.100.1
+                        port: '49'
                         secret: string
                         timeout: 10
                       enabled: true
                       network: string
                       tacplus_servers:
-                      - host: string
-                        port: 0
+                      - host: 198.51.100.1
+                        port: '49'
                         secret: string
                         timeout: 10
                     use_mxedge_proxy: true
@@ -17186,7 +17542,7 @@ paths:
                     y: 0
               schema:
                 items:
-                  $ref: '#/components/schemas/stats_client'
+                  $ref: '#/components/schemas/client_stats'
                 type: array
           description: OK
         '400':
@@ -17342,6 +17698,44 @@ paths:
       tags:
       - op:MIST:UTILITIES:Synthetic Tests
       - Synthetic Tests
+  /api/v1/sites/{site_id}/synthetic_test/search:
+    get:
+      description: Search Site Synthetic Testing
+      operationId: searchSiteSyntheticTest
+      responses:
+        '200':
+          $ref: '#/components/responses/SynthetictestSearch'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: searchSiteSyntheticTest
+      tags:
+      - op:MIST:MONITOR:Synthetic Tests
+      - Synthetic Tests
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - description: Device MAC Address
+      in: query
+      name: mac
+      schema:
+        type: string
+    - description: port_id used to run the test (for SSR only)
+      in: query
+      name: port_id
+      schema:
+        type: string
+    - description: synthetic test type
+      in: query
+      name: type
+      schema:
+        $ref: '#/components/schemas/synthetic_test_type'
   /api/v1/sites/{site_id}/uisettings:
     get:
       description: Site UI settings
@@ -18004,8 +18398,6 @@ components:
       $ref: ../components/responses/HTTP404.yml
     HTTP429:
       $ref: ../components/responses/HTTP429.yml
-    Id:
-      $ref: ../components/responses/Id.yml
     InsightMetric:
       $ref: ../components/responses/InsightMetric.yml
     InsightMetricMsp:
@@ -18198,16 +18590,22 @@ components:
       $ref: ../components/responses/Sso.yml
     SsoLatestFailures:
       $ref: ../components/responses/SsoLatestFailures.yml
+    SsoRoleMsp:
+      $ref: ../components/responses/SsoRoleMsp.yml
+    SsoRoleOrg:
+      $ref: ../components/responses/SsoRoleOrg.yml
+    SsoRolesMspArray:
+      $ref: ../components/responses/SsoRolesMspArray.yml
+    SsoRolesOrgArray:
+      $ref: ../components/responses/SsoRolesOrgArray.yml
     SsoSamlMetadata:
       $ref: ../components/responses/SsoSamlMetadata.yml
-    Ssorole:
-      $ref: ../components/responses/Ssorole.yml
-    SsorolesArray:
-      $ref: ../components/responses/SsorolesArray.yml
     SsosArray:
       $ref: ../components/responses/SsosArray.yml
     SyntheticTest:
       $ref: ../components/responses/SyntheticTest.yml
+    SynthetictestSearch:
+      $ref: ../components/responses/SynthetictestSearch.yml
     SynthetictestStatus:
       $ref: ../components/responses/SynthetictestStatus.yml
     Ticket:
@@ -18216,20 +18614,24 @@ components:
       $ref: ../components/responses/TicketsArray.yml
     Troubleshoot:
       $ref: ../components/responses/Troubleshoot.yml
-    TwoFactorSecret:
-      $ref: ../components/responses/TwoFactorSecret.yml
+    TwoFactor:
+      $ref: ../components/responses/TwoFactor.yml
     UiSettings:
       $ref: ../components/responses/UiSettings.yml
     UiSettingsArray:
       $ref: ../components/responses/UiSettingsArray.yml
     UpgradeStatus:
       $ref: ../components/responses/UpgradeStatus.yml
+    Uuid:
+      $ref: ../components/responses/Uuid.yml
     VerifyRegisterTokenAlreadyRegistered:
       $ref: ../components/responses/VerifyRegisterTokenAlreadyRegistered.yml
     VerifyRegisterTokenInvalid:
       $ref: ../components/responses/VerifyRegisterTokenInvalid.yml
     VerifyRegisterTokenSuccess:
       $ref: ../components/responses/VerifyRegisterTokenSuccess.yml
+    VirtualChassis:
+      $ref: ../components/responses/VirtualChassis.yml
     Webhook:
       $ref: ../components/responses/Webhook.yml
     WebhookDeliverySearch:
@@ -18279,12 +18681,16 @@ components:
       $ref: ../components/schemas/auto_orient.yml
     auto_placement:
       $ref: ../components/schemas/auto_placement.yml
-    capture:
-      $ref: ../components/schemas/capture.yml
+    capture_org:
+      $ref: ../components/schemas/capture_org.yml
+    capture_site:
+      $ref: ../components/schemas/capture_site.yml
     claim_activation:
       $ref: ../components/schemas/claim_activation.yml
     claim_codes:
       $ref: ../components/schemas/claim_codes.yml
+    client_stats:
+      $ref: ../components/schemas/client_stats.yml
     code:
       $ref: ../components/schemas/code.yml
     days_number:
@@ -18369,10 +18775,10 @@ components:
       $ref: ../components/schemas/sle_threshold.yml
     sso:
       $ref: ../components/schemas/sso.yml
-    ssorole:
-      $ref: ../components/schemas/ssorole.yml
-    stats_client:
-      $ref: ../components/schemas/stats_client.yml
+    sso_role_msp:
+      $ref: ../components/schemas/sso_role_msp.yml
+    sso_role_org:
+      $ref: ../components/schemas/sso_role_org.yml
     stats_site:
       $ref: ../components/schemas/stats_site.yml
     stats_unconnected_clients:
@@ -18391,6 +18797,8 @@ components:
       $ref: ../components/schemas/synthetic_test_device.yml
     synthetic_test_radius_server:
       $ref: ../components/schemas/synthetic_test_radius_server.yml
+    synthetic_test_type:
+      $ref: ../components/schemas/synthetic_test_type.yml
     ticket:
       $ref: ../components/schemas/ticket.yml
     two_factor:
@@ -18417,6 +18825,10 @@ components:
       $ref: ../components/schemas/utils_traceroute.yml
     version:
       $ref: ../components/schemas/version.yml
+    virtual_chassis_config:
+      $ref: ../components/schemas/virtual_chassis_config.yml
+    virtual_chassis_update:
+      $ref: ../components/schemas/virtual_chassis_update.yml
     webhook:
       $ref: ../components/schemas/webhook.yml
   securitySchemes:

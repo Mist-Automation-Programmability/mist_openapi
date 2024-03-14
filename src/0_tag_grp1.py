@@ -321,6 +321,9 @@ HARDCODED = {
     "/api/v1/sites/{site_id}/stats/clients/{client_mac}": "WLAN",
     "/api/v1/sites/{site_id}/stats/devices/{device_id}/clients": "WLAN",
     # PCAP
+    "/api/v1/orgs/{org_id}/pcaps": "MIST",
+    "/api/v1/orgs/{org_id}/pcaps/capture": "MIST",
+    "/api/v1/orgs/{org_id}/pcaps/{pcap_id}": "MIST",
     "/api/v1/sites/{site_id}/pcaps": "MIST",
     "/api/v1/sites/{site_id}/pcaps/capture": "MIST",
     "/api/v1/sites/{site_id}/pcaps/{pcap_id}": "MIST",
