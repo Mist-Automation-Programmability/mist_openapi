@@ -104,6 +104,7 @@ security:
 tags:
 - name: Orgs 128T
 - name: Orgs Clients - Wan
+- name: Orgs Cradlepoint
 - name: Orgs Devices - WAN Cluster
 - description: API Call for 3rd party devices
   name: Orgs Devices Others
@@ -1967,6 +1968,37 @@ paths:
       tags:
       - op:WAN:CONFIGURE:Orgs:Devices - WAN Cluster
       - Orgs Devices - WAN Cluster
+  /api/v1/orgs/{org_id}/inventory/delete_ha_cluster:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: 'Delete HA Cluster
+
+
+        After HA cluster deleted, both of the nodes will be unassigned.'
+      operationId: deleteOrgGatewayHaCluster
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ha_cluster_delete'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: deleteOrgGatewayHaCluster
+      tags:
+      - op:WAN:CONFIGURE:Orgs:Devices - WAN Cluster
+      - Orgs Devices - WAN Cluster
   /api/v1/orgs/{org_id}/networks:
     get:
       description: Get List of Org Networks
@@ -2849,6 +2881,111 @@ paths:
       tags:
       - op:WAN:CONFIGURE:Orgs:Services
       - Orgs Services
+  /api/v1/orgs/{org_id}/setting/cradlepoint/setup:
+    delete:
+      description: This deletes the Cradlepoint integration in Mist
+      operationId: deleteOrgCradlepointConnection
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: deleteOrgCradlepointConnection
+      tags:
+      - op:WAN:CONFIGURE:Orgs:Cradlepoint
+      - Orgs Cradlepoint
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: This sets up cradlepoint webhooks to send events to Mist
+      operationId: setupOrgCradlepointConnectionToMist
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/account_cradlepoint_config'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: setupOrgCradlepointConnectionToMist
+      tags:
+      - op:WAN:CONFIGURE:Orgs:Cradlepoint
+      - Orgs Cradlepoint
+    put:
+      description: This updates the Cradlepoint integration settings in Mist
+      operationId: updateOrgCradlepointConnectionToMist
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  cp_api_id: 84446d61-2206-4ea5-855a-0043f980be54
+                  cp_api_key: 79c329da9893e34099c7d8ad5cb9c941
+                  ecm_api_id: 73446d61-2206-4ea5-855a-0043f980be62
+                  ecm_api_key: 68b329da9893e34099c7d8ad5cb9c9405
+            schema:
+              $ref: '#/components/schemas/account_cradlepoint_config'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: updateOrgCradlepointConnectionToMist
+      tags:
+      - op:WAN:CONFIGURE:Orgs:Cradlepoint
+      - Orgs Cradlepoint
+  /api/v1/orgs/{org_id}/setting/cradlepoint/sync:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: "This syncs cradlepoint devices with Mist. We\u2019ll also attempt\
+        \ to use the LLDP data from cradlepoint to identify the linkage against Mist\
+        \ Site / Device"
+      operationId: syncOrgCradlepointRouters
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: syncOrgCradlepointRouters
+      tags:
+      - op:WAN:CONFIGURE:Orgs:Cradlepoint
+      - Orgs Cradlepoint
   /api/v1/orgs/{org_id}/setting/zscaler/setup:
     delete:
       description: To delete Zscaler credential
@@ -5008,6 +5145,8 @@ components:
     count:
       $ref: ../components/responses/count.yml
   schemas:
+    account_cradlepoint_config:
+      $ref: ../components/schemas/account_cradlepoint_config.yml
     account_zscaler_config:
       $ref: ../components/schemas/account_zscaler_config.yml
     gateway_cluster_form:
@@ -5018,6 +5157,8 @@ components:
       $ref: ../components/schemas/gateway_template.yml
     ha_cluster_config:
       $ref: ../components/schemas/ha_cluster_config.yml
+    ha_cluster_delete:
+      $ref: ../components/schemas/ha_cluster_delete.yml
     idp_profile:
       $ref: ../components/schemas/idp_profile.yml
     network:

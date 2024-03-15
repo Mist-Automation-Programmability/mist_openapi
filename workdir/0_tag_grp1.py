@@ -185,6 +185,7 @@ HARDCODED = {
     "/api/v1/orgs/{org_id}/insights/{metric}": "MIST",
     # ORG INVENTORY
     "/api/v1/orgs/{org_id}/inventory/create_ha_cluster": "WAN",
+    "/api/v1/orgs/{org_id}/inventory/delete_ha_cluster": "WAN",
     # ORG TOKENS
     "/api/v1/orgs/{org_id}/apitokens": "MIST",
     "/api/v1/orgs/{org_id}/apitokens/{apitoken_id}": "MIST",
@@ -336,7 +337,10 @@ HARDCODED = {
     "/api/v1/sites/{site_id}/stats/maps/{map_id}/discovered_assets": "LOCATION",
     "/api/v1/sites/{site_id}/stats/maps/{map_id}/sdkclients": "LOCATION",
     "/api/v1/sites/{site_id}/maps/{map_id}/wayfinding/import": "LOCATION",
-}
+    #CRADLEPOINT
+    "/api/v1/orgs/{org_id}/setting/cradlepoint/setup": "WAN",
+    "/api/v1/orgs/{org_id}/setting/cradlepoint/sync": "WAN",
+}   
 
 
 def menu(p):
