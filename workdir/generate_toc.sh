@@ -37,8 +37,8 @@ copy_files(){
     do 
         new_filter=`echo "$filter" | tr '[:upper:]' '[:lower:]'`
         echo "$new_filter"
-        cp -r ./content/api/$new_filter $PORTAL_FOLDER/content/api/
-        cp -r ./spec/$new_filter $PORTAL_FOLDER/spec/
+        cp -r $OUT_FOLDER/content/api/$new_filter $PORTAL_FOLDER/content/api/
+        cp -r $OUT_FOLDER/spec/$new_filter $PORTAL_FOLDER/spec/
     done
 }
 

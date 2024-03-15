@@ -9,7 +9,7 @@ import yaml
 
 TOC_FILE_IN = "../src/src_toc.yml"
 TOC_FILE_OUT = "../src/content/toc.yml"
-SPEC_FOLDER = "../src./spec/"
+SPEC_FOLDER = "../src/spec/"
 TOC_FOLDER = "../src/content/api/"
 FILTER_FILE = "./.filters"
 PRE_TAG="op"

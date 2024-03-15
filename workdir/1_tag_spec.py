@@ -8,6 +8,7 @@ import json
 import sys
 
 SPEC_FILE_IN="../tmp/mist.openapi_grp3.yml"
+SPEC_FOLDER_OUT="../src/spec"
 FILTER_FILE="./.filters"
 PRE_TAG="op"
 
@@ -111,7 +112,7 @@ for tag, operations in ITEMS.items():
         print("not enabled")
     else:
         print("enabled")
-        file = f"./spec/{tag.lower()}/mist.openapi.{tag.lower()}.yml"
+        file = f"{SPEC_FOLDER_OUT}/{tag.lower()}/mist.openapi.{tag.lower()}.yml"
         components = {"securitySchemes": data["components"]["securitySchemes"]}
         with open(file, "w")  as oas_out_file:
             for item in ORDER:
