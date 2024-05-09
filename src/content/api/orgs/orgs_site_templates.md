@@ -1,0 +1,1 @@
+Site template is intended to be applied to a Site. The items in site setting which should be shared for all device types.

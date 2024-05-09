@@ -9,10 +9,20 @@ import sys
 import yaml
 import shutil
 
-SPEC_FILE_IN = "../mist.openapi.yml"
+SPEC_FILE_IN = "./mist.openapi.yml"
 TOC_FOLDER = "../src/content/api"
-#TOC_FOLDER = "./test/content/"
 FILTER_FILE = "./.filters"
+ROOT_ITEMS = [
+    "self",
+    "admins",
+    "sites",
+    "orgs",
+    "msps",
+    "installer",
+    "utilities",
+    "constants",
+    "samples",
+]
 
 
 with open(FILTER_FILE, "r") as filter_file:
@@ -26,6 +36,9 @@ with open(SPEC_FILE_IN, "r") as f:
 
 OPERATION_IDS = []
 TOC_API_ITEMS = {"root": []}
+
+for item in ROOT_ITEMS:
+    TOC_API_ITEMS["root"].append({"dir": item, "group": item.title()})
 
 
 ############################################################
@@ -42,8 +55,11 @@ def post_processing(file_path):
     with open(file_path, "w") as f_out:
         f_out.write(data)
 
+
 ############################################################
 ## PROCESSING
+
+
 def check_toc_group(toc_groups, toc_group_name, toc_group_dir=[], retry=False):
     if toc_group_dir:
         group_data = {"group": toc_group_name, "dir": toc_group_dir}
@@ -55,12 +71,15 @@ def check_toc_group(toc_groups, toc_group_name, toc_group_dir=[], retry=False):
     except:
         if not retry:
             toc_groups.append(group_data)
-            toc_groups.sort(key=lambda item: item.get("group", "0"))
+            toc_groups.sort(
+                key=lambda item: (
+                    item.get("endpoint-name", "0"),
+                    item.get("group", "0"),
+                )
+            )
             return check_toc_group(toc_groups, toc_group_name, toc_group_dir, True)
         else:
-            print(
-                f"Unable to create TOC entry for {group_data} in {toc_groups}"
-            )
+            print(f"Unable to create TOC entry for {group_data} in {toc_groups}")
 
 
 def get_tag_data(tag_name):
@@ -100,18 +119,45 @@ def generate_toc():
                     if tag_name.startswith(main_cat):
                         cat = main_cat.lower()
                         tag_name = tag_name.replace(main_cat, "", 1).strip()
+                        break
                 if not cat:
                     print(f"Missing Main Cat for {tag_name}")
 
                 else:
-                    check_toc_group(TOC_API_ITEMS["root"], cat, f"api/{cat}")
+                    check_toc_group(TOC_API_ITEMS["root"], cat.title(), f"{cat}")
                     if not TOC_API_ITEMS.get(cat):
                         TOC_API_ITEMS[cat] = []
 
                     toc_group_items = TOC_API_ITEMS[cat]
-                    for tag_part in tag_name.split(" - "):
-                        tmp = tag_part.strip()
-                        toc_group_items = check_toc_group(toc_group_items, tmp, [], False)["items"]
+                    if tag_name:
+                        for tag_part in tag_name.split(" - "):
+                            tmp = tag_part.strip()
+                            toc_group_items = check_toc_group(
+                                toc_group_items, tmp, [], False
+                            )["items"]
+                    if tag_desc:
+                        desc_file_name = (
+                            f"{endpoint_group.replace(' ', '_')}.md".lower()
+                        )
+                        try:
+                            next(
+                                item
+                                for item in toc_group_items
+                                if item.get("file") == desc_file_name
+                            )
+                        except:
+                            toc_group_items.append(
+                                {"page": "Overview", "file": desc_file_name}
+                            )
+                            desc_file_path = os.path.abspath(
+                                os.path.join(os.path.curdir, f"{TOC_FOLDER}/{cat}")
+                            )
+                            if not os.path.isdir(desc_file_path):
+                                os.makedirs(desc_file_path)
+                            with open(
+                                os.path.join(desc_file_path, desc_file_name), "w"
+                            ) as desc_out_file:
+                                desc_out_file.writelines(tag_desc.split("\\n"))
                     toc_group_items.append(
                         {
                             "generate": {
@@ -122,19 +168,33 @@ def generate_toc():
                         }
                     )
                     toc_group_items.sort(
-                        key=lambda item: item.get("endpoint-name", "0")
+                        key=lambda item: (
+                            item.get("file", "zz"),
+                            item.get("generate", {}).get("endpoint-name", "zz"),
+                            item.get("group", "0"),
+                        )
                     )
 
-
-    for cat,items in TOC_API_ITEMS.items():
-        if cat != "root":
-            toc_file_path = os.path.abspath(os.path.join(os.path.curdir, f"{TOC_FOLDER}/{cat}"))
+    for cat, items in TOC_API_ITEMS.items():
+        if cat == "root":
+            toc_file_path = os.path.abspath(
+                os.path.join(os.path.curdir, f"{TOC_FOLDER}")
+            )
             if not os.path.isdir(toc_file_path):
                 os.makedirs(toc_file_path)
             with open(os.path.join(toc_file_path, "toc.yml"), "w") as toc_out_file:
-                yaml.dump({"toc": {"group": cat.title(), "items": items}}, toc_out_file, indent=2)
+                yaml.dump({"toc": items}, toc_out_file, indent=2)
             post_processing(os.path.join(toc_file_path, "toc.yml"))
 
+        else:
+            toc_file_path = os.path.abspath(
+                os.path.join(os.path.curdir, f"{TOC_FOLDER}/{cat}")
+            )
+            if not os.path.isdir(toc_file_path):
+                os.makedirs(toc_file_path)
+            with open(os.path.join(toc_file_path, "toc.yml"), "w") as toc_out_file:
+                yaml.dump({"toc": items}, toc_out_file, indent=2)
+            post_processing(os.path.join(toc_file_path, "toc.yml"))
 
     # main_toc = [
     #     {

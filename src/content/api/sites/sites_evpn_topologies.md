@@ -1,0 +1,2 @@
+EVPN allows an alternative but more efficient LAN architecture utilizing VxLAN / MP-BGP - separating control plane (MAC / IP Learning) from forwarding plane.
+In our implementation, following the steps to deploy EVPN topologies in a Site

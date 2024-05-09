@@ -1,0 +1,1 @@
+Audit logs records all administrative activities in a MSP

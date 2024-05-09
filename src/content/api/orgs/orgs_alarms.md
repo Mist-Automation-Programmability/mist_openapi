@@ -1,0 +1,1 @@
+Alarms are triggered based on certain events. Alarms could be configured using an Alarm Template.

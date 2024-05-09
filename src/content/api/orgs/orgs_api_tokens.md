@@ -1,0 +1,1 @@
+API tokens can be generated for a specific Org/Site with the required privileges

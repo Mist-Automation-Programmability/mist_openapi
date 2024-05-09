@@ -10,8 +10,6 @@ ORDER = ["openapi", "info", "servers", "security", "tags", "paths", "components"
 
 FILENAME = "mist.openapi"
 SRC_FILE = f"./{FILENAME}.yml"
-OUT_FILE_JSON = f"../{FILENAME}.json"
-OUT_FILE_YAML = f"../{FILENAME}.yml"
 
 
 def display_mess(message):

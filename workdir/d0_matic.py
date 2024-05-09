@@ -9,7 +9,7 @@ import sys
 import os
 import shutil
 
-SPEC_FILE_IN="../mist.openapi.yml"
+SPEC_FILE_IN="./mist.openapi.yml"
 SPEC_FOLDER_OUT="../src/spec"
 FILTER_FILE="./.filters"
 

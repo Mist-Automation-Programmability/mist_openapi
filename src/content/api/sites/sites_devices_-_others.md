@@ -1,0 +1,1 @@
+API Call for 3rd party devices

@@ -1,0 +1,1 @@
+Gateway Template is applied to a site for gateway(s) in a site.

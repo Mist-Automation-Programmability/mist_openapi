@@ -1,0 +1,2 @@
+While Templates / RF Templates / Network Templates / Gateway Templates provides powerful ways to control how a Device\'s configuration is derived for a Site. There are cases where you\'d like another level of control at the Org Level.
+A Device Profile contains a subset of Device\'s configurations you\'d like a device to have. It will be merged at runtime when we\'re provisioning an AP.

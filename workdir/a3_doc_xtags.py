@@ -5,6 +5,7 @@
 
 import yaml
 import json
+import re
 
 FILE_IN = "./mist.openapi.yml"
 FILE_OUT_YAML = "../mist.openapi.yml"
@@ -69,6 +70,12 @@ with open(FILE_IN, "r") as f:
 
 register_tags()
 data["info"]["x-logo"] = LOGO
+
+### update links
+data_str = json.dumps(data)
+LINK_RE = r"\$e/[^^/]*/"
+data_str=re.sub(LINK_RE, "/#operations/", data_str)
+data = json.loads(data_str)
 
 with open(FILE_OUT_YAML, "w") as f:
     yaml.dump({"openapi": data["openapi"]}, f)
