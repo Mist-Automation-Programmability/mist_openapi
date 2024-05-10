@@ -1,1 +1,0 @@
-MSP (Managed Service Provider) contains multiple Organizations.

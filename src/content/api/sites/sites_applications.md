@@ -1,1 +1,0 @@
-Applications contains a list of applications users are interested in monitoring / routing / policying

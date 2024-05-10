@@ -1,1 +1,0 @@
-Site groups are a group of sites under the same Org. It's many-to-many mapping to sites

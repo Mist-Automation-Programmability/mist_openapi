@@ -58,7 +58,17 @@ def post_processing(file_path):
 
 ############################################################
 ## PROCESSING
-
+def toc_sort(item):
+    a = None
+    b = None
+    c = None
+    if item.get("generate", {}).get("from") == "endpoint-group-overview":
+        a = 0
+    else:
+        a = 1
+    b = item.get("generate", {}).get("endpoint-name", "zz")
+    c = item.get("group", "0")
+    return a, b, c
 
 def check_toc_group(toc_groups, toc_group_name, toc_group_dir=[], retry=False):
     if toc_group_dir:
@@ -71,12 +81,7 @@ def check_toc_group(toc_groups, toc_group_name, toc_group_dir=[], retry=False):
     except:
         if not retry:
             toc_groups.append(group_data)
-            toc_groups.sort(
-                key=lambda item: (
-                    item.get("endpoint-name", "0"),
-                    item.get("group", "0"),
-                )
-            )
+            toc_groups.sort(key=toc_sort)
             return check_toc_group(toc_groups, toc_group_name, toc_group_dir, True)
         else:
             print(f"Unable to create TOC entry for {group_data} in {toc_groups}")
@@ -135,29 +140,18 @@ def generate_toc():
                             toc_group_items = check_toc_group(
                                 toc_group_items, tmp, [], False
                             )["items"]
-                    if tag_desc:
-                        desc_file_name = (
-                            f"{endpoint_group.replace(' ', '_')}.md".lower()
+                    ## adding the "overview"
+                    try:
+                        next(
+                            item
+                            for item in toc_group_items
+                            if item.get("generate", {}).get("from") == "endpoint-group-overview"
                         )
-                        try:
-                            next(
-                                item
-                                for item in toc_group_items
-                                if item.get("file") == desc_file_name
-                            )
-                        except:
-                            toc_group_items.append(
-                                {"page": "Overview", "file": desc_file_name}
-                            )
-                            desc_file_path = os.path.abspath(
-                                os.path.join(os.path.curdir, f"{TOC_FOLDER}/{cat}")
-                            )
-                            if not os.path.isdir(desc_file_path):
-                                os.makedirs(desc_file_path)
-                            with open(
-                                os.path.join(desc_file_path, desc_file_name), "w"
-                            ) as desc_out_file:
-                                desc_out_file.writelines(tag_desc.split("\\n"))
+                    except:
+                        toc_group_items.append(
+                            {"generate": {"from": "endpoint-group-overview", "endpoint-group": endpoint_group}}
+                        )
+                    ## adding the item
                     toc_group_items.append(
                         {
                             "generate": {
@@ -167,13 +161,7 @@ def generate_toc():
                             }
                         }
                     )
-                    toc_group_items.sort(
-                        key=lambda item: (
-                            item.get("file", "zz"),
-                            item.get("generate", {}).get("endpoint-name", "zz"),
-                            item.get("group", "0"),
-                        )
-                    )
+                    toc_group_items.sort(key=toc_sort)
 
     for cat, items in TOC_API_ITEMS.items():
         if cat == "root":
@@ -217,8 +205,8 @@ def generate_toc():
     # ]
     # toc_file_path = os.path.abspath(os.path.join(os.path.curdir, TOC_FOLDER))
     # with open(os.path.join(toc_file_path, "toc.yml"), "w") as toc_out_file:
-    #     yaml.dump({"toc": main_toc}, toc_out_file, indent=2)
-
+    #     yaml.dump({"toc": main_toc}, toc_out_file, ind
+    # ent=2)
 
 ############################################################
 ## ENTRY POINT
