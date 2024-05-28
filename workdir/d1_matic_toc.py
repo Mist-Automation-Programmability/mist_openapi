@@ -97,7 +97,6 @@ def get_tag_data(tag_name):
 
 def generate_toc():
     for path, properties in PATHS.items():
-        print(f"{path} ".ljust(80, "."))
         for verb in ["get", "post", "put", "delete"]:
             if verb in properties:
                 tag_name = properties[verb]["tags"][0]

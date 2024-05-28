@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2403.1.5**
+  description: '> Version: **2405.1.0**
 
     >
 
-    > Date: **May 24, 2024**
+    > Date: **May 27, 2024**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2403.1.5
+  version: 2405.1.0
   x-codegen-settings:
     BrandLabel: Juniper Networks
     EnableAdditionalModelProperties: true
@@ -199,30 +199,32 @@ tags:
     \ URL)\n that will get installed and used to provision certificates."
   name: Orgs NAC Portals
 - name: Orgs NAC Rules
-- description: 'nactags are the building blocks to compose nacrules.
-
-
-    They can either appear in the "matching" / "not_matching" sections of a nacrule,
-
-    in which case they play the role of classifiers, or they could appear in the "apply_tags"
-
-    section of the of a nacrule, in which case they influence the result.
-
-
-    When the "type" field of nactag is "match", it can be used as the classfier of
-
-    a nacrule. "match" field specifies the attribute name and "values" field specifies
-
-    the list of attribute values to match on. When multiple values are specified,
-
-    its treated as an OR condition between those values.
-
-
-    When the "type" field of nactag is NOT "match", it can be used as the result of
-
-    a nacrule. "type" field identifies the action to take and the corresponding field
-
-    would provide any associated parameters to that action.'''
+- description: "nactags are the building blocks to compose nacrules.\nThey can either\
+    \ appear in the \u201Cmatching\u201D / \u201Cnot_matching\u201D sections of a\
+    \ nacrule, in which case they play the role of classifiers, or they could appear\
+    \ in the \u201Capply_tags\u201D section of the of a nacrule, in which case they\
+    \ influence the result.\nWhen the \u201Ctype\u201D field of nactag is \u201Cmatch\u201D\
+    , it can be used as the classfier of a nacrule.\n- \u201Cmatch\u201D field specifies\
+    \ the attribute name and \u201Cvalues\u201D field specifies the list of attribute\
+    \ values to match on.\n- When multiple values are specified, its treated as an\
+    \ OR condition between those values. This behavior can be changed by setting \u201C\
+    match_all\u201D field to \u201Ctrue\u201D, in which case it is treated as an AND\
+    \ condition between those values.\n- By default exact match is performed.\n\n\
+    This behavior can be changed as follows:\n- Adding `-` at the beginning will perform\
+    \ suffix match (ex: -staff will match foo-staff and bar-staff)\n- Adding `-` at\
+    \ the end will perform prefix match (ex: foo- will match foo-staff and foo-interns)\n\
+    - Adding `!` at both ends will perform substring match (ex: printer will match\
+    \ hp-printer-bldg1, brother-printer-lab)\n- Adding `!` at the beginning will perform\
+    \ negation of the match (ex: !ssid-guest will match any string that is not ssid-guest)\n\
+    - Note: when negation should be used along with suffix/substring operation, !\
+    \ should always precede \\* (ex: !guest will match any string that is not ending\
+    \ with guest)\n\nWhen the \u201Ctype\u201D field of nactag is NOT \u201Cmatch\u201D\
+    , it can be used as the result of a nacrule. \u201Ctype\u201D field identifies\
+    \ the action to take and the corresponding field would provide any associated\
+    \ parameters to that action. When the \u201Ctype\u201D field of nactag is NOT\
+    \ \u201Cmatch\u201D and is any of the result type also supported by usermac table(`vlan`),\
+    \ \u201Callow_usermac_override\u201D field can be set to true to allow the override\
+    \ by usermac result "
   name: Orgs NAC Tags
 - description: 'Network template is intended to be applied to a Site. It works like
 
@@ -407,6 +409,48 @@ paths:
       summary: updateOrg
       tags:
       - Orgs
+  /api/v1/orgs/{org_id}//events/search:
+    get:
+      description: 'Search Org events
+
+
+
+        Supported Event Types:
+
+        - CRADLEPOINT_SYNC_FAILED
+
+        - ORG_CA_CERT_ADDED
+
+        - ORG_CA_CERT_REGENERATED'
+      operationId: searchOrgEvents
+      parameters:
+      - description: event type
+        in: query
+        name: type
+        schema:
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/OrgEventsSearch'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: searchOrgEvents
+      tags:
+      - Orgs
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/128routers/register_cmd:
     get:
       description: 128T devices can be managed/adopted by Mist.
@@ -8208,7 +8252,7 @@ paths:
       operationId: createOrgJsiDeviceShellSession
       responses:
         '200':
-          $ref: '#/components/responses/JsiShellSession'
+          $ref: '#/components/responses/WebsocketSessionWithUrl'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -10500,6 +10544,11 @@ paths:
       - description: Name of NAC Tag
         in: query
         name: name
+        schema:
+          type: string
+      - description: Type of NAC Tag
+        in: query
+        name: match
         schema:
           type: string
       - $ref: '#/components/parameters/page'
@@ -12838,6 +12887,85 @@ paths:
       summary: updateOrgPskPortal
       tags:
       - Orgs Psk Portals
+  /api/v1/orgs/{org_id}/pskportals/{pskportal_id}/portal_image:
+    delete:
+      description: 'Delete background image for PskPortal
+
+
+
+        If image is not uploaded or is deleted, PskPortal will use default image.'
+      operationId: deleteOrgPskPortalImage
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: deleteOrgPskPortalImage
+      tags:
+      - Orgs Psk Portals
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/pskportal_id'
+    post:
+      description: Upload background image for PskPortal
+      operationId: uploadOrgPskPortalImage
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/psk_portal_image'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: uploadOrgPskPortalImage
+      tags:
+      - Orgs Psk Portals
+  /api/v1/orgs/{org_id}/pskportals/{pskportal_id}/portal_template:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/pskportal_id'
+    put:
+      description: Update Org Psk Portal Template
+      operationId: updateOrgPskPortalTemplate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/psk_portal_template'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: updateOrgPskPortalTemplate
+      tags:
+      - Orgs Psk Portals
   /api/v1/orgs/{org_id}/psks:
     get:
       description: Get List of Org Psks
@@ -12877,7 +13005,13 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
-      description: Create Org PSK
+      description: 'Create Org PSK
+
+
+
+        When `usage`==`macs`, corresponding "macs" field will hold a list consisting
+        of client mac addresses (["xx:xx:xx:xx:xx",...]) or mac patterns(["xx:xx:*","xx*",...])
+        or both (["xx:xx:xx:xx:xx:xx", "xx:*", ...]). This list is capped at 5000'
       operationId: createOrgPsk
       parameters:
       - description: if a key exists with the same `name`, replace it with the new
@@ -12946,6 +13080,37 @@ paths:
         '429':
           $ref: '#/components/responses/HTTP429'
       summary: updateOrgMultiPsks
+      tags:
+      - Orgs Psks
+  /api/v1/orgs/{org_id}/psks/delete:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: 'Delete Org PSK List
+
+
+        Delete list of psks on the org. This API accepts single string or list of
+        strings'
+      operationId: deleteOrgPskList
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/psk_list'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: deleteOrgPskList
       tags:
       - Orgs Psks
   /api/v1/orgs/{org_id}/psks/import:
@@ -17471,8 +17636,8 @@ paths:
       - Orgs Tickets
   /api/v1/orgs/{org_id}/troubleshoot:
     get:
-      description: 'Troubleshoot sites, devices, clients, and wired clients. See search
-        APIs for device information:
+      description: 'Troubleshoot sites, devices, clients, and wired clientsfor maximum
+        of last 7 days from current time. See search APIs for device information:
 
         - [search Device]($e/Orgs%20Devices/searchOrgDevices)
 
@@ -17984,6 +18149,11 @@ paths:
         name: ip
         schema:
           type: string
+      - description: network
+        in: query
+        name: network
+        schema:
+          type: string
       - description: Manufacture
         in: query
         name: mfg
@@ -18133,17 +18303,25 @@ paths:
       summary: updateOrgWebhook
       tags:
       - Orgs Webhooks
-  /api/v1/orgs/{org_id}/webhooks/{webhook_id}/events/search:
+  /api/v1/orgs/{org_id}/webhooks/{webhook_id}/events/count:
     get:
-      description: 'Search webhooks deliveries Supported Topics: - alarms - audits
-        - device-updowns - occupancy-alerts - ping'
-      operationId: searchOrgWebhooksDeliveries
+      description: 'Count Org Webhooks deliveries
+
+
+
+        Topics Supported:
+
+        - alarms
+
+        - audits
+
+        - device-updowns
+
+        - occupancy-alerts
+
+        - ping'
+      operationId: countOrgWebhooksDeliveries
       parameters:
-      - in: query
-        name: site_id
-        schema:
-          format: uuid
-          type: string
       - in: query
         name: error
         schema:
@@ -18152,7 +18330,72 @@ paths:
         name: status_code
         schema:
           type: integer
+      - description: webhook delivery status
+        in: query
+        name: status
+        schema:
+          $ref: '#/components/schemas/webhook_delivery_status'
+      - description: webhook topic
+        in: query
+        name: topic
+        schema:
+          $ref: '#/components/schemas/webhook_delivery_topic'
       - in: query
+        name: distinct
+        schema:
+          $ref: '#/components/schemas/webhook_delivery_distinct'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/Count'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: countOrgWebhooksDeliveries
+      tags:
+      - Orgs Webhooks
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/webhook_id'
+  /api/v1/orgs/{org_id}/webhooks/{webhook_id}/events/search:
+    get:
+      description: 'Search Org Webhooks deliveries
+
+
+
+        Topics Supported:
+
+        - alarms
+
+        - audits
+
+        - device-updowns
+
+        - occupancy-alerts
+
+        - ping'
+      operationId: searchOrgWebhooksDeliveries
+      parameters:
+      - in: query
+        name: error
+        schema:
+          type: string
+      - in: query
+        name: status_code
+        schema:
+          type: integer
+      - description: webhook delivery status
+        in: query
         name: status
         schema:
           $ref: '#/components/schemas/webhook_delivery_status'
@@ -19705,8 +19948,6 @@ components:
       $ref: ../../components/responses/JsiInventory.yml
     JsiInventoryError:
       $ref: ../../components/responses/JsiInventoryError.yml
-    JsiShellSession:
-      $ref: ../../components/responses/JsiShellSession.yml
     JuniperLinkAccountFailed:
       $ref: ../../components/responses/JuniperLinkAccountFailed.yml
     JuniperLinkAccountSuccess:
@@ -19785,6 +20026,8 @@ components:
       $ref: ../../components/responses/OrgDeviceUpgradeMulti.yml
     OrgDevices:
       $ref: ../../components/responses/OrgDevices.yml
+    OrgEventsSearch:
+      $ref: ../../components/responses/OrgEventsSearch.yml
     OrgInventory:
       $ref: ../../components/responses/OrgInventory.yml
     OrgInventoryAdd:
@@ -19921,6 +20164,8 @@ components:
       $ref: ../../components/responses/WebhooksArray.yml
     WebsocketSession:
       $ref: ../../components/responses/WebsocketSession.yml
+    WebsocketSessionWithUrl:
+      $ref: ../../components/responses/WebsocketSessionWithUrl.yml
     WiredClientsSearch:
       $ref: ../../components/responses/WiredClientsSearch.yml
     WirelessClientSessionsSearch:
@@ -20068,8 +20313,14 @@ components:
       $ref: ../../components/schemas/pcap_bucket_verify.yml
     psk:
       $ref: ../../components/schemas/psk.yml
+    psk_list:
+      $ref: ../../components/schemas/psk_list.yml
     psk_portal:
       $ref: ../../components/schemas/psk_portal.yml
+    psk_portal_image:
+      $ref: ../../components/schemas/psk_portal_image.yml
+    psk_portal_template:
+      $ref: ../../components/schemas/psk_portal_template.yml
     psks:
       $ref: ../../components/schemas/psks.yml
     psks_import_file:
@@ -20128,6 +20379,8 @@ components:
       $ref: ../../components/schemas/vpn.yml
     webhook:
       $ref: ../../components/schemas/webhook.yml
+    webhook_delivery_distinct:
+      $ref: ../../components/schemas/webhook_delivery_distinct.yml
     webhook_delivery_status:
       $ref: ../../components/schemas/webhook_delivery_status.yml
     webhook_delivery_topic:

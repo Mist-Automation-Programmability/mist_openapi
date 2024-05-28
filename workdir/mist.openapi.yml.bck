@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2403.1.5**
+  description: '> Version: **2405.1.0**
 
     >
 
-    > Date: **May 24, 2024**
+    > Date: **May 27, 2024**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2403.1.5
+  version: 2405.1.0
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -25596,19 +25596,11 @@ paths:
     parameters:
     - $ref: '#/components/parameters/site_id'
     post:
-      description: Upgrade Bios Multiple Device
+      description: Upgrade Bios on Multiple Device
       operationId: upgradeSiteMultipleDevicesBios
       requestBody:
         content:
           application/json:
-            examples:
-              Example:
-                value:
-                  device_ids:
-                  - 00000000-0000-0000-1000-5c5b35584a6f
-                  models:
-                  - EX4400-48T
-                  version: CDEN_P_EX1_00.15.01.00
             schema:
               $ref: '#/components/schemas/upgrade_bios_multi'
       responses:
@@ -25625,6 +25617,33 @@ paths:
         '429':
           $ref: '#/components/responses/HTTP429'
       summary: upgradeSiteMultipleDevicesBios
+      tags:
+      - Utilities LAN
+  /api/v1/sites/{site_id}/devices/upgrade_fpga:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    post:
+      description: Upgrade Bios on Multiple Device
+      operationId: upgradeSiteMultipleDevicesFpga
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/upgrade_fpga_multi'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: upgradeSiteMultipleDevicesFpga
       tags:
       - Utilities LAN
   /api/v1/sites/{site_id}/devices/versions:
@@ -25930,7 +25949,10 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: 'Clear the entire ARP cache or a subset if arguments are provided.
+      description: 'Clear ARP cache for SSR, SRX and Switch
+
+
+        Clear the entire ARP cache or a subset if arguments are provided.
 
 
         *Note*: port_id is optional if neither vlan nor ip is specified'
@@ -25938,13 +25960,6 @@ paths:
       requestBody:
         content:
           application/json:
-            examples:
-              Example:
-                value:
-                  ip: 10.1.1.1
-                  node: node0
-                  port_id: wan
-                  vlan: 1000
             schema:
               $ref: '#/components/schemas/utils_clear_arp'
       responses:
@@ -26437,9 +26452,22 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Locate a Device by blinking it\u2019s LED, it\u2019s a persisted\
-        \ state that has to be stopped by calling Stop Locating API"
+      description: "### Access Points\nLocate an Access Point by blinking it's LED.\n\
+        It is a persisted state that has to be stopped by calling Stop Locating API\n\
+        \n### Switches\nLocate a Switch by blinking all port LEDs. \nBy default, request\
+        \ is sent to `master` switch and LEDs will keep flashing for 5 minutes.\n\
+        In case of virtual chassis (VC) the desired member mac has to be passed in\
+        \ the request payload. \nAt anypoint, only one VC member can be requested\
+        \ to flash the LED. \nTo stop LED flashing before the duration ends /unlocate\
+        \ API request can be made. \nIf /unlocate API is not called LED will continue\
+        \ to flash on device for the given duration. \nDefault duration is 5 minutes\
+        \ and 120 minutes is the maximum."
       operationId: startSiteLocateDevice
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/locate_switch'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -26456,6 +26484,36 @@ paths:
       summary: startSiteLocateDevice
       tags:
       - Utilities Wi-Fi
+  /api/v1/sites/{site_id}/devices/{device_id}/monitor_traffic:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: "Monitor traffic on switches and SRX.\n\nJUNOS uses cmd \u201C\
+        monitor interface\u201D to monitor traffic on particular JUNOS uses cmd \u201C\
+        monitor interface traffic\u201D to monitor traffic on all ports"
+      operationId: monitorSiteDeviceTraffic
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/utils_monitor_traffic'
+      responses:
+        '200':
+          $ref: '#/components/responses/WebsocketSessionWithUrl'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: monitorSiteDeviceTraffic
+      tags:
+      - Utilities Common
   /api/v1/sites/{site_id}/devices/{device_id}/ping:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -26646,13 +26704,14 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "DNS resolutions are performed on the Device. The output will be\
-        \ available through websocket. As there can be multiple command issued against\
-        \ the same SSR at the same time and the output all goes through the same websocket\
-        \ stream, `session` is used for demux.\n \n #### Subscribe to Device Command\
-        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
-        \n}\n```\n##### Example output from ws stream\n```\n Router      | Hostname\
-        \               | Resolved | Last Resolved        | Expiration\n-------------|------------------------|----------|----------------------|---------------------\n\
+      description: "DNS resolutions are performed on the Device.\n\nThe output will\
+        \ be available through websocket. As there can be multiple command issued\
+        \ against the same SSR at the same time and the output all goes through the\
+        \ same websocket stream, `session` is used for demux.\n \n #### Subscribe\
+        \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
+        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n##### Example\
+        \ output from ws stream\n```\n Router      | Hostname               | Resolved\
+        \ | Last Resolved        | Expiration\n-------------|------------------------|----------|----------------------|---------------------\n\
         \ test-device | xxx.yyy.net            | Y        | 2022-03-28T03:56:49Z |\
         \ 2022-03-28T03:57:49Z\n```"
       operationId: testSiteSsrDnsResolution
@@ -26745,29 +26804,44 @@ paths:
       summary: servicePingFromSsr
       tags:
       - Utilities WAN
+  /api/v1/sites/{site_id}/devices/{device_id}/shell:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: Create Shell Session
+      operationId: createSiteDeviceShellSession
+      responses:
+        '200':
+          $ref: '#/components/responses/WebsocketSessionWithUrl'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: createSiteDeviceShellSession
+      tags:
+      - Utilities Common
   /api/v1/sites/{site_id}/devices/{device_id}/show_arp:
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Get ARP Table from the Device. The output will be available through\
-        \ websocket. As there can be multiple command issued against the same device\
-        \ at the same time and the output all goes through the same websocket stream,\
-        \ `session` is introduced for demux.\n\n#### Subscribe to Device Command outputs\n\
-        `WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+      description: "Get ARP Table from the Device.\n\nThe output will be available\
+        \ through websocket. As there can be multiple command issued against the same\
+        \ device at the same time and the output all goes through the same websocket\
+        \ stream, `session` is introduced for demux.\n\n#### Subscribe to Device Command\
+        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
         \n}\n```\n"
       operationId: getSiteDeviceArpTable
       requestBody:
         content:
           application/json:
-            examples:
-              example-1:
-                value:
-                  neighbor: 192.168.4.1
-                  prefix: 192.168.0.5/30
-                  protocol: bgp
-                  route: advertised
-                  vrf_name: default
             schema:
               $ref: '#/components/schemas/utils_show_arp'
         description: all attributes are optional
@@ -26787,6 +26861,49 @@ paths:
       summary: getSiteDeviceArpTable
       tags:
       - Utilities Common
+  /api/v1/sites/{site_id}/devices/{device_id}/show_bgp_rummary:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: "Get BGP Summary from SSR, SRX and Switch.\n\n\nThe output will\
+        \ be available through websocket. As there can be multiple command issued\
+        \ against the same device at the same time and the output all goes through\
+        \ the same websocket stream, `session` is introduced for demux.\n\n#### Subscribe\
+        \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \\\"\
+        subscribe\\\": \\\"/sites/{site_id}/devices/{device_id}/cmd\\\"\\\n\n}\n```\n\
+        \n##### Example output from ws stream\n```\nTue 2024-04-23 16:36:06 UTC\n\
+        Retrieving bgp entries...\nBGP table version is 354, local router ID is 10.224.8.16,\
+        \ vrf id 0\nDefault local pref 100, local AS 65000\nStatus codes:  s suppressed,\
+        \ d damped, h history, * valid, > best, = multipath,\n              i internal,\
+        \ r RIB-failure, S Stale, R Removed\nNexthop codes: @NNN nexthop's vrf id,\
+        \ < announce-nh-self\nOrigin codes:  i - IGP, e - EGP, ? - incomplete\nRPKI\
+        \ validation codes: V valid, I invalid, N Not found\n\n  Network         \
+        \                             Next Hop                                  Metric\
+        \ LocPrf Weight Path\n*> 161.161.161.0/24\n```\""
+      operationId: getSiteDeviceBgpSummary
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/utils_show_bgp_rummary'
+        description: all attributes are optional
+      responses:
+        '200':
+          $ref: '#/components/responses/WebsocketSession'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteDeviceBgpSummary
+      tags:
+      - Utilities WAN
   /api/v1/sites/{site_id}/devices/{device_id}/show_evpn_database:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -26798,14 +26915,6 @@ paths:
       requestBody:
         content:
           application/json:
-            examples:
-              example-1:
-                value:
-                  neighbor: 192.168.4.1
-                  prefix: 192.168.0.5/30
-                  protocol: bgp
-                  route: advertised
-                  vrf_name: default
             schema:
               $ref: '#/components/schemas/utils_show_evpn_database'
         description: all attributes are optional
@@ -26830,24 +26939,16 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Get MAC Table from the Device. The output will be available through\
-        \ websocket. As there can be multiple command issued against the same device\
-        \ at the same time and the output all goes through the same websocket stream,\
-        \ `session` is introduced for demux.\n\n#### Subscribe to Device Command outputs\n\
-        `WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+      description: "Get MAC Table from the Device.\n\nThe output will be available\
+        \ through websocket. As there can be multiple command issued against the same\
+        \ device at the same time and the output all goes through the same websocket\
+        \ stream, `session` is introduced for demux.\n\n#### Subscribe to Device Command\
+        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
         \n}\n```\n"
       operationId: getSiteDeviceMacTable
       requestBody:
         content:
           application/json:
-            examples:
-              example-1:
-                value:
-                  neighbor: 192.168.4.1
-                  prefix: 192.168.0.5/30
-                  protocol: bgp
-                  route: advertised
-                  vrf_name: default
             schema:
               $ref: '#/components/schemas/utils_show_mac_table'
         description: all attributes are optional
@@ -26872,7 +26973,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Get routes from SSR, SRX and Switch. \nThe output will be available\
+      description: "Get routes from SSR, SRX and Switch. \n\nThe output will be available\
         \ through websocket. As there can be multiple command issued against the same\
         \ device at the same time and the output all goes through the same websocket\
         \ stream, `session` is introduced for demux.\n\n#### Subscribe to Device Command\
@@ -26891,14 +26992,6 @@ paths:
       requestBody:
         content:
           application/json:
-            examples:
-              example-1:
-                value:
-                  neighbor: 192.168.4.1
-                  prefix: 192.168.0.5/30
-                  protocol: bgp
-                  route: advertised
-                  vrf_name: default
             schema:
               $ref: '#/components/schemas/utils_show_route'
         description: all attributes are optional
@@ -26923,20 +27016,20 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Get service path information of the Device. The output will be\
-        \ available through websocket. As there can be multiple command issued against\
-        \ the same device at the same time and the output all goes through the same\
-        \ websocket stream, session is introduced for demux.\n\n\n#### Subscribe to\
-        \ Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\"\
-        : \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n##### Example output\
-        \ from ws stream\n```\nshow service-path\n\nService    Service-route     Type\
-        \              Destination  Next-Hop  Interface  Vector  Cost  Rate  Capacity\
-        \        State\n\nWeb        web-route1        service-agent     4.4.4.4 \
-        \     1.1.1.2     lan        red     10    1    200/3000       Up*\nWeb  \
-        \      web-route1        service-agent     4.4.4.4      1.1.1.3     lan  \
-        \      red     10    1    200/3000       Up\nWeb        web-route2       \
-        \ service-agent     5.5.5.5      2.2.2.2     lan       blue     20    2  \
-        \  50/unlimited   Down\nLogin      <None>            BgpOverSVR        10.1.1.1\
+      description: "Get service path information of the Device.\n\nThe output will\
+        \ be available through websocket. As there can be multiple command issued\
+        \ against the same device at the same time and the output all goes through\
+        \ the same websocket stream, session is introduced for demux.\n\n\n#### Subscribe\
+        \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
+        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n##### Example\
+        \ output from ws stream\n```\nshow service-path\n\nService    Service-route\
+        \     Type              Destination  Next-Hop  Interface  Vector  Cost  Rate\
+        \  Capacity        State\n\nWeb        web-route1        service-agent   \
+        \  4.4.4.4      1.1.1.2     lan        red     10    1    200/3000       Up*\n\
+        Web        web-route1        service-agent     4.4.4.4      1.1.1.3     lan\
+        \        red     10    1    200/3000       Up\nWeb        web-route2     \
+        \   service-agent     5.5.5.5      2.2.2.2     lan       blue     20    2\
+        \    50/unlimited   Down\nLogin      <None>            BgpOverSVR        10.1.1.1\
         \     1.2.3.4     wan        red     10    3        -          Up\nLogin \
         \     <None>            BgpOverSVR        11.1.1.1     1.2.3.4     wan   \
         \     red     10    1        -          Up\nApp1       <None>            Routed\
@@ -26975,8 +27068,8 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Get active sessions passing through the Device. The output will\
-        \ be available through websocket. As there can be multiple command issued\
+      description: "Get active sessions passing through the Device.\n\nThe output\
+        \ will be available through websocket. As there can be multiple command issued\
         \ against the same device at the same time and the output all goes through\
         \ the same websocket stream, session is introduced for demux.\n\n#### Subscribe\
         \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
@@ -27156,12 +27249,12 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Traceroute can be performed from the Device. The output will be\
-        \ available through websocket. As there can be multiple command issued against\
-        \ the same AP at the same time and the output all goes through the same websocket\
-        \ stream, session is introduced for demux.\n\n#### Subscribe to Device Command\
-        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
-        \n}\n```"
+      description: "Traceroute can be performed from the Device.\n\nThe output will\
+        \ be available through websocket. As there can be multiple command issued\
+        \ against the same AP at the same time and the output all goes through the\
+        \ same websocket stream, session is introduced for demux.\n\n#### Subscribe\
+        \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
+        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```"
       operationId: tracerouteFromDevice
       requestBody:
         content:
@@ -27256,10 +27349,6 @@ paths:
       requestBody:
         content:
           application/json:
-            examples:
-              Example:
-                value:
-                  version: CDEN_P_EX1_00.20.01.00
             schema:
               $ref: '#/components/schemas/upgrade_bios'
       responses:
@@ -27276,6 +27365,34 @@ paths:
         '429':
           $ref: '#/components/responses/HTTP429'
       summary: upgradeSiteDeviceBios
+      tags:
+      - Utilities LAN
+  /api/v1/sites/{site_id}/devices/{device_id}/upgrade_fpga:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: Upgrade device fpga
+      operationId: upgradeSiteDeviceFPGA
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/upgrade_fpga'
+      responses:
+        '200':
+          $ref: '#/components/responses/DeviceBiosUpgrade'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: upgradeSiteDeviceFPGA
       tags:
       - Utilities LAN
   /api/v1/sites/{site_id}/devices/{device_id}/vc:
@@ -57537,16 +57654,29 @@ components:
     WebsocketSession:
       content:
         application/json:
-          examples:
-            example-1:
-              value:
-                session: session_id
           schema:
             properties:
               session:
+                example: 19e73828-937f-05e6-f709-e29efdb0a82b
                 type: string
             required:
             - session
+            type: object
+      description: OK
+    WebsocketSessionWithUrl:
+      content:
+        application/json:
+          schema:
+            properties:
+              session:
+                example: 19e73828-937f-05e6-f709-e29efdb0a82b
+                type: string
+              url:
+                example: wss://api-ws.mist.com/ssh?jwt=xxxx
+                type: string
+            required:
+            - session
+            - url
             type: object
       description: OK
     WiredClientsSearch:
@@ -58888,6 +59018,8 @@ components:
           format: uuid
           readOnly: true
           type: string
+        compliance_status:
+          $ref: '#/components/schemas/admin_compliance_status'
         email:
           example: jsnow@abc.com
           format: email
@@ -58955,6 +59087,12 @@ components:
         $ref: '#/components/schemas/admin'
       type: array
       uniqueItems: true
+    admin_compliance_status:
+      description: trade compliance status
+      enum:
+      - restricted
+      - blocked
+      type: string
     alarm:
       description: additional information per alarm type
       properties:
@@ -66710,6 +66848,33 @@ components:
       - node0
       - node1
       type: string
+    hours:
+      description: "hours of operation filter, the available days (mon, tue, wed,\
+        \ thu, fri, sat, sun). \n\n**Note**: If the dow is not defined then it\u2019\
+        s treated as 00:00-23:59."
+      properties:
+        fri:
+          example: 09:00-17:00
+          type: string
+        mon:
+          example: 09:00-17:00
+          type: string
+        sat:
+          example: 09:00-12:00
+          type: string
+        sun:
+          example: 09:00-12:00
+          type: string
+        thu:
+          example: 09:00-17:00
+          type: string
+        tue:
+          example: 09:00-17:00
+          type: string
+        wed:
+          example: 09:00-17:00
+          type: string
+      type: object
     idp_config:
       properties:
         alert_only:
@@ -67140,6 +67305,13 @@ components:
       - dhcp
       example: static
       type: string
+    ip_type6:
+      default: disabled
+      enum:
+      - disabled
+      - static
+      - dhcp
+      type: string
     junos_acl_policies:
       description: '- for GBP-based policy, all src_tags and dst_tags have to be gbp-based
 
@@ -67404,12 +67576,18 @@ components:
           dns_servers:
             description: if `type`==`local` - optional, if not defined, system one
               will be used
+            example:
+            - 8.8.8.8
+            - 4.4.4.4
             items:
               type: string
             type: array
           dns_suffix:
             description: if `type`==`local` - optional, if not defined, system one
               will be used
+            example:
+            - .mist.local
+            - .mist.com
             items:
               type: string
             type: array
@@ -67422,16 +67600,30 @@ components:
                   type: string
               type: object
             description: Property key is the MAC Address
+            example:
+              5684dae9ac8b:
+                ip: 192.168.70.35
+                name: John
             type: object
           gateway:
             description: if `type`==`local` - optional, `ip` will be used if not provided
+            example: 192.168.70.1
             type: string
           ip_end:
             description: if `type`==`local`
+            example: 192.168.70.200
             type: string
           ip_start:
             description: if `type`==`local`
+            example: 192.168.70.100
             type: string
+          lease_time:
+            default: 86400
+            description: in seconds, lease time has to be between 3600 [1hr] - 604800
+              [1 week], default is 86400 [1 day]
+            maximum: 604800
+            minimum: 3600
+            type: integer
           options:
             additionalProperties:
               properties:
@@ -68039,15 +68231,31 @@ components:
           default: false
           description: for EVPN, if anycast is desired
           type: boolean
+        gateway6:
+          example: fdad:b0bc:f29e::1
+          type: string
         ip:
           description: required if `type`==`static`
+          example: 10.3.3.1
+          type: string
+        ip6:
+          description: required if `type6`==`static`
+          example: fdad:b0bc:f29e::3d16
           type: string
         netmask:
           description: optional, `subnet` from `network` definition will be used if
             defined
+          example: 255.255.255.0
+          type: string
+        netmask6:
+          description: optional, `subnet` from `network` definition will be used if
+            defined
+          example: /64
           type: string
         type:
           $ref: '#/components/schemas/ip_type'
+        type6:
+          $ref: '#/components/schemas/ip_type6'
       type: object
     junos_port_config:
       description: Switch port config
@@ -68954,6 +69162,19 @@ components:
             is the number of licenses consumed.
           readOnly: true
           type: object
+      type: object
+    locate_switch:
+      properties:
+        duration:
+          default: 5
+          description: minutes the leds should keep flashing
+          maximum: 120
+          minimum: 1
+          type: integer
+        mac:
+          description: for virtual chassis, the MAC of the member
+          example: f01c2d4ff760
+          type: string
       type: object
     login:
       properties:
@@ -71448,6 +71669,8 @@ components:
           type: array
         extra_routes:
           $ref: '#/components/schemas/switch_extra_routes'
+        extra_routes6:
+          $ref: '#/components/schemas/switch_extra_routes6'
         group_tags:
           type: object
         id:
@@ -75191,6 +75414,26 @@ components:
           example: beta
           type: string
       type: object
+    site_config_push_policy:
+      description: mist also uses some heuristic rules to prevent destructive configs
+        from being pushed
+      properties:
+        no_push:
+          $ref: '#/components/schemas/site_config_push_policy_push_window'
+          default: false
+          description: stop any new config from being pushed to the device
+          type: boolean
+      type: object
+    site_config_push_policy_push_window:
+      description: if enabled, new config will only be pushed to device within the
+        specified time window
+      properties:
+        enabled:
+          default: true
+          type: boolean
+        hours:
+          $ref: '#/components/schemas/hours'
+      type: object
     site_engagement:
       description: "**Note**: if hours does not exist, it\u2019s treated as everyday\
         \ of the week, 00:00-23:59. Currently we don\u2019t allow multiple ranges\
@@ -75242,32 +75485,7 @@ components:
               type: string
           type: object
         hours:
-          description: "hours of operation filter, the available days (mon, tue, wed,\
-            \ thu, fri, sat, sun). \n\n**Note**: If the dow is not defined then it\u2019\
-            s treated as 00:00-23:59."
-          properties:
-            fri:
-              example: 09:00-17:00
-              type: string
-            mon:
-              example: 09:00-17:00
-              type: string
-            sat:
-              example: 09:00-12:00
-              type: string
-            sun:
-              example: 09:00-12:00
-              type: string
-            thu:
-              example: 09:00-17:00
-              type: string
-            tue:
-              example: 09:00-17:00
-              type: string
-            wed:
-              example: 09:00-17:00
-              type: string
-          type: object
+          $ref: '#/components/schemas/hours'
         max_dwell:
           default: 43200
           description: max time, default is 43200(12h), max is 68400 (18h)
@@ -76103,7 +76321,9 @@ components:
       properties:
         conductor_hosts:
           items:
-            example: '"1.1.1.1", "2.2.2.2"'
+            example:
+            - 1.1.1.1
+            - 2.2.2.2
             type: string
           type: array
         disable_stats:
@@ -77629,6 +77849,8 @@ components:
           $ref: '#/components/schemas/junos_evpn_config'
         extra_routes:
           $ref: '#/components/schemas/switch_extra_routes'
+        extra_routes6:
+          $ref: '#/components/schemas/switch_extra_routes6'
         id:
           format: uuid
           readOnly: true
@@ -77776,6 +77998,8 @@ components:
             type: boolean
           metric:
             example: null
+            maximum: 4294967295
+            minimum: 0
             nullable: true
             type: integer
           next_qualified:
@@ -77798,13 +78022,58 @@ components:
             type: boolean
           preference:
             example: 30
+            maximum: 4294967295
+            minimum: 0
             nullable: true
             type: integer
           via:
             description: next-hop IP Address
+            example: 10.2.1.1
             type: string
         type: object
-      description: Property key is the destination CIDR (e.g. "10.0.0.0/8")
+    switch_extra_routes6:
+      additionalProperties:
+        properties:
+          discard:
+            default: false
+            description: this takes precedence
+            type: boolean
+          metric:
+            example: null
+            maximum: 4294967295
+            minimum: 0
+            nullable: true
+            type: integer
+          next_qualified:
+            additionalProperties:
+              properties:
+                metric:
+                  nullable: true
+                  type: integer
+                preference:
+                  nullable: true
+                  type: integer
+              type: object
+            example:
+              2a02:1234:200a::100:
+                metric: null
+                preference: 40
+            type: object
+          no_resolve:
+            default: false
+            type: boolean
+          preference:
+            example: 30
+            maximum: 4294967295
+            minimum: 0
+            nullable: true
+            type: integer
+          via:
+            description: next-hop IP Address
+            example: 2a02:1234:200a::100
+            type: string
+        type: object
+      description: Property key is the destination CIDR (e.g. "2a02:1234:420a:10c9::/64")
       example:
         172.16.3.0/24:
           via: 10.2.1.1
@@ -79005,6 +79274,41 @@ components:
           example: CDEN_P_EX1_00.15.01.00
           type: string
       type: object
+    upgrade_fpga:
+      properties:
+        reboot:
+          default: false
+          description: Reboot device immediately after upgrade is completed
+          type: boolean
+        version:
+          description: specific fpga version
+          example: REV37
+          type: string
+      type: object
+    upgrade_fpga_multi:
+      properties:
+        device_ids:
+          description: list of device id to upgrade bios
+          items:
+            example: 00000000-0000-0000-1000-5c5b35584a6f
+            format: uuid
+            type: string
+          type: array
+        models:
+          description: list of device model to upgrade bios
+          items:
+            example: EX4400-48T
+            type: string
+          type: array
+        reboot:
+          default: false
+          description: Reboot device immediately after upgrade is completed
+          type: boolean
+        version:
+          description: specific FPGA version
+          example: REV37
+          type: string
+      type: object
     use_auto_ap_values:
       properties:
         accept:
@@ -79141,6 +79445,10 @@ components:
             Both vlan and ip cannot be specified.
           example: 1000
           type: integer
+        vrf:
+          description: The vrf for which to clear an ARP entry. applicable for switch.
+          example: guest
+          type: string
       type: object
     utils_clear_bgp:
       properties:
@@ -79204,6 +79512,14 @@ components:
           type: string
       required:
       - device_ids
+      type: object
+    utils_monitor_traffic:
+      properties:
+        port:
+          description: port name, if no port input is provided then all ports will
+            be monitored
+          example: ge-0/0/1
+          type: string
       type: object
     utils_ping:
       properties:
@@ -79352,15 +79668,36 @@ components:
       type: object
     utils_show_arp:
       properties:
+        duration:
+          default: 0
+          description: duration in sec for which refresh is enabled. Should be set
+            only if interval is configured to non-zero value.
+          maximum: 300
+          minimum: 0
+          type: integer
+        interval:
+          default: 0
+          description: rate at which output will refresh
+          maximum: 10
+          minimum: 0
+          type: integer
         ip:
+          description: IP Address
           example: 192.168.30.7
           type: string
-        port:
+        port_id:
+          description: device Port ID
           example: ge-0/0/0.0
           type: string
         vrf:
+          description: VRF Name
           example: guest
           type: string
+      type: object
+    utils_show_bgp_rummary:
+      properties:
+        node:
+          $ref: '#/components/schemas/ha_cluster_node_enum'
       type: object
     utils_show_evpn_database:
       properties:
@@ -79387,30 +79724,56 @@ components:
       type: object
     utils_show_route:
       properties:
+        duration:
+          default: 0
+          description: duration in sec for which refresh is enabled. Should be set
+            only if interval is configured to non-zero value.
+          maximum: 300
+          minimum: 0
+          type: integer
+        interval:
+          default: 0
+          description: rate at which output will refresh
+          maximum: 10
+          minimum: 0
+          type: integer
         neighbor:
           description: IP of the neighbor
+          example: 192.168.4.1
           type: string
         node:
           $ref: '#/components/schemas/ha_cluster_node'
         prefix:
           description: route prefix
+          example: 192.168.0.5/30
           type: string
         protocol:
-          default: bgp
-          description: only bgp is supported
-          type: string
+          $ref: '#/components/schemas/utils_show_route_protocol'
         route:
           description: 'if specified, dump bot received and advertised, if not specified,
             both will be shown
 
             * for SSR, show bgp neighbors 10.250.18.202 received-routes/advertised-routes
 
-            * for SRX, show route receive-protocol/advertise-protocol bgp 192.168.255.12'
+            * for SRX and Switches, show route receive-protocol/advertise-protocol
+            bgp 192.168.255.12'
+          example: advertised
           type: string
         vrf:
           description: VRF name
+          example: default
           type: string
       type: object
+    utils_show_route_protocol:
+      default: bgp
+      enum:
+      - bgp
+      - any
+      - ospf
+      - static
+      - direct
+      - evpn
+      type: string
     utils_show_service_path:
       description: The exact service name for which to display the service path
       properties:

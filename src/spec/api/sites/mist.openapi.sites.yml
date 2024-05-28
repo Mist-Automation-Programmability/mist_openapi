@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2403.1.5**
+  description: '> Version: **2405.1.0**
 
     >
 
-    > Date: **May 24, 2024**
+    > Date: **May 27, 2024**
 
 
     ---
@@ -39,7 +39,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2403.1.5
+  version: 2405.1.0
   x-codegen-settings:
     BrandLabel: Juniper Networks
     EnableAdditionalModelProperties: true
@@ -181,6 +181,7 @@ tags:
 - name: Sites Synthetic Tests
 - name: Sites UI Settings
 - name: Sites VPNs
+- name: Sites WAN Usages
 - name: Sites Webhooks
 - name: Sites Wlans
 - name: Sites WxRules
@@ -348,14 +349,7 @@ paths:
         in: query
         name: distinct
         schema:
-          default: type
-          enum:
-          - type
-          - acked
-          - severity
-          - group
-          title: Site Alarms count distinct
-          type: string
+          $ref: '#/components/schemas/alarm_count_disctinct'
       - description: Name of the admins who have acked the alarms; accepts multiple
           values separated by comma
         in: query
@@ -2649,19 +2643,11 @@ paths:
     parameters:
     - $ref: '#/components/parameters/site_id'
     post:
-      description: Upgrade Bios Multiple Device
+      description: Upgrade Bios on Multiple Device
       operationId: upgradeSiteMultipleDevicesBios
       requestBody:
         content:
           application/json:
-            examples:
-              Example:
-                value:
-                  device_ids:
-                  - 00000000-0000-0000-1000-5c5b35584a6f
-                  models:
-                  - EX4400-48T
-                  version: CDEN_P_EX1_00.15.01.00
             schema:
               $ref: '#/components/schemas/upgrade_bios_multi'
       responses:
@@ -2678,6 +2664,33 @@ paths:
         '429':
           $ref: '#/components/responses/HTTP429'
       summary: upgradeSiteMultipleDevicesBios
+      tags:
+      - Utilities LAN
+  /api/v1/sites/{site_id}/devices/upgrade_fpga:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    post:
+      description: Upgrade Bios on Multiple Device
+      operationId: upgradeSiteMultipleDevicesFpga
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/upgrade_fpga_multi'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: upgradeSiteMultipleDevicesFpga
       tags:
       - Utilities LAN
   /api/v1/sites/{site_id}/devices/versions:
@@ -2983,7 +2996,10 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: 'Clear the entire ARP cache or a subset if arguments are provided.
+      description: 'Clear ARP cache for SSR, SRX and Switch
+
+
+        Clear the entire ARP cache or a subset if arguments are provided.
 
 
         *Note*: port_id is optional if neither vlan nor ip is specified'
@@ -2991,13 +3007,6 @@ paths:
       requestBody:
         content:
           application/json:
-            examples:
-              Example:
-                value:
-                  ip: 10.1.1.1
-                  node: node0
-                  port_id: wan
-                  vlan: 1000
             schema:
               $ref: '#/components/schemas/utils_clear_arp'
       responses:
@@ -3082,6 +3091,40 @@ paths:
       summary: clearBpduErrosFromPortsOnSwitch
       tags:
       - Utilities LAN
+  /api/v1/sites/{site_id}/devices/{device_id}/clear_mac_table:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: "Clear MAC Table from the Device.\n\nThe output will be available\
+        \ through websocket. As there can be multiple command issued against the same\
+        \ device at the same time and the output all goes through the same websocket\
+        \ stream, `session` is introduced for demux.\n\n#### Subscribe to Device Command\
+        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+        \n}\n```\n"
+      operationId: clearSiteDeviceMacTable
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/utils_mac_table'
+        description: all attributes are optional
+      responses:
+        '200':
+          $ref: '#/components/responses/WebsocketSession'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: clearSiteDeviceMacTable
+      tags:
+      - Utilities Common
   /api/v1/sites/{site_id}/devices/{device_id}/clear_macs:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -3490,9 +3533,22 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Locate a Device by blinking it\u2019s LED, it\u2019s a persisted\
-        \ state that has to be stopped by calling Stop Locating API"
+      description: "### Access Points\nLocate an Access Point by blinking it's LED.\n\
+        It is a persisted state that has to be stopped by calling Stop Locating API\n\
+        \n### Switches\nLocate a Switch by blinking all port LEDs. \nBy default, request\
+        \ is sent to `master` switch and LEDs will keep flashing for 5 minutes.\n\
+        In case of virtual chassis (VC) the desired member mac has to be passed in\
+        \ the request payload. \nAt anypoint, only one VC member can be requested\
+        \ to flash the LED. \nTo stop LED flashing before the duration ends /unlocate\
+        \ API request can be made. \nIf /unlocate API is not called LED will continue\
+        \ to flash on device for the given duration. \nDefault duration is 5 minutes\
+        \ and 120 minutes is the maximum."
       operationId: startSiteLocateDevice
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/locate_switch'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -3509,6 +3565,36 @@ paths:
       summary: startSiteLocateDevice
       tags:
       - Utilities Wi-Fi
+  /api/v1/sites/{site_id}/devices/{device_id}/monitor_traffic:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: "Monitor traffic on switches and SRX.\n\nJUNOS uses cmd \u201C\
+        monitor interface\u201D to monitor traffic on particular JUNOS uses cmd \u201C\
+        monitor interface traffic\u201D to monitor traffic on all ports"
+      operationId: monitorSiteDeviceTraffic
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/utils_monitor_traffic'
+      responses:
+        '200':
+          $ref: '#/components/responses/WebsocketSessionWithUrl'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: monitorSiteDeviceTraffic
+      tags:
+      - Utilities Common
   /api/v1/sites/{site_id}/devices/{device_id}/ping:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -3699,13 +3785,14 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "DNS resolutions are performed on the Device. The output will be\
-        \ available through websocket. As there can be multiple command issued against\
-        \ the same SSR at the same time and the output all goes through the same websocket\
-        \ stream, `session` is used for demux.\n \n #### Subscribe to Device Command\
-        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
-        \n}\n```\n##### Example output from ws stream\n```\n Router      | Hostname\
-        \               | Resolved | Last Resolved        | Expiration\n-------------|------------------------|----------|----------------------|---------------------\n\
+      description: "DNS resolutions are performed on the Device.\n\nThe output will\
+        \ be available through websocket. As there can be multiple command issued\
+        \ against the same SSR at the same time and the output all goes through the\
+        \ same websocket stream, `session` is used for demux.\n \n #### Subscribe\
+        \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
+        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n##### Example\
+        \ output from ws stream\n```\n Router      | Hostname               | Resolved\
+        \ | Last Resolved        | Expiration\n-------------|------------------------|----------|----------------------|---------------------\n\
         \ test-device | xxx.yyy.net            | Y        | 2022-03-28T03:56:49Z |\
         \ 2022-03-28T03:57:49Z\n```"
       operationId: testSiteSsrDnsResolution
@@ -3798,29 +3885,44 @@ paths:
       summary: servicePingFromSsr
       tags:
       - Utilities WAN
+  /api/v1/sites/{site_id}/devices/{device_id}/shell:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: Create Shell Session
+      operationId: createSiteDeviceShellSession
+      responses:
+        '200':
+          $ref: '#/components/responses/WebsocketSessionWithUrl'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: createSiteDeviceShellSession
+      tags:
+      - Utilities Common
   /api/v1/sites/{site_id}/devices/{device_id}/show_arp:
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Get ARP Table from the Device. The output will be available through\
-        \ websocket. As there can be multiple command issued against the same device\
-        \ at the same time and the output all goes through the same websocket stream,\
-        \ `session` is introduced for demux.\n\n#### Subscribe to Device Command outputs\n\
-        `WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+      description: "Get ARP Table from the Device.\n\nThe output will be available\
+        \ through websocket. As there can be multiple command issued against the same\
+        \ device at the same time and the output all goes through the same websocket\
+        \ stream, `session` is introduced for demux.\n\n#### Subscribe to Device Command\
+        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
         \n}\n```\n"
       operationId: getSiteDeviceArpTable
       requestBody:
         content:
           application/json:
-            examples:
-              example-1:
-                value:
-                  neighbor: 192.168.4.1
-                  prefix: 192.168.0.5/30
-                  protocol: bgp
-                  route: advertised
-                  vrf_name: default
             schema:
               $ref: '#/components/schemas/utils_show_arp'
         description: all attributes are optional
@@ -3840,6 +3942,49 @@ paths:
       summary: getSiteDeviceArpTable
       tags:
       - Utilities Common
+  /api/v1/sites/{site_id}/devices/{device_id}/show_bgp_rummary:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: "Get BGP Summary from SSR, SRX and Switch.\n\n\nThe output will\
+        \ be available through websocket. As there can be multiple command issued\
+        \ against the same device at the same time and the output all goes through\
+        \ the same websocket stream, `session` is introduced for demux.\n\n#### Subscribe\
+        \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \\\"\
+        subscribe\\\": \\\"/sites/{site_id}/devices/{device_id}/cmd\\\"\\\n\n}\n```\n\
+        \n##### Example output from ws stream\n```\nTue 2024-04-23 16:36:06 UTC\n\
+        Retrieving bgp entries...\nBGP table version is 354, local router ID is 10.224.8.16,\
+        \ vrf id 0\nDefault local pref 100, local AS 65000\nStatus codes:  s suppressed,\
+        \ d damped, h history, * valid, > best, = multipath,\n              i internal,\
+        \ r RIB-failure, S Stale, R Removed\nNexthop codes: @NNN nexthop's vrf id,\
+        \ < announce-nh-self\nOrigin codes:  i - IGP, e - EGP, ? - incomplete\nRPKI\
+        \ validation codes: V valid, I invalid, N Not found\n\n  Network         \
+        \                             Next Hop                                  Metric\
+        \ LocPrf Weight Path\n*> 161.161.161.0/24\n```\""
+      operationId: getSiteDeviceBgpSummary
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/utils_show_bgp_rummary'
+        description: all attributes are optional
+      responses:
+        '200':
+          $ref: '#/components/responses/WebsocketSession'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteDeviceBgpSummary
+      tags:
+      - Utilities WAN
   /api/v1/sites/{site_id}/devices/{device_id}/show_evpn_database:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -3851,14 +3996,6 @@ paths:
       requestBody:
         content:
           application/json:
-            examples:
-              example-1:
-                value:
-                  neighbor: 192.168.4.1
-                  prefix: 192.168.0.5/30
-                  protocol: bgp
-                  route: advertised
-                  vrf_name: default
             schema:
               $ref: '#/components/schemas/utils_show_evpn_database'
         description: all attributes are optional
@@ -3883,26 +4020,18 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Get MAC Table from the Device. The output will be available through\
-        \ websocket. As there can be multiple command issued against the same device\
-        \ at the same time and the output all goes through the same websocket stream,\
-        \ `session` is introduced for demux.\n\n#### Subscribe to Device Command outputs\n\
-        `WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+      description: "Get MAC Table from the Device.\n\nThe output will be available\
+        \ through websocket. As there can be multiple command issued against the same\
+        \ device at the same time and the output all goes through the same websocket\
+        \ stream, `session` is introduced for demux.\n\n#### Subscribe to Device Command\
+        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
         \n}\n```\n"
       operationId: getSiteDeviceMacTable
       requestBody:
         content:
           application/json:
-            examples:
-              example-1:
-                value:
-                  neighbor: 192.168.4.1
-                  prefix: 192.168.0.5/30
-                  protocol: bgp
-                  route: advertised
-                  vrf_name: default
             schema:
-              $ref: '#/components/schemas/utils_show_mac_table'
+              $ref: '#/components/schemas/utils_mac_table'
         description: all attributes are optional
       responses:
         '200':
@@ -3925,7 +4054,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Get routes from SSR, SRX and Switch. \nThe output will be available\
+      description: "Get routes from SSR, SRX and Switch. \n\nThe output will be available\
         \ through websocket. As there can be multiple command issued against the same\
         \ device at the same time and the output all goes through the same websocket\
         \ stream, `session` is introduced for demux.\n\n#### Subscribe to Device Command\
@@ -3944,14 +4073,6 @@ paths:
       requestBody:
         content:
           application/json:
-            examples:
-              example-1:
-                value:
-                  neighbor: 192.168.4.1
-                  prefix: 192.168.0.5/30
-                  protocol: bgp
-                  route: advertised
-                  vrf_name: default
             schema:
               $ref: '#/components/schemas/utils_show_route'
         description: all attributes are optional
@@ -3976,20 +4097,20 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Get service path information of the Device. The output will be\
-        \ available through websocket. As there can be multiple command issued against\
-        \ the same device at the same time and the output all goes through the same\
-        \ websocket stream, session is introduced for demux.\n\n\n#### Subscribe to\
-        \ Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\"\
-        : \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n##### Example output\
-        \ from ws stream\n```\nshow service-path\n\nService    Service-route     Type\
-        \              Destination  Next-Hop  Interface  Vector  Cost  Rate  Capacity\
-        \        State\n\nWeb        web-route1        service-agent     4.4.4.4 \
-        \     1.1.1.2     lan        red     10    1    200/3000       Up*\nWeb  \
-        \      web-route1        service-agent     4.4.4.4      1.1.1.3     lan  \
-        \      red     10    1    200/3000       Up\nWeb        web-route2       \
-        \ service-agent     5.5.5.5      2.2.2.2     lan       blue     20    2  \
-        \  50/unlimited   Down\nLogin      <None>            BgpOverSVR        10.1.1.1\
+      description: "Get service path information of the Device.\n\nThe output will\
+        \ be available through websocket. As there can be multiple command issued\
+        \ against the same device at the same time and the output all goes through\
+        \ the same websocket stream, session is introduced for demux.\n\n\n#### Subscribe\
+        \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
+        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n##### Example\
+        \ output from ws stream\n```\nshow service-path\n\nService    Service-route\
+        \     Type              Destination  Next-Hop  Interface  Vector  Cost  Rate\
+        \  Capacity        State\n\nWeb        web-route1        service-agent   \
+        \  4.4.4.4      1.1.1.2     lan        red     10    1    200/3000       Up*\n\
+        Web        web-route1        service-agent     4.4.4.4      1.1.1.3     lan\
+        \        red     10    1    200/3000       Up\nWeb        web-route2     \
+        \   service-agent     5.5.5.5      2.2.2.2     lan       blue     20    2\
+        \    50/unlimited   Down\nLogin      <None>            BgpOverSVR        10.1.1.1\
         \     1.2.3.4     wan        red     10    3        -          Up\nLogin \
         \     <None>            BgpOverSVR        11.1.1.1     1.2.3.4     wan   \
         \     red     10    1        -          Up\nApp1       <None>            Routed\
@@ -4028,8 +4149,8 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Get active sessions passing through the Device. The output will\
-        \ be available through websocket. As there can be multiple command issued\
+      description: "Get active sessions passing through the Device.\n\nThe output\
+        \ will be available through websocket. As there can be multiple command issued\
         \ against the same device at the same time and the output all goes through\
         \ the same websocket stream, session is introduced for demux.\n\n#### Subscribe\
         \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
@@ -4209,12 +4330,12 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Traceroute can be performed from the Device. The output will be\
-        \ available through websocket. As there can be multiple command issued against\
-        \ the same AP at the same time and the output all goes through the same websocket\
-        \ stream, session is introduced for demux.\n\n#### Subscribe to Device Command\
-        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
-        \n}\n```"
+      description: "Traceroute can be performed from the Device.\n\nThe output will\
+        \ be available through websocket. As there can be multiple command issued\
+        \ against the same AP at the same time and the output all goes through the\
+        \ same websocket stream, session is introduced for demux.\n\n#### Subscribe\
+        \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
+        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```"
       operationId: tracerouteFromDevice
       requestBody:
         content:
@@ -4309,10 +4430,6 @@ paths:
       requestBody:
         content:
           application/json:
-            examples:
-              Example:
-                value:
-                  version: CDEN_P_EX1_00.20.01.00
             schema:
               $ref: '#/components/schemas/upgrade_bios'
       responses:
@@ -4329,6 +4446,34 @@ paths:
         '429':
           $ref: '#/components/responses/HTTP429'
       summary: upgradeSiteDeviceBios
+      tags:
+      - Utilities LAN
+  /api/v1/sites/{site_id}/devices/{device_id}/upgrade_fpga:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: Upgrade device fpga
+      operationId: upgradeSiteDeviceFPGA
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/upgrade_fpga'
+      responses:
+        '200':
+          $ref: '#/components/responses/DeviceBiosUpgrade'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: upgradeSiteDeviceFPGA
       tags:
       - Utilities LAN
   /api/v1/sites/{site_id}/devices/{device_id}/vc:
@@ -6692,6 +6837,11 @@ paths:
         name: vlan
         schema:
           type: integer
+      - description: Vlan source, e.g. "nactag", "usermac"
+        in: query
+        name: vlan_source
+        schema:
+          type: string
       - description: vendor of NAS device
         in: query
         name: nas_vendor
@@ -6713,6 +6863,11 @@ paths:
         name: idp_role
         schema:
           type: string
+      - description: Username presented to the Identity Provider
+        in: query
+        name: idp_username
+        schema:
+          type: string
       - description: Radius attributes returned by NAC to NAS Devive
         in: query
         name: resp_attrs
@@ -6728,6 +6883,11 @@ paths:
         name: username
         schema:
           type: string
+      - description: labels derived from usermac entry
+        in: query
+        name: usermac_labels
+        schema:
+          $ref: '#/components/schemas/strings'
       - description: AP MAC
         in: query
         name: ap
@@ -6743,7 +6903,12 @@ paths:
         name: mac
         schema:
           type: string
-      - description: start time, in epoch
+      - description: Lookup(IDP etc.,) time taken in seconds
+        in: query
+        name: lookup_time_taken
+        schema:
+          type: number
+      - description: time, in epoch
         in: query
         name: timestamp
         schema:
@@ -6777,7 +6942,7 @@ paths:
       parameters:
       - description: NAC Policy Rule ID, if matched
         in: query
-        name: last_nacrule_id
+        name: nacrule_id
         schema:
           type: string
       - description: NAC Policy Rule Matched
@@ -6793,12 +6958,12 @@ paths:
           type: string
       - description: Vlan ID
         in: query
-        name: last_vlan_id
+        name: vlan_id
         schema:
           type: string
       - description: vendor of NAS device
         in: query
-        name: last_nas_vendor
+        name: nas_vendor
         schema:
           type: string
       - description: SSO ID, if present and used
@@ -6808,12 +6973,12 @@ paths:
           type: string
       - description: SSID
         in: query
-        name: last_ssid
+        name: ssid
         schema:
           type: string
       - description: Username presented by the client
         in: query
-        name: last_username
+        name: username
         schema:
           type: string
       - description: start time, in epoch
@@ -6823,7 +6988,7 @@ paths:
           type: number
       - description: AP MAC connected to by client
         in: query
-        name: last_ap
+        name: ap
         schema:
           type: string
       - description: MAC address
@@ -6831,10 +6996,20 @@ paths:
         name: mac
         schema:
           type: string
+      - description: ID of Mist Edge that the client is connected through
+        in: query
+        name: mxedge_id
+        schema:
+          type: string
+      - description: NAC Policy Rule Name matched
+        in: query
+        name: nacrule_name
+        schema:
+          type: string
       - description: "Connection status of client i.e \u201Cpermitted\u201D, \u201C\
           denied, \u201Csession_ended\u201D"
         in: query
-        name: last_status
+        name: status
         schema:
           type: string
       - description: "Client type i.e. \u201Cwireless\u201D, \u201Cwired\u201D etc."
@@ -7370,7 +7545,13 @@ paths:
     parameters:
     - $ref: '#/components/parameters/site_id'
     post:
-      description: Create Site PSK
+      description: 'Create Site PSK
+
+
+
+        When `usage`==`macs`, corresponding "macs" field will hold a list consisting
+        of client mac addresses (["xx:xx:xx:xx:xx",...]) or mac patterns(["xx:xx:*","xx*",...])
+        or both (["xx:xx:xx:xx:xx:xx", "xx:*", ...]). This list is capped at 5000'
       operationId: createSitePsk
       requestBody:
         content:
@@ -7964,36 +8145,6 @@ paths:
       required: true
       schema:
         $ref: '#/components/schemas/dot11_band'
-  /api/v1/sites/{site_id}/rrm/current/devices/{device_id}/neighbors:
-    get:
-      description: Get Current RRM observed neighbors
-      operationId: getSiteCurrentRrmNeighbors
-      parameters:
-      - description: 802.11 Band
-        in: query
-        name: band
-        required: true
-        schema:
-          $ref: '#/components/schemas/dot11_band'
-      responses:
-        '200':
-          $ref: '#/components/responses/RrmNeighbors'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: getSiteCurrentRrmNeighbors
-      tags:
-      - Sites RRM
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/device_id'
   /api/v1/sites/{site_id}/rrm/events:
     get:
       description: Get Site RRM Events
@@ -8023,6 +8174,37 @@ paths:
       - Sites RRM
     parameters:
     - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/rrm/neighbors//band/{band}:
+    get:
+      description: Get Current RRM observed neighbors
+      operationId: getSiteCurrentRrmNeighbors
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/RrmNeighbors'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteCurrentRrmNeighbors
+      tags:
+      - Sites RRM
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - description: 802.11 Band
+      in: path
+      name: band
+      required: true
+      schema:
+        $ref: '#/components/schemas/dot11_band'
   /api/v1/sites/{site_id}/rrm/optimize:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -13276,6 +13458,136 @@ paths:
       - Sites Clients - Wan
     parameters:
     - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/wan_usages/count:
+    get:
+      description: Count Site WAN Uages
+      operationId: countSiteWanUsage
+      parameters:
+      - description: MAC address
+        in: query
+        name: mac
+        schema:
+          type: string
+      - description: Peer MAC address
+        in: query
+        name: peer_mac
+        schema:
+          type: string
+      - description: Port ID for the device
+        in: query
+        name: port_id
+        schema:
+          type: string
+      - description: Peer Port ID for the device
+        in: query
+        name: peer_port_id
+        schema:
+          type: string
+      - description: policy for the wan path
+        in: query
+        name: policy
+        schema:
+          type: string
+      - description: tenant network in which the packet is sent
+        in: query
+        name: tenant
+        schema:
+          type: string
+      - description: path_type of the port
+        in: query
+        name: path_type
+        schema:
+          type: string
+      - in: query
+        name: distinct
+        schema:
+          $ref: '#/components/schemas/wan_usages_count_disctinct'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          $ref: '#/components/responses/Count'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: countSiteWanUsage
+      tags:
+      - Sites WAN Usages
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/wan_usages/search:
+    get:
+      description: Search Site WAN Uages
+      operationId: searchSiteWanUsage
+      parameters:
+      - description: MAC address
+        in: query
+        name: mac
+        schema:
+          type: string
+      - description: Peer MAC address
+        in: query
+        name: peer_mac
+        schema:
+          type: string
+      - description: Port ID for the device
+        in: query
+        name: port_id
+        schema:
+          type: string
+      - description: Peer Port ID for the device
+        in: query
+        name: peer_port_id
+        schema:
+          type: string
+      - description: policy for the wan path
+        in: query
+        name: policy
+        schema:
+          type: string
+      - description: tenant network in which the packet is sent
+        in: query
+        name: tenant
+        schema:
+          type: string
+      - description: path_type of the port
+        in: query
+        name: path_type
+        schema:
+          type: string
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      responses:
+        '200':
+          $ref: '#/components/responses/Wan_Usages'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: searchSiteWanUsage
+      tags:
+      - Sites WAN Usages
+    parameters:
+    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/webhooks:
     get:
       description: Get List of Site Webhooks
@@ -13446,22 +13758,102 @@ paths:
       summary: updateSiteWebhook
       tags:
       - Sites Webhooks
-  /api/v1/sites/{site_id}/webhooks/{webhook_id}/events/search:
+  /api/v1/sites/{site_id}/webhooks/{webhook_id}/events/count:
     get:
-      description: 'Search webhooks deliveries
+      description: 'Count Site Webhooks deliveries
 
 
-        To get a list of webhook deliveries in error, use the query parameter `?error=*`'
-      operationId: searchSiteWebhooksDeliveries
+
+        Topics Supported:
+
+        - alarms
+
+        - audits
+
+        - device-updowns
+
+        - occupancy-alerts
+
+        - ping'
+      operationId: countSiteWebhooksDeliveries
       parameters:
-      - in: query
-        name: status_code
-        schema:
-          type: integer
       - in: query
         name: error
         schema:
           type: string
+      - in: query
+        name: status_code
+        schema:
+          type: integer
+      - description: webhook delivery status
+        in: query
+        name: status
+        schema:
+          $ref: '#/components/schemas/webhook_delivery_status'
+      - description: webhook topic
+        in: query
+        name: topic
+        schema:
+          $ref: '#/components/schemas/webhook_delivery_topic'
+      - in: query
+        name: distinct
+        schema:
+          $ref: '#/components/schemas/webhook_delivery_distinct'
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/Count'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: countSiteWebhooksDeliveries
+      tags:
+      - Sites Webhooks
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/webhook_id'
+  /api/v1/sites/{site_id}/webhooks/{webhook_id}/events/search:
+    get:
+      description: 'Search Site Webhooks deliveries
+
+
+
+        Topics Supported:
+
+        - alarms
+
+        - audits
+
+        - device-updowns
+
+        - occupancy-alerts
+
+        - ping'
+      operationId: searchSiteWebhooksDeliveries
+      parameters:
+      - in: query
+        name: error
+        schema:
+          type: string
+      - in: query
+        name: status_code
+        schema:
+          type: integer
+      - description: webhook delivery status
+        in: query
+        name: status
+        schema:
+          $ref: '#/components/schemas/webhook_delivery_status'
       - description: webhook topic
         in: query
         name: topic
@@ -15957,6 +16349,8 @@ components:
       $ref: ../../components/responses/WanClientEventsSearch.yml
     WanClientsSearch:
       $ref: ../../components/responses/WanClientsSearch.yml
+    Wan_Usages:
+      $ref: ../../components/responses/Wan_Usages.yml
     Webhook:
       $ref: ../../components/responses/Webhook.yml
     WebhookDeliverySearch:
@@ -15965,6 +16359,8 @@ components:
       $ref: ../../components/responses/WebhooksArray.yml
     WebsocketSession:
       $ref: ../../components/responses/WebsocketSession.yml
+    WebsocketSessionWithUrl:
+      $ref: ../../components/responses/WebsocketSessionWithUrl.yml
     WiredClientsSearch:
       $ref: ../../components/responses/WiredClientsSearch.yml
     Wlan:
@@ -16002,6 +16398,8 @@ components:
   schemas:
     alarm_ack:
       $ref: ../../components/schemas/alarm_ack.yml
+    alarm_count_disctinct:
+      $ref: ../../components/schemas/alarm_count_disctinct.yml
     ap_import_json:
       $ref: ../../components/schemas/ap_import_json.yml
     asset:
@@ -16060,6 +16458,8 @@ components:
       $ref: ../../components/schemas/junos_evpn_topology.yml
     junos_port_config:
       $ref: ../../components/schemas/junos_port_config.yml
+    locate_switch:
+      $ref: ../../components/schemas/locate_switch.yml
     mac_addresses:
       $ref: ../../components/schemas/mac_addresses.yml
     map:
@@ -16126,6 +16526,10 @@ components:
       $ref: ../../components/schemas/upgrade_bios.yml
     upgrade_bios_multi:
       $ref: ../../components/schemas/upgrade_bios_multi.yml
+    upgrade_fpga:
+      $ref: ../../components/schemas/upgrade_fpga.yml
+    upgrade_fpga_multi:
+      $ref: ../../components/schemas/upgrade_fpga_multi.yml
     use_auto_ap_values:
       $ref: ../../components/schemas/use_auto_ap_values.yml
     utils_bounce_port:
@@ -16144,6 +16548,10 @@ components:
       $ref: ../../components/schemas/utils_devices_restart.yml
     utils_devices_restart_multi:
       $ref: ../../components/schemas/utils_devices_restart_multi.yml
+    utils_mac_table:
+      $ref: ../../components/schemas/utils_mac_table.yml
+    utils_monitor_traffic:
+      $ref: ../../components/schemas/utils_monitor_traffic.yml
     utils_ping:
       $ref: ../../components/schemas/utils_ping.yml
     utils_release_dhcp:
@@ -16160,10 +16568,10 @@ components:
       $ref: ../../components/schemas/utils_service_ping.yml
     utils_show_arp:
       $ref: ../../components/schemas/utils_show_arp.yml
+    utils_show_bgp_rummary:
+      $ref: ../../components/schemas/utils_show_bgp_rummary.yml
     utils_show_evpn_database:
       $ref: ../../components/schemas/utils_show_evpn_database.yml
-    utils_show_mac_table:
-      $ref: ../../components/schemas/utils_show_mac_table.yml
     utils_show_route:
       $ref: ../../components/schemas/utils_show_route.yml
     utils_show_service_path:
@@ -16182,10 +16590,16 @@ components:
       $ref: ../../components/schemas/virtual_chassis_port.yml
     virtual_chassis_update:
       $ref: ../../components/schemas/virtual_chassis_update.yml
+    wan_usages_count_disctinct:
+      $ref: ../../components/schemas/wan_usages_count_disctinct.yml
     wayfinding_import_json:
       $ref: ../../components/schemas/wayfinding_import_json.yml
     webhook:
       $ref: ../../components/schemas/webhook.yml
+    webhook_delivery_distinct:
+      $ref: ../../components/schemas/webhook_delivery_distinct.yml
+    webhook_delivery_status:
+      $ref: ../../components/schemas/webhook_delivery_status.yml
     webhook_delivery_topic:
       $ref: ../../components/schemas/webhook_delivery_topic.yml
     wlan:
