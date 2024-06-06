@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2405.1.4**
+  description: '> Version: **2405.1.6**
 
     >
 
-    > Date: **May 30, 2024**
+    > Date: **June 6, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2405.1.4
+  version: 2405.1.6
   x-codegen-settings:
     BrandLabel: Juniper Networks
     EnableAdditionalModelProperties: true
@@ -290,7 +290,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     post:
       description: Ack multiple Site Alarms
-      operationId: multiAckSiteAlarms
+      operationId: AckSiteMultipleAlarms
       requestBody:
         content:
           application/json:
@@ -310,7 +310,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: multiAckSiteAlarms
+      summary: AckSiteMultipleAlarms
       tags:
       - Sites Alarms
   /api/v1/sites/{site_id}/alarms/ack_all:
@@ -461,7 +461,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     post:
       description: Unack multiple Site Alarms
-      operationId: multiUnackSiteAlarms
+      operationId: unackSiteMultipleAlarms
       requestBody:
         content:
           application/json:
@@ -481,7 +481,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: multiUnackSiteAlarms
+      summary: unackSiteMultipleAlarms
       tags:
       - Sites Alarms
   /api/v1/sites/{site_id}/alarms/unack_all:
@@ -2286,7 +2286,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     post:
       description: Note that only the devices that are connected will be restarted.
-      operationId: multiRestartSiteDevices
+      operationId: restartSiteMultipleDevices
       requestBody:
         content:
           application/json:
@@ -2317,7 +2317,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: multiRestartSiteDevices
+      summary: restartSiteMultipleDevices
       tags:
       - Sites Devices
   /api/v1/sites/{site_id}/devices/search:
@@ -2517,21 +2517,12 @@ paths:
   /api/v1/sites/{site_id}/devices/upgrade:
     get:
       description: Get all upgrades for site
-      operationId: listSiteDevicesUpgrade
+      operationId: listSiteDeviceUpgrades
       parameters:
       - in: query
         name: status
         schema:
-          enum:
-          - downloading
-          - completed
-          - created
-          - downloaded
-          - upgrading
-          - cancelled
-          - failed
-          title: site_device_upgrade_status_filter
-          type: string
+          $ref: '#/components/schemas/device_upgrade_status'
       responses:
         '200':
           $ref: '#/components/responses/DeviceUpgradeArray'
@@ -2545,38 +2536,18 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: listSiteDevicesUpgrade
+      summary: listSiteDeviceUpgrades
       tags:
       - Utilities Upgrade
     parameters:
     - $ref: '#/components/parameters/site_id'
     post:
-      description: "Upgrade Multiple Device\n\n**Note**: this call doesn\u2019t guarantee\
+      description: "Upgrade Site Device\n\n**Note**: this call doesn\u2019t guarantee\
         \ the devices to be upgraded right away (they may be offline)"
-      operationId: multiUpgradeSiteDevices
+      operationId: upgradeSiteDevices
       requestBody:
         content:
           application/json:
-            examples:
-              example-1:
-                value:
-                  canary_phases:
-                  - 1
-                  - 10
-                  - 50
-                  - 100
-                  device_ids:
-                  - string
-                  enable_p2p: true
-                  force: false
-                  max_failure_percentage: 5
-                  max_failures:
-                  - 0
-                  models:
-                  - string
-                  start_time: 0
-                  strategy: big_bang
-                  version: stable
             schema:
               $ref: '#/components/schemas/device_upgrade_site_multi'
         description: Request Body
@@ -2593,13 +2564,13 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: multiUpgradeSiteDevices
+      summary: upgradeSiteDevices
       tags:
       - Utilities Upgrade
   /api/v1/sites/{site_id}/devices/upgrade/{upgrade_id}:
     get:
       description: Get Site Device Upgrade
-      operationId: getSiteUpgrade
+      operationId: getSiteSiteUpgrade
       responses:
         '200':
           $ref: '#/components/responses/DeviceUpgrade'
@@ -2613,7 +2584,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteUpgrade
+      summary: getSiteSiteUpgrade
       tags:
       - Utilities Upgrade
     parameters:
@@ -2648,7 +2619,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     post:
       description: Upgrade Bios on Multiple Device
-      operationId: upgradeSiteMultipleDevicesBios
+      operationId: upgradeSiteDevicesBios
       requestBody:
         content:
           application/json:
@@ -2667,7 +2638,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: upgradeSiteMultipleDevicesBios
+      summary: upgradeSiteDevicesBios
       tags:
       - Utilities LAN
   /api/v1/sites/{site_id}/devices/upgrade_fpga:
@@ -2675,7 +2646,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     post:
       description: Upgrade Bios on Multiple Device
-      operationId: upgradeSiteMultipleDevicesFpga
+      operationId: upgradeSiteDevicesFpga
       requestBody:
         content:
           application/json:
@@ -2694,7 +2665,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: upgradeSiteMultipleDevicesFpga
+      summary: upgradeSiteDevicesFpga
       tags:
       - Utilities LAN
   /api/v1/sites/{site_id}/devices/versions:
@@ -4398,7 +4369,7 @@ paths:
     - $ref: '#/components/parameters/device_id'
     post:
       description: Device Upgrade
-      operationId: upgradeSiteDevice
+      operationId: upgradeDevice
       requestBody:
         content:
           application/json:
@@ -4421,7 +4392,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: upgradeSiteDevice
+      summary: upgradeDevice
       tags:
       - Utilities Upgrade
   /api/v1/sites/{site_id}/devices/{device_id}/upgrade_bios:
@@ -4430,7 +4401,7 @@ paths:
     - $ref: '#/components/parameters/device_id'
     post:
       description: Upgrade device bios
-      operationId: upgradeSiteDeviceBios
+      operationId: upgradeDeviceBios
       requestBody:
         content:
           application/json:
@@ -4449,7 +4420,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: upgradeSiteDeviceBios
+      summary: upgradeDeviceBios
       tags:
       - Utilities LAN
   /api/v1/sites/{site_id}/devices/{device_id}/upgrade_fpga:
@@ -4458,7 +4429,7 @@ paths:
     - $ref: '#/components/parameters/device_id'
     post:
       description: Upgrade device fpga
-      operationId: upgradeSiteDeviceFPGA
+      operationId: upgradeDeviceFPGA
       requestBody:
         content:
           application/json:
@@ -4477,7 +4448,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: upgradeSiteDeviceFPGA
+      summary: upgradeDeviceFPGA
       tags:
       - Utilities LAN
   /api/v1/sites/{site_id}/devices/{device_id}/vc:
@@ -7585,8 +7556,8 @@ paths:
       tags:
       - Sites Psks
     put:
-      description: Update multi PSKs
-      operationId: updateSitePsks
+      description: Update multiple PSKs
+      operationId: updateSiteMultiplePsks
       requestBody:
         content:
           application/json:
@@ -7605,7 +7576,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: updateSitePsks
+      summary: updateSiteMultiplePsks
       tags:
       - Sites Psks
   /api/v1/sites/{site_id}/psks/import:
@@ -10567,7 +10538,7 @@ paths:
     - $ref: '#/components/parameters/device_id'
     post:
       description: Upgrade Site SSR device
-      operationId: upgradeSiteSsr
+      operationId: upgradeSsr
       requestBody:
         content:
           application/json:
@@ -10591,7 +10562,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: upgradeSiteSsr
+      summary: upgradeSsr
       tags:
       - Utilities Upgrade
   /api/v1/sites/{site_id}/stats:
@@ -16442,6 +16413,8 @@ components:
       $ref: ../../components/schemas/device_upgrade.yml
     device_upgrade_site_multi:
       $ref: ../../components/schemas/device_upgrade_site_multi.yml
+    device_upgrade_status:
+      $ref: ../../components/schemas/device_upgrade_status.yml
     dot11_band:
       $ref: ../../components/schemas/dot11_band.yml
     gateway_cluster_form:
