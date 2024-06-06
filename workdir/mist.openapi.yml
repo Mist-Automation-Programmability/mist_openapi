@@ -8625,7 +8625,7 @@ paths:
               $ref: '#/components/schemas/device_upgrade_org_multi'
       responses:
         '200':
-          $ref: '#/components/responses/Uuid'
+          $ref: '#/components/responses/UpgradeOrgInfo'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -25695,7 +25695,7 @@ paths:
         description: Request Body
       responses:
         '200':
-          $ref: '#/components/responses/DeviceUpgrade'
+          $ref: '#/components/responses/UpgradeSiteInfo'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -25712,7 +25712,7 @@ paths:
   /api/v1/sites/{site_id}/devices/upgrade/{upgrade_id}:
     get:
       description: Get Site Device Upgrade
-      operationId: getSiteSiteUpgrade
+      operationId: getSiteDeviceUpgrade
       responses:
         '200':
           $ref: '#/components/responses/DeviceUpgrade'
@@ -25726,7 +25726,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteSiteUpgrade
+      summary: getSiteDeviceUpgrade
       tags:
       - Utilities Upgrade
     parameters:
@@ -43926,15 +43926,18 @@ components:
             example-1:
               value:
                 counts:
-                  downloaded: 0
-                  failed: 0
-                  reboot_in_progress: 0
-                  rebooted: 0
-                  total: 0
+                  downloaded:
+                  - 003e73171060
+                  failed: null
+                  reboot_in_progress: null
+                  rebooted: null
+                  total: 2
+                  upgraded:
+                  - 5c5b3550bd2e
                 enable_p2p: true
                 force: true
                 id: 473f6eca-6276-4993-bfeb-53cbbbba6f18
-                start_time: 0
+                start_time: 1717663165
                 status: created
                 strategy: big_bang
                 target_version: string
@@ -49986,18 +49989,16 @@ components:
                     status: created
                     targets:
                       download_requested:
-                      - 464f6eca-6276-4993-bfeb-53cbbbba6fa8
+                      - 5c5b3550bd2e
                       downloaded:
-                      - 463f6eca-6276-4993-bfeb-53cbbbba6fb8
-                      failed:
-                      - 462f6eca-6276-4993-bfeb-53cbbbba6fc8
-                      reboot_in_progress:
-                      - 461f6eca-6276-4993-bfeb-53cbbbba6fd8
-                      rebooted:
-                      - 460f6eca-6276-4993-bfeb-53cbbbba6fe8
-                      skipped:
-                      - 459f6eca-6276-4993-bfeb-53cbbbba6ff8
+                      - 003e7316ff9e
+                      failed: null
+                      reboot_in_progress: null
+                      rebooted: null
+                      skipped: null
                       total: 1
+                      upgraded:
+                      - 003e73171060
           schema:
             $ref: '#/components/schemas/org_device_upgrade_info'
       description: OK
@@ -54261,10 +54262,32 @@ components:
             example-1:
               value:
                 status: inprogress
-                status_id: 5
                 timestamp: 1428949501
           schema:
             $ref: '#/components/schemas/upgrade_info'
+      description: OK
+    UpgradeOrgInfo:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                force: false
+                site_ids:
+                - af3b0a4f-ed1a-42e0-98dd-40cca1a2cc00
+                version: 0.14.29313
+          schema:
+            $ref: '#/components/schemas/upgrade_org_info'
+      description: OK
+    UpgradeSiteInfo:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                upgrade_id: 4316c116-0acb-4c43-8f06-6723154e741e
+          schema:
+            $ref: '#/components/schemas/upgrade_site_info'
       description: OK
     UserMac:
       content:
@@ -80330,16 +80353,12 @@ components:
       properties:
         status:
           $ref: '#/components/schemas/upgrade_info_status'
-        status_id:
-          description: the internal status id
-          type: integer
         timestamp:
           description: timestamp
           type: number
       required:
       - timestamp
       - status
-      - status_id
       type: object
     upgrade_info_status:
       enum:
@@ -80349,6 +80368,30 @@ components:
       - error
       - scheduled
       type: string
+    upgrade_org_info:
+      properties:
+        site_ids:
+          enable_p2p:
+            type: boolean
+          force:
+            type: boolean
+          items:
+            example: 4316c116-0acb-4c43-8f06-6723154e741e
+            format: uuid
+            type: string
+          type: array
+          version:
+            type: string
+      type: object
+    upgrade_site_info:
+      properties:
+        upgrade_id:
+          example: 4316c116-0acb-4c43-8f06-6723154e741e
+          format: uuid
+          type: string
+      required:
+      - upgrade_id
+      type: object
     use_auto_ap_values:
       properties:
         accept:
