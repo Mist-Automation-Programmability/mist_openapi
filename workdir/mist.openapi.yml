@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2405.1.6**
+  description: '> Version: **2405.1.7**
 
     >
 
-    > Date: **June 6, 2024**
+    > Date: **June 13, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2405.1.6
+  version: 2405.1.7
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -3457,48 +3457,6 @@ paths:
       summary: updateOrg
       tags:
       - Orgs
-  /api/v1/orgs/{org_id}//events/search:
-    get:
-      description: 'Search Org events
-
-
-
-        Supported Event Types:
-
-        - CRADLEPOINT_SYNC_FAILED
-
-        - ORG_CA_CERT_ADDED
-
-        - ORG_CA_CERT_REGENERATED'
-      operationId: searchOrgEvents
-      parameters:
-      - description: event type
-        in: query
-        name: type
-        schema:
-          type: string
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/limit'
-      responses:
-        '200':
-          $ref: '#/components/responses/OrgEventsSearch'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: searchOrgEvents
-      tags:
-      - Orgs
-    parameters:
-    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/128routers/register_cmd:
     get:
       description: 128T devices can be managed/adopted by Mist.
@@ -8662,6 +8620,48 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/upgrade_id'
+  /api/v1/orgs/{org_id}/events/search:
+    get:
+      description: 'Search Org events
+
+
+
+        Supported Event Types:
+
+        - CRADLEPOINT_SYNC_FAILED
+
+        - ORG_CA_CERT_ADDED
+
+        - ORG_CA_CERT_REGENERATED'
+      operationId: searchOrgEvents
+      parameters:
+      - description: event type
+        in: query
+        name: type
+        schema:
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/OrgEventsSearch'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: searchOrgEvents
+      tags:
+      - Orgs
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/evpn_topologies:
     get:
       description: Get List of the existing Org EVPN topologies
@@ -31287,7 +31287,7 @@ paths:
       - Sites RRM
     parameters:
     - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/rrm/neighbors//band/{band}:
+  /api/v1/sites/{site_id}/rrm/neighbors/band/{band}:
     get:
       description: Get Current RRM observed neighbors
       operationId: getSiteCurrentRrmNeighbors
@@ -54321,16 +54321,6 @@ components:
           schema:
             $ref: '#/components/schemas/user_mac_list'
       description: OK
-    Uuid:
-      content:
-        application/json:
-          examples:
-            example-1:
-              value:
-                id: 470f6eca-6276-4993-bfeb-53cbbbba6f48
-          schema:
-            $ref: '#/components/schemas/uuid'
-      description: OK
     VBeacon:
       content:
         application/json:
@@ -56702,7 +56692,7 @@ components:
         type:
           $ref: '#/components/schemas/ip_type'
         type6:
-          $ref: '#/components/schemas/ip_type'
+          $ref: '#/components/schemas/ip_type6'
         vlan_id:
           default: 1
           description: management vlan id, default is 1 (untagged)
@@ -63479,6 +63469,31 @@ components:
           title: gateway_path_strategy
           type: string
       type: object
+    gateway_template_probe_type:
+      default: icmp
+      enum:
+      - icmp
+      - http
+      title: gateway_template_probe_type
+      type: string
+    gateway_template_tunnel_auto_provision_node:
+      properties:
+        num_hosts:
+          type: string
+        wan_names:
+          description: optional, only needed if `vars_only`==`false`
+          items:
+            example: wan0
+            type: string
+          type: array
+    gateway_template_tunnel_auto_provision_region:
+      default: auto
+      enum:
+      - auto
+      - EMEA
+      - Americas
+      - APAC
+      type: string
     gateway_template_tunnel_configs:
       properties:
         auto_provision:
@@ -63488,38 +63503,11 @@ components:
             latlng:
               $ref: '#/components/schemas/lat_lng'
             primary:
-              properties:
-                num_hosts:
-                  type: string
-                wan_names:
-                  description: optional, only needed if `vars_only`==`false`
-                  items:
-                    example: wan0
-                    type: string
-                  type: array
-              title: gateway_template_tunnel_auto_provision_primary
-              type: object
+              $ref: '#/components/schemas/gateway_template_tunnel_auto_provision_node'
             region:
-              default: auto
-              enum:
-              - auto
-              - EMEA
-              - Americas
-              - APAC
-              title: gateway_template_tunnel_auto_provision_region
-              type: string
+              $ref: '#/components/schemas/gateway_template_tunnel_auto_provision_region'
             secondary:
-              properties:
-                num_hosts:
-                  type: string
-                wan_names:
-                  description: optional, only needed if `vars_only`==`false`
-                  items:
-                    example: wan0
-                    type: string
-                  type: array
-              title: gateway_template_tunnel_auto_provision_secondary
-              type: object
+              $ref: '#/components/schemas/gateway_template_tunnel_auto_provision_node'
           type: object
         ike_lifetime:
           description: 'Only if:
@@ -63527,55 +63515,17 @@ components:
             * `provider`== `custom-ipsec`'
           type: integer
         ike_mode:
-          default: main
-          description: 'Only if:
-
-            * `provider`== `custom-ipsec`'
-          enum:
-          - main
-          - aggressive
-          title: gateway_template_tunnel_ike_mode
-          type: string
+          $ref: '#/components/schemas/gateway_template_tunnel_ike_mode'
         ike_proposals:
           description: if `provider`== `custom-ipsec`
           items:
             properties:
               auth_algo:
-                enum:
-                - sha1
-                - sha2
-                - md5
-                title: gateway_template_tunnel_ike_auth_algo
-                type: string
+                $ref: '#/components/schemas/gateway_template_tunnel_configs_auth_algo'
               dh_group:
-                default: '14'
-                description: "* 1 \n* 2 (1024-bit) \n* 5\n* 14 (default, 2048-bit)\n\
-                  * 15 (3072-bit) \n* 16 (4096-bit)\n* 19 (256-bit ECP)\n* 20 (384-bit\
-                  \ ECP)\n* 21 (521-bit ECP) \n* 24 (2048-bit ECP)"
-                enum:
-                - '1'
-                - '2'
-                - '5'
-                - '14'
-                - '15'
-                - '16'
-                - '19'
-                - '20'
-                - '21'
-                - '24'
-                title: gateway_template_tunnel_ike_dh_group
-                type: string
+                $ref: '#/components/schemas/gateway_template_tunnel_ike_dh_group'
               enc_algo:
-                default: aes256
-                enum:
-                - aes256
-                - 3des
-                - aes128
-                - aes_gcm256
-                - aes_gcm128
-                nullable: true
-                title: gateway_template_tunnel_ike_enc_algo
-                type: string
+                $ref: '#/components/schemas/gateway_template_tunnel_configs_enc_algo'
             title: gateway_template_tunnel_ike_proposal
             type: object
           type: array
@@ -63587,46 +63537,7 @@ components:
 
             * `provider`== `custom-ipsec`'
           items:
-            properties:
-              auth_algo:
-                enum:
-                - sha1
-                - sha2
-                - md5
-                title: gateway_template_tunnel_ipsec_auth_algo
-                type: string
-              dh_group:
-                default: '14'
-                description: "Only if:\n* `provider`== `custom-ipsec`\nValues:\n*\
-                  \ 1 \n* 2 (1024-bit) \n* 5\n* 14 (default, 2048-bit) \n* 15 (3072-bit)\
-                  \ \n* 16 (4096-bit)\n* 19 (256-bit ECP)\n* 20 (384-bit ECP)\n* 21\
-                  \ (521-bit ECP) \n* 24 (2048-bit ECP)"
-                enum:
-                - '1'
-                - '2'
-                - '5'
-                - '14'
-                - '15'
-                - '16'
-                - '19'
-                - '20'
-                - '21'
-                - '24'
-                title: gateway_template_tunnel_ipsec_dh_group
-                type: string
-              enc_algo:
-                default: aes256
-                enum:
-                - aes256
-                - 3des
-                - aes128
-                - aes_gcm128
-                - aes_gcm256
-                nullable: true
-                title: gateway_template_tunnel_ipsec_enc_algo
-                type: string
-            title: gateway_template_tunnel_ipsec_proposal
-            type: object
+            $ref: '#/components/schemas/gateway_template_tunnel_ipsec_proposal'
           type: array
         local_id:
           description: 'Only if:
@@ -63638,81 +63549,15 @@ components:
             * `provider`== `custom-ipsec`'
           type: string
         mode:
-          default: active-standby
-          enum:
-          - active-standby
-          - active-active
-          title: gateway_template_tunnel_mode
-          type: string
+          $ref: '#/components/schemas/gateway_template_tunnel_mode'
         primary:
-          properties:
-            hosts:
-              items:
-                description: IP Address of the remote host
-                type: string
-              type: array
-            internal_ips:
-              description: "Only if:\n* `provider`== `zscaler-gre` \n* `provider`==\
-                \ `custom-gre`"
-              items:
-                type: string
-              type: array
-            probe_ips:
-              $ref: '#/components/schemas/string_list'
-            remote_ids:
-              description: 'Only if:
-
-                * `provider`== `custom-ipsec`'
-              items:
-                type: string
-              type: array
-            wan_names:
-              items:
-                type: string
-              type: array
-          title: gateway_template_tunnel_primary
-          type: object
+          $ref: '#/components/schemas/gateway_template_tunnel_node'
         probe:
-          description: 'Only if:
-
-            * `provider`== `custom-ipsec`'
-          properties:
-            interval:
-              description: how often to trigger the probe
-              type: integer
-            threshold:
-              description: number of consecutive misses before declaring the tunnel
-                down
-              type: integer
-            timeout:
-              description: time within which to complete the connectivity check
-              type: integer
-            type:
-              default: icmp
-              enum:
-              - icmp
-              - http
-              title: gateway_template_probe_type
-              type: string
-          type: object
+          $ref: '#/components/schemas/gateway_template_tunnel_probe'
         protocol:
-          description: 'Only if:
-
-            * `provider`== `custom-ipsec`'
-          enum:
-          - ipsec
-          - gre
-          title: gateway_template_tunnel_protocol
-          type: string
+          $ref: '#/components/schemas/gateway_template_tunnel_protocol'
         provider:
-          enum:
-          - zscaler-ipsec
-          - zscaler-gre
-          - customer-gre
-          - jse-ipsec
-          - custom-ipsec
-          title: gateway_template_tunnel_provider
-          type: string
+          $ref: '#/components/schemas/gateway_template_tunnel_provider_name'
         psk:
           description: 'Only if:
 
@@ -63723,40 +63568,137 @@ components:
             * `provider`== `custom-ipsec`'
           type: string
         secondary:
-          properties:
-            hosts:
-              items:
-                description: IP Address of the remote host
-                type: string
-              type: array
-            internal_ips:
-              description: 'Only if:
-
-                * `provider`== `custom-ipsec`'
-              items:
-                type: string
-              type: array
-            probe_ips:
-              $ref: '#/components/schemas/string_list'
-            remote_ids:
-              description: "Only if: \n* `provider`== `custom-ipsec`"
-              items:
-                type: string
-              type: array
-            wan_names:
-              $ref: '#/components/schemas/string_list'
-          title: gateway_template_tunnel_secondary
-          type: object
+          $ref: '#/components/schemas/gateway_template_tunnel_node'
         version:
-          default: '2'
-          description: "Only if:\n* `provider`== `custom-gre` \n* `provider`== `custom-ipsec`"
-          enum:
-          - '1'
-          - '2'
-          title: gateway_template_tunnel_version
-          type: string
-      title: gateway_template_tunnel_configs
+          $ref: '#/components/schemas/gateway_template_tunnel_version'
       type: object
+    gateway_template_tunnel_configs_auth_algo:
+      enum:
+      - sha1
+      - sha2
+      - md5
+      type: string
+    gateway_template_tunnel_configs_dh_group:
+      default: '14'
+      description: "Only if:\n* `provider`== `custom-ipsec`\nValues:\n* 1 \n* 2 (1024-bit)\
+        \ \n* 5\n* 14 (default, 2048-bit) \n* 15 (3072-bit) \n* 16 (4096-bit)\n* 19\
+        \ (256-bit ECP)\n* 20 (384-bit ECP)\n* 21 (521-bit ECP) \n* 24 (2048-bit ECP)"
+      enum:
+      - '1'
+      - '2'
+      - '5'
+      - '14'
+      - '15'
+      - '16'
+      - '19'
+      - '20'
+      - '21'
+      - '24'
+      type: string
+    gateway_template_tunnel_configs_enc_algo:
+      default: aes256
+      enum:
+      - aes256
+      - 3des
+      - aes128
+      - aes_gcm256
+      - aes_gcm128
+      nullable: true
+      type: string
+    gateway_template_tunnel_ike_dh_group:
+      default: '14'
+      description: "* 1 \n* 2 (1024-bit) \n* 5\n* 14 (default, 2048-bit)\n* 15 (3072-bit)\
+        \ \n* 16 (4096-bit)\n* 19 (256-bit ECP)\n* 20 (384-bit ECP)\n* 21 (521-bit\
+        \ ECP) \n* 24 (2048-bit ECP)"
+      enum:
+      - '1'
+      - '2'
+      - '5'
+      - '14'
+      - '15'
+      - '16'
+      - '19'
+      - '20'
+      - '21'
+      - '24'
+      title: gateway_template_tunnel_ike_dh_group
+      type: string
+    gateway_template_tunnel_ike_mode:
+      default: main
+      description: 'Only if:
+
+        * `provider`== `custom-ipsec`'
+      enum:
+      - main
+      - aggressive
+      type: string
+    gateway_template_tunnel_ipsec_proposal:
+      properties:
+        auth_algo:
+          $ref: '#/components/schemas/gateway_template_tunnel_configs_auth_algo'
+        dh_group:
+          $ref: '#/components/schemas/gateway_template_tunnel_configs_dh_group'
+        enc_algo:
+          $ref: '#/components/schemas/gateway_template_tunnel_configs_enc_algo'
+      type: object
+    gateway_template_tunnel_mode:
+      default: active-standby
+      enum:
+      - active-standby
+      - active-active
+      type: string
+    gateway_template_tunnel_node:
+      properties:
+        hosts:
+          items:
+            description: IP Address of the remote host
+            type: string
+          type: array
+        internal_ips:
+          description: "Only if:\n* `provider`== `zscaler-gre` \n* `provider`== `custom-gre`"
+          items:
+            type: string
+          type: array
+        probe_ips:
+          $ref: '#/components/schemas/string_list'
+        remote_ids:
+          description: 'Only if:
+
+            * `provider`== `custom-ipsec`'
+          items:
+            type: string
+          type: array
+        wan_names:
+          items:
+            type: string
+          type: array
+      type: object
+    gateway_template_tunnel_probe:
+      description: 'Only if:
+
+        * `provider`== `custom-ipsec`'
+      properties:
+        interval:
+          description: how often to trigger the probe
+          type: integer
+        threshold:
+          description: number of consecutive misses before declaring the tunnel down
+          type: integer
+        timeout:
+          description: time within which to complete the connectivity check
+          type: integer
+        type:
+          $ref: '#/components/schemas/gateway_template_probe_type'
+      type: object
+    gateway_template_tunnel_protocol:
+      description: 'Only if:
+
+        * `provider`== `custom-ipsec`'
+      enum:
+      - ipsec
+      - gre
+      title: gateway_template_tunnel_protocol
+      type: string
     gateway_template_tunnel_provider:
       properties:
         jse:
@@ -63858,6 +63800,22 @@ components:
               type: boolean
           type: object
       type: object
+    gateway_template_tunnel_provider_name:
+      enum:
+      - zscaler-ipsec
+      - zscaler-gre
+      - customer-gre
+      - jse-ipsec
+      - custom-ipsec
+      type: string
+    gateway_template_tunnel_version:
+      default: '2'
+      description: "Only if:\n* `provider`== `custom-gre` \n* `provider`== `custom-ipsec`"
+      enum:
+      - '1'
+      - '2'
+      title: gateway_template_tunnel_version
+      type: string
     gateway_template_type:
       default: standalone
       enum:
@@ -65298,44 +65256,6 @@ components:
           title: gateway_wan_type
           type: string
       type: object
-    junos_networks:
-      description: A network represents a network segment. It can either represent
-        a VLAN (then usually ties to a L3 subnet), optionally associate it with a
-        subnet which can later be used to create addition routes. Used for ports doing
-        `family ethernet-switching`. It can also be a pure L3-subnet that can then
-        be used against a port that with `family inet`.
-      properties:
-        dns:
-          $ref: '#/components/schemas/string_list'
-        dns_suffix:
-          $ref: '#/components/schemas/string_list'
-        gateway:
-          type: string
-        isolation:
-          default: false
-          description: 'whether to stop clients to talk to each other, default is
-            false (when enabled, a unique isolation_vlan_id is required)
-
-            NOTE: this features requires uplink device to also a be Juniper device
-            and `inter_switch_link` to be set'
-          type: boolean
-        isolation_vlan_id:
-          example: '3070'
-          type: string
-        ospf_interface_type:
-          type: string
-        subnet:
-          description: optional for pure switching, required when L3 / routing features
-            are used
-          type: string
-        vlan_id:
-          type: integer
-        zone:
-          description: used for gateway
-          type: string
-      required:
-      - vlan_id
-      type: object
     junos_oob_ip_config:
       additionalProperties:
         description: '- If HA configuration: key parameter will be nodeX (eg: node1)
@@ -65607,14 +65527,6 @@ components:
           type: string
         esilag:
           type: boolean
-        inter_switch_link:
-          default: false
-          description: 'inter_switch_link is used together with "isolation" under
-            networks
-
-            NOTE: inter_switch_link works only between Juniper device. This has to
-            be applied to both ports connected together'
-          type: boolean
         mtu:
           default: 1514
           description: media maximum transmission unit (MTU) is the largest data unit
@@ -65743,6 +65655,14 @@ components:
             if the device cannot do dot1x. default is null (i.e. not allowed)
           nullable: true
           type: string
+        inter_switch_link:
+          default: false
+          description: 'inter_switch_link is used together with "isolation" under
+            networks
+
+            NOTE: inter_switch_link works only between Juniper device. This has to
+            be applied to both ports connected together'
+          type: boolean
         mac_auth_only:
           description: only effect once `enable_mac_auth`==`true`
           type: boolean
@@ -69097,7 +69017,7 @@ components:
           type: string
         networks:
           additionalProperties:
-            $ref: '#/components/schemas/network_template_network'
+            $ref: '#/components/schemas/switch_networks'
           description: Property key is network name
           type: object
         ntp_servers:
@@ -69138,15 +69058,6 @@ components:
           type: boolean
         network:
           type: string
-      type: object
-    network_template_network:
-      properties:
-        subnet:
-          example: 192.168.1.0/24
-          type: string
-        vlan_id:
-          example: 10
-          type: integer
       type: object
     network_template_vrf_config:
       properties:
@@ -76849,7 +76760,7 @@ components:
       type: object
     site_setting_networks:
       additionalProperties:
-        $ref: '#/components/schemas/junos_networks'
+        $ref: '#/components/schemas/switch_networks'
       description: Property key is the network name
       type: object
     site_setting_ospf_areas:
@@ -78698,7 +78609,7 @@ components:
         name:
           type: string
         networks:
-          $ref: '#/components/schemas/junos_networks'
+          $ref: '#/components/schemas/switch_networks'
         notes:
           type: string
         ntp_servers:
@@ -78961,6 +78872,33 @@ components:
           type: string
         tacacs:
           $ref: '#/components/schemas/tacacs'
+    switch_networks:
+      description: A network represents a network segment. It can either represent
+        a VLAN (then usually ties to a L3 subnet), optionally associate it with a
+        subnet which can later be used to create addition routes. Used for ports doing
+        `family ethernet-switching`. It can also be a pure L3-subnet that can then
+        be used against a port that with `family inet`.
+      properties:
+        isolation:
+          default: false
+          description: 'whether to stop clients to talk to each other, default is
+            false (when enabled, a unique isolation_vlan_id is required)
+
+            NOTE: this features requires uplink device to also a be Juniper device
+            and `inter_switch_link` to be set'
+          type: boolean
+        isolation_vlan_id:
+          example: '3070'
+          type: string
+        subnet:
+          description: optional for pure switching, required when L3 / routing features
+            are used
+          type: string
+        vlan_id:
+          type: integer
+      required:
+      - vlan_id
+      type: object
     switch_port_stats:
       description: Switch port statistics
       properties:
@@ -80899,19 +80837,6 @@ components:
       required:
       - password
       type: object
-    uuid:
-      properties:
-        id:
-          format: uuid
-          readOnly: true
-          type: string
-      type: object
-    uuid_list:
-      items:
-        format: uuid
-        type: string
-      type: array
-      uniqueItems: true
     vars:
       additionalProperties:
         type: string
@@ -84605,6 +84530,11 @@ components:
           type: string
       type: object
     wlan_portal_template:
+      properties:
+        portal_template:
+          $ref: '#/components/schemas/wlan_portal_template_setting'
+      type: object
+    wlan_portal_template_setting:
       description: portal template wlan settings
       properties:
         accessCodeAlternateEmail:
