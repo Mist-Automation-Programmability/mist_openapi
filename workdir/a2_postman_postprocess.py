@@ -69,12 +69,17 @@ def create_env():
 
     for key in oas_params:
         if oas_params[key]["in"] == "path":
-            new_param = {
-                "key": oas_params[key]["name"],
-                "type": oas_params[key]["schema"]["type"],
-                "value": oas_params[key]["schema"].get("example", "")
-            }
-            post_params.append(new_param)
+            if not oas_params[key].get("schema"):
+                print(f"{key} >> No Schema")
+            elif not oas_params[key]["schema"].get("type"):
+                print(f"{key} >> No Type")
+            else:
+                new_param = {
+                    "key": oas_params[key]["name"],
+                    "type": oas_params[key]["schema"]["type"],
+                    "value": oas_params[key]["schema"].get("example", "")
+                }
+                post_params.append(new_param)
 
     display_mess("Saving Postman environment")
     try:

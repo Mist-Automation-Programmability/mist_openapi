@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2405.1.7**
+  description: '> Version: **2406.1.0**
 
     >
 
-    > Date: **June 13, 2024**
+    > Date: **June 25, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2405.1.7
+  version: 2406.1.0
   x-codegen-settings:
     BrandLabel: Juniper Networks
     EnableAdditionalModelProperties: true
@@ -109,6 +109,8 @@ servers:
   url: https://api.eu.mist.com
 - description: Mist EMEA 02
   url: https://api.gc3.mist.com
+- description: Mist EMEA 03
+  url: https://api.ac6.mist.com
 - description: Mist APAC 01
   url: https://api.ac5.mist.com
 security:
@@ -304,32 +306,20 @@ paths:
         content:
           application/json:
             examples:
-              example-2:
+              example-1:
                 value:
-                  admin_id: 919c4da0-421a-479a-918d-df80e426d3bf
-                  email: user@example.com
-                  enable_two_factor: true
+                  email: jsnow@abc.com
                   first_name: string
                   last_name: string
-                  oauth_google: true
                   privileges:
-                  - for_site: true
-                    msp_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                    msp_name: string
-                    name: string
-                    org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                    org_name: string
-                    orggroup_ids:
-                    - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  - org_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                     role: admin
                     scope: org
-                    site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                     sitegroup_ids:
                     - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-                  session_expiry: 0
-                  tags:
-                  - string
-                  two_factor_verified: true
+                  - role: admin
+                    scope: site
+                    site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
             schema:
               $ref: '#/components/schemas/admin'
         description: Request Body
@@ -363,7 +353,7 @@ paths:
                 value:
                   code: ZHT3K-H36DT-MG85D-M61AC
             schema:
-              $ref: '#/components/schemas/code'
+              $ref: '#/components/schemas/code_string'
       responses:
         '200':
           $ref: '#/components/responses/ClaimLicense'
@@ -684,12 +674,7 @@ paths:
         in: query
         name: sort
         schema:
-          enum:
-          - timestamp
-          - -timestamp
-          - site_id
-          - admin_id
-          type: string
+          $ref: '#/components/schemas/list-msp-logs-sort'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/limit'
@@ -721,14 +706,7 @@ paths:
       - in: query
         name: distinct
         schema:
-          default: admin_name
-          enum:
-          - admin_id
-          - admin_name
-          - message
-          - org_id
-          title: MSP Logs count distinct
-          type: string
+          $ref: '#/components/schemas/m-s-p-logs-count-distinct'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -778,7 +756,6 @@ paths:
             examples:
               example-1:
                 value:
-                  msp_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                   name: string
                   org_ids:
                   - b069b358-4c97-5319-1f8c-7c5ca64d6ab1
@@ -981,7 +958,7 @@ paths:
         in: query
         name: usage_types
         schema:
-          $ref: '#/components/schemas/string_list'
+          $ref: '#/components/schemas/strings'
       - $ref: '#/components/parameters/limit'
       responses:
         '200':
@@ -1078,10 +1055,7 @@ paths:
         name: type
         required: true
         schema:
-          enum:
-          - orgs
-          title: MSP Search type
-          type: string
+          $ref: '#/components/schemas/m-s-p-search-type'
       - $ref: '#/components/parameters/q'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
@@ -1468,12 +1442,7 @@ paths:
       - in: query
         name: distinct
         schema:
-          default: org_id
-          enum:
-          - org_id
-          - status
-          title: MSP Marvis Suggestions count distinct
-          type: string
+          $ref: '#/components/schemas/m-s-p-marvis-suggestions-count-distinct'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/page'
       responses:
@@ -1528,13 +1497,7 @@ paths:
       - in: query
         name: distinct
         schema:
-          default: status
-          enum:
-          - status
-          - type
-          - org_id
-          title: MSP tickets count distinct
-          type: string
+          $ref: '#/components/schemas/m-s-p-tickets-count-distinct'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -1655,8 +1618,18 @@ components:
   schemas:
     admin:
       $ref: ../../components/schemas/admin.yml
-    code:
-      $ref: ../../components/schemas/code.yml
+    code_string:
+      $ref: ../../components/schemas/code_string.yml
+    list-msp-logs-sort:
+      $ref: ../../components/schemas/list-msp-logs-sort.yml
+    m-s-p-logs-count-distinct:
+      $ref: ../../components/schemas/m-s-p-logs-count-distinct.yml
+    m-s-p-marvis-suggestions-count-distinct:
+      $ref: ../../components/schemas/m-s-p-marvis-suggestions-count-distinct.yml
+    m-s-p-search-type:
+      $ref: ../../components/schemas/m-s-p-search-type.yml
+    m-s-p-tickets-count-distinct:
+      $ref: ../../components/schemas/m-s-p-tickets-count-distinct.yml
     msp:
       $ref: ../../components/schemas/msp.yml
     msp_license_action:
@@ -1673,8 +1646,8 @@ components:
       $ref: ../../components/schemas/sso.yml
     sso_role_msp:
       $ref: ../../components/schemas/sso_role_msp.yml
-    string_list:
-      $ref: ../../components/schemas/string_list.yml
+    strings:
+      $ref: ../../components/schemas/strings.yml
   securitySchemes:
     apiToken:
       description: "Like many other API providers, it\u2019s also possible to generate\

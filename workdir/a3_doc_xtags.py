@@ -72,7 +72,7 @@ register_tags()
 data["info"]["x-logo"] = LOGO
 
 ### update links
-data_str = json.dumps(data)
+data_str = json.dumps(data, indent=4, default=str)
 LINK_RE = r"\$e/[^^/]*/"
 data_str=re.sub(LINK_RE, "/#operations/", data_str)
 data = json.loads(data_str)

@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2405.1.7**
+  description: '> Version: **2406.1.0**
 
     >
 
-    > Date: **June 13, 2024**
+    > Date: **June 25, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2405.1.7
+  version: 2406.1.0
   x-codegen-settings:
     BrandLabel: Juniper Networks
     EnableAdditionalModelProperties: true
@@ -109,6 +109,8 @@ servers:
   url: https://api.eu.mist.com
 - description: Mist EMEA 02
   url: https://api.gc3.mist.com
+- description: Mist EMEA 03
+  url: https://api.ac6.mist.com
 - description: Mist APAC 01
   url: https://api.ac5.mist.com
 security:
@@ -156,9 +158,16 @@ tags:
 paths:
   /api/v1/const/alarm_defs:
     get:
-      description: Get List of brief definitions of all the supported alarm types.
-        The example field contains an example payload as you would recieve in the
+      description: 'Get List of brief definitions of all the supported alarm types.
+        The
+
+        example field contains an example payload as you would recieve in the
+
         alarm webhook output.
+
+
+
+        HA cluster node names will be specified in the `node` field, if applicable.'
       operationId: listAlarmDefinitions
       responses:
         '200':
@@ -680,7 +689,7 @@ paths:
                 value:
                   email: test@mistsys.com
             schema:
-              $ref: '#/components/schemas/email'
+              $ref: '#/components/schemas/email_string'
         description: Request Body
       responses:
         '200':
@@ -760,7 +769,7 @@ paths:
                 value:
                   code: 4/S9tegDeLkrYg0L9pWNXV4cgMVbbr3SR9t693A2kSHzw
             schema:
-              $ref: '#/components/schemas/code'
+              $ref: '#/components/schemas/code_string'
         description: Request Body
       responses:
         '200':
@@ -790,7 +799,7 @@ paths:
                 value:
                   two_factor: '123456'
             schema:
-              $ref: '#/components/schemas/two_factor'
+              $ref: '#/components/schemas/two_factor_string'
       responses:
         '200':
           $ref: '#/components/responses/OK'
@@ -842,7 +851,7 @@ paths:
                 value:
                   device_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
             schema:
-              $ref: '#/components/schemas/device_id'
+              $ref: '#/components/schemas/device_id_string'
       responses:
         '200':
           $ref: '#/components/responses/MobileVerifySecret'
@@ -989,11 +998,7 @@ paths:
       - in: query
         name: recaptcha_flavor
         schema:
-          default: google
-          enum:
-          - google
-          - hcaptcha
-          type: string
+          $ref: '#/components/schemas/get-admin-registration-info-recaptcha-flavor'
       responses:
         '200':
           $ref: '#/components/responses/Recaptcha'
@@ -1089,10 +1094,8 @@ paths:
               example-1:
                 value:
                   email: john.smith@mycorp.net
-                  enable_two_factor: true
                   first_name: John
                   last_name: Smith
-                  password: foryoureyesonly
                   persona: security
                   phone: '14081112222'
                   phone2: '14083334444'
@@ -1146,8 +1149,6 @@ paths:
             examples:
               Example:
                 value:
-                  created_time: 1626875902
-                  last_used: 1690115110
                   name: org_token_xyz
             schema:
               $ref: '#/components/schemas/user_apitoken'
@@ -1308,7 +1309,7 @@ paths:
                 value:
                   code: 4/S9tegDeLkrYg0L9pWNXV4cgMVbbr3SR9t693A2kSHzw
             schema:
-              $ref: '#/components/schemas/code'
+              $ref: '#/components/schemas/code_string'
         description: Request Body
       responses:
         '200':
@@ -1355,11 +1356,7 @@ paths:
         in: query
         name: by
         schema:
-          default: qrcode
-          enum:
-          - qrcode
-          title: mfa_secret_type
-          type: string
+          $ref: '#/components/schemas/mfa-secret-type'
       responses:
         '200':
           $ref: '#/components/responses/TwoFactor'
@@ -1435,7 +1432,7 @@ paths:
                 value:
                   email: new@mistsys.com
             schema:
-              $ref: '#/components/schemas/email'
+              $ref: '#/components/schemas/email_string'
         description: Request Body
       responses:
         '200':
@@ -2027,6 +2024,49 @@ paths:
       summary: location
       tags:
       - Samples - Webhook
+  /webhook_example/_location_centrak_:
+    post:
+      description: 'Webhook sample for `location-centrak` topic
+
+
+        **Note**: The server host will be your own server FQDN where the Mist Cloud
+        is sending the webhook messages'
+      operationId: location_centrak
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  events:
+                  - mac: 5684dae9ac8b
+                    map_id: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+                    site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
+                    timestamp: 1461220784
+                    type: wifi
+                    wifi_beacon_extended_info:
+                    - frame_ctrl: 776
+                      payload: '............'
+                      seq_ctrl: 772
+                    x: 13.5
+                    y: 3.2
+                  topic: location-centrak
+            schema:
+              $ref: '#/components/schemas/webhook_alarms'
+        description: "**N.B.**: Fields like `aps`, `bssids`, `ssids` are event specific.\
+          \ They are relevant to this event type ( rogue-ap-detected). For a different\
+          \ event type, different fields may be sent. These don\u2019t contain all\
+          \ affected entities and are representative samples of entities (capped at\
+          \ 10). For marvis action related events, we expose `details` to include\
+          \ more event specific details.\n\nEvents specific fields for other alarm\
+          \ event type can be found with API https://api.mist.com/api/v1/const/alarm_defs,\
+          \ under \u201Cfields\u201D array of /alarm_defs response object."
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+      summary: alarms
+      tags:
+      - Samples - Webhook
   /webhook_example/_location_client_:
     post:
       description: 'Webhook sample for `location-client` topic
@@ -2315,7 +2355,6 @@ paths:
                       rssi: -75
                       ssid: mist-wifi
                       timestamp: 1592333828
-                    site_id: d761985e-49b1-4506-88e9-e0368a05c301
                   topic: sdkclient-scan-data
             schema:
               $ref: '#/components/schemas/webhook_sdkclient-scan-data'
@@ -2519,14 +2558,18 @@ components:
   schemas:
     admin:
       $ref: ../../components/schemas/admin.yml
-    code:
-      $ref: ../../components/schemas/code.yml
-    device_id:
-      $ref: ../../components/schemas/device_id.yml
-    email:
-      $ref: ../../components/schemas/email.yml
+    code_string:
+      $ref: ../../components/schemas/code_string.yml
+    device_id_string:
+      $ref: ../../components/schemas/device_id_string.yml
+    email_string:
+      $ref: ../../components/schemas/email_string.yml
+    get-admin-registration-info-recaptcha-flavor:
+      $ref: ../../components/schemas/get-admin-registration-info-recaptcha-flavor.yml
     login:
       $ref: ../../components/schemas/login.yml
+    mfa-secret-type:
+      $ref: ../../components/schemas/mfa-secret-type.yml
     new_admin:
       $ref: ../../components/schemas/new_admin.yml
     recover:
@@ -2535,10 +2578,10 @@ components:
       $ref: ../../components/schemas/test_telstra.yml
     test_twilio:
       $ref: ../../components/schemas/test_twilio.yml
-    two_factor:
-      $ref: ../../components/schemas/two_factor.yml
     two_factor_code:
       $ref: ../../components/schemas/two_factor_code.yml
+    two_factor_string:
+      $ref: ../../components/schemas/two_factor_string.yml
     user_apitoken:
       $ref: ../../components/schemas/user_apitoken.yml
     webhook_alarms:
