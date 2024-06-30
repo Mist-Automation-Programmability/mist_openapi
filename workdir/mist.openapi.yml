@@ -1797,7 +1797,8 @@ paths:
       description: Obtain Authorization URL for Login
       operationId: getOauth2AuthorizationUrlForLogin
       parameters:
-      - in: query
+      - description: callback URL
+        in: query
         name: forward
         schema:
           example: http://manage.mist.com/oauth/callback.html
@@ -1823,6 +1824,7 @@ paths:
       name: provider
       required: true
       schema:
+        description: Oauth2 provider name
         type: string
     post:
       description: Login via OAuth2
@@ -3651,11 +3653,14 @@ paths:
       description: Search Org Alarms
       operationId: searchOrgAlarms
       parameters:
-      - in: query
+      - description: site ID
+        in: query
         name: site_id
         schema:
+          format: uuid
           type: string
-      - in: query
+      - description: alarm type
+        in: query
         name: type
         schema:
           type: string
@@ -7130,15 +7135,18 @@ paths:
         name: type
         schema:
           $ref: '#/components/schemas/device_type'
-      - in: query
+      - description: Device MAC address
+        in: query
         name: mac
         schema:
           type: string
-      - in: query
+      - description: Devices Name
+        in: query
         name: name
         schema:
           type: string
-      - in: query
+      - description: Device Version
+        in: query
         name: version
         schema:
           type: string
@@ -8237,16 +8245,19 @@ paths:
       description: Search Authorized Guest
       operationId: searchOrgGuestAuthorization
       parameters:
-      - example: 00000000-0000-0000-0000-000000000000
+      - description: WLAN ID
+        example: 00000000-0000-0000-0000-000000000000
         in: query
         name: wlan_id
         schema:
           type: string
-      - in: query
+      - description: Authentication Methdo
+        in: query
         name: auth_method
         schema:
           type: string
-      - in: query
+      - description: SSID
+        in: query
         name: ssid
         schema:
           type: string
@@ -8602,17 +8613,22 @@ paths:
         name: site_id
         schema:
           type: string
-      - in: query
+      - description: Virtual Chassis MAC Address
+        in: query
         name: vc_mac
         schema:
           type: string
-      - in: query
+      - description: To display Virtual Chassis members
+        in: query
         name: vc
         schema:
-          type: string
-      - in: query
+          default: false
+          type: boolean
+      - description: to display Unassigned devices
+        in: query
         name: unassigned
         schema:
+          default: true
           type: boolean
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/page'
@@ -8970,15 +8986,18 @@ paths:
       parameters:
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/page'
-      - in: query
+      - description: Device model
+        in: query
         name: model
         schema:
           type: string
-      - in: query
+      - description: Device serial
+        in: query
         name: serial
         schema:
           type: string
-      - in: query
+      - description: Device MAC Address
+        in: query
         name: mac
         schema:
           type: string
@@ -29196,10 +29215,6 @@ paths:
                           - 1
                           - 10
                           - 50
-                  auto_preemption:
-                    day_of_week: any
-                    enabled: false
-                    time_of_day: any
                   auto_upgrade:
                     custom_versions:
                       AP21: stable
@@ -47012,10 +47027,6 @@ components:
                   orientation: 45
                   x: 30
                   y: 60
-                auto_preemption:
-                  day_of_week: any
-                  enabled: false
-                  time_of_day: '12:00'
                 auto_upgrade:
                   custom_versions:
                     AP21: stable
@@ -59118,6 +59129,7 @@ components:
           type: number
         deviceprofile_id:
           format: uuid
+          readOnly: true
           type: string
         dhcpd_config:
           $ref: '#/components/schemas/dhcpd_configs'
@@ -60277,9 +60289,9 @@ components:
       type: array
     idp_profile_matching_severity:
       items:
-        $ref: '#/components/schemas/idp_profile_matching_severity1'
+        $ref: '#/components/schemas/idp_profile_matching_severity_value'
       type: array
-    idp_profile_matching_severity1:
+    idp_profile_matching_severity_value:
       enum:
       - critical
       - major
@@ -72211,7 +72223,7 @@ components:
         ap_subnets:
           $ref: '#/components/schemas/site_mxtunnel_ap_subnets'
         auto_preemption:
-          $ref: '#/components/schemas/site_mxtunnel_auto_preemption'
+          $ref: '#/components/schemas/auto_preemption'
         clusters:
           $ref: '#/components/schemas/site_mxtunnel_clusters'
         created_time:
@@ -72255,13 +72267,13 @@ components:
         org_id:
           $ref: '#/components/schemas/org_id'
         protocol:
-          $ref: '#/components/schemas/site_mxtunnel_protocol'
+          $ref: '#/components/schemas/mxtunnel_protocol'
         radsec:
           $ref: '#/components/schemas/site_mxtunnel_radsec'
         site_id:
           $ref: '#/components/schemas/site_id'
         vlan_ids:
-          $ref: '#/components/schemas/site_mxtunnel_vlan_ids'
+          $ref: '#/components/schemas/mxtunnel_vlan_ids'
       type: object
     site_mxtunnel_additional_mxtunnel:
       properties:
@@ -72309,17 +72321,6 @@ components:
         example: 0.0.0.0/0
         type: string
       type: array
-    site_mxtunnel_auto_preemption:
-      properties:
-        day_of_week:
-          $ref: '#/components/schemas/day_of_week'
-        enabled:
-          default: false
-          type: boolean
-        time_of_day:
-          example: '12:00'
-          type: string
-      type: object
     site_mxtunnel_cluster:
       properties:
         name:
@@ -72376,16 +72377,6 @@ components:
       anyOf:
       - type: integer
       - type: string
-    site_mxtunnel_vlan_ids:
-      description: list of vlan_ids that will be use
-      example:
-      - 3
-      - 5
-      - 6
-      - 7-9
-      items:
-        $ref: '#/components/schemas/site_mxtunnel_vlan_id'
-      type: array
     site_nac_client_events_count_distinct:
       enum:
       - type
@@ -72555,8 +72546,6 @@ components:
           type: integer
         auto_placement:
           $ref: '#/components/schemas/site_setting_auto_placement'
-        auto_preemption:
-          $ref: '#/components/schemas/auto_preemption'
         auto_upgrade:
           $ref: '#/components/schemas/site_auto_upgrade'
         blacklist_url:
@@ -73701,11 +73690,11 @@ components:
       type: object
     sle_impact_summary_band:
       items:
-        $ref: '#/components/schemas/sle_impact_summary_band1'
+        $ref: '#/components/schemas/sle_impact_summary_band_item'
       minItems: 1
       type: array
       uniqueItems: true
-    sle_impact_summary_band1:
+    sle_impact_summary_band_item:
       properties:
         band:
           minLength: 1
@@ -73725,13 +73714,14 @@ components:
       - duration
       - degraded
       - total
+      type: object
     sle_impact_summary_device_os:
       items:
-        $ref: '#/components/schemas/sle_impact_summary_device_os1'
+        $ref: '#/components/schemas/sle_impact_summary_device_os_item'
       minItems: 1
       type: array
       uniqueItems: true
-    sle_impact_summary_device_os1:
+    sle_impact_summary_device_os_item:
       properties:
         degraded:
           type: number
@@ -73750,6 +73740,7 @@ components:
       - duration
       - degraded
       - total
+      type: object
     sle_impact_summary_device_type:
       items:
         $ref: '#/components/schemas/sle_impact_summary_device_type_item'
@@ -75582,6 +75573,7 @@ components:
           type: number
         deviceprofile_id:
           format: uuid
+          readOnly: true
           type: string
         dhcp_config:
           $ref: '#/components/schemas/dhcpd_configs'
@@ -77797,7 +77789,7 @@ components:
       description: count of devices which have upgraded successfully
       items:
         type: string
-      type: object
+      type: array
     upgrade_org_device_upgrade:
       properties:
         id:
@@ -80255,26 +80247,7 @@ components:
           default: wifi
           type: string
         wifi_beacon_extended_info:
-          description: optional, list of extended beacon info packets heard from the
-            client, frame and sequence control included with the payload
-          items:
-            properties:
-              frame_ctrl:
-                description: subfield of `wifi_beacon_extended_info`. frame control
-                  field of 802.11 header
-                example: 776
-                type: integer
-              payload:
-                description: subfield of `wifi_beacon_extended_info`. Extended Info
-                  Payload associated with frame
-                type: string
-              seq_ctrl:
-                description: subfield of `wifi_beacon_extended_info`. sequence control
-                  field of 802.11 header
-                example: 776
-                type: integer
-            type: object
-          type: array
+          $ref: '#/components/schemas/webhook_location_event_wifi_beacon_extended_info'
         x:
           description: x, in meter
           example: 13.5
@@ -80459,26 +80432,7 @@ components:
           default: wifi
           type: string
         wifi_beacon_extended_info:
-          description: optional, list of extended beacon info packets heard from the
-            client, frame and sequence control included with the payload
-          items:
-            properties:
-              frame_ctrl:
-                description: subfield of `wifi_beacon_extended_info`. frame control
-                  field of 802.11 header
-                example: 776
-                type: integer
-              payload:
-                description: subfield of `wifi_beacon_extended_info`. Extended Info
-                  Payload associated with frame
-                type: string
-              seq_ctrl:
-                description: subfield of `wifi_beacon_extended_info`. sequence control
-                  field of 802.11 header
-                example: 776
-                type: integer
-            type: object
-          type: array
+          $ref: '#/components/schemas/webhook_location_event_wifi_beacon_extended_info'
         x:
           description: x, in meter
           example: 13.5
