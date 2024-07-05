@@ -59159,7 +59159,7 @@ components:
         ntp_servers:
           $ref: '#/components/schemas/strings'
         oob_ip_config:
-          $ref: '#/components/schemas/junos_oob_ip_configs'
+          $ref: '#/components/schemas/gateway_oob_ip_config'
         org_id:
           $ref: '#/components/schemas/org_id'
         port_config:
@@ -59342,6 +59342,56 @@ components:
       properties:
         vlan_id:
           type: integer
+      type: object
+    gateway_oob_ip_config:
+      description: out-of-band (vme/em0/fxp0) IP config
+      properties:
+        ip:
+          type: string
+        netmask:
+          description: used only if `subnet` is not specified in `networks`
+          type: string
+        network:
+          description: optional, the network to be used for mgmt
+          type: string
+        node1:
+          $ref: '#/components/schemas/gateway_oob_ip_config_node1'
+        type:
+          $ref: '#/components/schemas/ip_config_type'
+        use_mgmt_vrf:
+          default: false
+          description: f supported on the platform. If enabled, DNS will be using
+            this routing-instance, too
+          type: boolean
+        use_mgmt_vrf_for_host_out:
+          default: false
+          description: for host-out traffic (NTP/TACPLUS/RADIUS/SYSLOG/SNMP), if alternative
+            source network/ip is desired,
+          type: boolean
+      type: object
+    gateway_oob_ip_config_node1:
+      description: for HA Cluster, node1 can have different IP Config
+      properties:
+        ip:
+          type: string
+        netmask:
+          description: used only if `subnet` is not specified in `networks`
+          type: string
+        network:
+          description: optional, the network to be used for mgmt
+          type: string
+        type:
+          $ref: '#/components/schemas/ip_config_type'
+        use_mgmt_vrf:
+          default: false
+          description: if supported on the platform. If enabled, DNS will be using
+            this routing-instance, too
+          type: boolean
+        use_mgmt_vrf_for_host_out:
+          default: false
+          description: whether to use `mgmt_junos` for host-out traffic (NTP/TACPLUS/RADIUS/SYSLOG/SNMP),
+            if alternative source network/ip is desired
+          type: boolean
       type: object
     gateway_path_strategy:
       default: ordered
@@ -59798,7 +59848,7 @@ components:
         ntp_servers:
           $ref: '#/components/schemas/ntp__servers'
         oob_ip_config:
-          $ref: '#/components/schemas/junos_oob_ip_configs'
+          $ref: '#/components/schemas/gateway_oob_ip_config'
         org_id:
           $ref: '#/components/schemas/org_id'
         path_preferences:
@@ -60889,101 +60939,14 @@ components:
           type: string
         type:
           $ref: '#/components/schemas/ip_config_type'
-        use_mgmt_vrf:
-          default: false
-          description: for host-out traffic (NTP/TACPLUS/RADIUS/SYSLOG/SNMP)
-          type: boolean
       type: object
-    junos_oob_ip_config:
-      description: '- If HA configuration: key parameter will be nodeX (eg: node1)
-
-        - If there are 2 routing engines, re1 mgmt IP has to be set separately (if
-        desired): key parameter = `re1`'
-      properties:
-        ip:
-          type: string
-        netmask:
-          description: used only if `subnet` is not specified in `networks`
-          type: string
-        network:
-          description: optional, the network to be used for mgmt
-          type: string
-        type:
-          $ref: '#/components/schemas/ip_config_type'
-      type: object
-    junos_oob_ip_config_node_1:
-      description: for HA Cluster, node1 can have different IP Config
-      properties:
-        ip:
-          type: string
-        netmask:
-          description: used only if `subnet` is not specified in `networks`
-          type: string
-        network:
-          description: optional, the network to be used for mgmt
-          type: string
-        type:
-          $ref: '#/components/schemas/ip_config_type'
-        use_mgmt_vrf:
-          default: false
-          description: if supported on the platform. If enabled, DNS will be using
-            this routing-instance, too
-          type: boolean
-        use_mgmt_vrf_for_host_out:
-          default: false
-          description: whether to use `mgmt_junos` for host-out traffic (NTP/TACPLUS/RADIUS/SYSLOG/SNMP),
-            if alternative source network/ip is desired
-          type: boolean
-        vlan_id:
-          description: optional, if different from parent
-          type: integer
-      type: object
-    junos_oob_ip_configs:
-      additionalProperties:
-        $ref: '#/components/schemas/junos_oob_ip_config'
-      description: Junos out-of_band (vme/em0/fxp0) IP config
-      properties:
-        dns:
-          $ref: '#/components/schemas/strings'
-        dns_suffix:
-          $ref: '#/components/schemas/strings'
-        gateway:
-          type: string
-        ip:
-          type: string
-        netmask:
-          description: used only if `subnet` is not specified in `networks`
-          type: string
-        network:
-          description: optional, the network to be used for mgmt
-          type: string
-        node1:
-          $ref: '#/components/schemas/junos_oob_ip_config_node_1'
-        type:
-          $ref: '#/components/schemas/ip_config_type'
-        use_mgmt_vrf:
-          default: true
-          description: if supported on the platform. If enabled, DNS will be using
-            this routing-instance, too
-          type: boolean
-        use_mgmt_vrf_for_host_out:
-          default: false
-          description: whether to use `mgmt_junos` for host-out traffic (NTP/TACPLUS/RADIUS/SYSLOG/SNMP),
-            if alternative source network/ip is desired
-          type: boolean
-        vlan_id:
-          type: integer
-      type: object
-    junos_other_ip_configs:
+    junos_other_ip_config:
       description: optional, if it's required to have switch's L3 presense on a network/vlan
       properties:
         evpn_anycast:
           default: false
           description: for EVPN, if anycast is desired
           type: boolean
-        gateway6:
-          example: fdad:b0bc:f29e::1
-          type: string
         ip:
           description: required if `type`==`static`
           example: 10.3.3.1
@@ -65739,7 +65702,7 @@ components:
       properties:
         areas:
           additionalProperties:
-            $ref: '#/components/schemas/ospf_config_areas_additional_properties'
+            $ref: '#/components/schemas/ospf_config_area'
           description: OSPF areas to run on this device and the corresponding per-area-specific
             configs. Property key is the area
           type: object
@@ -65751,7 +65714,7 @@ components:
           description: Bandwidth for calculating metric defaults (9600..4000000000000)
           type: string
       type: object
-    ospf_config_areas_additional_properties:
+    ospf_config_area:
       properties:
         no_summary:
           description: for a stub/nssa area, where to avoid forwarding type-3 LSA
@@ -75771,14 +75734,14 @@ components:
         ntp_servers:
           $ref: '#/components/schemas/ntp__servers'
         oob_ip_config:
-          $ref: '#/components/schemas/junos_oob_ip_configs'
+          $ref: '#/components/schemas/switch_oob_ip_config'
         org_id:
           $ref: '#/components/schemas/org_id'
         ospf_config:
           $ref: '#/components/schemas/ospf_config'
         other_ip_configs:
           additionalProperties:
-            $ref: '#/components/schemas/junos_other_ip_configs'
+            $ref: '#/components/schemas/junos_other_ip_config'
           description: Property key is the network name
           type: object
         port_config:
@@ -75795,7 +75758,7 @@ components:
         remote_syslog:
           $ref: '#/components/schemas/remote_syslog'
         role:
-          $ref: '#/components/schemas/switch_role'
+          type: string
         router_id:
           description: used for OSPF / BGP / EVPN
           example: 10.2.1.10
@@ -75966,6 +75929,33 @@ components:
       additionalProperties:
         $ref: '#/components/schemas/switch_network'
       description: Property key is network name
+      type: object
+    switch_oob_ip_config:
+      description: '- If HA configuration: key parameter will be nodeX (eg: node1)
+
+        - If there are 2 routing engines, re1 mgmt IP has to be set separately (if
+        desired): key parameter = `re1`'
+      properties:
+        ip:
+          type: string
+        netmask:
+          description: used only if `subnet` is not specified in `networks`
+          type: string
+        network:
+          description: optional, the network to be used for mgmt
+          type: string
+        type:
+          $ref: '#/components/schemas/ip_config_type'
+        use_mgmt_vrf:
+          default: false
+          description: f supported on the platform. If enabled, DNS will be using
+            this routing-instance, too
+          type: boolean
+        use_mgmt_vrf_for_host_out:
+          default: false
+          description: for host-out traffic (NTP/TACPLUS/RADIUS/SYSLOG/SNMP), if alternative
+            source network/ip is desired,
+          type: boolean
       type: object
     switch_port_mirroring:
       additionalProperties:
@@ -76509,12 +76499,6 @@ components:
       additionalProperties:
         $ref: '#/components/schemas/switch_port_usage'
       type: object
-    switch_role:
-      default: access
-      enum:
-      - access
-      - aggregation
-      type: string
     switch_search:
       properties:
         ext_ip:
@@ -76716,6 +76700,8 @@ components:
           description: fpc0, same as the mac of device_id
           example: aff827549235
           type: string
+        member_id:
+          type: integer
         vc_role:
           $ref: '#/components/schemas/switch_virtual_chassis_member_vc_role'
       type: object
