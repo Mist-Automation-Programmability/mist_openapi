@@ -78,6 +78,11 @@ INFO["x-server-configuration"] = {
                 {"name": "API Host", "url": "https://api.gc3.mist.com"}
             ]
         },{
+            "name": "Mist EMEA 03",
+            "servers": [
+                {"name": "API Host", "url": "https://api.ac6.mist.com"}
+            ]
+        },{
             "name": "Mist APAC 01",
             "servers": [
                 {"name": "API Host", "url": "https://api.ac5.mist.com"}
