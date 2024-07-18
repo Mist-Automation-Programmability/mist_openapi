@@ -87,11 +87,6 @@ INFO["x-server-configuration"] = {
             "servers": [
                 {"name": "API Host", "url": "https://api.ac5.mist.com"}
             ]
-        },{
-            "name": "AWS Staging",
-            "servers": [
-                {"name": "API Host", "url": "https://api.mistsys.com"}
-            ]
         }
     ]
 }
