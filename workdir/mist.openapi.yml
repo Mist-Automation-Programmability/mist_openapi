@@ -53439,9 +53439,9 @@ components:
       type: array
     ap_switch_setting_port_vlan_id:
       description: native VLAN id, optional
-      oneOf:
-      - type: integer
-      - type: string
+      maximum: 4094
+      minimum: 1
+      type: integer
     ap_switch_setting_vlan_ids:
       description: list of VLAN ids this
       items:
@@ -64622,9 +64622,7 @@ components:
         tenants:
           $ref: '#/components/schemas/network_tenants'
         vlan_id:
-          oneOf:
-          - type: string
-          - type: integer
+          $ref: '#/components/schemas/vlan_id_with_variable'
         vpn_access:
           $ref: '#/components/schemas/network_vpn_access'
       required:
@@ -67359,10 +67357,7 @@ components:
         usage:
           $ref: '#/components/schemas/psk_usage'
         vlan_id:
-          description: VLAN for this PSK key
-          oneOf:
-          - type: string
-          - type: integer
+          $ref: '#/components/schemas/psk_vlan_id'
       required:
       - name
       - passphrase
@@ -67466,9 +67461,7 @@ components:
         type:
           $ref: '#/components/schemas/psk_portal_type'
         vlan_id:
-          oneOf:
-          - type: string
-          - type: integer
+          $ref: '#/components/schemas/vlan_id_with_variable'
       required:
       - name
       - ssid
@@ -67613,6 +67606,13 @@ components:
       - single
       - macs
       type: string
+    psk_vlan_id:
+      description: VLAN for this PSK key
+      oneOf:
+      - type: string
+      - maximum: 4094
+        minimum: 1
+        type: integer
     psks:
       items:
         $ref: '#/components/schemas/psk'
@@ -73722,10 +73722,7 @@ components:
           example: http://50.1.3.5:8080
           type: string
         vlan_id:
-          default: 1
-          oneOf:
-          - type: string
-          - type: integer
+          $ref: '#/components/schemas/vlan_id_with_variable'
       type: object
     site_setting_critical_url_monitoring_monitors:
       items:
@@ -76531,9 +76528,7 @@ components:
             are used
           type: string
         vlan_id:
-          oneOf:
-          - type: string
-          - type: integer
+          $ref: '#/components/schemas/vlan_id_with_variable'
       required:
       - vlan_id
       type: object
@@ -77434,13 +77429,17 @@ components:
           description: if `type`==`radius`
           type: string
         vlan_id:
-          description: required for AP
-          oneOf:
-          - type: string
-          - type: integer
+          $ref: '#/components/schemas/synthetictest_device_vlan_id'
       required:
       - type
       type: object
+    synthetictest_device_vlan_id:
+      description: required for AP
+      oneOf:
+      - type: string
+      - maximum: 4094
+        minimum: 1
+        type: integer
     synthetictest_info:
       properties:
         by:
@@ -79671,6 +79670,12 @@ components:
       - zone
       - rssizone
       type: string
+    vlan_id_with_variable:
+      oneOf:
+      - type: string
+      - maximum: 4094
+        minimum: 1
+        type: integer
     vpn:
       properties:
         created_time:
@@ -82677,7 +82682,6 @@ components:
         services:
           additionalProperties:
             $ref: '#/components/schemas/wlan_bonjour_service_properties'
-          default: {}
           description: "what services are allowed. \nProperty key is the service name"
           example:
             airplay:
@@ -82694,7 +82698,7 @@ components:
       description: additional VLAN IDs (on the LAN side or from other WLANs) should
         we be forwarding bonjour queries/responses
       items:
-        type: integer
+        $ref: '#/components/schemas/vlan_id_with_variable'
       type: array
     wlan_bonjour_service_properties:
       properties:
@@ -82881,9 +82885,7 @@ components:
           minLength: 8
           type: string
         default_vlan_id:
-          example: 999
-          nullable: true
-          type: integer
+          $ref: '#/components/schemas/vlan_id_with_variable'
         enabled:
           default: false
           type: boolean
@@ -82901,25 +82903,14 @@ components:
       type: object
     wlan_dynamic_psk_vlan_ids:
       items:
-        maximum: 4094
-        minimum: 1
-        nullable: true
-        type: integer
+        $ref: '#/components/schemas/vlan_id_with_variable'
       type: array
     wlan_dynamic_vlan:
       description: for 802.1x
       nullable: true
       properties:
         default_vlan_id:
-          default: 999
-          description: "vlan_id to use when there\u2019s no match from RADIUS"
-          example: 999
-          maximum: 4094
-          minimum: 1
-          nullable: true
-          oneOf:
-          - type: string
-          - type: integer
+          $ref: '#/components/schemas/wlan_dynamic_vlan_default_vlan_id'
         enabled:
           default: false
           description: whether to enable dynamic vlan
@@ -82941,13 +82932,20 @@ components:
             '322': fast,video
           type: object
       type: object
+    wlan_dynamic_vlan_default_vlan_id:
+      default: 999
+      description: "vlan_id to use when there\u2019s no match from RADIUS"
+      example: 999
+      maximum: 4094
+      minimum: 1
+      nullable: true
+      oneOf:
+      - type: string
+      - type: integer
     wlan_dynamic_vlan_local_vlan_ids:
       description: vlan_ids to be locally bridged
       items:
-        maximum: 4094
-        minimum: 1
-        nullable: true
-        type: integer
+        $ref: '#/components/schemas/vlan_id_with_variable'
       type: array
     wlan_dynamic_vlan_type:
       default: standard
@@ -83974,11 +83972,7 @@ components:
       - 4
       - 5
       items:
-        default: 999
-        maximum: 4094
-        minimum: 1
-        nullable: true
-        type: integer
+        $ref: '#/components/schemas/vlan_id_with_variable'
       type: array
     wlan_wxtag_ids:
       description: list of wxtag_ids
@@ -84148,11 +84142,7 @@ components:
         values:
           $ref: '#/components/schemas/wxlan_tag_values'
         vlan_id:
-          description: if `type`==`vlan_id`
-          example: 1055
-          oneOf:
-          - type: string
-          - type: integer
+          $ref: '#/components/schemas/wxlan_tag_vlan_id'
       required:
       - type
       - name
@@ -84219,6 +84209,12 @@ components:
       items:
         type: string
       type: array
+    wxlan_tag_vlan_id:
+      description: if `type`==`vlan_id`
+      example: 1055
+      oneOf:
+      - type: string
+      - type: integer
     wxlan_tags:
       items:
         $ref: '#/components/schemas/wxlan_tag'
