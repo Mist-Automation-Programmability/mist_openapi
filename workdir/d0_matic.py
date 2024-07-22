@@ -23,26 +23,26 @@ with open(SPEC_FILE_IN, "r") as f:
     PATHS = DATA.get("paths")
     COMP = DATA.get("components")
 
-INFO["x-codegen-settings"] = {
-    "BrandLabel": "Juniper Networks",
-    "EnableAdditionalModelProperties": True,
-    "GenerateEnums": False,
-    "ProjectName": "MistAPI",
-    "ReturnCompleteHttpResponse": True,
-    "SortResources": True,
-    "enableLogging": True,
-    "generateExceptions": False,
-    "generateInterfaces": True,
-    "generateModels": True,
-    "nullify404": True,
-    "shortCopyrightNotice": "Copyright \xA9 2024 Juniper Networks, Inc.  All rights reserved",
-    "useControllerPrefix": False,
-    "useEnumPostfix": True,
-    "useMethodPrefix": False,
-    "useModelPostfix": False,
-    "userAgent": "SDK 2024.2.1",
-    "userConfigurableRetries": True
-}
+# INFO["x-codegen-settings"] = {
+#     "BrandLabel": "Juniper Networks",
+#     "EnableAdditionalModelProperties": True,
+#     "GenerateEnums": False,
+#     "ProjectName": "MistAPI",
+#     "ReturnCompleteHttpResponse": True,
+#     "SortResources": True,
+#     "enableLogging": True,
+#     "generateExceptions": False,
+#     "generateInterfaces": True,
+#     "generateModels": True,
+#     "nullify404": True,
+#     "shortCopyrightNotice": "Copyright \xA9 2024 Juniper Networks, Inc.  All rights reserved",
+#     "useControllerPrefix": False,
+#     "useEnumPostfix": True,
+#     "useMethodPrefix": False,
+#     "useModelPostfix": False,
+#     "userAgent": "SDK 2024.2.1",
+#     "userConfigurableRetries": True
+# }
 INFO["x-server-configuration"] = {
     "default-environment": "Mist Global 01",
     "default-server": "API Host",
