@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2406.1.32**
+  description: '> Version: **2406.1.33**
 
     >
 
-    > Date: **July 23, 2024**
+    > Date: **July 25, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2406.1.32
+  version: 2406.1.33
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -58394,6 +58394,8 @@ components:
           $ref: '#/components/schemas/dns_suffix'
         extra_routes:
           $ref: '#/components/schemas/gateway_extra_routes'
+        extra_routes6:
+          $ref: '#/components/schemas/gateway_extra_routes6'
         for_site:
           readOnly: true
           type: boolean
@@ -58999,6 +59001,8 @@ components:
           $ref: '#/components/schemas/dns_suffix'
         extra_routes:
           $ref: '#/components/schemas/gateway_extra_routes'
+        extra_routes6:
+          $ref: '#/components/schemas/gateway_extra_routes6'
         gateway_matching:
           $ref: '#/components/schemas/gateway_matching'
         id:
@@ -60170,7 +60174,7 @@ components:
         $ref: '#/components/schemas/evpn_topology_switch'
       type: array
       uniqueItems: true
-    extra_route6_properties:
+    extra_route:
       properties:
         discard:
           default: false
@@ -60184,50 +60188,7 @@ components:
           type: integer
         next_qualified:
           additionalProperties:
-            $ref: '#/components/schemas/extra_route6_properties_next_qualified_properties'
-          example:
-            2a02:1234:200a::100:
-              metric: null
-              preference: 40
-          type: object
-        no_resolve:
-          default: false
-          type: boolean
-        preference:
-          example: 30
-          maximum: 4294967295
-          minimum: 0
-          nullable: true
-          type: integer
-        via:
-          description: next-hop IP Address
-          example: 2a02:1234:200a::100
-          type: string
-      type: object
-    extra_route6_properties_next_qualified_properties:
-      properties:
-        metric:
-          nullable: true
-          type: integer
-        preference:
-          nullable: true
-          type: integer
-      type: object
-    extra_route_properties:
-      properties:
-        discard:
-          default: false
-          description: this takes precedence
-          type: boolean
-        metric:
-          example: null
-          maximum: 4294967295
-          minimum: 0
-          nullable: true
-          type: integer
-        next_qualified:
-          additionalProperties:
-            $ref: '#/components/schemas/extra_route_properties_next_qualified_properties'
+            $ref: '#/components/schemas/extra_route_next_qualified_properties'
           example:
             10.3.1.1:
               metric: null
@@ -60247,7 +60208,50 @@ components:
           example: 10.2.1.1
           type: string
       type: object
-    extra_route_properties_next_qualified_properties:
+    extra_route6:
+      properties:
+        discard:
+          default: false
+          description: this takes precedence
+          type: boolean
+        metric:
+          example: null
+          maximum: 4294967295
+          minimum: 0
+          nullable: true
+          type: integer
+        next_qualified:
+          additionalProperties:
+            $ref: '#/components/schemas/extra_route6_next_qualified_properties'
+          example:
+            2a02:1234:200a::100:
+              metric: null
+              preference: 40
+          type: object
+        no_resolve:
+          default: false
+          type: boolean
+        preference:
+          example: 30
+          maximum: 4294967295
+          minimum: 0
+          nullable: true
+          type: integer
+        via:
+          description: next-hop IP Address
+          example: 2a02:1234:200a::100
+          type: string
+      type: object
+    extra_route6_next_qualified_properties:
+      properties:
+        metric:
+          nullable: true
+          type: integer
+        preference:
+          nullable: true
+          type: integer
+      type: object
+    extra_route_next_qualified_properties:
       properties:
         metric:
           nullable: true
@@ -60258,11 +60262,11 @@ components:
       type: object
     extra_routes:
       additionalProperties:
-        $ref: '#/components/schemas/extra_route_properties'
+        $ref: '#/components/schemas/extra_route'
       type: object
     extra_routes6:
       additionalProperties:
-        $ref: '#/components/schemas/extra_route6_properties'
+        $ref: '#/components/schemas/extra_route6'
       description: Property key is the destination CIDR (e.g. "2a02:1234:420a:10c9::/64")
       example:
         2a02:1234:420a:10c9::/64:
@@ -60352,18 +60356,28 @@ components:
           type: string
       type: object
     gateway_extra_route:
-      description: Property key is the destination CIDR (e.g. "10.0.0.0/8")
       properties:
         via:
           format: ipv4
           type: string
       type: object
+    gateway_extra_route6:
+      properties:
+        via:
+          format: ipv6
+          type: string
+      type: object
     gateway_extra_routes:
       additionalProperties:
         $ref: '#/components/schemas/gateway_extra_route'
+      description: Property key is the destination CIDR (e.g. "10.0.0.0/8")
+    gateway_extra_routes6:
+      additionalProperties:
+        $ref: '#/components/schemas/gateway_extra_route6'
+      description: Property key is the destination CIDR (e.g. "2a02:1234:420a:10c9::/64")
       example:
-        0.0.0.0/0:
-          via: 192.168.1.10
+        2a02:1234:420a:10c9::/64:
+          via: 2a02:1234:200a::100
       type: object
     gateway_idp_profiles:
       additionalProperties:
@@ -60447,10 +60461,14 @@ components:
     gateway_oob_ip_config:
       description: out-of-band (vme/em0/fxp0) IP config
       properties:
+        gateway:
+          description: if `type`==`static`
+          type: string
         ip:
+          description: if `type`==`static`
           type: string
         netmask:
-          description: used only if `subnet` is not specified in `networks`
+          description: if `type`==`static`
           type: string
         network:
           description: optional, the network to be used for mgmt
@@ -60461,7 +60479,7 @@ components:
           $ref: '#/components/schemas/ip_type'
         use_mgmt_vrf:
           default: false
-          description: f supported on the platform. If enabled, DNS will be using
+          description: if supported on the platform. If enabled, DNS will be using
             this routing-instance, too
           type: boolean
         use_mgmt_vrf_for_host_out:
@@ -60469,10 +60487,15 @@ components:
           description: for host-out traffic (NTP/TACPLUS/RADIUS/SYSLOG/SNMP), if alternative
             source network/ip is desired,
           type: boolean
+        vlan_id:
+          type: string
       type: object
     gateway_oob_ip_config_node1:
       description: for HA Cluster, node1 can have different IP Config
       properties:
+        gateway:
+          description: if `type`==`static`
+          type: string
         ip:
           type: string
         netmask:
@@ -60493,6 +60516,8 @@ components:
           description: whether to use `mgmt_junos` for host-out traffic (NTP/TACPLUS/RADIUS/SYSLOG/SNMP),
             if alternative source network/ip is desired
           type: boolean
+        vlan_id:
+          type: string
       type: object
     gateway_path_preferences:
       properties:
@@ -61102,6 +61127,8 @@ components:
           $ref: '#/components/schemas/dns_suffix'
         extra_routes:
           $ref: '#/components/schemas/gateway_extra_routes'
+        extra_routes6:
+          $ref: '#/components/schemas/gateway_extra_routes6'
         gateway_matching:
           $ref: '#/components/schemas/gateway_matching'
         id:
@@ -66268,7 +66295,7 @@ components:
 
             * `true`: API will hide passwords/secrets for all users
 
-            * `false`: API will hide passwords/secrests for read-only users'
+            * `false`: API will hide passwords/secrets for read-only users'
           type: boolean
       type: object
     org_setting_auto_device_naming:
