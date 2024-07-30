@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2406.1.37**
+  description: '> Version: **2406.1.38**
 
     >
 
-    > Date: **July 29, 2024**
+    > Date: **July 30, 2024**
 
 
     ---
@@ -472,7 +472,10 @@ tags:
     Licenses can be activated using an activation code, and the activation process
     confirms the inputted code and activates the subscription.'
   name: Orgs Licenses
-- name: Orgs Linked Applications
+- description: "Linked Application are Third party applications linked to the Mist\
+    \ Organization. \nThis is usually using OAuth2.0 or API integrations for a Cloud-to-Cloud\
+    \ Communication."
+  name: Orgs Linked Applications
 - description: 'Audit Logs are records of activities initiated by users, providing
     a history of actions such as accessing, creating, updating, or deleting resources
     or components at the Org level.
@@ -1227,7 +1230,8 @@ tags:
 - name: Constants Events
 - name: Constants Models
 - name: Constants Misc
-- name: Self Account
+- description: API calls related to the currently connected user account.
+  name: Self Account
 - description: "Like many other API providers, it's also possible to generate API\
     \ Tokens to be used (in HTTP Header)\n for authentication. An API token ties to\
     \ a Admin with equal or less privileges.\n\n**Notes:**\n\n* an API token generated\
@@ -1236,11 +1240,24 @@ tags:
     \ these API tokens. Refer [Org level API tokens](/#operations/createOrgApiToken)\
     \ which can have privileges of a specific Org/Site for more information."
   name: Self API Token
-- name: Self OAuth2
-- name: Self MFA
-- name: Self Alarms
-- name: Self Audit Logs
-- name: Samples Webhooks
+- description: \"Self\" is related to the currently connected user.
+  name: Self
+- description: "A Mist account can be linked to OAuth2 providers:\n  1. First, login\
+    \ with your Mist account\n  2. Obtain the Authorization URL for Linking\n  3.\
+    \ Obtain the authorizaiton code by clicking / going through Authorization URL\n\
+    \  4. Link Mist Account against OAuth2 Provider by using the authorization code"
+  name: Self OAuth2
+- description: API calls related to Two Factor Authentication for the currently connected
+    user account.
+  name: Self MFA
+- description: API calls related to the alarm subscriptions for the currently connected
+    user account.
+  name: Self Alarms
+- description: API calls related to the audit logs subscriptions for the currently
+    connected user account.
+  name: Self Audit Logs
+- description: Examples of Webhook payloads
+  name: Samples Webhooks
 - name: Utilities Common
 - name: Utilities WAN
 - name: Utilities LAN
@@ -7403,6 +7420,12 @@ paths:
         name: model
         schema:
           type: string
+      - description: 'for switches and gateways, to filter on managed/unmanaged devices.
+          enum: `true`, `false`'
+        in: query
+        name: managed
+        schema:
+          type: string
       - description: AP mac
         in: query
         name: mac
@@ -7414,7 +7437,7 @@ paths:
         schema:
           type: string
       - $ref: '#/components/parameters/ip'
-      - description: MxTunnel status, up / down
+      - description: 'MxTunnel status, enum: `up`, `down`'
         in: query
         name: mxtunnel_status
         schema:
@@ -84131,7 +84154,9 @@ components:
       nullable: true
       properties:
         default_vlan_id:
-          $ref: '#/components/schemas/wlan_dynamic_vlan_default_vlan_id'
+          $ref: '#/components/schemas/wlan_dynamic_vlan_default_vlan_id_deprecated'
+        default_vlan_ids:
+          $ref: '#/components/schemas/wlan_dynamic_vlan_default_vlan_ids'
         enabled:
           default: false
           description: whether to enable dynamic vlan
@@ -84155,12 +84180,29 @@ components:
       type: object
     wlan_dynamic_vlan_default_vlan_id:
       default: 999
+      description: "VLAN ID, VLAN range or variable to use when there\u2019s no match\
+        \ from RADIUS"
+      oneOf:
+      - type: string
+      - maximum: 4094
+        minimum: 1
+        type: integer
+    wlan_dynamic_vlan_default_vlan_id_deprecated:
+      default: 999
+      deprecated: true
       description: "vlan_id to use when there\u2019s no match from RADIUS"
       oneOf:
       - type: string
       - maximum: 4094
         minimum: 1
         type: integer
+    wlan_dynamic_vlan_default_vlan_ids:
+      description: Default VLAN ID(s) can be a number, a range of VLAN IDs, a variable
+        or multiple numbers, ranges or variables as a VLAN pool. Default VLAN as a
+        pool of VLANS requires 0.14.x or newer firmware
+      items:
+        $ref: '#/components/schemas/wlan_dynamic_vlan_default_vlan_id'
+      type: array
     wlan_dynamic_vlan_local_vlan_ids:
       description: vlan_ids to be locally bridged
       items:
