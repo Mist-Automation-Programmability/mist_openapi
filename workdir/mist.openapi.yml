@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2406.1.38**
+  description: '> Version: **2408.1.0**
 
     >
 
-    > Date: **July 30, 2024**
+    > Date: **August 1, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2406.1.38
+  version: 2408.1.0
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -67,11 +67,10 @@ security:
 - basicAuth: []
   csrfToken: []
 tags:
-- description: 'Admin API calls can be used to create, manage or authenticate Mist
-    administrators.
-
-    To register administrators into an existing MSP account or Organization, please
-    check * [Invite Msp Admin]($e/MSPs%20Admins/inviteMspAdmin) * [Invite Org Admin]($e/Orgs%20Admins/inviteOrgAdmin)'
+- description: "Admin API calls can be used to create, manage or authenticate Mist\n\
+    administrators.\n\nTo register administrators into an existing MSP account or\
+    \ Organization, please\ncheck \n* [Invite Msp Admin]($e/MSPs%20Admins/inviteMspAdmin)\
+    \ \n* [Invite Org Admin]($e/Orgs%20Admins/inviteOrgAdmin)"
   name: Admins
 - description: 'Login Enpoints when using Login/Password authentication, with or without
     2FA.
@@ -329,6 +328,7 @@ tags:
     The certificates can be used bu Access Assurance, during the SSO/SAML Authentication,
     ...'
   name: Orgs Cert
+- name: Orgs Antivirus Profiles
 - description: 'Marvis Clients are devices that have the Marvis Android Client installed
     on them and are connected to a Juniper Mist AP.
 
@@ -414,6 +414,7 @@ tags:
 
     4. Find the cloud name for ZIA https://help.zscaler.com/zia/what-my-cloud-name-zia'
   name: Orgs Setting Zscaler
+- name: Orgs SCEP
 - description: 'Gateway Template is applied to a site for gateway(s) in a site.
 
 
@@ -1236,8 +1237,6 @@ tags:
     \ these API tokens. Refer [Org level API tokens]($e/Orgs%20API%20Tokens/createOrgApiToken)\
     \ which can have privileges of a specific Org/Site for more information."
   name: Self API Token
-- description: \"Self\" is related to the currently connected user.
-  name: Self
 - description: "A Mist account can be linked to OAuth2 providers:\n  1. First, login\
     \ with your Mist account\n  2. Obtain the Authorization URL for Linking\n  3.\
     \ Obtain the authorizaiton code by clicking / going through Authorization URL\n\
@@ -4008,21 +4007,20 @@ paths:
         <?xml version=\"1.0\" encoding=\"UTF-8\"?><md:EntityDescriptor xmlns:md=\"\
         urn:oasis:names:tc:SAML:2.0:metadata\" entityID=\"https://api.mist.com/api/v1/saml/5hdF5g/login\"\
         \ validUntil=\"2027-10-12T21:59:01Z\" xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\"\
-        >\n    <md:SPSSODescriptor AuthnRequestsSigned=\"false\" WantAssertionsSigned=\"\
+        >\n  <md:SPSSODescriptor AuthnRequestsSigned=\"false\" WantAssertionsSigned=\"\
         true\" protocolSupportEnumeration=\"urn:oasis:names:tc:SAML:2.0:protocol\"\
-        >\n        <md:SingleLogoutService Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST\"\
-        \ Location=\"https://api.mist.com/api/v1/saml/5hdF5g/logout\" />\n       \
-        \ <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>\n\
-        \        <md:AssertionConsumerService Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST\"\
+        >\n      <md:SingleLogoutService Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST\"\
+        \ Location=\"https://api.mist.com/api/v1/saml/5hdF5g/logout\" />\n      <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>\n\
+        \      <md:AssertionConsumerService Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST\"\
         \ Location=\"https://api.mist.com/api/v1/saml/5hdF5g/login\" index=\"0\" isDefault=\"\
-        true\"/>\n        <md:AttributeConsumingService index=\"0\">\n           \
-        \ <md:ServiceName xml:lang=\"en-US\">Mist</md:ServiceName>\n            <md:RequestedAttribute\
+        true\"/>\n      <md:AttributeConsumingService index=\"0\">\n          <md:ServiceName\
+        \ xml:lang=\"en-US\">Mist</md:ServiceName>\n          <md:RequestedAttribute\
         \ Name=\"Role\" NameFormat=\"urn:oasis:names:tc:SAML:2.0:attrname-format:basic\"\
-        \ isRequired=\"true\"/>\n            <md:RequestedAttribute Name=\"FirstName\"\
+        \ isRequired=\"true\"/>\n          <md:RequestedAttribute Name=\"FirstName\"\
         \ NameFormat=\"urn:oasis:names:tc:SAML:2.0:attrname-format:basic\" isRequired=\"\
-        false\"/>\n            <md:RequestedAttribute Name=\"LastName\" NameFormat=\"\
+        false\"/>\n          <md:RequestedAttribute Name=\"LastName\" NameFormat=\"\
         urn:oasis:names:tc:SAML:2.0:attrname-format:basic\" isRequired=\"false\"/>\n\
-        \        </md:AttributeConsumingService>\n    </md:SPSSODescriptor>\n</md:EntityDescriptor>\n\
+        \      </md:AttributeConsumingService>\n  </md:SPSSODescriptor>\n</md:EntityDescriptor>\n\
         ```"
       operationId: downloadMspSsoSamlMetadata
       responses:
@@ -6012,6 +6010,139 @@ paths:
       summary: updateOrgAsset
       tags:
       - Orgs Assets
+  /api/v1/orgs/{org_id}/avprofiles:
+    get:
+      description: Get List of Antivirus Profiles
+      operationId: listOrgAntivirusProfiles
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          $ref: '#/components/responses/AvProvilesArray'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listOrgAntivirusProfiles
+      tags:
+      - Orgs Antivirus Profiles
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: Create getOrgServices Antivirus Profile
+      operationId: createOrgAntivirusProfile
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  fallback_action: permit
+                  max_filesize: 10000
+                  mime_whitelist: []
+                  name: av-custom
+                  protocols: []
+                  url_whitelist: []
+            schema:
+              $ref: '#/components/schemas/avprofile'
+      responses:
+        '200':
+          $ref: '#/components/responses/AvProfile'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: createOrgAntivirusProfile
+      tags:
+      - Orgs Antivirus Profiles
+  /api/v1/orgs/{org_id}/avprofiles/{avprofiles_id}:
+    delete:
+      description: deleteOrgAntivirusProfile
+      operationId: deleteOrgAntivirusProfile
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: Delete Org Antivirus Profile
+      tags:
+      - Orgs Antivirus Profiles
+    get:
+      description: Get Org Antivirus Profile
+      operationId: getOrgAntivirusProfile
+      responses:
+        '200':
+          $ref: '#/components/responses/AvProfile'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getOrgAntivirusProfile
+      tags:
+      - Orgs Antivirus Profiles
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/avprofiles_id'
+    put:
+      description: update Org Antivirus Profile
+      operationId: updateOrgAntivirusProfile
+      requestBody:
+        content:
+          application/json:
+            examples:
+              example-1:
+                value:
+                  fallback_action: permit
+                  max_filesize: 10000
+                  mime_whitelist: []
+                  name: av-custom
+                  protocols: []
+                  url_whitelist: []
+            schema:
+              $ref: '#/components/schemas/avprofile'
+      responses:
+        '200':
+          $ref: '#/components/responses/AvProfile'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: updateOrgAntivirusProfile
+      tags:
+      - Orgs Antivirus Profiles
   /api/v1/orgs/{org_id}/cert:
     get:
       description: Get Org Certificates
@@ -11167,8 +11298,8 @@ paths:
         name: nacrule_matched
         schema:
           type: boolean
-      - description: "authentication type, e.g. \u201Ceap-tls\u201D, \u201Ceap-ttls\u201D\
-          , \u201Ceap-teap\u201D, \u201Cmab\u201D, \u201Cdevice-auth\u201D"
+      - description: authentication type, e.g. "eap-tls", "peap-tls", "eap-ttls",
+          "eap-teap", "mab", "psk", "device-auth"
         in: query
         name: auth_type
         schema:
@@ -11324,8 +11455,8 @@ paths:
         name: dryrun_nacrule_matched
         schema:
           type: boolean
-      - description: "authentication type, e.g. \u201C802.1X\u201D, \u201CMAB\u201D\
-          , \u201CDeviceAuth\u201D"
+      - description: authentication type, e.g. "eap-tls", "peap-tls", "eap-ttls",
+          "eap-teap", "mab", "psk", "device-auth"
         in: query
         name: auth_type
         schema:
@@ -11433,8 +11564,8 @@ paths:
         name: nacrule_matched
         schema:
           type: boolean
-      - description: "authentication type, e.g. \u201Ceap-tls\u201D, \u201Ceap-ttls\u201D\
-          , \u201Ceap-teap\u201D, \u201Cmab\u201D, \u201Cdevice-auth\u201D"
+      - description: authentication type, e.g. "eap-tls", "peap-tls", "eap-ttls",
+          "eap-teap", "mab", "psk", "device-auth"
         in: query
         name: auth_type
         schema:
@@ -11674,6 +11805,85 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/nacportal_id'
+  /api/v1/orgs/{org_id}/nacportals/{nacportal_id}/portal_image:
+    delete:
+      description: 'Delete background image for NAC Portal
+
+
+
+        If image is not uploaded or is deleted, NAC Portal will use default image.'
+      operationId: deleteOrgNacPortalImage
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: deleteOrgNacPortalImage
+      tags:
+      - Orgs NAC Portals
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/nacportal_id'
+    post:
+      description: Upload background image for NAC Portal
+      operationId: uploadOrgNacPortalImage
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/psk_portal_image'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: uploadOrgNacPortalImage
+      tags:
+      - Orgs NAC Portals
+  /api/v1/orgs/{org_id}/nacportals/{nacportal_id}/portal_template:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/nacportal_id'
+    put:
+      description: Update Org NAC Portal Template
+      operationId: updateOrgNacPortalTempalte
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/nac_portal_template'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: updateOrgNacPortalTempalte
+      tags:
+      - Orgs NAC Portals
   /api/v1/orgs/{org_id}/nacportals/{nacportal_id}/saml_metadata:
     get:
       description: Get Org NAC Portal SSO SAML Metadata
@@ -15053,7 +15263,7 @@ paths:
       - Orgs Services
   /api/v1/orgs/{org_id}/services/{service_id}:
     delete:
-      description: deleteOrgService
+      description: delete Org Service
       operationId: deleteOrgService
       responses:
         '200':
@@ -15663,6 +15873,145 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/naccrl_id'
+  /api/v1/orgs/{org_id}/setting/mist_scep:
+    delete:
+      description: Disable Mist SCEP Org setting
+      operationId: disableOrgMistScep
+      responses:
+        '200':
+          $ref: '#/components/responses/OrgScep'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: disableOrgMistScep
+      tags:
+      - Orgs SCEP
+    get:
+      description: Get Mist SCEP Org setting
+      operationId: getOrgMistScep
+      responses:
+        '200':
+          $ref: '#/components/responses/OrgScep'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getOrgMistScep
+      tags:
+      - Orgs SCEP
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    put:
+      description: Update Mist SCEP Org setting
+      operationId: updateOrgMistScep
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  enabled: true
+            schema:
+              $ref: '#/components/schemas/org_setting_scep'
+      responses:
+        '200':
+          $ref: '#/components/responses/OrgScep'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: updateOrgMistScep
+      tags:
+      - Orgs SCEP
+  /api/v1/orgs/{org_id}/setting/mist_scep/client_certs:
+    get:
+      description: Get Issued Client Certificates
+      operationId: getOrgIssuedClientCertificates
+      parameters:
+      - description: sso_name_id obtained from NAC Portal
+        in: query
+        name: sso_name_id
+        schema:
+          type: string
+      - description: serial number of the certificate
+        in: query
+        name: serial_number
+        schema:
+          type: string
+      - description: Device ID
+        in: query
+        name: device_id
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/IssuedClientCertificates'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getOrgIssuedClientCertificates
+      tags:
+      - Orgs SCEP
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/setting/mist_scep/client_certs/revoke:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: Revoke Issued Client Certificates
+      operationId: revokeOrgIssuedClientCertificates
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  serial_numbers:
+                  - 13 00 13 03 23 EE D5 84 01
+            schema:
+              $ref: '#/components/schemas/client_cert_serial_numbers'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: revokeOrgIssuedClientCertificates
+      tags:
+      - Orgs SCEP
   /api/v1/orgs/{org_id}/setting/pcap_bucket/setup:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -16425,6 +16774,28 @@ paths:
       summary: updateOrgSiteTemplate
       tags:
       - Orgs Site Templates
+  /api/v1/orgs/{org_id}/ssl_proxy_cert:
+    get:
+      description: Get Org SSL proxy Certificates
+      operationId: getOrgSslProxyCert
+      responses:
+        '200':
+          $ref: '#/components/responses/OrgSslProxyCert'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getOrgSslProxyCert
+      tags:
+      - Orgs Cert
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/ssoroles:
     get:
       description: Get List of Org SSO Roles
@@ -18340,7 +18711,10 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
-      description: Import Org User MACs
+      description: "Import Org User MACs\n\n### CSV Import example\n```csv \nmac,labels,vlan,notes,name,radius_group\n\
+        921b638445cd,\"bldg1,flor1\",vlan-100\n721b638445ef,\"bldg2,flor2\",vlan-101,Canon\
+        \ Printers\n721b638445ee,\"bldg3,flor3\",vlan-102,Printer2,VIP\n921b638445ce,\"\
+        bldg4,flor4\",vlan-103\n921b638445cf,\"bldg5,flor5\",vlan-104\n````"
       operationId: importOrgUserMacs
       requestBody:
         content:
@@ -18784,6 +19158,11 @@ paths:
         name: network
         schema:
           type: string
+      - description: IP source
+        in: query
+        name: ip_src
+        schema:
+          type: string
       - description: Manufacture
         in: query
         name: mfg
@@ -19190,6 +19569,29 @@ paths:
       - Orgs Clients - Wired
     parameters:
     - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/wired_clients/{client_mac}/coa:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/client_mac'
+    post:
+      description: Trigger a CoA (change of authorization) against a Wiired client
+      operationId: reauthOrgDot1xWiredClient
+      responses:
+        '200':
+          $ref: '#/components/responses/ReauthWiredClient'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: reauthOrgDot1xWiredClient
+      tags:
+      - Utilities LAN
   /api/v1/orgs/{org_id}/wlans:
     get:
       description: Get List of Org Wlans
@@ -21992,7 +22394,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/client_mac'
     post:
-      description: Trigger a CoA (change of authorization) against a client
+      description: Trigger a CoA (change of authorization) against a Wireless client
       operationId: reauthSiteDot1xWirelessClient
       responses:
         '200':
@@ -23457,6 +23859,61 @@ paths:
       summary: clearAllLearnedMacsFromPortOnSwitch
       tags:
       - Utilities LAN
+  /api/v1/sites/{site_id}/devices/{device_id}/clear_policy_hit_count:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: Clear application policy hit counts for all the policies
+      operationId: clearSiteDevicePolicyHitCount
+      responses:
+        '200':
+          $ref: '#/components/responses/WebsocketSessionWithUrl'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: clearSiteDevicePolicyHitCount
+      tags:
+      - Utilities Common
+  /api/v1/sites/{site_id}/devices/{device_id}/clear_session:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: Clear session
+      operationId: clearSiteDeviceSession
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  port_id: ge-0/0/1.10
+            schema:
+              $ref: '#/components/schemas/utils_clear_session'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: clearSiteDeviceSession
+      tags:
+      - Utilities WAN
   /api/v1/sites/{site_id}/devices/{device_id}/config_cmd:
     get:
       description: 'Get Config CLI Commands
@@ -23859,9 +24316,9 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Monitor traffic on switches and SRX.\n\nJUNOS uses cmd \u201C\
-        monitor interface\u201D to monitor traffic on particular JUNOS uses cmd \u201C\
-        monitor interface traffic\u201D to monitor traffic on all ports"
+      description: "Monitor traffic on switches and SRX.\n  * JUNOS uses cmd \"monitor\
+        \ interface <port>\" to monitor traffic on particular <port>\n  * JUNOS uses\
+        \ cmd \"monitor interface traffic\" to monitor traffic on all ports"
       operationId: monitorSiteDeviceTraffic
       requestBody:
         content:
@@ -23992,8 +24449,7 @@ paths:
             examples:
               Example:
                 value:
-                  node: node0
-                  port: string
+                  port_id: ge-0/0/1.10
             schema:
               $ref: '#/components/schemas/utils_release_dhcp'
       responses:
@@ -24012,6 +24468,38 @@ paths:
       summary: releaseSiteSsrDhcpLease
       tags:
       - Utilities WAN
+  /api/v1/sites/{site_id}/devices/{device_id}/release_dhcp_leases:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: Releases an active DHCP lease.
+      operationId: releaseSiteDeviceDhcpLease
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  port_id: ge-0/0/1.10
+            schema:
+              $ref: '#/components/schemas/utils_release_dhcp_leases'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          description: Parameter `port ` absent
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: releaseSiteDeviceDhcpLease
+      tags:
+      - Utilities Common
   /api/v1/sites/{site_id}/devices/{device_id}/reprovision:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -24274,6 +24762,34 @@ paths:
       summary: getSiteDeviceBgpSummary
       tags:
       - Utilities Common
+  /api/v1/sites/{site_id}/devices/{device_id}/show_dhcp_leases:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: Shows DHCP leases
+      operationId: showSiteDeviceDhcpLeases
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/utils_show_dhcp_leases'
+      responses:
+        '200':
+          $ref: '#/components/responses/WebsocketSessionWithUrl'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: showSiteDeviceDhcpLeases
+      tags:
+      - Utilities Common
   /api/v1/sites/{site_id}/devices/{device_id}/show_evpn_database:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -24309,12 +24825,11 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Get ARP Table from the Device.\n\nGet forwarding table from the\
-        \ Device. The output will be available through websocket. As there can be\
-        \ multiple command issued against the same device at the same time and the\
-        \ output all goes through the same websocket stream, `session` is introduced\
-        \ for demux.\n\n#### Subscribe to Device Command outputs\n`WS /api-ws/v1/stream`\n\
-        \n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+      description: "Get forwarding table from the Device. The output will be available\
+        \ through websocket. As there can be multiple command issued against the same\
+        \ device at the same time and the output all goes through the same websocket\
+        \ stream, `session` is introduced for demux.\n\n#### Subscribe to Device Command\
+        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
         \n}\n```\n\n##### Example output from ws stream\n```\nMon 2024-05-20 16:47:30\
         \ UTC Retrieving fib entries\u2026 Entry Count: 3268 Capacity:    22668 ====================\
         \ ====== ======= ================== ===== ====================== ===========\
@@ -24491,29 +25006,43 @@ paths:
       description: "Get active sessions passing through the Device.\n\nThe output\
         \ will be available through websocket. As there can be multiple command issued\
         \ against the same device at the same time and the output all goes through\
-        \ the same websocket stream, session is introduced for demux.\n\n#### Subscribe\
+        \ the same websocket stream, session is introduced for demux.\n\n\n#### Subscribe\
         \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
-        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n##### Example\
-        \ output from ws stream\n```\nadmin@ssr.node# show sessions\nFri 2020-04-17\
-        \ 16:55:34 UTC\n\nNode: node1\n\n====================================== =====\
-        \ ============= =========== ========== ====== ======= ================= ==========\
-        \ ================= =========== ================= ========== ===================\
-        \ ========= =================\n Session Id                             Dir\
+        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n  }\n```\n\n#####\
+        \ Example output from ws stream\n\n```console\nadmin@ssr.node# show sessions\n\
+        Fri 2020-04-17 16:55:34 UTC\n\nNode: node1\n\n======================================\
+        \ ===== ============= =========== ========== ====== ======= =================\
+        \ ========== ================= =========== ================= ========== ===================\
+        \ ========= =================\nSession Id                             Dir\
         \   Service       Tenant      Dev Name   VLAN   Proto   Src IP           \
         \ Src Port   Dest IP           Dest Port   NAT IP            NAT Port   Payload\
         \ Encrypted   Timeout   Uptime\n====================================== =====\
         \ ============= =========== ========== ====== ======= ================= ==========\
         \ ================= =========== ================= ========== ===================\
-        \ ========= =================\n 01187fb8-765a-45e5-ae90-37d77f15e292   fwd\
+        \ ========= =================\n01187fb8-765a-45e5-ae90-37d77f15e292   fwd\
         \   Internet      lanSubnet   lan           0   udp     192.168.0.28     \
         \    44674   35.166.173.18          9930   96.230.191.130       19569   false\
-        \                   154   0 days  0:00:28\n 01187fb8-765a-45e5-ae90-37d77f15e292\
+        \                   154   0 days  0:00:28\n01187fb8-765a-45e5-ae90-37d77f15e292\
         \   rev   Internet      lanSubnet   wan           0   udp     35.166.173.18\
         \         9930   96.230.191.130        19569   0.0.0.0                  0\
-        \   false                   154   0 days  0:00:28\n 0859a4ae-bcff-4aa6-b812-79a5236a6c13\
+        \   false                   154   0 days  0:00:28\n0859a4ae-bcff-4aa6-b812-79a5236a6c13\
         \   fwd   Internet      lanSubnet   lan           0   tcp     192.168.0.41\
         \         60843   17.249.171.246          443   96.230.191.130       51941\
-        \   false                     2   0 days  0:00:10\n\n```"
+        \   false                     2   0 days  0:00:10\n\n\nadmin@node0.90ec7732e327#\
+        \ show sessions by-id 262900cd-bca8-443a-8aab-e5c93d147ab5\nWed 2024-06-26\
+        \ 20:37:48 UTC\nRetrieving session information...\n\n=======================================================================================================================================================================================\n\
+        90ec7732e327.node0    Session ID: 262900cd-bca8-443a-8aab-e5c93d147ab5\n=======================================================================================================================================================================================\n\
+        Service Name:                      Internet\nService Route Name:         \
+        \       Internet-sr-local-breakout-1-node0\nSession Source:              \
+        \      SourceType: PUBLIC\nSession Type:                      HTTPS\nService\
+        \ Class:                     service-class-0-low\nSource Tenant:         \
+        \            LAN\nPeer Name:                         N/A\nInter Node:    \
+        \                    N/A\nInter Router:                      N/A\nIngress\
+        \ Source Nat:                N/A\nPayload Security Policy:           internal\n\
+        Payload Encrypted:                 True\nCommon Name Info:               \
+        \   N/A\nTcp Time To Establish:             76\nTls Time To Establish:   \
+        \          76\nDomain Name:                       N/A\nUri:              \
+        \                 N/A\nCategory:                          N/A\n```\""
       operationId: getSiteSsrAndSrxSessions
       requestBody:
         content:
@@ -26948,8 +27477,8 @@ paths:
         name: nacrule_matched
         schema:
           type: boolean
-      - description: "authentication type, e.g. \u201Ceap-tls\u201D, \u201Ceap-ttls\u201D\
-          , \u201Ceap-teap\u201D, \u201Cmab\u201D, \u201Cdevice-auth\u201D"
+      - description: authentication type, e.g. "eap-tls", "peap-tls", "eap-ttls",
+          "eap-teap", "mab", "psk", "device-auth"
         in: query
         name: auth_type
         schema:
@@ -27100,8 +27629,8 @@ paths:
         name: dryrun_nacrule_matched
         schema:
           type: boolean
-      - description: "authentication type, e.g. \u201Ceap-tls\u201D, \u201Ceap-ttls\u201D\
-          , \u201Ceap-teap\u201D, \u201Cmab\u201D, \u201Cdevice-auth\u201D"
+      - description: authentication type, e.g. "eap-tls", "peap-tls", "eap-ttls",
+          "eap-teap", "mab", "psk", "device-auth"
         in: query
         name: auth_type
         schema:
@@ -27224,8 +27753,8 @@ paths:
         name: nacrule_matched
         schema:
           type: boolean
-      - description: "authentication type, e.g. \u201Ceap-tls\u201D, \u201Ceap-ttls\u201D\
-          , \u201Ceap-teap\u201D, \u201Cmab\u201D, \u201Cdevice-auth\u201D"
+      - description: authentication type, e.g. "eap-tls", "peap-tls", "eap-ttls",
+          "eap-teap", "mab", "psk", "device-auth"
         in: query
         name: auth_type
         schema:
@@ -28799,6 +29328,16 @@ paths:
       - description: Description of the event including the reason it is triggered
         in: query
         name: text
+        schema:
+          type: string
+      - description: Port ID of the peer gateway
+        in: query
+        name: peer_port_id
+        schema:
+          type: string
+      - description: MAC address of the peer gateway
+        in: query
+        name: peer_mac
         schema:
           type: string
       - description: Peer name
@@ -33625,6 +34164,29 @@ paths:
       - Sites Clients - Wired
     parameters:
     - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/wired_clients/{client_mac}/coa:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/client_mac'
+    post:
+      description: Trigger a CoA (change of authorization) against a Wiired client
+      operationId: reauthSiteDot1xWiredClient
+      responses:
+        '200':
+          $ref: '#/components/responses/ReauthWiredClient'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: reauthSiteDot1xWiredClient
+      tags:
+      - Utilities LAN
   /api/v1/sites/{site_id}/wlans:
     get:
       description: Get List of Site WLANs
@@ -36284,6 +36846,14 @@ components:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
         format: uuid
         type: string
+    avprofiles_id:
+      in: path
+      name: avprofiles_id
+      required: true
+      schema:
+        example: 000000ab-00ab-00ab-00ab-0000000000ab
+        format: uuid
+        type: string
     beacon_id:
       in: path
       name: beacon_id
@@ -37636,6 +38206,36 @@ components:
                 status: pending
           schema:
             $ref: '#/components/schemas/response_auto_placement_info'
+      description: OK
+    AvProfile:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                fallback_action: permit
+                max_filesize: 10000
+                mime_whitelist: []
+                name: av-custom
+                protocols: []
+                url_whitelist: []
+          schema:
+            $ref: '#/components/schemas/avprofile'
+      description: OK
+    AvProvilesArray:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+              - fallback_action: permit
+                max_filesize: 10000
+                mime_whitelist: []
+                name: av-custom
+                protocols: []
+                url_whitelist: []
+          schema:
+            $ref: '#/components/schemas/avprofiles'
       description: OK
     Beacon:
       content:
@@ -43713,6 +44313,21 @@ components:
           schema:
             $ref: '#/components/schemas/response_detail_string'
       description: Not Found
+    IssuedClientCertificates:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                results:
+                - created_time: 1431382121
+                  device_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+                  expire_time: 1718921115
+                  serial_number: 13 00 13 03 23 EE D5 84 01
+                  sso_name_id: john@corp.com
+          schema:
+            $ref: '#/components/schemas/issued_client_certificates_results'
+      description: OK
     JseInfo:
       content:
         application/json:
@@ -45379,6 +45994,12 @@ components:
                 name: timeout
                 session_timeout: 86400
                 type: session_timeout
+            username_attr:
+              value:
+                allow_usermac_override: true
+                name: username_attr
+                type: username_attr
+                username_attr: automatic
           schema:
             $ref: '#/components/schemas/nac_tag'
       description: Example response
@@ -45984,6 +46605,27 @@ components:
                   name: Test Compay1 Ltd
                   smartgroup_name: CompliantGroup1
                 linked: true
+            Mobicontrol:
+              value:
+                accounts:
+                - account_id: 7f80cd00-40b1-49e5-b2cb-9386d89af0d6
+                  client_id: 3e408b13255844149f2830e8609fe8f3
+                  instance_url: https://a0020372.mobicontrol.cloud
+                  last_status: success
+                  last_sync: 1665465339000
+                  linked_by: User1
+                  linked_timestamp: 1702284364
+                  name: Company1 Ltd.
+                - account_id: 80364a28-7ccc-4746-b110-ecf3dfd3a359
+                  client_id: e81cfb1980454b4bb6109c74136ca528
+                  error: Get token failed, please re-link MobiControl account
+                  instance_url: https://a0032314.mobicontrol.cloud
+                  last_status: failed
+                  last_sync: 1234567890123
+                  linked_by: User2
+                  linked_timestamp: 1702284364
+                  name: Company2 Ltd.
+                linked: true
             Vmware:
               value:
                 accounts:
@@ -46222,6 +46864,16 @@ components:
           schema:
             $ref: '#/components/schemas/response_detail_string'
       description: Not Found
+    OrgScep:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                enabled: true
+          schema:
+            $ref: '#/components/schemas/org_setting_scep'
+      description: OK
     OrgSetting:
       content:
         application/json:
@@ -46454,6 +47106,17 @@ components:
                 total: 4
           schema:
             $ref: '#/components/schemas/response_org_site_sle'
+      description: Example response
+    OrgSslProxyCert:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                cert: '-----BEGIN CERTIFICATE-----\nMIIowDQYJKoZIhvcNAQELBQE\n-----END
+                  CERTIFICATE-----'
+          schema:
+            $ref: '#/components/schemas/org_ssl_proxy_cert'
       description: Example response
     OrgStats:
       content:
@@ -46891,6 +47554,18 @@ components:
           schema:
             $ref: '#/components/schemas/ap_radio_macs'
       description: OK
+    ReauthWiredClient:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                device_mac: 5c5b35000002
+                port_id: ge-0/0/0
+                session: 0a2a11b8-4b30-40d8-a6d1-e91ea540d86f
+          schema:
+            $ref: '#/components/schemas/response_wired_coa'
+      description: Reaith Wired Client
     Recaptcha:
       content:
         application/json:
@@ -49883,7 +50558,7 @@ components:
           examples:
             example-1:
               value:
-                content_url: https://my-attachments.s3.amazonaws.com/test/attachments/crash.log?AWSAccessKeyId=AKIAIOSFODNN7EXAMPLE&x-amz-security-token=eHl6&Signature=YWJj&Expires=1692936685
+                content_url: https://api.mist.com/api/v1/forward/download?jwt=...
           schema:
             $ref: '#/components/schemas/ticket_attachment'
       description: OK
@@ -51307,10 +51982,82 @@ components:
         accounts:
           $ref: '#/components/schemas/juniper_accounts'
       type: object
+    account_mobicontrol_config:
+      properties:
+        client_id:
+          description: customer account Client ID
+          type: string
+        client_secret:
+          description: customer account Client Secret
+          type: string
+        instance_url:
+          description: customer account MobiControl instance URL
+          type: string
+        password:
+          description: customer account password instance URL
+          type: string
+        username:
+          description: customer account username
+          type: string
+      required:
+      - instance_url
+      - client_secret
+      - client_id
+      - username
+      - password
+      type: object
+    account_mobicontrol_info:
+      description: OAuth linked Mobicontrol apps account details
+      properties:
+        account_id:
+          description: customer account client id
+          type: string
+        client_id:
+          description: Linked MobiControl Client Id
+          type: string
+        error:
+          description: This error is provided when the MobiControl account fails to
+            fetch token/data
+          example: Get token failed, please re-link MobiControl account
+          readOnly: true
+          type: string
+        instance_url:
+          description: Linked MobiControl Instance URL
+          example: https://a0032314.mobicontrol.cloud
+          type: string
+        last_status:
+          description: Is the last data pull for MobiControl account is successful
+            or not
+          example: failed
+          readOnly: true
+          type: string
+        last_sync:
+          description: Last data pull timestamp, background jobs that pull MobiControl
+            account data
+          example: 1665465339000
+          readOnly: true
+          type: integer
+        linked_by:
+          description: First name of the user who linked the MobiControl account
+          example: Testname1
+          readOnly: true
+          type: string
+        linked_timestamp:
+          example: 1665465339000
+          readOnly: true
+          type: integer
+        name:
+          description: Name of the company whose MobiControl account mist has subscribed
+            to
+          example: Test Compay1 Ltd
+          readOnly: true
+          type: string
+      type: object
     account_oauth_add:
       oneOf:
       - $ref: '#/components/schemas/account_jamf_config'
       - $ref: '#/components/schemas/account_vmware_config'
+      - $ref: '#/components/schemas/account_mobicontrol_config'
     account_oauth_config:
       description: OAuth linked apps (zoom/teams/intune) account details
       properties:
@@ -51608,6 +52355,11 @@ components:
           description: for an invite, this is the original last name used
           example: Sno
           type: string
+        no_tracking:
+          description: "when it doesn\u2019t exist, it\u2019s assumed true on EU (i.e.\
+            \ no tracking, the user has to opt-in); otherwise, the user would have\
+            \ to opt-out"
+          type: boolean
         oauth_google:
           readOnly: true
           type: boolean
@@ -54321,8 +55073,6 @@ components:
       type: object
     ap_switch_setting:
       properties:
-        additional_vlan_ids:
-          $ref: '#/components/schemas/ap_switch_setting_additional_vlan_ids'
         enable_vlan:
           type: boolean
         port_vlan_id:
@@ -54330,11 +55080,6 @@ components:
         vlan_ids:
           $ref: '#/components/schemas/ap_switch_setting_vlan_ids'
       type: object
-    ap_switch_setting_additional_vlan_ids:
-      description: additional VLAN IDs, only valid in mesh base mode
-      items:
-        type: integer
-      type: array
     ap_switch_setting_port_vlan_id:
       description: native VLAN id, optional
       maximum: 4094
@@ -54508,6 +55253,7 @@ components:
           type: boolean
       type: object
     app_probing_apps:
+      description: app-keys from /api/v1/const/applications
       example:
       - facebook
       items:
@@ -54886,6 +55632,61 @@ components:
         time_of_day:
           $ref: '#/components/schemas/time_of_day'
       type: object
+    avprofile:
+      properties:
+        created_time:
+          readOnly: true
+          type: number
+        fallback_action:
+          $ref: '#/components/schemas/avprofile_fallback_action_enum'
+        id:
+          format: uuid
+          readOnly: true
+          type: string
+        mex_filesize:
+          description: in KB
+          maximum: 40000
+          minimum: 20
+          type: integer
+        mime_whitelist:
+          $ref: '#/components/schemas/strings'
+        modified_time:
+          readOnly: true
+          type: number
+        name:
+          type: string
+        org_id:
+          $ref: '#/components/schemas/org_id'
+        protocols:
+          $ref: '#/components/schemas/avprofile_protocols'
+        site_id:
+          $ref: '#/components/schemas/site_id'
+        url_whitelist:
+          $ref: '#/components/schemas/strings'
+      required:
+      - name
+      type: object
+    avprofile_fallback_action_enum:
+      enum:
+      - permit
+      - block
+      type: string
+    avprofile_protocols:
+      items:
+        $ref: '#/components/schemas/avprofile_protocols_enum'
+      type: array
+    avprofile_protocols_enum:
+      enum:
+      - ftp
+      - http
+      - imap
+      - pop3
+      - smtp
+      type: string
+    avprofiles:
+      items:
+        $ref: '#/components/schemas/avprofile'
+      type: array
     beacon:
       description: Beacon
       properties:
@@ -55793,14 +56594,16 @@ components:
       - stream
       type: string
     capture_mxedge_mxedges:
-      description: Property key is the Mx Edge ID
+      description: Property key is the Mx Edge ID, currently limited to one mxedge
+        per org capture session
       properties:
         interfaces:
           additionalProperties:
             $ref: '#/components/schemas/capture_mxedge_mxedges_interfaces'
       type: object
     capture_mxedge_mxedges_interfaces:
-      description: Property key is the Port name (e.g. "port1")
+      description: Property key is the Port name (e.g. "port1", "kni0", "lacp0", "ipsec",
+        "drop", "oobm"), currently limited to specifying one interface per mxedge
       properties:
         tcpdump_expression:
           description: tcpdump expression common for wired,radiotap
@@ -56193,11 +56996,20 @@ components:
       - stream
       type: string
     capture_switch_ports:
-      description: dict of port which uses port id as the key
-      items:
-        type: string
-      maxItems: 6
-      type: array
+      additionalProperties:
+        $ref: '#/components/schemas/capture_switch_ports_tcpdump_expression'
+      description: Property key is the port name. 6 ports max per switch supported,
+        or 5 max with irb port auto-included into capture request
+      type: object
+    capture_switch_ports_tcpdump_expression:
+      properties:
+        tcpdump_expression:
+          description: tcpdump expression, port specific if specified under ports
+            dict, otherwise applicable across ports if specified at top level of payload.
+            Port specific value overrides top level value when both exist.
+          example: port 443
+          type: string
+      type: object
     capture_switch_switches:
       properties:
         ports:
@@ -56356,6 +57168,14 @@ components:
       - inventory
       - license
       type: string
+    client_cert_serial_numbers:
+      example:
+        serial_numbers:
+        - 13 00 13 03 23 EE D5 84 01
+      properties:
+        serial_numbers:
+          $ref: '#/components/schemas/strings'
+      type: object
     client_nac:
       properties:
         ap:
@@ -56989,13 +57809,17 @@ components:
       type: array
     clients_wan_stats:
       properties:
-        When:
-          example: 2022-12-31T23:59:43.497+0000
-          type: string
+        dhcp_expire_time:
+          type: number
+        dhcp_start_time:
+          type: number
         hostname:
           $ref: '#/components/schemas/clients_wan_stats_hostname'
         ip:
           $ref: '#/components/schemas/clients_wan_stats_ip'
+        ip_src:
+          example: dhcp
+          type: string
         last_hostname:
           example: sonoszp
           type: string
@@ -57012,6 +57836,8 @@ components:
           $ref: '#/components/schemas/org_id'
         site_id:
           $ref: '#/components/schemas/site_id'
+        timestamp:
+          type: number
         wcid:
           example: 8bbe7389-212b-c65d-2208-00fab2017936
           type: string
@@ -57142,54 +57968,6 @@ components:
       items:
         $ref: '#/components/schemas/config_device'
       type: array
-    config_switch:
-      description: Switch settings
-      properties:
-        ap_affinity_threshold:
-          default: 10
-          description: ap_affinity_threshold ap_affinity_threshold can be added as
-            a field under site/setting. By default this value is set to 12. If the
-            field is set in both site/setting and org/setting, the value from site/setting
-            will be used.
-          type: integer
-        cli_banner:
-          description: Set Banners for switches. Allows markup formatting
-          example: \t\tWELCOME!
-          type: string
-        cli_idle_timeout:
-          description: Sets timeout for switches
-          maximum: 60
-          minimum: 1
-          type: integer
-        config_revert_timer:
-          default: 10
-          description: the rollback timer for commit confirmed
-          maximum: 30
-          minimum: 1
-          type: integer
-        dhcp_option_fqdn:
-          default: false
-          description: Enable to provide the FQDN with DHCP option 81
-          type: boolean
-        local_accounts:
-          $ref: '#/components/schemas/config_switch_local_accounts'
-        mxedge_proxy_host:
-          type: string
-        mxedge_proxy_port:
-          default: 2222
-          type: integer
-        protect_re:
-          $ref: '#/components/schemas/protect_re'
-        radius:
-          $ref: '#/components/schemas/config_switch_radius'
-        root_password:
-          type: string
-        tacacs:
-          $ref: '#/components/schemas/tacacs'
-        use_mxedge_proxy:
-          description: to use mxedge as proxy
-          type: boolean
-      type: object
     config_switch_local_accounts:
       additionalProperties:
         $ref: '#/components/schemas/config_switch_local_accounts_user'
@@ -58427,8 +59205,8 @@ components:
         port_config:
           additionalProperties:
             $ref: '#/components/schemas/ap_port_config'
-          description: "eth0 is not allowed here. \nProperty key is the interface(s)\
-            \ name (e.g. \"eth1\" or\"eth1,eth2\")"
+          description: eth0 is not allowed here. Property key is the interface(s)
+            name (e.g. `eth1` or `eth1,eth2`)
           type: object
         pwr_config:
           $ref: '#/components/schemas/ap_pwr_config'
@@ -58709,6 +59487,176 @@ components:
     device_others:
       items:
         $ref: '#/components/schemas/device_other'
+      type: array
+    device_stats_port:
+      properties:
+        active:
+          description: Indicates if interface is active/inactive
+          type: boolean
+        auth_state:
+          $ref: '#/components/schemas/switch_port_stats_auth_state'
+        for_site:
+          readOnly: true
+          type: boolean
+        full_duplex:
+          description: indicates full or half duplex
+          example: true
+          type: boolean
+        jitter:
+          description: Last sampled jitter of the interface
+          type: number
+        latency:
+          description: Last sampled latency of the interface
+          type: number
+        loss:
+          description: Last sampled loss of the interface
+          type: number
+        lte_iccid:
+          description: LTE ICCID value, Check for null/empty
+          nullable: true
+          type: string
+        lte_imei:
+          description: LTE IMEI value, Check for null/empty
+          nullable: true
+          type: string
+        lte_imsi:
+          description: LTE IMSI value, Check for null/empty
+          nullable: true
+          type: string
+        mac_count:
+          description: Number of mac addresses in the forwarding table
+          type: integer
+        mac_limit:
+          description: Limit on number of dynamically learned macs
+          minimum: 0
+          type: integer
+        neighbor_mac:
+          description: chassis identifier of the chassis type listed
+          example: 64d814353400
+          readOnly: true
+          type: string
+        neighbor_port_desc:
+          description: "description supplied by the system on the interface E.g. \u201C\
+            GigabitEthernet2/0/39\u201D"
+          example: GigabitEthernet1/0/21
+          readOnly: true
+          type: string
+        neighbor_system_name:
+          description: "name supplied by the system on the interface E.g. neighbor\
+            \ system name E.g. \u201CKumar-Acc-SW.mist.local\u201D"
+          example: CORP-D-SW-2
+          readOnly: true
+          type: string
+        poe_disabled:
+          description: is the POE configured not be disabled.
+          readOnly: true
+          type: boolean
+        poe_mode:
+          $ref: '#/components/schemas/switch_port_stats_poe_mode'
+        poe_on:
+          description: is the device attached to POE
+          type: boolean
+        port_id:
+          example: ge-0/0/0
+          readOnly: true
+          type: string
+        port_mac:
+          description: interface mac address
+          example: 5c4527a96580
+          readOnly: true
+          type: string
+        port_usage:
+          $ref: '#/components/schemas/switch_port_stats_port_usage'
+        power_draw:
+          description: Amount of power being used by the interface at the time the
+            command is executed. Unit in watts.
+          type: number
+        rx_bcast_pkts:
+          description: Broadcast input packets
+          type: integer
+        rx_bps:
+          description: Input rate
+          type: integer
+        rx_bytes:
+          description: rx bytes
+          example: 4563443626
+          readOnly: true
+          type: integer
+        rx_errors:
+          description: Input errors
+          type: integer
+        rx_mcast_pkts:
+          description: Multicast input packets
+          type: integer
+        rx_pkts:
+          description: rx packets
+          readOnly: true
+          type: integer
+        speed:
+          description: port speed
+          example: 1000
+          readOnly: true
+          type: integer
+        stp_role:
+          $ref: '#/components/schemas/switch_port_stats_stp_role'
+        stp_state:
+          $ref: '#/components/schemas/switch_port_stats_stp_state'
+        tx_bcast_pkts:
+          description: Broadcast output packets
+          type: integer
+        tx_bps:
+          description: Output rate
+          type: integer
+        tx_bytes:
+          description: tx bytes
+          example: 11299516780
+          readOnly: true
+          type: integer
+        tx_errors:
+          description: Output errors
+          type: integer
+        tx_mcast_pkts:
+          description: Multicast output packets
+          type: integer
+        tx_pkts:
+          description: tx packets
+          example: 492176
+          readOnly: true
+          type: integer
+        type:
+          $ref: '#/components/schemas/switch_port_stats_type'
+        unconfigured:
+          description: indicates if interface is unconfigured
+          readOnly: true
+          type: boolean
+        up:
+          description: indicates if interface is up
+          readOnly: true
+          type: boolean
+        xcvr_model:
+          description: Optic Slot ModelName, Check for null/empty
+          example: SFP+-10G-SR
+          type: string
+        xcvr_part_number:
+          description: Optic Slot Partnumber, Check for null/empty
+          example: 740-021487
+          type: string
+        xcvr_serial:
+          description: Optic Slot SerialNumber, Check for null/empty
+          example: N6AA9HT
+          type: string
+      required:
+      - neighbor_mac
+      - port_id
+      - port_mac
+      - rx_bytes
+      - rx_pkts
+      - tx_bytes
+      - tx_pkts
+      type: object
+    device_stats_ports:
+      items:
+        $ref: '#/components/schemas/device_stats_port'
       type: array
     device_status:
       default: all
@@ -59747,8 +60695,8 @@ components:
           example: 5c5b35513227
           type: string
         auth_type:
-          description: "authentication type, e.g. \u201Ceap-tls\u201D, \u201Ceap-ttls\u201D\
-            , \u201Ceap-teap\u201D, \u201Cmab\u201D, \u201Cpsk\u201D, \u201Cdevice-auth\u201D"
+          description: authentication type, e.g. "eap-tls", "peap-tls", "eap-ttls",
+            "eap-teap", "mab", "psk", "device-auth"
           example: eap-tls
           type: string
         bssid:
@@ -60151,7 +61099,7 @@ components:
     evpn_topology:
       properties:
         config:
-          $ref: '#/components/schemas/config_switch'
+          $ref: '#/components/schemas/switch_mgmt'
         id:
           example: 9197ec96-4c8d-529f-c595-035895e688b2
           format: uuid
@@ -61118,6 +62066,8 @@ components:
           format: uuid
           readOnly: true
           type: string
+        ports:
+          $ref: '#/components/schemas/device_stats_ports'
         route_summary_stats:
           $ref: '#/components/schemas/route_summary_stats'
         router_name:
@@ -61649,6 +62599,16 @@ components:
           description: '`strict` (default) / `standard` / or keys from from idp_profiles'
           type: string
       type: object
+    idp_machine_cert_lookup_field_enum:
+      default: automatic
+      description: allow customer to choose the EAP-TLS client certificate's field
+        to use for IDP Machine Groups lookup
+      enum:
+      - automatic
+      - email
+      - upn
+      - cn
+      type: string
     idp_profile:
       properties:
         base_profile:
@@ -61740,6 +62700,16 @@ components:
       items:
         $ref: '#/components/schemas/idp_profile'
       type: array
+    idp_user_cert_lookup_field_enum:
+      default: automatic
+      description: allow customer to choose the EAP-TLS client certificate's field
+        to use for IDP User Groups lookup
+      enum:
+      - automatic
+      - email
+      - upn
+      - cn
+      type: string
     if_stat:
       additionalProperties:
         $ref: '#/components/schemas/if_stat_property'
@@ -62270,6 +63240,33 @@ components:
       - static
       example: static
       type: string
+    issued_client_certificate:
+      properties:
+        created_time:
+          readOnly: true
+          type: number
+        device_id:
+          example: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
+          type: string
+        modified_time:
+          readOnly: true
+          type: number
+        serial_number:
+          example: 13 00 13 03 23 EE D5 84 01
+          type: string
+        sso_name_id:
+          example: john@corp.com
+          type: string
+      type: object
+    issued_client_certificates:
+      items:
+        $ref: '#/components/schemas/issued_client_certificate'
+      type: array
+    issued_client_certificates_results:
+      properties:
+        results:
+          $ref: '#/components/schemas/issued_client_certificates'
+      type: object
     jse_device:
       properties:
         ext_ip:
@@ -65196,7 +66193,7 @@ components:
     nac_portal:
       properties:
         access_type:
-          $ref: '#/components/schemas/nac_portal_access_type'
+          $ref: '#/components/schemas/nac_portal_access_type_enum'
         bg_image_url:
           description: background image
           type: string
@@ -65211,6 +66208,8 @@ components:
         expiry_notification_time:
           description: in days
           type: integer
+        guest_portal_config:
+          $ref: '#/components/schemas/wlan_portal'
         name:
           example: get-wifi
           type: string
@@ -65229,10 +66228,12 @@ components:
           type: string
         tos:
           type: string
+        type:
+          $ref: '#/components/schemas/nac_portal_type_enum'
       type: object
-    nac_portal_access_type:
+    nac_portal_access_type_enum:
       default: wireless
-      description: 'enum: `wireless`, `wireless+wired`'
+      description: 'if `type`==`marvis_client`. enum: `wireless`, `wireless+wired`'
       enum:
       - wireless
       - wireless+wired
@@ -65275,6 +66276,28 @@ components:
       items:
         $ref: '#/components/schemas/nac_portal_sso_role_matching'
       type: array
+    nac_portal_template:
+      properties:
+        alignment:
+          $ref: '#/components/schemas/portal_template_alignment'
+        color:
+          default: '#1074bc'
+          type: string
+        logo:
+          description: "custom logo custom logo with \u201Cdata:image/png;base64,\u201D\
+            \ format. default null, uses Juniper Mist Logo."
+          type: string
+        poweredBy:
+          default: false
+          description: "whether to hide \u201CPowered by Juniper Mist\u201D and email\
+            \ footers"
+          type: boolean
+      type: object
+    nac_portal_type_enum:
+      enum:
+      - marvis_client
+      - guest
+      type: string
     nac_portals:
       items:
         $ref: '#/components/schemas/nac_portal'
@@ -65348,7 +66371,7 @@ components:
       type: object
     nac_rule_matching_auth_type:
       description: 'enum: `cert`, `device-auth`, `eap-teap`, `eap-tls`, `eap-ttls`,
-        `idp`, `mab`, `psk`'
+        `idp`, `mab`, `peap-tls`, `psk`'
       enum:
       - cert
       - device-auth
@@ -65357,6 +66380,7 @@ components:
       - eap-ttls
       - idp
       - mab
+      - peap-tls
       - psk
       type: string
     nac_rule_matching_nactags:
@@ -65455,6 +66479,8 @@ components:
           type: integer
         type:
           $ref: '#/components/schemas/nac_tag_type'
+        username_attr:
+          $ref: '#/components/schemas/nac_tag_username_attr_enum'
         values:
           $ref: '#/components/schemas/nac_tag_values'
         vlan:
@@ -65519,7 +66545,8 @@ components:
       type: array
     nac_tag_type:
       description: 'enum: `egress_vlan_names`, `gbp_tag`, `match`, `radius_attrs`,
-        `radius_group`, `radius_vendor_attrs`, `session_timeout`, `vlan`'
+        `radius_group`, `radius_vendor_attrs`, `session_timeout`, `username_attr`,
+        `vlan`'
       enum:
       - egress_vlan_names
       - gbp_tag
@@ -65528,8 +66555,17 @@ components:
       - radius_group
       - radius_vendor_attrs
       - session_timeout
+      - username_attr
       - vlan
       minLength: 1
+      type: string
+    nac_tag_username_attr_enum:
+      enum:
+      - automatic
+      - cn
+      - upn
+      - email
+      - dns
       type: string
     nac_tag_values:
       description: if `type`==`match`
@@ -65862,10 +66898,11 @@ components:
       readOnly: true
       type: array
     oauth_app_name:
-      description: 'enum: `intune`, `jamf`, `teams`, `vmware`, `zoom`'
+      description: 'enum: `intune`, `jamf`, `mobicontrol`, `teams`, `vmware`, `zoom`'
       enum:
       - intune
       - jamf
+      - mobicontrol
       - teams
       - vmware
       - zoom
@@ -65972,9 +67009,11 @@ components:
       type: array
       uniqueItems: true
     org_apitoken_src_ips:
-      description: to restrict where the API can be called from
+      description: list of allowed IP addresses from where the token can be used from.
+        At most 10 IP addresses can be specified
       example:
-      - 198.51.0.42/32
+      - 63.3.56.0/24
+      - 63.3.55.4
       items:
         type: string
       maximum: 10
@@ -66323,6 +67362,8 @@ components:
       properties:
         action:
           $ref: '#/components/schemas/allow_deny'
+        antivirus:
+          $ref: '#/components/schemas/org_service_policy_antivirus'
         appqoe:
           $ref: '#/components/schemas/service_policy_appqoe'
         created_time:
@@ -66354,8 +67395,34 @@ components:
           type: string
         services:
           $ref: '#/components/schemas/strings'
+        ssl_proxy:
+          $ref: '#/components/schemas/org_service_policy_ssl_proxy'
         tenants:
           $ref: '#/components/schemas/strings'
+      type: object
+    org_service_policy_antivirus:
+      description: for SRX-only
+      properties:
+        avprofile_id:
+          description: org-level AV Profile can be used, this takes precendence over
+            'profile'
+          format: uuid
+          type: string
+        enabled:
+          default: false
+          type: boolean
+        profile:
+          description: default / noftp / httponly / or keys from av_profiles
+          type: string
+      type: object
+    org_service_policy_ssl_proxy:
+      description: for SRX-only
+      properties:
+        ciphers_catagory:
+          $ref: '#/components/schemas/ssl_proxy_ciphers_catagory_enum'
+        enabled:
+          default: false
+          type: boolean
       type: object
     org_setting:
       description: Org Settings
@@ -66594,6 +67661,7 @@ components:
         app_probing:
           $ref: '#/components/schemas/org_setting_gateway_mgmt_app_probing'
         app_usage:
+          description: consumes uplink bandwidth, requires WA license
           type: boolean
         host_out_policies:
           $ref: '#/components/schemas/org_setting_gateway_mgmt_host_out_policies'
@@ -66603,13 +67671,8 @@ components:
     org_setting_gateway_mgmt_app_probing:
       properties:
         apps:
-          $ref: '#/components/schemas/org_setting_gateway_mgmt_app_probing_apps'
+          $ref: '#/components/schemas/app_probing_apps'
       type: object
-    org_setting_gateway_mgmt_app_probing_apps:
-      description: app-keys from /api/v1/const/applications
-      items:
-        type: string
-      type: array
     org_setting_gateway_mgmt_host_out_policies:
       description: 'optional, for some of the host-out traffic, the path preference
         can be specified by default, ECMP will be used from all available route/path
@@ -66706,6 +67769,11 @@ components:
           description: use this IDP when no explicit realm present in the incoming
             username/CN OR when no IDP is explicitly mapped to the incoming realm.
           type: string
+        disable_rsae_algorithms:
+          default: false
+          description: to disable RSAE_PSS_SHA256, RSAE_PSS_SHA384, RSAE_PSS_SHA512
+            from server side. see https://www.openssl.org/docs/man3.0/man1/openssl-ciphers.html
+          type: boolean
         eap_ssl_security_level:
           default: 2
           description: 'eap ssl security level
@@ -66725,6 +67793,10 @@ components:
             take place outside of EU. This is an org setting that is applicable to
             WLANs, switch templates, mxedge clusters that have mist_nac enabled'
           type: boolean
+        idp_machine_cert_lookup_field:
+          $ref: '#/components/schemas/idp_machine_cert_lookup_field_enum'
+        idp_user_cert_lookup_field:
+          $ref: '#/components/schemas/idp_user_cert_lookup_field_enum'
         idps:
           $ref: '#/components/schemas/org_setting_mist_nac_idps'
         server_cert:
@@ -66826,6 +67898,11 @@ components:
           example: 128
           maximum: 128
           type: integer
+      type: object
+    org_setting_scep:
+      properties:
+        enabled:
+          type: boolean
       type: object
     org_setting_security:
       properties:
@@ -67096,6 +68173,13 @@ components:
       minItems: 1
       type: array
       uniqueItems: true
+    org_ssl_proxy_cert:
+      properties:
+        cert:
+          example: '-----BEGIN CERTIFICATE-----\nMIIowDQYJKoZIhvcNAQELBQE\n-----END
+            CERTIFICATE-----'
+          type: string
+      type: object
     org_stats:
       description: Org statistics
       properties:
@@ -67223,12 +68307,13 @@ components:
       type: string
     org_wan_clients_count_distinct:
       default: mac
-      description: 'enum: `hostname`, `ip`, `mac`, `mfg`'
+      description: 'enum: `hostname`, `ip`, `mac`, `mfg`, `network`'
       enum:
       - hostname
       - ip
       - mac
       - mfg
+      - network
       type: string
     org_wan_clients_events_count_distinct:
       default: type
@@ -67749,20 +68834,19 @@ components:
           default: false
           type: boolean
         privacyPolicyAcceptLabel:
+          default: I accept the Privacy Notice
           description: prefix of the label of the link to go to /privacy_notice
-          example: I accept the Privacy Notice
           type: string
         privacyPolicyError:
+          default: Please review and accept privacy notice
           description: error message when privacy notice is not accepted
-          example: Please review and accept privacy notice
           type: string
         privacyPolicyLink:
+          default: Privacy Notice
           description: label of the link to go to /privacy_notice,
-          example: Privacy Notice
           type: string
         privacyPolicyText:
-          description: privacy notice text
-          example: privacy notice content
+          default: privacy notice content
           type: string
         requiredFieldLabel:
           default: required
@@ -67939,6 +69023,14 @@ components:
       required:
       - pageTitle
       type: object
+    portal_template_alignment:
+      default: center
+      description: 'defines alignment on portal. enum: `center`, `left`, `right`'
+      enum:
+      - center
+      - left
+      - right
+      type: string
     privilege_msp:
       description: Privilieges settings
       properties:
@@ -68601,12 +69693,13 @@ components:
     psk_portal_template:
       properties:
         alignment:
-          $ref: '#/components/schemas/psk_portal_template_alignment'
+          $ref: '#/components/schemas/portal_template_alignment'
         color:
           default: '#1074bc'
           type: string
         logo:
-          description: custom logo.  default null, uses Juniper Mist Logo
+          description: "custom logo with \u201Cdata:image/png;base64,\u201D format.\
+            \  default null, uses Juniper Mist Logo"
           nullable: true
           type: string
         poweredBy:
@@ -68614,14 +69707,6 @@ components:
           description: whether to hide "Powered by Juniper Mist" and email footers
           type: boolean
       type: object
-    psk_portal_template_alignment:
-      default: center
-      description: 'defines alignment on portal. enum: `center`, `left`, `right`'
-      enum:
-      - center
-      - left
-      - right
-      type: string
     psk_portal_type:
       description: 'for personal psk portal. enum: `admin`, `byod`'
       enum:
@@ -70861,6 +71946,7 @@ components:
       - $ref: '#/components/schemas/account_jamf_info'
       - $ref: '#/components/schemas/account_oauth_info'
       - $ref: '#/components/schemas/account_vmware_info'
+      - $ref: '#/components/schemas/account_mobicontrol_info'
     response_org_device_upgrades:
       items:
         $ref: '#/components/schemas/org_device_upgrade'
@@ -71282,7 +72368,7 @@ components:
         type: string
       type: array
     response_pcap_status_gateways:
-      description: List of target Gateways to capture packets if a gateway capture
+      description: Information on gateways to capture packets on if a gateway capture
         type is specified
       items:
         type: string
@@ -71303,8 +72389,9 @@ components:
           tcpdump_expressiin: null
       type: object
     response_pcap_status_switches:
-      description: List of target Switches to capture packets if a switch capture
-        type is specified
+      description: Information on switches to capture packets on if a switch capture
+        type is specified. irb port interface is automatically added to capture as
+        needed to ensure all desired packets are captured.
       items:
         type: string
       type: array
@@ -72069,6 +73156,19 @@ components:
       properties:
         id:
           $ref: '#/components/schemas/virtual_chassis_config'
+      type: object
+    response_wired_coa:
+      properties:
+        device_mac:
+          example: 5c5b35000002
+          type: string
+        port_id:
+          example: ge-0/0/0
+          type: string
+        session:
+          example: 0a2a11b8-4b30-40d8-a6d1-e91ea540d86f
+          format: uuid
+          type: string
       type: object
     response_zone_search:
       properties:
@@ -73504,6 +74604,20 @@ components:
           $ref: '#/components/schemas/service_app_subcategories'
         apps:
           $ref: '#/components/schemas/service_apps'
+        client_limit_down:
+          default: 0
+          description: 0 means unlimited
+          example: 300000
+          maximum: 107374182
+          minimum: 0
+          type: integer
+        client_limit_up:
+          default: 0
+          description: 0 means unlimited
+          example: 300000
+          maximum: 107374182
+          minimum: 0
+          type: integer
         created_time:
           readOnly: true
           type: number
@@ -73532,6 +74646,20 @@ components:
           type: string
         org_id:
           $ref: '#/components/schemas/org_id'
+        service_limit_down:
+          default: 0
+          description: 0 means unlimited
+          example: 300000
+          maximum: 107374182
+          minimum: 0
+          type: integer
+        service_limit_up:
+          default: 0
+          description: 0 means unlimited
+          example: 300000
+          maximum: 107374182
+          minimum: 0
+          type: integer
         sle_enabled:
           default: false
           description: whether to enable measure SLE
@@ -74556,8 +75684,9 @@ components:
           $ref: '#/components/schemas/site_setting_critical_url_monitoring'
         device_updown_threshold:
           default: 0
-          description: sending AP_DISCONNECTED event in device-updowns only if AP_CONNECTED
-            is not seen within the threshold, in minutes
+          description: by default, device_updown_thresold, if set, will apply to all
+            devices types if different values for specific device type is desired,
+            use the following
           example: null
           maximum: 240
           minimum: 0
@@ -74645,6 +75774,11 @@ components:
           $ref: '#/components/schemas/radius_config'
         remote_syslog:
           $ref: '#/components/schemas/remote_syslog'
+        remove_existing_configs:
+          default: false
+          description: by default, when we configure a device, we only clean up config
+            we generates. Remove existing configs if enabled
+          type: boolean
         report_gatt:
           default: false
           description: whether AP should periodically connect to BLE devices and report
@@ -74897,6 +76031,14 @@ components:
           maximum: 30
           minimum: 1
           type: integer
+        disable_console:
+          default: false
+          description: for both SSR and SRX disable console port
+          type: boolean
+        disable_oob:
+          default: false
+          description: for both SSR and SRX disable management interface
+          type: boolean
         probe_hosts:
           $ref: '#/components/schemas/site_setting_gateway_mgmt_probe_hosts'
         root_password:
@@ -76753,6 +77895,13 @@ components:
       items:
         $ref: '#/components/schemas/snmpv3_config_target_param'
       type: array
+    ssl_proxy_ciphers_catagory_enum:
+      default: strong
+      enum:
+      - strong
+      - medium
+      - weak
+      type: string
     sso:
       description: SSO
       properties:
@@ -76849,8 +77998,8 @@ components:
           example: e60da615-7def-4c5a-8196-43675f45e174
           type: string
         oauth_cc_client_secret:
-          description: if `oauth_type`==`okta`, oauth_cc_client_secret is RSA private
-            key, of the form "-----BEGIN RSA PRIVATE KEY--...."
+          description: if `oauth_type`==`okta` or `oauth_type`==`ping_identity`, oauth_cc_client_secret
+            is RSA private key, of the form "-----BEGIN RSA PRIVATE KEY--...."
           example: akL8Q~5kWFMVFYl4TFZ3fi~7cMdyDONi6cj01cpH
           type: string
         oauth_discovery_url:
@@ -76866,7 +78015,7 @@ components:
           example: blM9R~6kWFMVFYl4TFZ3fi~8cMdyDONi6cj01dqI
           type: string
         oauth_tenant_id:
-          description: if `oauth_type`==`okta`, oauth_tenant_id
+          description: if `oauth_type`==`okta` or `oauth_type`==`ping_identity`, oauth_tenant_id
           example: dev-88336535
           type: string
         oauth_type:
@@ -76924,12 +78073,14 @@ components:
       type: array
     sso_ldap_type:
       default: azure
-      description: 'if `idp_type`==`ldap`. enum: `azure`, `custom`, `google`, `okta`'
+      description: 'if `idp_type`==`ldap`. enum: `azure`, `custom`, `google`, `okta`,
+        `ping_identity`'
       enum:
       - azure
       - custom
       - google
       - okta
+      - ping_identity
       type: string
     sso_mxedge_proxy:
       description: if `idp_type`==`mxedge_proxy`, this requires `mist_nac` to be enabled
@@ -77008,11 +78159,12 @@ components:
       type: string
     sso_oauth_type:
       default: azure
-      description: 'enum: `azure`, `azure-gov`, `okta`'
+      description: 'enum: `azure`, `azure-gov`, `okta`, `ping_identity`'
       enum:
       - azure
       - azure-gov
       - okta
+      - ping_identity
       type: string
     sso_role_msp:
       description: SSO Role response
@@ -77616,7 +78768,7 @@ components:
         port_mirroring:
           $ref: '#/components/schemas/switch_port_mirroring'
         switch_mgmt:
-          $ref: '#/components/schemas/config_switch'
+          $ref: '#/components/schemas/switch_mgmt'
       type: object
     switch_matching_rule_port_config:
       additionalProperties:
@@ -77673,16 +78825,53 @@ components:
         $ref: '#/components/schemas/switch_metrics_compliance_major_version'
       type: array
     switch_mgmt:
+      description: Switch settings
       properties:
-        config_revert:
+        ap_affinity_threshold:
           default: 10
+          description: ap_affinity_threshold ap_affinity_threshold can be added as
+            a field under site/setting. By default this value is set to 12. If the
+            field is set in both site/setting and org/setting, the value from site/setting
+            will be used.
+          type: integer
+        cli_banner:
+          description: Set Banners for switches. Allows markup formatting
+          example: \t\tWELCOME!
+          type: string
+        cli_idle_timeout:
+          description: Sets timeout for switches
+          maximum: 60
+          minimum: 1
+          type: integer
+        config_revert_timer:
+          default: 10
+          description: the rollback timer for commit confirmed
+          maximum: 30
+          minimum: 1
+          type: integer
+        dhcp_option_fqdn:
+          default: false
+          description: Enable to provide the FQDN with DHCP option 81
+          type: boolean
+        local_accounts:
+          $ref: '#/components/schemas/config_switch_local_accounts'
+        mxedge_proxy_host:
+          type: string
+        mxedge_proxy_port:
+          default: 2222
           type: integer
         protect_re:
           $ref: '#/components/schemas/protect_re'
+        radius:
+          $ref: '#/components/schemas/config_switch_radius'
         root_password:
           type: string
         tacacs:
           $ref: '#/components/schemas/tacacs'
+        use_mxedge_proxy:
+          description: to use mxedge as proxy
+          type: boolean
+      type: object
     switch_mist_nac:
       description: enable mist_nac to use radsec
       properties:
@@ -78168,6 +79357,12 @@ components:
           description: Only if `mode`!=`dynamic` when enabled, the port is not expected
             to receive BPDU frames
           type: boolean
+        stp_no_root_port:
+          default: false
+          type: boolean
+        stp_p2p:
+          default: false
+          type: boolean
         voip_network:
           description: Only if `mode`!=`dynamic` network/vlan for voip traffic, must
             also set port_network. to authenticate device, set port_auth
@@ -78440,6 +79635,8 @@ components:
           format: uuid
           readOnly: true
           type: string
+        ports:
+          $ref: '#/components/schemas/device_stats_ports'
         route_summary_stats:
           $ref: '#/components/schemas/route_summary_stats'
         serial:
@@ -78989,7 +80186,7 @@ components:
     ticket_attachment:
       properties:
         content_url:
-          example: https://my-attachments.s3.amazonaws.com/test/attachments/crash.log?AWSAccessKeyId=AKIAIOSFODNN7EXAMPLE&x-amz-security-token=eHl6&Signature=YWJj&Expires=1692936685
+          example: https://api.mist.com/api/v1/forward/download?jwt=...
           format: url
           type: string
       type: object
@@ -79029,6 +80226,10 @@ components:
       properties:
         content_type:
           example: image/png
+          type: string
+        content_url:
+          example: https://api.mist.com/api/v1/forward/download?jwt=...
+          format: url
           type: string
         created_at:
           example: 1453908369
@@ -79133,6 +80334,8 @@ components:
           type: string
         mode:
           $ref: '#/components/schemas/gateway_template_tunnel_mode'
+        networks:
+          $ref: '#/components/schemas/tunnel_configs_networks'
         primary:
           $ref: '#/components/schemas/gateway_template_tunnel_node'
         probe:
@@ -79229,6 +80432,11 @@ components:
       description: Only if  `provider`== `custom-ipsec`
       items:
         $ref: '#/components/schemas/gateway_template_tunnel_ipsec_proposal'
+      type: array
+    tunnel_configs_networks:
+      description: networks reachable via this tunnel
+      items:
+        type: string
       type: array
     tunnel_provider_options:
       properties:
@@ -79936,8 +81144,8 @@ components:
       type: array
     upgrade_org_devices_max_failures:
       description: number of failures allowed within each phase. Only applicable for
-        canary. Array length should be same as `canary_phases``. Will be used if provided,
-        else max_failure_percentage will be used.
+        `canary`. Array length should be same as `canary_phases`. Will be used if
+        provided, else `max_failure_percentage` will be used
       items:
         type: integer
       type: array
@@ -80030,8 +81238,9 @@ components:
       - 10
       - 50
       - 100
-      description: "phases for canary deployment. Each phase represents percentage\
-        \ of AP\u2019s that need to be upgraded. default is [1, 10, 50, 100]"
+      description: phases for canary deployment. Each phase represents percentage
+        of devices that need to be upgraded in that phase. default is [1, 10, 50,
+        100]
       items:
         type: integer
       type: array
@@ -80043,6 +81252,11 @@ components:
     upgrade_site_devices_max_failures:
       description: number of failures allowed within each phase(applicable for `canary`
         or `rrm`). Will be used if provided, else max_failure_percentage will be used
+      example:
+      - 1
+      - 1
+      - 5
+      - 5
       items:
         type: integer
       type: array
@@ -80127,8 +81341,14 @@ components:
           description: only non-local-admin MAC is accepted
           example: 5684dae9ac8b
           type: string
+        name:
+          example: Printer2
+          type: string
         notes:
           example: mac address refers to Canon printers
+          type: string
+        radius_group:
+          example: VIP
           type: string
         vlan:
           example: 30
@@ -80280,6 +81500,25 @@ components:
       items:
         type: string
       type: array
+    utils_clear_session:
+      description: to use five tuples to lookup the session to be cleared, all must
+        be provided
+      properties:
+        service_name:
+          description: ervice name, only supported in SSR
+          example: internet-wan_and_lte
+          type: string
+        session_ids:
+          $ref: '#/components/schemas/utils_clear_session_session_ids'
+      type: object
+    utils_clear_session_session_ids:
+      description: List of id of the sessions to be cleared
+      example:
+      - 88776655-0123-4567-890a-112233445566
+      items:
+        format: uuid
+        type: string
+      type: array
     utils_devices_restart:
       properties:
         member:
@@ -80354,14 +81593,43 @@ components:
       properties:
         node:
           $ref: '#/components/schemas/ha_cluster_node_enum'
-        port:
+        port_id:
           description: The nework interface on which to release the current DHCP release
-          example: wan-interface
+          example: ge-0/0/1.10
           minLength: 1
           type: string
       required:
-      - port
+      - port_id
       type: object
+    utils_release_dhcp_leases:
+      description: "Note: \n  * valid combinations for Junos: \n    * `port_id` \n\
+        \    * `macs` + `network`\n  * valid combinations for SSR: \n    * `port_id`\
+        \ \n    * `macs` + `network`\n    * `port_id` + `network`\n    * `network`\n\
+        \  * if network or port_id is specified and macs is empty, it means all clients\
+        \ under network or port_id"
+      properties:
+        mac:
+          $ref: '#/components/schemas/utils_release_dhcp_leases_mac'
+        network:
+          description: The network for the leases IPs to be released
+          example: guest
+          type: string
+        port_id:
+          description: The nework interface on which to release the current DHCP release
+          example: ge-0/0/1.10
+          minLength: 1
+          type: string
+      required:
+      - port_id
+      type: object
+    utils_release_dhcp_leases_mac:
+      description: A list of client macs to be released
+      example:
+      - 90ec77aabbcc
+      - 90ec77aabbdd
+      items:
+        type: string
+      type: array
     utils_reset_radio_config:
       properties:
         bands:
@@ -80519,8 +81787,28 @@ components:
         node:
           $ref: '#/components/schemas/ha_cluster_node_enum'
       type: object
+    utils_show_dhcp_leases:
+      properties:
+        network:
+          description: DHCP network for the leases, returns full table if not specified
+          example: guest
+          type: string
+      type: object
     utils_show_evpn_database:
       properties:
+        duration:
+          default: 0
+          description: duration in sec for which refresh is enabled. Should be set
+            only if interval is configured to non-zero value.
+          maximum: 300
+          minimum: 0
+          type: integer
+        interval:
+          default: 0
+          description: rate at which output will refresh
+          maximum: 10
+          minimum: 0
+          type: integer
         mac:
           description: client mac filter
           example: f8c1165c6400
@@ -80629,6 +81917,9 @@ components:
         service_name:
           description: The exact service name for which to display the active sessions
           example: any
+          type: string
+        session_id:
+          description: Show session details by session_id
           type: string
       type: object
     utils_traceroute:
@@ -82589,8 +83880,8 @@ components:
           example: 5c5b35513227
           type: string
         auth_type:
-          description: authentication type, e.g. "eap-tls", "eap-ttls", "eap-teap",
-            "mab", "device-auth"
+          description: authentication type, e.g. "eap-tls", "peap-tls", "eap-ttls",
+            "eap-teap", "mab", "psk", "device-auth"
           example: 802.1X
           type: string
         bssid:
@@ -84551,6 +85842,10 @@ components:
           description: whether to show list of sponsor emails mentioned in `sponsors`
             object as a dropdown. If both `sponsor_notify_all` and `predefined_sponsors_enabled`
             are false, behaviour is acc to `sponsor_email_domains`
+          type: boolean
+        predefined_sponsors_hide_email:
+          default: false
+          description: "whether to hide sponsor\u2019s email from list of sponsors"
           type: boolean
         privacy:
           default: true
