@@ -116,8 +116,8 @@ def check_folder(folder_path):
 
 #####################################################
 clean_out_folder()
-
-file = f"{SPEC_FOLDER_OUT}/api/mist.openapi..yml"
+os.mkdir(f"{SPEC_FOLDER_OUT}/api")
+file = f"{SPEC_FOLDER_OUT}/api/mist.openapi.yml"
 with open(file, "w")  as oas_out_file:
     for item in ORDER:
         yaml.dump({item: DATA[item]}, oas_out_file)
