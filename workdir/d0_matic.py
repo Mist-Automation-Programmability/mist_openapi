@@ -42,6 +42,7 @@ with open(SPEC_FILE_IN, "r") as f:
 # }
 DATA["info"]["x-server-configuration"] = {
     "default-server": "API Host",
+    "default-environment": "Mist Global 01",
     "environments": [
         {
             "name": "Mist Global 01",
