@@ -3,7 +3,7 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2408.1.6**
+  description: '> Version: **2408.1.7**
 
     >
 
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2408.1.6
+  version: 2408.1.7
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -75490,7 +75490,6 @@ components:
           readOnly: true
           type: string
         idp_cert:
-          default: null
           description: if `idp_type`==`saml`. IDP Cert (used to verify the signed
             response)
           type: string
@@ -85524,7 +85523,9 @@ components:
       description: bonjour gateway wlan settings
       properties:
         additional_vlan_ids:
-          $ref: '#/components/schemas/wlan_bonjour_additional_vlan_ids'
+          description: comma sperated list of additional VLAN IDs (on the LAN side
+            or from other WLANs) should we be forwarding bonjour queries/responses
+          type: string
         enabled:
           default: false
           description: whether to enable bonjour for this WLAN. Once enabled, limit_bcast
@@ -85544,13 +85545,6 @@ components:
       - services
       - additional_vlan_ids
       type: object
-    wlan_bonjour_additional_vlan_ids:
-      default: []
-      description: additional VLAN IDs (on the LAN side or from other WLANs) should
-        we be forwarding bonjour queries/responses
-      items:
-        $ref: '#/components/schemas/vlan_id_with_variable'
-      type: array
     wlan_bonjour_service_properties:
       properties:
         disable_local:
@@ -86217,10 +86211,10 @@ components:
           nullable: true
           type: number
         sponsor_link_validity_duration:
-          default: 60
+          default: '60'
           description: how long to remain valid sponsored guest request approve/deny
             link received in email, in minutes.
-          example: 30
+          example: '30'
           type: string
         sponsor_notify_all:
           default: false
@@ -86234,9 +86228,7 @@ components:
           description: if enabled, guest will get email about sponsor's action (approve/deny)
           type: boolean
         sponsors:
-          additionalProperties:
-            type: string
-          default: {}
+          $ref: '#/components/schemas/wlan_portal_sponsors'
           description: 'object of allowed sponsors email with name. Required if `sponsor_enabled`
             is `true` and `sponsor_email_domains` is empty.
 
@@ -86389,6 +86381,18 @@ components:
       items:
         type: string
       type: array
+    wlan_portal_sponsors:
+      oneOf:
+      - $ref: '#/components/schemas/wlan_portal_sponsors_list'
+      - $ref: '#/components/schemas/wlan_portal_sponsors_object'
+    wlan_portal_sponsors_list:
+      items:
+        type: string
+      type: array
+    wlan_portal_sponsors_object:
+      additionalProperties:
+        type: string
+      type: object
     wlan_portal_sso_nameid_format:
       default: email
       description: 'enum: `email`, `unspecified`'
