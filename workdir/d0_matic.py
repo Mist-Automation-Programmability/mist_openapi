@@ -20,26 +20,26 @@ with open(FILTER_FILE, 'r') as filter_file:
 with open(SPEC_FILE_IN, "r") as f:
     DATA = yaml.load(f, Loader=yaml.loader.SafeLoader)
 
-# INFO["x-codegen-settings"] = {
-#     "BrandLabel": "Juniper Networks",
-#     "EnableAdditionalModelProperties": True,
-#     "GenerateEnums": False,
-#     "ProjectName": "MistAPI",
-#     "ReturnCompleteHttpResponse": True,
-#     "SortResources": True,
-#     "enableLogging": True,
-#     "generateExceptions": False,
-#     "generateInterfaces": True,
-#     "generateModels": True,
-#     "nullify404": True,
-#     "shortCopyrightNotice": "Copyright \xA9 2024 Juniper Networks, Inc.  All rights reserved",
-#     "useControllerPrefix": False,
-#     "useEnumPostfix": True,
-#     "useMethodPrefix": False,
-#     "useModelPostfix": False,
-#     "userAgent": "SDK 2024.2.1",
-#     "userConfigurableRetries": True
-# }
+DATA["info"]["x-codegen-settings"] = {
+    "BrandLabel": "Juniper Networks",
+    "EnableAdditionalModelProperties": False,
+    "GenerateEnums": False,
+    "ProjectName": "MistAPI",
+    "ReturnCompleteHttpResponse": True,
+    "SortResources": True,
+    "enableLogging": True,
+    "generateExceptions": False,
+    "generateInterfaces": True,
+    "generateModels": True,
+    "nullify404": True,
+    "shortCopyrightNotice": "Copyright \xA9 2024 Juniper Networks, Inc.  All rights reserved",
+    "useControllerPrefix": False,
+    "useEnumPostfix": True,
+    "useMethodPrefix": False,
+    "useModelPostfix": False,
+    "userAgent": f"SDK {DATA['info']['version']}" ,
+    "userConfigurableRetries": True
+}
 DATA["info"]["x-server-configuration"] = {
     "default-server": "API Host",
     "default-environment": "Mist Global 01",

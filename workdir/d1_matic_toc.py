@@ -67,7 +67,7 @@ def toc_sort(item):
     else:
         a = 1
     b = item.get("generate", {}).get("endpoint-name", "zz")
-    c = item.get("group", "0")
+    c = item.get("group", "0").lower()
     return a, b, c
 
 def check_toc_group(toc_groups, toc_group_name, toc_group_dir=[], retry=False):
