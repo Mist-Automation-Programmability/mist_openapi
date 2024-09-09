@@ -38,6 +38,6 @@ do
 done
 
 echo "copying new folders"
-cp -r $OUT_FOLDER/spec/* $PORTAL_FOLDER/spec/
+cp -r $OUT_FOLDER/spec/* $PORTAL_FOLDER/../spec_in/
 cp -r $OUT_FOLDER/content/api/* $PORTAL_FOLDER/content/api/
 
