@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2408.1.12**
+  description: '> Version: **2409.1.0**
 
     >
 
-    > Date: **September 12, 2024**
+    > Date: **September 13, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2408.1.12
+  version: 2409.1.0
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -127,6 +127,10 @@ tags:
     service provider (MSP) portal and is responsible for managing and administering
     the network operations of multiple customer organizations and sites.
   name: MSPs Admins
+- description: Sky ATP Secintel Profile
+  name: Orgs SecIntel Profiles
+- description: Sky ATP Secintel Profile
+  name: Sites SecIntel Profiles
 - description: API Calls to locate a device accross all the Organizations attached
     to the MSP account.
   name: MSPs Inventory
@@ -1521,8 +1525,15 @@ paths:
       - Constants Events
   /api/v1/const/countries:
     get:
-      description: Get List of List of available Country Codes
+      description: Get List of available Country Codes
       operationId: listCountryCodes
+      parameters:
+      - description: will include more country codes if true
+        in: query
+        name: extend
+        schema:
+          default: false
+          type: boolean
       responses:
         '200':
           $ref: '#/components/responses/ConstCrountries'
@@ -1792,6 +1803,33 @@ paths:
       summary: listSupportedOtherDeviceModels
       tags:
       - Constants Models
+  /api/v1/const/states:
+    get:
+      description: Get List of ISO States based on country code
+      operationId: listStates
+      parameters:
+      - description: country code, in [two-character]($e/Constants%20Definitions/listCountryCodes)
+        in: query
+        name: country_code
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/ConstStates'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listStates
+      tags:
+      - Constants Definitions
   /api/v1/const/system_events:
     get:
       description: Get List of List of available System Events
@@ -4818,7 +4856,8 @@ paths:
       description: Get List of Org Alarms Currently Suppressed
       operationId: listOrgSuppressedAlarms
       parameters:
-      - in: query
+      - description: returns both scopes if not specified
+        in: query
         name: scope
         schema:
           $ref: '#/components/schemas/suppressed_alarm_scope'
@@ -7934,6 +7973,39 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/upgrade_id'
+  /api/v1/orgs/{org_id}/devices/versions:
+    get:
+      description: Get List of Available Device Versions
+      operationId: listOrgAvailableDeviceVersions
+      parameters:
+      - in: query
+        name: type
+        schema:
+          $ref: '#/components/schemas/device_type'
+      - description: fetch version for device model, use/combine with `type` as needed
+          (for switch and gateway devices)
+        in: query
+        name: model
+        schema:
+          type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/DeviceVersion'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listOrgAvailableDeviceVersions
+      tags:
+      - Utilities Upgrade
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/events/search:
     get:
       description: 'Search Org events
@@ -10504,6 +10576,11 @@ paths:
         name: service
         schema:
           type: string
+      - description: component like PS1, PS2
+        in: query
+        name: component
+        schema:
+          type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
@@ -10948,7 +11025,9 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     - $ref: '#/components/parameters/mxedge_id'
-    - in: path
+    - description: 'enum: `mxagent`, `mxdas`, `mxnacedge`, `mxocproxy`, `radsecproxy`,
+        `tunterm`'
+      in: path
       name: name
       required: true
       schema:
@@ -11354,7 +11433,7 @@ paths:
         name: nas_vendor
         schema:
           type: string
-      - description: SSID
+      - description: BSSID
         in: query
         name: bssid
         schema:
@@ -11368,6 +11447,11 @@ paths:
       - description: IDP returned roles/groups for the user
         in: query
         name: idp_role
+        schema:
+          type: string
+      - description: Username presented to the Identity Provider
+        in: query
+        name: idp_username
         schema:
           type: string
       - description: Radius attributes returned by NAC to NAS Devive
@@ -11410,6 +11494,32 @@ paths:
         name: timestamp
         schema:
           type: number
+      - description: labels derived from usermac entry
+        in: query
+        name: usermac_label
+        schema:
+          type: string
+      - description: partial / full MAC address, username, device_mac or ap
+        in: query
+        name: text
+        schema:
+          type: string
+      - description: IP address of NAS device
+        in: query
+        name: nas_ip
+        schema:
+          type: string
+      - description: "sort options, \u2018-\u2018 prefix represents DESC order, default\
+          \ is wcid in ASC order"
+        in: query
+        name: sort
+        schema:
+          type: string
+      - description: vendor specific Vlan ID in radius requests
+        in: query
+        name: ingress_vlan
+        schema:
+          type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
@@ -11519,6 +11629,17 @@ paths:
           , \u201Cjamf\u201D"
         in: query
         name: mdm_provider
+        schema:
+          type: string
+      - description: "sort options, \u2018-\u2018 prefix represents DESC order, default\
+          \ is wcid in ASC order"
+        in: query
+        name: sort
+        schema:
+          type: string
+      - description: vendor specific Vlan ID in radius requests
+        in: query
+        name: ingress_vlan
         schema:
           type: string
       - $ref: '#/components/parameters/start'
@@ -14510,6 +14631,134 @@ paths:
       summary: updateSdkTemplate
       tags:
       - Orgs SDK Templates
+  /api/v1/orgs/{org_id}/secintelprofiles:
+    get:
+      description: Get List of Sec Intel Profiles
+      operationId: listOrgSecIntelProfiles
+      responses:
+        '200':
+          $ref: '#/components/responses/SecIntelProfilesArray'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listOrgSecIntelProfiles
+      tags:
+      - Orgs SecIntel Profiles
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    post:
+      description: Create Sec Intel Profiles
+      operationId: createOrgSecIntelProfile
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  name: secintel-custom
+                  profiles:
+                  - action: default
+                    category: CC
+            schema:
+              $ref: '#/components/schemas/secintel_profile'
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/SecIntelProfile'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: createOrgSecIntelProfile
+      tags:
+      - Orgs SecIntel Profiles
+  /api/v1/orgs/{org_id}/secintelprofiles/{secintelprofile_id}:
+    delete:
+      description: Delete Sec Intel Profile
+      operationId: deleteOrgSecIntelProfile
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: deleteOrgSecIntelProfile
+      tags:
+      - Orgs SecIntel Profiles
+    get:
+      description: Get Sec Intel Profile
+      operationId: getOrgSecIntelProfile
+      responses:
+        '200':
+          $ref: '#/components/responses/SecIntelProfile'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getOrgSecIntelProfile
+      tags:
+      - Orgs SecIntel Profiles
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - $ref: '#/components/parameters/secintelprofile_id'
+    put:
+      description: Update Sec Intel Profile
+      operationId: updateOrgSecIntelProfile
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  name: secintel-custom
+                  profiles:
+                  - action: default
+                    category: CC
+            schema:
+              $ref: '#/components/schemas/secintel_profile'
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/SecIntelProfile'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: createOrgSecIntelProfile
+      tags:
+      - Orgs SecIntel Profiles
   /api/v1/orgs/{org_id}/secpolicies:
     get:
       description: Get List of Org Security Policies
@@ -17464,6 +17713,12 @@ paths:
     get:
       description: Get Org MxEdge Details Stats
       operationId: getOrgMxEdgeStats
+      parameters:
+      - in: query
+        name: for_site
+        schema:
+          default: false
+          type: boolean
       responses:
         '200':
           $ref: '#/components/responses/MxedgeStats'
@@ -18611,7 +18866,7 @@ paths:
       description: Search Org User MACs
       operationId: searchOrgUserMacs
       parameters:
-      - description: mac address
+      - description: partial/full MAC addres
         in: query
         name: mac
         schema:
@@ -19415,6 +19670,31 @@ paths:
         name: nacrule_id
         schema:
           type: string
+      - description: DHCP Hostname
+        in: query
+        name: dhcp_hostname
+        schema:
+          type: string
+      - description: DHCP FQDN
+        in: query
+        name: dhcp_fqdn
+        schema:
+          type: string
+      - description: DHCP Client Identifier
+        in: query
+        name: dhcp_client_identifier
+        schema:
+          type: string
+      - description: DHCP Vendor Class Identifier
+        in: query
+        name: dhcp_vendor_class_identifier
+        schema:
+          type: string
+      - description: DHCP Request Parameters
+        in: query
+        name: dhcp_request_params
+        schema:
+          type: string
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -19808,7 +20088,7 @@ paths:
   /api/v1/orgs/{org_id}/wxrules/derived:
     get:
       description: Get Derived Org WxRule
-      operationId: getOrgWxRulesDerived
+      operationId: listOrgWxRulesDerived
       responses:
         '200':
           $ref: '#/components/responses/WxruleArray'
@@ -19822,7 +20102,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getOrgWxRulesDerived
+      summary: listOrgWxRulesDerived
       tags:
       - Orgs WxRules
     parameters:
@@ -21363,7 +21643,7 @@ paths:
   /api/v1/sites/{site_id}/aptemplates/derived:
     get:
       description: Get derived AP Templates for Site
-      operationId: getSiteApTemplateDerived
+      operationId: listSiteApTemplateDerived
       parameters:
       - description: whether resolve the site variables
         in: query
@@ -21372,7 +21652,7 @@ paths:
           type: boolean
       responses:
         '200':
-          $ref: '#/components/responses/Aptemplate'
+          $ref: '#/components/responses/AptemplatesArray'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -21383,7 +21663,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteApTemplateDerived
+      summary: listSiteApTemplateDerived
       tags:
       - Sites AP Templates
     parameters:
@@ -23580,9 +23860,7 @@ paths:
         '200':
           $ref: '#/components/responses/WebsocketSession'
         '400':
-          description: 'port_id must be specified with vlan or ip
-
-            Both vlan and ip cannot be specified'
+          $ref: '#/components/responses/HTTP400'
         '401':
           $ref: '#/components/responses/HTTP401'
         '403':
@@ -24484,6 +24762,34 @@ paths:
       summary: restartSiteDevice
       tags:
       - Utilities Common
+  /api/v1/sites/{site_id}/devices/{device_id}/run_top:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: "Run top command on switches and SRX. The output will be available\
+        \ through websocket. \n\nAs there can be multiple command issued against the\
+        \ same device at the same time and the output all goes through the same websocket\
+        \ stream, `session` is introduced for demux.\n\n#### Subscribe to Device Command\
+        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n  \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+        \n}\n```"
+      operationId: runSiteSrxTopCommand
+      responses:
+        '200':
+          $ref: '#/components/responses/WebsocketSessionWithUrl'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: runSiteSrxTopCommand
+      tags:
+      - Utilities WAN
   /api/v1/sites/{site_id}/devices/{device_id}/service_ping:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -24770,6 +25076,179 @@ paths:
       summary: getSiteDeviceMacTable
       tags:
       - Utilities Common
+  /api/v1/sites/{site_id}/devices/{device_id}/show_ospf_database:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: "Get OSPF Database from the Device. The output will be available\
+        \ through websocket. \n\nAs there can be multiple command issued against the\
+        \ same device at the same time and the output all goes through the same websocket\
+        \ stream, `session` is introduced for demux.\n\n#### Subscribe to Device Command\
+        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n  \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+        \n}\n```\n\n#### Example output from ws stream\n```\n===== ====================\
+        \ ========== ======= ======== ================ =================== =================\n\
+        Vrf   Neighbor Router ID   Priority   State   Uptime   Dead Timer Due   Interface\
+        \ Address   Interface State\n===== ==================== ========== =======\
+        \ ======== ================ =================== =================\n      1.0.0.3\
+        \                     1   Full       852               38   172.16.3.2   \
+        \       Backup\n      1.0.0.4                     1   Full       811     \
+        \          33   172.16.3.2          DROther\n      1.0.0.3               \
+        \      1   Full       852               38   172.16.4.2          Backup\n\
+        \      1.0.0.4                     1   Full       811               34   172.16.4.2\
+        \          DROther\n```"
+      operationId: getSiteSsrOspfDatabase
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/utils_show_ospf_database'
+        description: all attributes are optional
+      responses:
+        '200':
+          $ref: '#/components/responses/WebsocketSession'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteSsrOspfDatabase
+      tags:
+      - Utilities WAN
+  /api/v1/sites/{site_id}/devices/{device_id}/show_ospf_interfaces:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: "Get OSPF interfaces from the Device. The output will be available\
+        \ through websocket. \n\nAs there can be multiple command issued against the\
+        \ same device at the same time and the output all goes through the same websocket\
+        \ stream, `session` is introduced for demux.\n\n#### Subscribe to Device Command\
+        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n  \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+        \n}\n```\n\n#### Example output from ws stream\n```\n===== ==================\
+        \ =================== ============== =============== =========== =========\
+        \ ===========\nVrf   Device Interface   Network Interface   Interface Up \
+        \  IP Address      OSPF Type   Area ID   Area Type\n===== ==================\
+        \ =================== ============== =============== =========== =========\
+        \ ===========\n      net1               g1                          True \
+        \  172.16.1.2/24   Broadcast   0.0.0.0   default\n      net3             \
+        \  g3                          True   172.16.3.2/24   Broadcast   0.0.0.0\
+        \   default\n      net4               g4                          True   172.16.4.2/24\
+        \   Broadcast   0.0.0.4   default\n```"
+      operationId: getSiteSsrOspfInterface
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/utils_show_ospf_interfaces'
+        description: all attributes are optional
+      responses:
+        '200':
+          $ref: '#/components/responses/WebsocketSession'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteSsrOspfInterface
+      tags:
+      - Utilities WAN
+  /api/v1/sites/{site_id}/devices/{device_id}/show_ospf_neighbors:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: "Get OSPF Neighbors from the Device. The output will be available\
+        \ through websocket. \n\nAs there can be multiple command issued against the\
+        \ same device at the same time and the output all goes through the same websocket\
+        \ stream, `session` is introduced for demux.\n\n#### Subscribe to Device Command\
+        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n  \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+        \n}\n```\n\n#### Example output from ws stream\n```\n===== ====================\
+        \ ========== ======= ======== ================ =================== =================\n\
+        Vrf   Neighbor Router ID   Priority   State   Uptime   Dead Timer Due   Interface\
+        \ Address   Interface State\n===== ==================== ========== =======\
+        \ ======== ================ =================== =================\n      1.0.0.3\
+        \                     1   Full       852               38   172.16.3.2   \
+        \       Backup\n      1.0.0.4                     1   Full       811     \
+        \          33   172.16.3.2          DROther\n      1.0.0.3               \
+        \      1   Full       852               38   172.16.4.2          Backup\n\
+        \      1.0.0.4                     1   Full       811               34   172.16.4.2\
+        \          DROther\n```"
+      operationId: getSiteSsrOspfNeighbors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/utils_show_ospf_neighbors'
+        description: all attributes are optional
+      responses:
+        '200':
+          $ref: '#/components/responses/WebsocketSession'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteSsrOspfNeighbors
+      tags:
+      - Utilities WAN
+  /api/v1/sites/{site_id}/devices/{device_id}/show_ospf_summary:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: "Get OSPF summary from the Device. The output will be available\
+        \ through websocket. \n\nAs there can be multiple command issued against the\
+        \ same device at the same time and the output all goes through the same websocket\
+        \ stream, `session` is introduced for demux.\n\n#### Subscribe to Device Command\
+        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n  \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+        \n}\n```\n\n#### Example output from ws stream\n```\n===== =========== ==========\
+        \ ============= ==================== ========= =========== =============\n\
+        Vrf   Router ID   ABR Type   ASBR Router   External LSA Count   Area ID  \
+        \ Area Type   Area Border\n                                              \
+        \                                        Router\n===== =========== ==========\
+        \ ============= ==================== ========= =========== =============\n\
+        \      1.0.0.2     cisco            False                    0   0.0.0.0\n\
+        \      1.0.0.2     cisco            False                    0   0.0.0.4 \
+        \  default\n```"
+      operationId: getSiteSsrOspfSummary
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/utils_show_ospf_summary'
+        description: all attributes are optional
+      responses:
+        '200':
+          $ref: '#/components/responses/WebsocketSession'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteSsrOspfSummary
+      tags:
+      - Utilities WAN
   /api/v1/sites/{site_id}/devices/{device_id}/show_route:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -25017,9 +25496,25 @@ paths:
     get:
       description: Get Device Synthetic Test
       operationId: getSiteDeviceSyntheticTest
+      parameters:
+      - description: synthetic test type
+        in: query
+        name: type
+        schema:
+          $ref: '#/components/schemas/synthetictest_type'
+      - description: tenant network in which `lan_connectivity` test is run
+        in: query
+        name: tenant
+        schema:
+          type: string
+      - description: tenant network in which `lan_connectivity` test is run
+        in: query
+        name: node
+        schema:
+          $ref: '#/components/schemas/ha_cluster_node_enum'
       responses:
         '200':
-          description: scheduled
+          $ref: '#/components/responses/SynthetictestStatus'
         '400':
           description: Device not online / Device not supported / Already in progress
         '401':
@@ -25742,7 +26237,7 @@ paths:
   /api/v1/sites/{site_id}/gatewaytemplates/derived:
     get:
       description: Get derived Gateway Templates for Site
-      operationId: getSiteGatewayTemplateDerived
+      operationId: listSiteGatewayTemplateDerived
       parameters:
       - description: whether resolve the site variables
         in: query
@@ -25751,7 +26246,7 @@ paths:
           type: boolean
       responses:
         '200':
-          $ref: '#/components/responses/Gatewaytemplate'
+          $ref: '#/components/responses/GatewaytemplatesArray'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -25762,7 +26257,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteGatewayTemplateDerived
+      summary: listSiteGatewayTemplateDerived
       tags:
       - Sites Gateway Templates
     parameters:
@@ -27189,6 +27684,11 @@ paths:
         name: service
         schema:
           type: string
+      - description: component like PS1, PS2
+        in: query
+        name: component
+        schema:
+          type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
@@ -27507,17 +28007,12 @@ paths:
         name: vlan
         schema:
           type: integer
-      - description: Vlan source, e.g. "nactag", "usermac"
-        in: query
-        name: vlan_source
-        schema:
-          type: string
       - description: vendor of NAS device
         in: query
         name: nas_vendor
         schema:
           type: string
-      - description: SSID
+      - description: BSSID
         in: query
         name: bssid
         schema:
@@ -27553,11 +28048,6 @@ paths:
         name: username
         schema:
           type: string
-      - description: labels derived from usermac entry
-        in: query
-        name: usermac_labels
-        schema:
-          $ref: '#/components/schemas/strings'
       - description: AP MAC
         in: query
         name: ap
@@ -27573,16 +28063,37 @@ paths:
         name: mac
         schema:
           type: string
-      - description: Lookup(IDP etc.,) time taken in seconds
-        in: query
-        name: lookup_time_taken
-        schema:
-          type: number
       - description: time, in epoch
         in: query
         name: timestamp
         schema:
           type: number
+      - description: labels derived from usermac entry
+        in: query
+        name: usermac_label
+        schema:
+          type: string
+      - description: partial / full MAC address, username, device_mac or ap
+        in: query
+        name: text
+        schema:
+          type: string
+      - description: IP address of NAS device
+        in: query
+        name: nas_ip
+        schema:
+          type: string
+      - description: "sort options, \u2018-\u2018 prefix represents DESC order, default\
+          \ is wcid in ASC order"
+        in: query
+        name: sort
+        schema:
+          type: string
+      - description: vendor specific Vlan ID in radius requests
+        in: query
+        name: ingress_vlan
+        schema:
+          type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
@@ -27699,6 +28210,17 @@ paths:
         name: mdm_provider
         schema:
           type: string
+      - description: "sort options, \u2018-\u2018 prefix represents DESC order, default\
+          \ is wcid in ASC order"
+        in: query
+        name: sort
+        schema:
+          type: string
+      - description: vendor specific Vlan ID in radius requests
+        in: query
+        name: ingress_vlan
+        schema:
+          type: string
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
@@ -27754,7 +28276,7 @@ paths:
   /api/v1/sites/{site_id}/networktemplates/derived:
     get:
       description: Get derived Network Templates for Site
-      operationId: getSiteNetworkTemplateDerived
+      operationId: listSiteNetworkTemplateDerived
       parameters:
       - description: whether resolve the site variables
         in: query
@@ -27774,7 +28296,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteNetworkTemplateDerived
+      summary: listSiteNetworkTemplateDerived
       tags:
       - Sites Network Templates
     parameters:
@@ -28565,7 +29087,7 @@ paths:
   /api/v1/sites/{site_id}/rftemplates/derived:
     get:
       description: Get derived RF Templates for Site
-      operationId: getSiteRfTemplateDerived
+      operationId: listSiteRfTemplateDerived
       parameters:
       - description: whether resolve the site variables
         in: query
@@ -28574,7 +29096,7 @@ paths:
           type: boolean
       responses:
         '200':
-          $ref: '#/components/responses/Rftemplate'
+          $ref: '#/components/responses/RftemplatesArray'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -28585,7 +29107,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteRfTemplateDerived
+      summary: listSiteRfTemplateDerived
       tags:
       - Sites RF Templates
     parameters:
@@ -29043,6 +29565,34 @@ paths:
       summary: updateSiteRssiZone
       tags:
       - Sites RSSI Zones
+  /api/v1/sites/{site_id}/secintelprofiles/derived:
+    get:
+      description: Get derived Sky-ATP secintel profiles for Site
+      operationId: listSiteSecIntelProfilesDerived
+      parameters:
+      - description: whether resolve the site variables
+        in: query
+        name: resolve
+        schema:
+          type: boolean
+      responses:
+        '200':
+          $ref: '#/components/responses/SecIntelProfilesArray'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listSiteSecIntelProfilesDerived
+      tags:
+      - Sites SecIntel Profiles
+    parameters:
+    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/servicepolicies/derived:
     get:
       description: Retrieves the list of Service Policies available for the Site
@@ -29841,7 +30391,7 @@ paths:
   /api/v1/sites/{site_id}/sitetemplates/derived:
     get:
       description: Get derived Site Templates for Site
-      operationId: getSiteSiteTemplateDerived
+      operationId: listSiteSiteTemplateDerived
       parameters:
       - description: whether resolve the site variables
         in: query
@@ -29850,7 +30400,7 @@ paths:
           type: boolean
       responses:
         '200':
-          $ref: '#/components/responses/SiteTemplate'
+          $ref: '#/components/responses/SiteTemplatesArray'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -29861,7 +30411,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteSiteTemplateDerived
+      summary: listSiteSiteTemplateDerived
       tags:
       - Sites Site Templates
     parameters:
@@ -31439,6 +31989,8 @@ paths:
     get:
       description: Get Site Device Stats Details
       operationId: getSiteDeviceStats
+      parameters:
+      - $ref: '#/components/parameters/fields'
       responses:
         '200':
           $ref: '#/components/responses/DeviceStats'
@@ -32880,6 +33432,11 @@ paths:
         name: type
         schema:
           $ref: '#/components/schemas/synthetictest_type'
+      - description: tenant network in which lan_connectivity test was run
+        in: query
+        name: tenant
+        schema:
+          type: string
       responses:
         '200':
           $ref: '#/components/responses/SynthetictestSearch'
@@ -32994,7 +33551,7 @@ paths:
   /api/v1/sites/{site_id}/uisettings/derived:
     get:
       description: Get both site UI settings(for_site=true) and org UI settings (for_site=false)
-      operationId: getSiteUiSettingDerived
+      operationId: listSiteUiSettingDerived
       responses:
         '200':
           $ref: '#/components/responses/UiSettings'
@@ -33008,7 +33565,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteUiSettingDerived
+      summary: listSiteUiSettingDerived
       tags:
       - Sites UI Settings
     parameters:
@@ -34007,6 +34564,31 @@ paths:
       - description: nacrule_id
         in: query
         name: nacrule_id
+        schema:
+          type: string
+      - description: DHCP Hostname
+        in: query
+        name: dhcp_hostname
+        schema:
+          type: string
+      - description: DHCP FQDN
+        in: query
+        name: dhcp_fqdn
+        schema:
+          type: string
+      - description: DHCP Client Identifier
+        in: query
+        name: dhcp_client_identifier
+        schema:
+          type: string
+      - description: DHCP Vendor Class Identifier
+        in: query
+        name: dhcp_vendor_class_identifier
+        schema:
+          type: string
+      - description: DHCP Request Parameters
+        in: query
+        name: dhcp_request_params
         schema:
           type: string
       - $ref: '#/components/parameters/limit'
@@ -37161,6 +37743,14 @@ components:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
         format: uuid
         type: string
+    secintelprofile_id:
+      in: path
+      name: secintelprofile_id
+      required: true
+      schema:
+        example: 000000ab-00ab-00ab-00ab-0000000000ab
+        format: uuid
+        type: string
     secpolicy_id:
       in: path
       name: secpolicy_id
@@ -37383,6 +37973,7 @@ components:
                 email: user@example.com
                 first_name: string
                 last_name: string
+                password_modified_time: 1656353525
                 privileges:
                 - msp_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                   msp_name: string
@@ -39673,6 +40264,25 @@ components:
           schema:
             $ref: '#/components/schemas/const_other_device_models'
       description: OK
+    ConstStates:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+              - iso_code: AK
+                name: Alaska
+              - iso_code: AL
+                name: Alabama
+              - iso_code: AS
+                name: American Samoa
+              - iso_code: AZ
+                name: Arizona
+              - iso_code: CA
+                name: California
+          schema:
+            $ref: '#/components/schemas/const_states'
+      description: List of Countries
     ConstSystemEvents:
       content:
         application/json:
@@ -47044,7 +47654,15 @@ components:
               value:
                 results:
                 - duration: 48
+                  expire_time: 1678233080
+                  scheduled_time: 1678232900
+                  scope: site
                   site_id: 581328b6-e382-f54e-c9dc-9c998d183a34
+                - duration: 48
+                  expire_time: 1678233080
+                  scheduled_time: 1678232900
+                  scope: org
+                  site_id: 581328b6-e382-f54e-c9dc-9c998d183a35
           schema:
             $ref: '#/components/schemas/response_org_suppress_alarm'
       description: OK
@@ -47964,6 +48582,32 @@ components:
           schema:
             $ref: '#/components/schemas/response_search_var'
       description: OK
+    SecIntelProfile:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                name: secintel-custom
+                profiles:
+                - action: default
+                  category: CC
+          schema:
+            $ref: '#/components/schemas/secintel_profile'
+      description: Example response
+    SecIntelProfilesArray:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+              - name: secintel-custom
+                profiles:
+                - action: default
+                  category: CC
+          schema:
+            $ref: '#/components/schemas/secintel_profiles'
+      description: Example response
     SecpoliciesArray:
       content:
         application/json:
@@ -51176,16 +51820,28 @@ components:
                 results:
                 - device_mac:
                   - '001122334455'
-                  device_mac_port:
-                  - device_mac: '001122334455'
-                    ip: ''
-                    port_id: et-0/0/1
-                    port_parent: ''
-                    start: 2020-12-10T00:07:36.262+0000
-                    vlan: 1
-                    when: 2022-03-29T04:56:05.172+0000
-                  ip:
-                  - 11.216.202.61
+                  dhcp_client_identifier: MAC address 00155df6d500
+                  dhcp_client_options:
+                  - code: DHO_DHCP_MESSAGE_TYPE(53)
+                    data: DHCPREQUEST
+                  - code: DHO_DHCP_CLIENT_IDENTIFIER(61)
+                    data: MAC address 00155df6d500
+                  - code: DHO_DHCP_REQUESTED_ADDRESS(50)
+                    data: 172.17.10.255
+                  - code: DHO_DHCP_SERVER_IDENTIFIER(54)
+                    data: 172.17.8.1
+                  - code: DHO_DHCP_MAX_MESSAGE_SIZE(57)
+                    data: '1280'
+                  - code: DHO_DHCP_PARAMETER_REQUEST_LIST(55)
+                    data: ' 1 3 6 12 15 28 43 180'
+                  - code: DHO_VENDOR_CLASS_IDENTIFIER(60)
+                    data: MSFT 5.0
+                  - code: DHO_HOST_NAME(12)
+                    data: ITS-VMMT0-D1N02
+                  dhcp_fqdn: ITS-VMMT0-D1N02.mgthub.local
+                  dhcp_hostname: ITS-VMMT0-D1N02
+                  dhcp_request_params: 1 3 6 15 31 33 43 44 46 47 119 121 249 252
+                  dhcp_vendor_class_identifier: MSFT 5.0
                   mac: '112233445566'
                   org_id: c168ddee-c14c-11e5-8e81-1258369c38a9
                   port_id:
@@ -52260,6 +52916,10 @@ components:
           description: if admin account is not an Org API Token
           readOnly: true
           type: boolean
+        password_modified_time:
+          description: password last modified time, in epoch
+          format: double
+          type: number
         phone:
           description: 'if admin account is not an Org API Token
 
@@ -52317,7 +52977,7 @@ components:
           example: Cupertino
           type: string
         country:
-          description: country/region of registering user
+          description: country/region name or ISO code of registering user
           example: United States
           type: string
         email:
@@ -52354,8 +53014,9 @@ components:
           example: http://mist.zendesk.com/hc/quickstart.pdf
           type: string
         state:
-          description: state of registering user, optional (depends on country/region)
-          example: California
+          description: state name or ISO code of registering user, optional (depends
+            on country/region)
+          example: CA
           type: string
         street_address:
           description: street address of registering user
@@ -52542,6 +53203,9 @@ components:
       type: array
     alarm_search_result:
       properties:
+        component:
+          description: Component of the alarm
+          type: string
         end:
           example: 1711035686
           type: integer
@@ -53390,6 +54054,11 @@ components:
           type: boolean
         forwarding:
           $ref: '#/components/schemas/ap_port_config_forwarding'
+        mac_auth_preferred:
+          default: false
+          description: when `true`, we'll do dot1x then mac_auth. enable this to prefer
+            mac_auth
+          type: boolean
         mac_auth_protocol:
           $ref: '#/components/schemas/ap_port_config_mac_auth_protocol'
         mist_nac:
@@ -53800,6 +54469,9 @@ components:
         num_clients:
           nullable: true
           readOnly: true
+          type: integer
+        num_wlans:
+          description: how many WLANs are applied to the radio
           type: integer
         power:
           description: transmit power (in dBm)
@@ -54312,6 +54984,8 @@ components:
           type: string
         hostname:
           $ref: '#/components/schemas/app_probing_custom_app_hostname'
+        key:
+          type: string
         name:
           example: pos_app
           type: string
@@ -54882,6 +55556,9 @@ components:
           description: by default, we'll re-advertise all learned BGP routers toward
             overlay
           type: boolean
+        tunnel_name:
+          description: if `type`==`tunnel`
+          type: string
         type:
           $ref: '#/components/schemas/bgp_config_type'
         via:
@@ -54944,9 +55621,10 @@ components:
       type: string
     bgp_config_via:
       default: lan
-      description: 'network name. enum: `lan`, `vpn`, `wan`'
+      description: 'network name. enum: `lan`, `tunnel`, `vpn`, `wan`'
       enum:
       - lan
+      - tunnel
       - vpn
       - wan
       type: string
@@ -54965,6 +55643,8 @@ components:
         mac:
           description: router mac address
           example: 020001c04668
+          type: string
+        model:
           type: string
         neighbor:
           example: 15.8.3.5
@@ -55570,14 +56250,29 @@ components:
           type: integer
         type:
           $ref: '#/components/schemas/capture_mxedge_type'
+        tzsp_host:
+          description: Required if `format`==`tzsp`. Remote host accessible to mxedges
+            over the network for receiving the captured packets.
+          example: 192.168.1.2
+          type: string
+        tzsp_port:
+          default: 37008
+          description: if `format`==`tzsp`. Port on remote host for receiving the
+            captured packets
+          maximum: 65535
+          minimum: 1
+          type: integer
       required:
       - type
       type: object
     capture_mxedge_format:
       default: stream
-      description: 'pcap format. enum: `stream`'
+      description: "pcap format. enum: \n    * `stream`: to Mist cloud\n    * `tzsp`:\
+        \ tream packets (over UDP as TZSP packets) to a remote host (typically running\
+        \ Wireshark)"
       enum:
       - stream
+      - tzsp
       type: string
     capture_mxedge_mxedges:
       description: Property key is the Mx Edge ID, currently limited to one mxedge
@@ -57526,6 +58221,19 @@ components:
       items:
         $ref: '#/components/schemas/const_other_device_model'
       type: array
+    const_state:
+      properties:
+        iso_code:
+          example: AK
+          type: string
+        name:
+          example: Alaske
+          type: string
+      type: object
+    const_states:
+      items:
+        $ref: '#/components/schemas/const_state'
+      type: array
     const_traffic_type:
       properties:
         display:
@@ -58099,7 +58807,7 @@ components:
         notes:
           type: string
         ntp_servers:
-          $ref: '#/components/schemas/ntp__servers'
+          $ref: '#/components/schemas/ntp_servers'
         oob_ip_config:
           $ref: '#/components/schemas/switch_oob_ip_config'
         org_id:
@@ -58421,7 +59129,7 @@ components:
           default: false
           type: boolean
         ntp_servers:
-          $ref: '#/components/schemas/ntp__servers'
+          $ref: '#/components/schemas/ntp_servers'
         oob_ip_config:
           $ref: '#/components/schemas/gateway_oob_ip_config'
         org_id:
@@ -58468,6 +59176,15 @@ components:
       items:
         $ref: '#/components/schemas/deviceprofile'
       type: array
+    dhcp_client_option:
+      properties:
+        code:
+          example: DHO_DHCP_MESSAGE_TYPE(53)
+          type: string
+        data:
+          example: DHCPREQUEST
+          type: string
+      type: object
     dhcp_snooping:
       properties:
         all_networks:
@@ -59116,7 +59833,7 @@ components:
           description: event type, e.g. NAC_CLIENT_PERMIT
           example: NAC_CLIENT_PERMIT
           type: string
-        usermac_labels:
+        usermac_label:
           $ref: '#/components/schemas/event_nac_client_usermac_labels'
         username:
           description: Username presented by the client
@@ -60371,7 +61088,7 @@ components:
           default: false
           type: boolean
         ntp_servers:
-          $ref: '#/components/schemas/ntp__servers'
+          $ref: '#/components/schemas/ntp_servers'
         oob_ip_config:
           $ref: '#/components/schemas/gateway_oob_ip_config'
         org_id:
@@ -62454,6 +63171,34 @@ components:
       - $ref: '#/components/schemas/device_ap'
       - $ref: '#/components/schemas/device_switch'
       - $ref: '#/components/schemas/device_gateway'
+    mist_nacedge:
+      properties:
+        auth_ttl:
+          default: 604800
+          description: cache of last auth result; in seconds
+          maximum: 2592000
+          minimum: 60
+          type: integer
+        default_dot1x_vlan:
+          description: default vlan for all dot1x devices, if different from default_vlan
+          example: '20'
+          type: string
+        default_vlan:
+          description: Default vlan to assign for devices not in the cache
+          example: test_vlan
+          type: string
+        enabled:
+          type: boolean
+        mxedge_hosts:
+          $ref: '#/components/schemas/mist_nacedge_mxedge_hosts'
+      type: object
+    mist_nacedge_mxedge_hosts:
+      description: list of NAC Edges in this site
+      example:
+      - mxedge1.local
+      items:
+        type: string
+      type: array
     ml_overwrite:
       additionalProperties:
         $ref: '#/components/schemas/ml_overwrite_additional_properties'
@@ -62902,6 +63647,10 @@ components:
       type: object
     mxcluster_nac_client_ip:
       properties:
+        require_message_authenticator:
+          default: false
+          description: whether to require Message-Authenticator in requests
+          type: boolean
         secret:
           description: if different from above
           type: string
@@ -62961,12 +63710,14 @@ components:
           description: whether to match ssid in request message to select from a subset
             of RADIUS servers
           type: boolean
+        nas_ip_source:
+          $ref: '#/components/schemas/mxcluster_radsec_nas_ip_source'
         proxy_hosts:
           $ref: '#/components/schemas/mxcluster_radsec_proxy_hosts'
         server_selection:
           $ref: '#/components/schemas/mxcluster_radsec_server_selection'
-        source:
-          $ref: '#/components/schemas/mxcluster_radsec_source'
+        src_ip_source:
+          $ref: '#/components/schemas/mxcluster_radsec_src_ip_source'
       type: object
     mxcluster_radsec_acct_server:
       properties:
@@ -63036,6 +63787,17 @@ components:
         $ref: '#/components/schemas/mxcluster_radsec_auth_server'
       type: array
       uniqueItems: true
+    mxcluster_radsec_nas_ip_source:
+      default: any
+      description: 'SSpecify NAS-IP-ADDRESS, NAS-IPv6-ADDRESS to use with auth_servers.
+        enum: `any`, `oob`, `oob6`, `tunnel`, `tunnel6`'
+      enum:
+      - any
+      - oob
+      - oob6
+      - tunnel
+      - tunnel6
+      type: string
     mxcluster_radsec_proxy_hosts:
       description: hostnames or IPs for Mist AP to use as the TLS Server (i.e. they
         are reachable from AP) in addition to `tunterm_hosts`
@@ -63050,9 +63812,9 @@ components:
       - ordered
       - unordered
       type: string
-    mxcluster_radsec_source:
+    mxcluster_radsec_src_ip_source:
       default: any
-      description: 'Specify source address to use when connecting to RADIUS servers.
+      description: 'Specify IP address to connect to auth_servers and acct_servers.
         enum: `any`, `oob`, `oob6`, `tunnel`, `tunnel6`'
       enum:
       - any
@@ -63223,6 +63985,10 @@ components:
           default: 3799
           description: mist edges will allow this host on this port
           type: integer
+        require_message_authenticator:
+          default: false
+          description: whether to require Message-Authenticator in requests
+          type: boolean
         secret:
           type: string
       type: object
@@ -63234,6 +64000,9 @@ components:
       type: array
     mxedge_event:
       properties:
+        component:
+          description: component like PS1, PS2
+          type: string
         mxcluster_id:
           example: 2815c917-58e7-472f-a190-bfd44fb58d05
           type: string
@@ -63359,6 +64128,7 @@ components:
       enum:
       - mxagent
       - mxdas
+      - mxnacedge
       - mxocproxy
       - radsecproxy
       - tunterm
@@ -63653,7 +64423,8 @@ components:
       type: string
     mxedge_upgrade_version:
       description: version to upgrade for each service, `current` / `latest` / `default`
-        / specific version (e.g. `2.5.100`).\nignored if distro upgrade
+        / specific version (e.g. `2.5.100`).\nIgnored if distro upgrade, `tunterm`,
+        `radsecproxy`, `mxagent`, `mxocproxy`, `mxdas` or `mxnacedge`
       properties:
         mxagent:
           default: current
@@ -63875,6 +64646,8 @@ components:
           description: in days
           example: 365
           type: integer
+        eap_type:
+          $ref: '#/components/schemas/nac_portal_eap_type'
         enable_telemetry:
           description: model, version, fingering, events (connecting, disconnect,
             roaming), which ap
@@ -63911,6 +64684,13 @@ components:
       enum:
       - wireless
       - wireless+wired
+      type: string
+    nac_portal_eap_type:
+      default: wpa2
+      description: 'enum: `wpa2`, `wpa3`'
+      enum:
+      - wpa2
+      - wpa3
       type: string
     nac_portal_sso:
       properties:
@@ -64175,8 +64955,8 @@ components:
       type: array
     nac_tag_match:
       description: 'if `type`==`match`. enum: `cert_cn`, `cert_issuer`, `cert_san`,
-        `cert_serial`, `cert_sub`, `client_mac`, `idp_role`, `mdm_status`, `radius_group`,
-        `realm`, `ssid`, `user_name`, `usermac_label`'
+        `cert_serial`, `cert_sub`, `client_mac`, `idp_role`, `ingress_vlan`, `mdm_status`,
+        `nas_ip`, `radius_group`, `realm`, `ssid`, `user_name`, `usermac_label`'
       enum:
       - cert_cn
       - cert_issuer
@@ -64185,7 +64965,9 @@ components:
       - cert_sub
       - client_mac
       - idp_role
+      - ingress_vlan
       - mdm_status
+      - nas_ip
       - radius_group
       - realm
       - ssid
@@ -64424,7 +65206,7 @@ components:
         networks:
           $ref: '#/components/schemas/switch_networks'
         ntp_servers:
-          $ref: '#/components/schemas/ntp__servers'
+          $ref: '#/components/schemas/ntp_servers'
         org_id:
           $ref: '#/components/schemas/org_id'
         port_mirroring:
@@ -64562,7 +65344,7 @@ components:
           example: wired pcap test
           type: string
       type: object
-    ntp__servers:
+    ntp_servers:
       description: list of NTP servers specific to this device. By default, those
         in Site Settings will be used
       items:
@@ -64586,6 +65368,356 @@ components:
       - vmware
       - zoom
       type: string
+    optional_stat_bgps:
+      description: 'only present when `bgp_peers` in `fields` query parameter
+
+        Each port object is same as `GET /api/v1/sites/:site_id/stats/bgp_peers/search`
+        result object, except that org_id, site_id, mac, model are removed'
+      items:
+        $ref: '#/components/schemas/optional_stats_bgp'
+      type: array
+    optional_stat_ports:
+      description: 'only present when `ports` in `fields` query parameter
+
+        Each port object is same as `GET /api/v1/sites/:site_id/stats/ports/search`
+        result object, except that org_id, site_id, mac, model are removed'
+      items:
+        $ref: '#/components/schemas/optional_stats_port'
+      type: array
+    optional_stat_vpn_peer:
+      properties:
+        is_active:
+          description: Redundancy status of the associated interface
+          type: boolean
+        last_seen:
+          type: number
+        latency:
+          type: number
+        mos:
+          type: number
+        mtu:
+          type: integer
+        peer_mac:
+          description: peer router mac address
+          minLength: 1
+          type: string
+        peer_port_id:
+          description: peer router device interface
+          minLength: 1
+          type: string
+        peer_router_name:
+          minLength: 1
+          type: string
+        peer_site_id:
+          $ref: '#/components/schemas/site_id'
+        port_id:
+          description: router device interface
+          minLength: 1
+          type: string
+        router_name:
+          minLength: 1
+          type: string
+        type:
+          description: '`ipsec`for SRX, `svr` for 128T'
+          minLength: 1
+          type: string
+        up:
+          type: boolean
+        uptime:
+          type: integer
+      type: object
+    optional_stat_vpn_peers:
+      description: 'only present when `vpn_peers` in `fields` query parameter
+
+        Each port object is same as `GET /api/v1/sites/:site_id/stats/vpn_peers/search`
+        result object, except that org_id, site_id, mac, model are removed'
+      items:
+        $ref: '#/components/schemas/optional_stat_vpn_peer'
+      type: array
+    optional_stat_wan_tunnel:
+      properties:
+        auth_algo:
+          description: authentication algorithm
+          type: string
+        encrypt_algo:
+          description: encryption algorithm
+          type: string
+        ike_version:
+          description: ike version
+          type: string
+        ip:
+          description: ip address
+          type: string
+        last_event:
+          description: reason of why the tunnel is down
+          type: string
+        last_flapped:
+          description: indicates when the port was last flapped
+          format: double
+          type: number
+        node:
+          description: node0/node1
+          type: string
+        peer_host:
+          description: peer host
+          type: string
+        peer_ip:
+          description: peer ip address
+          type: string
+        priority:
+          $ref: '#/components/schemas/stats_wan_tunnel_priority'
+        protocol:
+          $ref: '#/components/schemas/wan_tunnel_protocol'
+        rx_bytes:
+          type: integer
+        rx_pkts:
+          type: integer
+        tunnel_name:
+          description: Mist Tunnel Name
+          type: string
+        tx_bytes:
+          type: integer
+        tx_pkts:
+          type: integer
+        up:
+          type: boolean
+        uptime:
+          description: duration from first (or last) SA was established
+          type: integer
+        wan_name:
+          description: wan interface name
+          example: wan
+          type: string
+      type: object
+    optional_stat_wan_tunnels:
+      description: 'only present when `tunnels` in `fields` query parameter
+
+        Each port object is same as `GET /api/v1/sites/:site_id/stats/tunnels/search`
+        result object, except that org_id, site_id, mac, model are removed'
+      items:
+        $ref: '#/components/schemas/optional_stat_wan_tunnel'
+      type: array
+    optional_stats_bgp:
+      description: only present when `bgp_peers` in `fields` query parameter
+      properties:
+        evpn_overlay:
+          description: if this is created for evpn overlay
+          type: boolean
+        for_overlay:
+          description: if this is created for overlay
+          type: boolean
+        local_as:
+          description: AS
+          example: 65000
+          type: integer
+        neighbor:
+          example: 15.8.3.5
+          type: string
+        neighbor_as:
+          example: 65000
+          type: integer
+        neighbor_mac:
+          description: if it's another device in the same org
+          example: 020001c04600
+          type: string
+        node:
+          description: node0/node1
+          example: node0
+          type: string
+        rx_pkts:
+          example: 63366
+          type: integer
+        rx_routes:
+          description: number of received routes
+          example: 60
+          type: integer
+        state:
+          $ref: '#/components/schemas/bgp_stats_state'
+        timestamp:
+          example: 1666251056.07
+          type: number
+        tx_pkts:
+          example: 1735
+          type: integer
+        tx_routes:
+          example: 60
+          type: integer
+        up:
+          type: boolean
+        uptime:
+          example: 31355
+          type: integer
+        vrf_name:
+          example: default
+          type: string
+      type: object
+    optional_stats_port:
+      description: Port statistics
+      properties:
+        active:
+          description: Indicates if interface is active/inactive
+          type: boolean
+        auth_state:
+          $ref: '#/components/schemas/stats_switch_port_auth_state'
+        for_site:
+          readOnly: true
+          type: boolean
+        full_duplex:
+          description: indicates full or half duplex
+          example: true
+          type: boolean
+        jitter:
+          description: Last sampled jitter of the interface
+          type: number
+        latency:
+          description: Last sampled latency of the interface
+          type: number
+        loss:
+          description: Last sampled loss of the interface
+          type: number
+        lte_iccid:
+          description: LTE ICCID value, Check for null/empty
+          nullable: true
+          type: string
+        lte_imei:
+          description: LTE IMEI value, Check for null/empty
+          nullable: true
+          type: string
+        lte_imsi:
+          description: LTE IMSI value, Check for null/empty
+          nullable: true
+          type: string
+        mac_count:
+          description: Number of mac addresses in the forwarding table
+          type: integer
+        mac_limit:
+          description: Limit on number of dynamically learned macs
+          minimum: 0
+          type: integer
+        neighbor_mac:
+          description: chassis identifier of the chassis type listed
+          example: 64d814353400
+          readOnly: true
+          type: string
+        neighbor_port_desc:
+          description: "description supplied by the system on the interface E.g. \u201C\
+            GigabitEthernet2/0/39\u201D"
+          example: GigabitEthernet1/0/21
+          readOnly: true
+          type: string
+        neighbor_system_name:
+          description: "name supplied by the system on the interface E.g. neighbor\
+            \ system name E.g. \u201CKumar-Acc-SW.mist.local\u201D"
+          example: CORP-D-SW-2
+          readOnly: true
+          type: string
+        poe_disabled:
+          description: is the POE configured not be disabled.
+          readOnly: true
+          type: boolean
+        poe_mode:
+          $ref: '#/components/schemas/stats_switch_port_poe_mode'
+        poe_on:
+          description: is the device attached to POE
+          type: boolean
+        port_id:
+          example: ge-0/0/0
+          readOnly: true
+          type: string
+        port_mac:
+          description: interface mac address
+          example: 5c4527a96580
+          readOnly: true
+          type: string
+        port_usage:
+          $ref: '#/components/schemas/stats_switch_port_port_usage'
+        power_draw:
+          description: Amount of power being used by the interface at the time the
+            command is executed. Unit in watts.
+          type: number
+        rx_bcast_pkts:
+          description: Broadcast input packets
+          type: integer
+        rx_bps:
+          description: Input rate
+          type: integer
+        rx_bytes:
+          description: rx bytes
+          example: 4563443626
+          readOnly: true
+          type: integer
+        rx_errors:
+          description: Input errors
+          type: integer
+        rx_mcast_pkts:
+          description: Multicast input packets
+          type: integer
+        rx_pkts:
+          description: rx packets
+          readOnly: true
+          type: integer
+        speed:
+          description: port speed
+          example: 1000
+          readOnly: true
+          type: integer
+        stp_role:
+          $ref: '#/components/schemas/stats_switch_port_stp_role'
+        stp_state:
+          $ref: '#/components/schemas/stats_switch_port_stp_state'
+        tx_bcast_pkts:
+          description: Broadcast output packets
+          type: integer
+        tx_bps:
+          description: Output rate
+          type: integer
+        tx_bytes:
+          description: tx bytes
+          example: 11299516780
+          readOnly: true
+          type: integer
+        tx_errors:
+          description: Output errors
+          type: integer
+        tx_mcast_pkts:
+          description: Multicast output packets
+          type: integer
+        tx_pkts:
+          description: tx packets
+          example: 492176
+          readOnly: true
+          type: integer
+        type:
+          $ref: '#/components/schemas/stats_switch_port_type'
+        unconfigured:
+          description: indicates if interface is unconfigured
+          readOnly: true
+          type: boolean
+        up:
+          description: indicates if interface is up
+          readOnly: true
+          type: boolean
+        xcvr_model:
+          description: Optic Slot ModelName, Check for null/empty
+          example: SFP+-10G-SR
+          type: string
+        xcvr_part_number:
+          description: Optic Slot Partnumber, Check for null/empty
+          example: 740-021487
+          type: string
+        xcvr_serial:
+          description: Optic Slot SerialNumber, Check for null/empty
+          example: N6AA9HT
+          type: string
+      required:
+      - neighbor_mac
+      - port_id
+      - port_mac
+      - rx_bytes
+      - rx_pkts
+      - tx_bytes
+      - tx_pkts
+      type: object
     org:
       properties:
         alarmtemplate_id:
@@ -64715,14 +65847,25 @@ components:
     org_auto_rules:
       description: auto_rules in org settings
       properties:
+        create_new_site_if_needed:
+          default: false
+          description: if `src`==`geoip`. By default, a claimed device only gets assigned
+            if the site exists to auto-create the site, enable this
+          type: boolean
         expression:
-          description: '"[0:3]"            // "abcdef" -> "abc"
-
-            "split(.)[1]"      // "a.b.c" -> "b"
-
-            "split(-)[1][0:3]" // "a1234-b5678-c90" -> "b56"'
+          description: "if `src`==`name`, `src`==`lldp_system_name`,  `src`==`dns_suffix`\n\
+            \      \"[0:3]\"            // \"abcdef\" -> \"abc\"\n      \"split(.)[1]\"\
+            \      // \"a.b.c\" -> \"b\"\n      \"split(-)[1][0:3]\" // \"a1234-b5678-c90\"\
+            \ -> \"b56\"'"
           example: split(.)[1]
           nullable: true
+          type: string
+        gatewaytemplate_id:
+          description: if `src`==`geoip` and `create_new_site_if_needed`==`true`.
+            If a gateway template is desired for this newly created site
+          type: string
+        match_country:
+          description: if `src`==`geoip`
           type: string
         match_device_type:
           $ref: '#/components/schemas/org_auto_rules_match_device_type'
@@ -64730,20 +65873,26 @@ components:
           description: optional/additional filter
           type: string
         model:
+          description: if `src`==`model`
           type: string
         prefix:
+          description: if `src`==`name`
           example: XX-
           nullable: true
           type: string
         src:
           $ref: '#/components/schemas/org_auto_rules_src'
         subnet:
+          description: if `src`==`subnet`
           type: string
         suffix:
+          description: if `src`==`name`
           example: -YY
           nullable: true
           type: string
         value:
+          description: "if \n    * `src`==`model`\n    *  `src`==`geoip: site name\
+            \ for the device to be assigned to (\"city\" / \"city+country\" / ...)"
           type: string
       required:
       - src
@@ -64758,10 +65907,11 @@ components:
       - switch
       type: string
     org_auto_rules_src:
-      description: 'enum: `dns_suffix`, `lldp_port_desc`, `lldp_system_name`, `model`,
-        `name`, `subnet`'
+      description: 'enum: `dns_suffix`, `geoip`, `lldp_port_desc`, `lldp_system_name`,
+        `model`, `name`, `subnet`'
       enum:
       - dns_suffix
+      - geoip
       - lldp_port_desc
       - lldp_system_name
       - model
@@ -65037,6 +66187,19 @@ components:
       items:
         $ref: '#/components/schemas/org_service_policy'
       type: array
+    org_service_policies_secintel:
+      description: For SRX Only
+      properties:
+        enabled:
+          default: false
+          type: boolean
+        profile:
+          $ref: '#/components/schemas/secintel_profile_profile_action'
+        secintelprofile_id:
+          description: org-level secintel Profile can be used, this takes precendence
+            over 'profile'
+          type: string
+      type: object
     org_service_policy:
       properties:
         action:
@@ -65072,6 +66235,8 @@ components:
 
             optionally, you can customize by using `path_preference`'
           type: string
+        secintel:
+          $ref: '#/components/schemas/org_service_policies_secintel'
         services:
           $ref: '#/components/schemas/strings'
         ssl_proxy:
@@ -65210,6 +66375,8 @@ components:
         pcap_bucket_verified:
           readOnly: true
           type: boolean
+        port_channelization:
+          $ref: '#/components/schemas/port_channelization'
         security:
           $ref: '#/components/schemas/org_setting_security'
         simple_alert:
@@ -65549,8 +66716,8 @@ components:
           default: false
           description: whether the policy is enabled
           type: boolean
-        freshness:
-          description: days, required if password policy is enabled
+        expiry_in_days:
+          description: password expiry in days
           example: 60
           type: integer
         min_length:
@@ -66186,6 +67353,18 @@ components:
           example: https://api.mist.com/api/v1/forward/looker?jwt=...
           type: string
       type: object
+    port_channelization:
+      properties:
+        additionalProperties:
+          $ref: '#/components/schemas/port_channelization_port'
+        enabled:
+          default: false
+          type: boolean
+      type: object
+    port_channelization_port:
+      description: Property key is the interface name or range (e.g. `et-0/0/47`,
+        `et-0/0/48-49`), Property value is the interface speed (e.g. `25g`, `50g`)
+      type: string
     portal_template_alignment:
       default: center
       description: 'defines alignment on portal. enum: `center`, `left`, `right`'
@@ -67006,6 +68185,10 @@ components:
           maximum: 65535
           minimum: 1
           type: integer
+        require_message_authenticator:
+          default: false
+          description: whether to require Message-Authenticator in requests
+          type: boolean
         secret:
           description: secret of RADIUS server
           example: testing123
@@ -69277,6 +70460,12 @@ components:
           description: duration, in seconds. Maximum duration is 86400 * 14 (14 days).
             0 is to un-suppress alarms.
           type: integer
+        expire_time:
+          type: integer
+        scheduled_time:
+          type: integer
+        scope:
+          $ref: '#/components/schemas/suppressed_alarm_scope'
         site_id:
           $ref: '#/components/schemas/site_id'
       type: object
@@ -69465,6 +70654,8 @@ components:
           type: integer
         failed:
           $ref: '#/components/schemas/response_pcap_status_failed'
+        format:
+          $ref: '#/components/schemas/capture_mxedge_format'
         gateways:
           $ref: '#/components/schemas/response_pcap_status_gateways'
         id:
@@ -69510,6 +70701,17 @@ components:
           type: string
         type:
           $ref: '#/components/schemas/pcap_type'
+        tzsp_host:
+          description: Required if `format`==`tzsp`. Remote host accessible to mxedges
+            over the network for receiving the captured packets.
+          example: 192.168.1.2
+          type: string
+        tzsp_port:
+          description: if `format`==`tzsp`. Port on remote host for receiving the
+            captured packets
+          maximum: 65535
+          minimum: 1
+          type: integer
         wired_tcpdump_expression:
           description: when `type`==`wired`, wired_tcpdump_expression provided by
             the user
@@ -71653,6 +72855,44 @@ components:
       - name
       - group
       type: object
+    secintel_profile:
+      properties:
+        name:
+          example: secintel-custom
+          type: string
+        profiles:
+          $ref: '#/components/schemas/secintel_profile_profiles'
+      type: object
+    secintel_profile_profile:
+      properties:
+        action:
+          $ref: '#/components/schemas/secintel_profile_profile_action'
+        category:
+          $ref: '#/components/schemas/secintel_profile_profile_category'
+      type: object
+    secintel_profile_profile_action:
+      default: default
+      description: 'enum: `default`, `standard`, `strict`'
+      enum:
+      - default
+      - standard
+      - strict
+      type: string
+    secintel_profile_profile_category:
+      description: 'enum: `CC`, `IH` (Infected Host), `DNS`'
+      enum:
+      - CC
+      - IH
+      - DNS
+      type: string
+    secintel_profile_profiles:
+      items:
+        $ref: '#/components/schemas/secintel_profile_profile'
+      type: array
+    secintel_profiles:
+      items:
+        $ref: '#/components/schemas/secintel_profile'
+      type: array
     secpolicy:
       description: "Security Policy is designed to audit / catch discripancies between\
         \ \u201Cwhat\u2019s intended to be running\u201D versus \u201Cwhat\u2019s\
@@ -72833,8 +74073,6 @@ components:
           type: string
         led:
           $ref: '#/components/schemas/ap_led'
-        mist_nac:
-          $ref: '#/components/schemas/switch_mist_nac'
         modified_time:
           readOnly: true
           type: number
@@ -73104,7 +74342,7 @@ components:
       description: if some system-default port usages are not desired - namely, ap
         / iot / uplink
       items:
-        type: string
+        $ref: '#/components/schemas/system_defined_port_usages'
       type: array
     site_setting_flags:
       additionalProperties:
@@ -73180,6 +74418,10 @@ components:
       properties:
         mist_das:
           $ref: '#/components/schemas/mxedge_das'
+        mist_nac:
+          $ref: '#/components/schemas/switch_mist_nac'
+        mist_nacedge:
+          $ref: '#/components/schemas/mist_nacedge'
         radsec:
           $ref: '#/components/schemas/mxcluster_radsec'
       type: object
@@ -75224,6 +76466,10 @@ components:
         port:
           default: 1812
           type: integer
+        require_message_authenticator:
+          default: false
+          description: whether to require Message-Authenticator in requests
+          type: boolean
         secret:
           example: testing123
           type: string
@@ -75673,6 +76919,9 @@ components:
           description: how many wireless clients are currently connected
           nullable: true
           readOnly: true
+          type: integer
+        num_wlans:
+          description: how many WLANs are applied to the device
           type: integer
         org_id:
           format: uuid
@@ -76686,176 +77935,6 @@ components:
         uptime:
           type: number
       type: object
-    stats_device_port:
-      properties:
-        active:
-          description: Indicates if interface is active/inactive
-          type: boolean
-        auth_state:
-          $ref: '#/components/schemas/stats_switch_port_auth_state'
-        for_site:
-          readOnly: true
-          type: boolean
-        full_duplex:
-          description: indicates full or half duplex
-          example: true
-          type: boolean
-        jitter:
-          description: Last sampled jitter of the interface
-          type: number
-        latency:
-          description: Last sampled latency of the interface
-          type: number
-        loss:
-          description: Last sampled loss of the interface
-          type: number
-        lte_iccid:
-          description: LTE ICCID value, Check for null/empty
-          nullable: true
-          type: string
-        lte_imei:
-          description: LTE IMEI value, Check for null/empty
-          nullable: true
-          type: string
-        lte_imsi:
-          description: LTE IMSI value, Check for null/empty
-          nullable: true
-          type: string
-        mac_count:
-          description: Number of mac addresses in the forwarding table
-          type: integer
-        mac_limit:
-          description: Limit on number of dynamically learned macs
-          minimum: 0
-          type: integer
-        neighbor_mac:
-          description: chassis identifier of the chassis type listed
-          example: 64d814353400
-          readOnly: true
-          type: string
-        neighbor_port_desc:
-          description: "description supplied by the system on the interface E.g. \u201C\
-            GigabitEthernet2/0/39\u201D"
-          example: GigabitEthernet1/0/21
-          readOnly: true
-          type: string
-        neighbor_system_name:
-          description: "name supplied by the system on the interface E.g. neighbor\
-            \ system name E.g. \u201CKumar-Acc-SW.mist.local\u201D"
-          example: CORP-D-SW-2
-          readOnly: true
-          type: string
-        poe_disabled:
-          description: is the POE configured not be disabled.
-          readOnly: true
-          type: boolean
-        poe_mode:
-          $ref: '#/components/schemas/stats_switch_port_poe_mode'
-        poe_on:
-          description: is the device attached to POE
-          type: boolean
-        port_id:
-          example: ge-0/0/0
-          readOnly: true
-          type: string
-        port_mac:
-          description: interface mac address
-          example: 5c4527a96580
-          readOnly: true
-          type: string
-        port_usage:
-          $ref: '#/components/schemas/stats_switch_port_port_usage'
-        power_draw:
-          description: Amount of power being used by the interface at the time the
-            command is executed. Unit in watts.
-          type: number
-        rx_bcast_pkts:
-          description: Broadcast input packets
-          type: integer
-        rx_bps:
-          description: Input rate
-          type: integer
-        rx_bytes:
-          description: rx bytes
-          example: 4563443626
-          readOnly: true
-          type: integer
-        rx_errors:
-          description: Input errors
-          type: integer
-        rx_mcast_pkts:
-          description: Multicast input packets
-          type: integer
-        rx_pkts:
-          description: rx packets
-          readOnly: true
-          type: integer
-        speed:
-          description: port speed
-          example: 1000
-          readOnly: true
-          type: integer
-        stp_role:
-          $ref: '#/components/schemas/stats_switch_port_stp_role'
-        stp_state:
-          $ref: '#/components/schemas/stats_switch_port_stp_state'
-        tx_bcast_pkts:
-          description: Broadcast output packets
-          type: integer
-        tx_bps:
-          description: Output rate
-          type: integer
-        tx_bytes:
-          description: tx bytes
-          example: 11299516780
-          readOnly: true
-          type: integer
-        tx_errors:
-          description: Output errors
-          type: integer
-        tx_mcast_pkts:
-          description: Multicast output packets
-          type: integer
-        tx_pkts:
-          description: tx packets
-          example: 492176
-          readOnly: true
-          type: integer
-        type:
-          $ref: '#/components/schemas/stats_switch_port_type'
-        unconfigured:
-          description: indicates if interface is unconfigured
-          readOnly: true
-          type: boolean
-        up:
-          description: indicates if interface is up
-          readOnly: true
-          type: boolean
-        xcvr_model:
-          description: Optic Slot ModelName, Check for null/empty
-          example: SFP+-10G-SR
-          type: string
-        xcvr_part_number:
-          description: Optic Slot Partnumber, Check for null/empty
-          example: 740-021487
-          type: string
-        xcvr_serial:
-          description: Optic Slot SerialNumber, Check for null/empty
-          example: N6AA9HT
-          type: string
-      required:
-      - neighbor_mac
-      - port_id
-      - port_mac
-      - rx_bytes
-      - rx_pkts
-      - tx_bytes
-      - tx_pkts
-      type: object
-    stats_device_ports:
-      items:
-        $ref: '#/components/schemas/stats_device_port'
-      type: array
     stats_devices:
       items:
         $ref: '#/components/schemas/stats_device'
@@ -76867,6 +77946,8 @@ components:
           $ref: '#/components/schemas/ap_redundancy'
         arp_table_stats:
           $ref: '#/components/schemas/arp_table_stats'
+        bgp_peers:
+          $ref: '#/components/schemas/optional_stat_bgps'
         cert_expiry:
           format: int64
           type: integer
@@ -76984,7 +78065,7 @@ components:
           readOnly: true
           type: string
         ports:
-          $ref: '#/components/schemas/stats_device_ports'
+          $ref: '#/components/schemas/optional_stat_ports'
         route_summary_stats:
           $ref: '#/components/schemas/route_summary_stats'
         router_name:
@@ -77016,6 +78097,8 @@ components:
           example: connected
           readOnly: true
           type: string
+        tunnels:
+          $ref: '#/components/schemas/optional_stat_wan_tunnels'
         type:
           $ref: '#/components/schemas/const_device_type_gateway'
         uptime:
@@ -77026,6 +78109,8 @@ components:
           example: 18.4R1.8
           readOnly: true
           type: string
+        vpn_peers:
+          $ref: '#/components/schemas/optional_stat_vpn_peers'
       required:
       - mac
       - type
@@ -77138,6 +78223,8 @@ components:
           type: integer
         oob_ip_config:
           $ref: '#/components/schemas/mxedge_oob_ip_config'
+        oob_ip_stat:
+          $ref: '#/components/schemas/stats_mxedge_oob_ip_stat'
         org_id:
           $ref: '#/components/schemas/org_id'
         port_stat:
@@ -77236,17 +78323,20 @@ components:
           user: 46
       type: object
     stats_mxedge_ip_stat:
-      description: OOBM IP stats
+      description: IP stats
       properties:
         ip:
           example: 192.168.1.244
+          type: string
+        ip6:
+          example: fd4e:c615:b27d:5555::45
           type: string
         ips:
           additionalProperties:
             type: string
           description: Property key is the interface name. IPs for each net interface
           example:
-            ens18: 192.168.1.244/24,fe80::104c:ffff:fee0:caf8/64
+            ens18: 92.168.1.244/24,fd4e:c615:b27d:5555::45/128,fd4e:c615:b27d:5555:20c:29ff:fe44:af25/64,fe80::104c:ffff:fee0:caf8/64
           type: object
         macs:
           additionalProperties:
@@ -77327,6 +78417,27 @@ components:
         usage:
           example: 48
           type: integer
+      type: object
+    stats_mxedge_oob_ip_stat:
+      properties:
+        dns:
+          $ref: '#/components/schemas/strings'
+        gateway:
+          type: string
+        gateway6:
+          type: string
+        ip:
+          type: string
+        ip6:
+          type: string
+        netmask:
+          type: string
+        netmask6:
+          type: string
+        type:
+          $ref: '#/components/schemas/mxedge_mgmt_oob_ip_type'
+        type8:
+          $ref: '#/components/schemas/mxedge_mgmt_oob_ip_type6'
       type: object
     stats_mxedge_port_stat:
       properties:
@@ -77917,7 +79028,7 @@ components:
           readOnly: true
           type: string
         ports:
-          $ref: '#/components/schemas/stats_device_ports'
+          $ref: '#/components/schemas/optional_stat_ports'
         route_summary_stats:
           $ref: '#/components/schemas/route_summary_stats'
         serial:
@@ -78024,6 +79135,10 @@ components:
           type: boolean
         jitter:
           description: Last sampled jitter of the interface
+          type: number
+        last_flapped:
+          description: indicates when the port was last flapped
+          format: double
           type: number
         latency:
           description: Last sampled latency of the interface
@@ -79264,6 +80379,8 @@ components:
           default: false
           description: Enable to provide the FQDN with DHCP option 81
           type: boolean
+        disable_oob_down_alarm:
+          type: boolean
         local_accounts:
           $ref: '#/components/schemas/config_switch_local_accounts'
         mxedge_proxy_host:
@@ -79475,6 +80592,11 @@ components:
         mac_auth_only:
           description: Only if `mode`!=`dynamic` and `enable_mac_auth`==`true`
           type: boolean
+        mac_auth_preferred:
+          description: Only if `mode`!=`dynamic` + `enable_mac_auth`==`true` + `mac_auth_only`==`false`,
+            dot1x will be given priority then mac_auth. Enable this to prefer mac_auth
+            over dot1x.
+          type: boolean
         mac_auth_protocol:
           $ref: '#/components/schemas/switch_port_usage_mac_auth_protocol'
         mac_limit:
@@ -79516,15 +80638,20 @@ components:
           maximum: 65535
           minimum: 10
           type: integer
-        rejected_network:
-          description: Only if `mode`!=`dynamic` and `port_auth`==`dot1x` when radius
-            server reject / fails
-          nullable: true
-          type: string
         reset_default_when:
           $ref: '#/components/schemas/switch_port_usage_dynamic_reset_default_when'
         rules:
           $ref: '#/components/schemas/switch_port_usage_dynamic_rules'
+        server_fail_network:
+          description: Only if `mode`!=`dynamic` and `port_auth`==`dot1x` sets server
+            fail fallback vlan
+          nullable: true
+          type: string
+        server_reject_network:
+          description: Only if `mode`!=`dynamic` and `port_auth`==`dot1x` when radius
+            server reject / fails
+          nullable: true
+          type: string
         speed:
           description: Only if `mode`!=`dynamic` speed, default is auto to automatically
             negotiate speed
@@ -79716,16 +80843,11 @@ components:
       type: object
     switch_stp_config:
       properties:
-        type:
-          $ref: '#/components/schemas/switch_stp_config_type'
+        vstp_enabled:
+          default: false
+          description: ignored for switches participating in EVPN
+          type: boolean
       type: object
-    switch_stp_config_type:
-      default: rstp
-      description: 'enum: `rstp`, `vstp`'
-      enum:
-      - rstp
-      - vstp
-      type: string
     switch_virtual_chassis:
       description: required for preprovisioned Virtual Chassis
       properties:
@@ -79815,31 +80937,77 @@ components:
       type: object
     synthetictest_device:
       properties:
+        host:
+          description: if `type`==`lan_connectivity`
+          example: www.example.com
+          type: string
         hostname:
           description: if `type`==`dns`
+          example: google.com"
           type: string
         ip:
           description: if `type`==`arp`
+          example: 192.168.3.5
           type: string
         password:
           description: if `type`==`radius`
+          example: test123
           type: string
+        ping_count:
+          default: 10
+          description: if `type`==`lan_connectivity`
+          maximum: 60
+          minimum: 10
+          type: integer
+        ping_details:
+          default: false
+          description: if `type`==`lan_connectivity`
+          type: boolean
+        ping_size:
+          default: 56
+          description: if `type`==`lan_connectivity`
+          maximum: 65535
+          minimum: 56
+          type: integer
         port_id:
-          description: if `type`==`ssr`
+          description: if `type`==`speedtest`, required for ssr
+          example: wan0
           type: string
+        protocol:
+          $ref: '#/components/schemas/synthetictest_device_protocol'
+        tenant:
+          description: if `type`==`lan_connectivity`
+          example: lan_network1
+          type: string
+        traceroute_udp_port:
+          default: 33434
+          description: SRX only, traceroute udp port
+          maximum: 65535
+          minimum: 0
+          type: integer
         type:
           $ref: '#/components/schemas/synthetictest_type'
         url:
           description: if `type`==`curl`
+          example: https://www.example.com
           type: string
         username:
           description: if `type`==`radius`
+          example: user
           type: string
         vlan_id:
           $ref: '#/components/schemas/synthetictest_device_vlan_id'
       required:
       - type
       type: object
+    synthetictest_device_protocol:
+      default: ping+traceroute
+      description: 'if `type`==`lan_connectivity`. enum: `ping`, `traceroute`, `ping+traceroute`'
+      enum:
+      - ping
+      - traceroute
+      - ping+traceroute
+      type: string
     synthetictest_device_vlan_id:
       description: required for AP
       oneOf:
@@ -79938,15 +81106,24 @@ components:
       - password
       type: object
     synthetictest_type:
-      description: 'enum: `arp`, `curl`, `dhcp`, `dhcp6`, `dns`, `radius`, `speedtest`'
+      description: 'enum: `arp`, `curl`, `dhcp`, `dhcp6`, `dns`, `lan_connectivity`,
+        `radius`, `speedtest`'
       enum:
       - arp
       - curl
       - dhcp
       - dhcp6
       - dns
+      - lan_connectivity
       - radius
       - speedtest
+      type: string
+    system_defined_port_usages:
+      description: 'system-default port usages. enum: `ap`, `iot`, `uplink``'
+      enum:
+      - ap
+      - iot
+      - uplink
       type: string
     tacacs:
       properties:
@@ -80349,8 +81526,6 @@ components:
           $ref: '#/components/schemas/lat_lng'
         primary:
           $ref: '#/components/schemas/tunnel_configs_auto_provision_node'
-        region:
-          $ref: '#/components/schemas/tunnel_configs_auto_provision_region'
         secondary:
           $ref: '#/components/schemas/tunnel_configs_auto_provision_node'
       type: object
@@ -80366,15 +81541,6 @@ components:
         example: wan0
         type: string
       type: array
-    tunnel_configs_auto_provision_region:
-      default: auto
-      description: 'enum: `APAC`, `Americas`, `EMEA`, `auto`'
-      enum:
-      - APAC
-      - Americas
-      - EMEA
-      - auto
-      type: string
     tunnel_configs_dh_group:
       default: '14'
       description: "Only if `provider`== `custom-ipsec`. enum:\n  * 1\n  * 2 (1024-bit)\n\
@@ -81379,7 +82545,7 @@ components:
       properties:
         ip:
           description: The IP address for which to clear an ARP entry. port_id must
-            be specified. Both vlan and ip cannot be specified.
+            be specified.
           example: 10.1.1.1
           type: string
         node:
@@ -81390,7 +82556,6 @@ components:
           type: string
         vlan:
           description: The VLAN on which to clear the ARP cache. port_id must be specified.
-            Both vlan and ip cannot be specified.
           example: 1000
           type: integer
         vrf:
@@ -81403,6 +82568,8 @@ components:
         neighbor:
           description: neighbor ip-address or 'all'
           type: string
+        node:
+          $ref: '#/components/schemas/ha_cluster_node_enum'
         type:
           $ref: '#/components/schemas/utils_clear_bgp_type'
         vrf:
@@ -81443,6 +82610,8 @@ components:
       description: to use five tuples to lookup the session to be cleared, all must
         be provided
       properties:
+        node:
+          $ref: '#/components/schemas/ha_cluster_node_enum'
         service_name:
           description: ervice name, only supported in SSR
           example: internet-wan_and_lte
@@ -81553,6 +82722,8 @@ components:
           description: The network for the leases IPs to be released
           example: guest
           type: string
+        node:
+          $ref: '#/components/schemas/ha_cluster_node_enum'
         port_id:
           description: The nework interface on which to release the current DHCP release
           example: ge-0/0/1.10
@@ -81659,12 +82830,18 @@ components:
       type: object
     utils_send_support_logs_info:
       default: full
-      description: 'enum: `code-dumps`, `full`, `jma-logs`, `messages`, `outbound-ssh`,
-        `process`, `var-logs`'
+      description: "optional, enum: \n    * `code-dumps`: Upload all core dump files,\
+        \ if any found\n    * `full`: Upload 1 file with output of `request support\
+        \ information`, 1 file that concatenates all `/var/log/outbound-ssh.log*`\
+        \ files, all core dump files, the 5 most recent `/var/log/messages*` files,\
+        \ and Mist agent logs\n    * `messages`: Upload 1 to 10 `/var/log/messages*`\
+        \ files\n    * `outbound-ssh`: Upload 1 file that concatenates all `/var/log/outbound-ssh.log*`\
+        \ files\n    * `process`: Upload 1 file with output of show `system processes\
+        \ extensive``\n    * `var-logs`: Upload all non-empty files in the `/var/log/`\
+        \ directory"
       enum:
       - code-dumps
       - full
-      - jma-logs
       - messages
       - outbound-ssh
       - process
@@ -81678,6 +82855,8 @@ components:
         host:
           format: ipv4
           type: string
+        node:
+          $ref: '#/components/schemas/ha_cluster_node_enum'
         service:
           description: ping packet takes the same path as the service
           type: string
@@ -81732,6 +82911,8 @@ components:
           description: DHCP network for the leases, returns full table if not specified
           example: guest
           type: string
+        node:
+          $ref: '#/components/schemas/ha_cluster_node_enum'
       type: object
     utils_show_evpn_database:
       properties:
@@ -81788,6 +82969,58 @@ components:
         vrf:
           description: VRF Name
           example: guest
+          type: string
+      type: object
+    utils_show_ospf_database:
+      properties:
+        node:
+          $ref: '#/components/schemas/ha_cluster_node_enum'
+        self_originate:
+          default: false
+          description: show originating info, default is false
+          type: boolean
+        vrf:
+          description: VRF name
+          example: lan
+          type: string
+      type: object
+    utils_show_ospf_interfaces:
+      properties:
+        node:
+          $ref: '#/components/schemas/ha_cluster_node_enum'
+        port_id:
+          description: the network interface
+          example: ge-0/0/3
+          type: string
+        vrf:
+          description: VRF name
+          example: lan
+          type: string
+      type: object
+    utils_show_ospf_neighbors:
+      properties:
+        neighbor:
+          description: Neighbor IP Address
+          example: 10.1.1.1
+          type: string
+        node:
+          $ref: '#/components/schemas/ha_cluster_node_enum'
+        port_id:
+          description: the network interface
+          example: ge-0/0/3
+          type: string
+        vrf:
+          description: VRF name
+          example: lan
+          type: string
+      type: object
+    utils_show_ospf_summary:
+      properties:
+        node:
+          $ref: '#/components/schemas/ha_cluster_node_enum'
+        vrf:
+          description: VRF name
+          example: lan
           type: string
       type: object
     utils_show_route:
@@ -81870,15 +83103,19 @@ components:
           default: internal
           description: for SSR, optional, the source to initiate traceroute from
           type: string
+        node:
+          $ref: '#/components/schemas/ha_cluster_node_enum'
         port:
           default: 33434
-          description: when `protocol`==`udp`, the udp port to use
+          description: when `protocol`==`udp`, not supported in SSR. The udp port
+            to use
           type: integer
         protocol:
           $ref: '#/components/schemas/utils_traceroute_protocol'
         timeout:
           default: 60
-          description: maximum time in seconds to wait for the response
+          description: not supported in SSR. Maximum time in seconds to wait for the
+            response
           type: integer
         vrf:
           description: for SRX, optional, the source to initiate traceroute from.
@@ -81887,8 +83124,9 @@ components:
       type: object
     utils_traceroute_protocol:
       default: udp
-      description: 'enum: `udp`'
+      description: 'enum: `icmp` (Only suported by AP/MxEdge), `udp`'
       enum:
+      - icmp
       - udp
       type: string
     utils_tunterm_bounce_port:
@@ -84288,6 +85526,23 @@ components:
           $ref: '#/components/schemas/wired_client_response_device_mac'
         device_mac_port:
           $ref: '#/components/schemas/wired_client_response_device_mac_port'
+        dhcp_client_identifier:
+          example: MAC address 00155df6d500
+          type: string
+        dhcp_client_options:
+          $ref: '#/components/schemas/wired_client_dhcp_client_options'
+        dhcp_fqdn:
+          example: ITS-VMMT0-D1N02.mgthub.local
+          type: string
+        dhcp_hostname:
+          example: ITS-VMMT0-D1N02
+          type: string
+        dhcp_request_params:
+          example: 1 3 6 15 31 33 43 44 46 47 119 121 249 252
+          type: string
+        dhcp_vendor_class_identifier:
+          example: MSFT 5.0
+          type: string
         ip:
           $ref: '#/components/schemas/wired_client_response_ip'
         mac:
@@ -84305,6 +85560,10 @@ components:
         vlan:
           $ref: '#/components/schemas/wired_client_response_vlan'
       type: object
+    wired_client_dhcp_client_options:
+      items:
+        $ref: '#/components/schemas/dhcp_client_option'
+      type: array
     wired_client_response_device_mac:
       items:
         readOnly: true
@@ -84663,6 +85922,12 @@ components:
           example: 1800
           maximum: 86400
           minimum: 60
+          type: integer
+        max_num_clients:
+          default: 0
+          description: maximum number of client connected to the SSID. `0` means unlimited
+          maximum: 128
+          minimum: 0
           type: integer
         mist_nac:
           $ref: '#/components/schemas/wlan_mist_nac'
