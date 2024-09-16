@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2409.1.1**
+  description: '> Version: **2409.1.2**
 
     >
 
-    > Date: **September 13, 2024**
+    > Date: **September 16, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2409.1.1
+  version: 2409.1.2
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -53323,7 +53323,6 @@ components:
       - alarm_ids
       type: object
     allow_deny:
-      default: allow
       description: 'enum: `allow`, `deny`'
       enum:
       - allow
@@ -54992,11 +54991,11 @@ components:
         network:
           example: lan
           type: string
-        packetSize: 
-          type: integer
-          minimum: 0 
-          maximum: 65400
+        packetSize:
           description: if `protocol`==`icmp`
+          maximum: 65400
+          minimum: 0
+          type: integer
         protocol:
           $ref: '#/components/schemas/app_probing_custom_app_protocol'
         url:
@@ -58817,8 +58816,8 @@ components:
           $ref: '#/components/schemas/switch_oob_ip_config'
         org_id:
           $ref: '#/components/schemas/org_id'
-        ospf_config:
-          $ref: '#/components/schemas/ospf_config'
+        ospf_areas:
+          $ref: '#/components/schemas/ospf_areas'
         other_ip_configs:
           additionalProperties:
             $ref: '#/components/schemas/junos_other_ip_config'
@@ -65214,6 +65213,8 @@ components:
           $ref: '#/components/schemas/ntp_servers'
         org_id:
           $ref: '#/components/schemas/org_id'
+        ospf_areas:
+          $ref: '#/components/schemas/ospf_areas'
         port_mirroring:
           $ref: '#/components/schemas/switch_port_mirroring'
         port_usages:
@@ -66225,7 +66226,6 @@ components:
         idp:
           $ref: '#/components/schemas/idp_config'
         local_routing:
-          default: false
           description: access within the same VRF
           type: boolean
         modified_time:
@@ -67141,8 +67141,9 @@ components:
         format: uuid
         type: string
       type: array
-    ospf_areas:
-      description: Junos OSPF areas
+    ospf_area:
+      description: Property key is the OSPF Area (Area should be a number (0-255)
+        / IP address)
       properties:
         include_loopback:
           default: false
@@ -67150,8 +67151,6 @@ components:
         networks:
           additionalProperties:
             $ref: '#/components/schemas/ospf_areas_network'
-          description: "Networks to participate in an OSPF area. \nProperty key is\
-            \ the network name"
           example:
             corp:
               auth_keys:
@@ -67166,23 +67165,59 @@ components:
               passive: true
           type: object
         type:
-          $ref: '#/components/schemas/ospf_areas_type'
+          $ref: '#/components/schemas/ospf_area_type'
+      type: object
+    ospf_area_network_auth_type:
+      default: none
+      description: 'auth type. enum: `md5`, `none`, `password`'
+      enum:
+      - md5
+      - none
+      - password
+      example: md5
+      type: string
+    ospf_area_network_interface_type:
+      default: broadcast
+      description: 'interface type (nbma = non-broadcast multi-access). enum: `broadcast`,
+        `nbma`, `p2mp`, `p2p`'
+      enum:
+      - broadcast
+      - nbma
+      - p2mp
+      - p2p
+      type: string
+    ospf_area_type:
+      default: default
+      description: 'OSPF type. enum: `default`, `nssa`, `stub`'
+      enum:
+      - default
+      - nssa
+      - stub
+      example: default
+      type: string
+    ospf_areas:
+      additionalProperties:
+        $ref: '#/components/schemas/ospf_area'
+      description: Junos OSPF areas
       type: object
     ospf_areas_network:
+      description: Property key is the network name. Networks to participate in an
+        OSPF area
       properties:
         auth_keys:
           additionalProperties:
             type: string
-          description: if `auth_type`==`md5`. Property key is the key number
+          description: Required if `auth_type`==`md5`. Property key is the key number
           example:
             '1': auth-key-1
           type: object
         auth_password:
-          description: if `auth_type`==`password`, the password, max length is 8
+          description: Required if `auth_type`==`password`, the password, max length
+            is 8
           example: simple
           type: string
         auth_type:
-          $ref: '#/components/schemas/ospf_areas_network_auth_type'
+          $ref: '#/components/schemas/ospf_area_network_auth_type'
         bfd_minimum_interval:
           example: 500
           maximum: 255000
@@ -67204,7 +67239,7 @@ components:
           example: import_policy
           type: string
         interface_type:
-          $ref: '#/components/schemas/ospf_areas_network_interface_type'
+          $ref: '#/components/schemas/ospf_area_network_interface_type'
         metric:
           example: 10000
           maximum: 65535
@@ -67221,34 +67256,6 @@ components:
           description: whether to send OSPF-Hello
           type: boolean
       type: object
-    ospf_areas_network_auth_type:
-      default: none
-      description: 'auth type. enum: `md5`, `none`, `password`'
-      enum:
-      - md5
-      - none
-      - password
-      example: md5
-      type: string
-    ospf_areas_network_interface_type:
-      default: broadcast
-      description: 'interface type (nbma = non-broadcast multi-access). enum: `broadcast`,
-        `nbma`, `p2mp`, `p2p`'
-      enum:
-      - broadcast
-      - nbma
-      - p2mp
-      - p2p
-      type: string
-    ospf_areas_type:
-      default: default
-      description: 'OSPF type. enum: `default`, `nssa`, `stub`'
-      enum:
-      - default
-      - nssa
-      - stub
-      example: default
-      type: string
     ospf_config:
       description: Junos OSPF config
       properties:
@@ -73165,7 +73172,6 @@ components:
         idp:
           $ref: '#/components/schemas/idp_config'
         local_routing:
-          default: false
           description: access within the same VRF
           type: boolean
         name:
@@ -74098,7 +74104,7 @@ components:
         org_id:
           $ref: '#/components/schemas/org_id'
         ospf_areas:
-          $ref: '#/components/schemas/site_setting_ospf_areas'
+          $ref: '#/components/schemas/ospf_areas'
         paloalto_networks:
           $ref: '#/components/schemas/site_setting_paloalto_networks'
         persist_config_on_device:
@@ -74437,12 +74443,6 @@ components:
       items:
         type: string
       type: array
-    site_setting_ospf_areas:
-      additionalProperties:
-        $ref: '#/components/schemas/ospf_areas'
-      description: OSPF Areas can be configured both in Site Level (Switch/Gateway
-        Template) or Device (Switch/Gateway) Level
-      type: object
     site_setting_paloalto_network_gateway:
       properties:
         api_key:
