@@ -59220,8 +59220,8 @@ components:
           type: boolean
       type: object
     dhcpd_config_dns_servers:
-      description: if `type`==`local` - optional, if not defined, system one will
-        be used
+      description: if `type`==`local` or `type6`==`local` - optional, if not defined,
+        system one will be used
       example:
       - 8.8.8.8
       - 4.4.4.4
@@ -59229,8 +59229,8 @@ components:
         type: string
       type: array
     dhcpd_config_dns_suffix:
-      description: if `type`==`local` - optional, if not defined, system one will
-        be used
+      description: if `type`==`local` or `type6`==`local` - optional, if not defined,
+        system one will be used
       example:
       - .mist.local
       - .mist.com
@@ -59247,8 +59247,8 @@ components:
     dhcpd_config_fixed_bindings:
       additionalProperties:
         $ref: '#/components/schemas/dhcpd_config_fixed_binding'
-      description: Property key is the MAC Address. Format is `[0-9a-f]{12}` (e.g
-        "5684dae9ac8b")
+      description: if `type`==`local` or `type6`==`local`. Property key is the MAC
+        Address. Format is `[0-9a-f]{12}` (e.g "5684dae9ac8b")
       example:
         5684dae9ac8b:
           ip: 192.168.70.35
@@ -59277,7 +59277,8 @@ components:
     dhcpd_config_options:
       additionalProperties:
         $ref: '#/components/schemas/dhcpd_config_option'
-      description: Property key is the DHCP option number
+      description: if `type`==`local` or `type6`==`local`. Property key is the DHCP
+        option number
       type: object
     dhcpd_config_property:
       properties:
@@ -59387,8 +59388,8 @@ components:
     dhcpd_config_vendor_options:
       additionalProperties:
         $ref: '#/components/schemas/dhcpd_config_vendor_option'
-      description: "Property key is <enterprise number>:<sub option code>, with\n\
-        \  * enterprise number: 1-65535 (https://www.iana.org/assignments/enterprise-numbers/enterprise-numbers)\n\
+      description: "if `type`==`local` or `type6`==`local`. Property key is <enterprise\
+        \ number>:<sub option code>, with\n  * enterprise number: 1-65535 (https://www.iana.org/assignments/enterprise-numbers/enterprise-numbers)\n\
         \  * sub option code: 1-255, sub-option code'"
       type: object
     dhcpd_stat:
@@ -67703,13 +67704,19 @@ components:
         trusted_hosts:
           $ref: '#/components/schemas/protect_re_trusted_hosts'
       type: object
+    protect_re_allowed_service:
+      description: 'enum: `icmp`, `ssh`'
+      enum:
+      - icmp
+      - ssh
+      type: string
     protect_re_allowed_services:
       description: optionally, services we'll allow
       example:
       - icmp
       - ssh
       items:
-        type: string
+        $ref: '#/components/schemas/protect_re_allowed_service'
       type: array
     protect_re_custom:
       description: custom acls
@@ -67721,7 +67728,7 @@ components:
           type: string
         protocol:
           $ref: '#/components/schemas/protect_re_custom_protocol'
-        subnet:
+        subnets:
           $ref: '#/components/schemas/protect_re_custom_subnet'
       type: object
     protect_re_custom_protocol:
@@ -80250,32 +80257,66 @@ components:
           description: if set to `true`, enable the DHCP server
           type: boolean
       type: object
+    switch_dhcpd_config_dns_servers:
+      description: if `type`==`server` or `type6`==`server` - optional, if not defined,
+        system one will be used
+      example:
+      - 8.8.8.8
+      - 4.4.4.4
+      items:
+        type: string
+      type: array
+    switch_dhcpd_config_dns_suffix:
+      description: if `type`==`server` or `type6`==`server` - optional, if not defined,
+        system one will be used
+      example:
+      - .mist.local
+      - .mist.com
+      items:
+        type: string
+      type: array
+    switch_dhcpd_config_fixed_bindings:
+      additionalProperties:
+        $ref: '#/components/schemas/dhcpd_config_fixed_binding'
+      description: if `type`==`server` or `type6`==`server`. Property key is the MAC
+        Address. Format is `[0-9a-f]{12}` (e.g "5684dae9ac8b")
+      example:
+        5684dae9ac8b:
+          ip: 192.168.70.35
+          name: John
+      type: object
+    switch_dhcpd_config_options:
+      additionalProperties:
+        $ref: '#/components/schemas/dhcpd_config_option'
+      description: if `type`==`server` or `type6`==`server`. Property key is the DHCP
+        option number
+      type: object
     switch_dhcpd_config_property:
       properties:
         dns_servers:
-          $ref: '#/components/schemas/dhcpd_config_dns_servers'
+          $ref: '#/components/schemas/switch_dhcpd_config_dns_servers'
         dns_suffix:
-          $ref: '#/components/schemas/dhcpd_config_dns_suffix'
+          $ref: '#/components/schemas/switch_dhcpd_config_dns_suffix'
         fixed_bindings:
-          $ref: '#/components/schemas/dhcpd_config_fixed_bindings'
+          $ref: '#/components/schemas/switch_dhcpd_config_fixed_bindings'
         gateway:
-          description: if `type`==`local` - optional, `ip` will be used if not provided
+          description: if `type`==`server`  - optional, `ip` will be used if not provided
           example: 192.168.70.1
           type: string
         ip_end:
-          description: if `type`==`local`
+          description: if `type`==`server`
           example: 192.168.70.200
           type: string
         ip_end6:
-          description: if `type6`==`local`
+          description: if `type6`==`server`
           example: 2607:f8b0:4005:808::ff
           type: string
         ip_start:
-          description: if `type`==`local`
+          description: if `type`==`server`
           example: 192.168.70.100
           type: string
         ip_start6:
-          description: if `type6`==`local`
+          description: if `type6`==`server`
           example: 2607:f8b0:4005:808::2
           type: string
         lease_time:
@@ -80286,7 +80327,7 @@ components:
           minimum: 3600
           type: integer
         options:
-          $ref: '#/components/schemas/dhcpd_config_options'
+          $ref: '#/components/schemas/switch_dhcpd_config_options'
         server_id_override:
           default: false
           description: "`server_id_override`==`true` means the device, when acts as\
@@ -80303,7 +80344,7 @@ components:
         type6:
           $ref: '#/components/schemas/switch_dhcpd_config_type6'
         vendor_encapulated:
-          $ref: '#/components/schemas/dhcpd_config_vendor_options'
+          $ref: '#/components/schemas/switch_dhcpd_config_vendor_options'
       type: object
     switch_dhcpd_config_type:
       description: 'enum: `none`, `relay` (DHCP Relay), `server` (DHCP Server)'
@@ -80320,6 +80361,13 @@ components:
       - relay
       - server
       type: string
+    switch_dhcpd_config_vendor_options:
+      additionalProperties:
+        $ref: '#/components/schemas/dhcpd_config_vendor_option'
+      description: "if `type`==`server` or `type6`==`server`. Property key is <enterprise\
+        \ number>:<sub option code>, with\n  * enterprise number: 1-65535 (https://www.iana.org/assignments/enterprise-numbers/enterprise-numbers)\n\
+        \  * sub option code: 1-255, sub-option code'"
+      type: object
     switch_matching:
       description: Switch template
       properties:
