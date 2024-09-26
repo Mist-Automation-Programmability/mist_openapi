@@ -3,7 +3,7 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2409.1.5**
+  description: '> Version: **2409.1.7**
 
     >
 
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2409.1.6
+  version: 2409.1.7
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -64814,8 +64814,7 @@ components:
             CERTIFICATE-----'
           type: string
         idp_sign_algo:
-          example: sha256
-          type: string
+          $ref: '#/components/schemas/nac_portal_sso_idp_sign_algo'
         idp_sso_url:
           example: https://yourorg.onelogin.com/trust/saml2/http-post/sso/138130
           type: string
@@ -64832,6 +64831,16 @@ components:
             can be used later on in policy)
           type: boolean
       type: object
+    nac_portal_sso_idp_sign_algo:
+      default: sha256
+      description: Signing algorithm for SAML Assertion. enum `sha1`, `sha256`, `sha384`,
+        `sha512`
+      enum:
+      - sha1
+      - sha256
+      - sha384
+      - sha512
+      type: string
     nac_portal_sso_role_matching:
       properties:
         assigned:
@@ -67903,7 +67912,7 @@ components:
         idp_cert:
           type: string
         idp_sign_algo:
-          type: string
+          $ref: '#/components/schemas/psk_portal_sso_idp_sign_algo'
         idp_sso_url:
           type: string
         issuer:
@@ -67925,6 +67934,16 @@ components:
       items:
         type: string
       type: array
+    psk_portal_sso_idp_sign_algo:
+      default: sha256
+      description: Signing algorithm for SAML Assertion. enum `sha1`, `sha256`, `sha384`,
+        `sha512`
+      enum:
+      - sha1
+      - sha256
+      - sha384
+      - sha512
+      type: string
     psk_portal_template:
       properties:
         alignment:
@@ -76139,15 +76158,18 @@ components:
           readOnly: true
           type: number
         custom_logout_url:
-          description: optional, a URL we will redirect the user after user logout
-            from Mist (for some IdP which supports a custom logout URL that is different
-            from SP-initiated SLO process)
+          description: if `idp_type`==`saml`, a URL we will redirect the user after
+            user logout from Mist (for some IdP which supports a custom logout URL
+            that is different from SP-initiated SLO process)
           type: string
         default_role:
-          description: "default role to assign if there\u2019s no match. By default,\
-            \ an assertion is treated as invalid when there\u2019s no role matched"
+          description: "if `idp_type`==`saml`, default role to assign if there\u2019\
+            s no match. By default, an assertion is treated as invalid when there\u2019\
+            s no role matched"
           type: string
         domain:
+          description: if `idp_type`==`ldap` or `idp_type`==`oauth`, list of domain
+            names to match to use this IDP profile
           type: string
         id:
           format: uuid
@@ -76158,28 +76180,31 @@ components:
             response)
           type: string
         idp_sign_algo:
-          description: if `idp_type`==`saml`. Signing algorithm for SAML Assertion
-          type: string
+          $ref: '#/components/schemas/sso_idp_sign_algo'
         idp_sso_url:
-          description: IDP Single-Sign-On URL
+          description: Required if `idp_type`==`saml`, IDP Single-Sign-On URL
           type: string
         idp_type:
           $ref: '#/components/schemas/sso_idp_type'
         ignore_unmatched_roles:
-          description: ignore any unmatched roles provided in assertion. By default,
-            an assertion is treated as invalid for any unmatched role
+          description: if `idp_type`==`saml`, ignore any unmatched roles provided
+            in assertion. By default, an assertion is treated as invalid for any unmatched
+            role
           type: boolean
         issuer:
           description: if `idp_type`==`saml`. IDP issuer URL
           type: string
         ldap_base_dn:
-          description: if `idp_type`==`ldap`
+          description: Required if `idp_type`==`ldap`
+          example: DC=mycorp,DC=org
           type: string
         ldap_bind_dn:
-          description: if `idp_type`==`ldap`
+          description: Required if `idp_type`==`ldap`
+          example: admin@mycorp.org
           type: string
         ldap_bind_password:
-          description: if `idp_type`==`ldap`
+          description: Required if `idp_type`==`ldap`
+          example: secret
           type: string
         ldap_certs:
           $ref: '#/components/schemas/sso_ldap_certs'
@@ -76190,24 +76215,29 @@ components:
           description: if `idp_type`==`ldap`
           type: string
         ldap_group_attr:
-          description: Only if `ldap_type`==`custom`
+          description: if `ldap_type`==`custom`
           type: string
         ldap_group_dn:
-          description: Only if `ldap_type`==`custom`
+          description: if `ldap_type`==`custom`
           type: string
         ldap_group_filter:
-          description: Only if `ldap_type`==`custom`
+          description: Required if `ldap_type`==`custom`
+          type: string
+        ldap_member_filter:
+          description: Required if `ldap_type`==`custom`
+          example: (CN=%s)
           type: string
         ldap_resolve_groups:
           default: false
-          description: whether to recursively resolve LDAP groups
+          description: if `idp_type`==`ldap`, whether to recursively resolve LDAP
+            groups
           type: boolean
         ldap_server_hosts:
           $ref: '#/components/schemas/sso_ldap_server_hosts'
         ldap_type:
           $ref: '#/components/schemas/sso_ldap_type'
         ldap_user_filter:
-          description: Only if `ldap_type`==`custom`
+          description: Required if `ldap_type`==`custom`
           type: string
         modified_time:
           readOnly: true
@@ -76224,28 +76254,28 @@ components:
         nameid_format:
           $ref: '#/components/schemas/sso_nameid_format'
         oauth_cc_client_id:
-          description: if `oauth_type`==`okta`, Client Credentials
+          description: Required if `idp_type`==`oauth`, Client Credentials
           example: e60da615-7def-4c5a-8196-43675f45e174
           type: string
         oauth_cc_client_secret:
-          description: if `oauth_type`==`okta` or `oauth_type`==`ping_identity`, oauth_cc_client_secret
-            is RSA private key, of the form "-----BEGIN RSA PRIVATE KEY--...."
+          description: Required if `idp_type`==`oauth`, oauth_cc_client_secret is
+            RSA private key, of the form "-----BEGIN RSA PRIVATE KEY--...."
           example: akL8Q~5kWFMVFYl4TFZ3fi~7cMdyDONi6cj01cpH
           type: string
         oauth_discovery_url:
           description: if `idp_type`==`oauth`
           type: string
         oauth_ropc_client_id:
-          description: ropc = Resource Owner Password Credentials
+          description: if `idp_type`==`oauth`, ropc = Resource Owner Password Credentials
           example: 9ce04c97-b5b1-4ec8-af17-f5ed42d2daf7
           type: string
         oauth_ropc_client_secret:
-          description: oauth_ropc_client_secret can be empty if oauth_type is azure
-            or azure-gov
+          description: if `oauth_type`==`azure` or `oauth_type`==`azure-gov`. oauth_ropc_client_secret
+            can be empty
           example: blM9R~6kWFMVFYl4TFZ3fi~8cMdyDONi6cj01dqI
           type: string
         oauth_tenant_id:
-          description: if `oauth_type`==`okta` or `oauth_type`==`ping_identity`, oauth_tenant_id
+          description: Required if `idp_type`==`oauth`, oauth_tenant_id
           example: dev-88336535
           type: string
         oauth_type:
@@ -76253,8 +76283,8 @@ components:
         org_id:
           $ref: '#/components/schemas/org_id'
         role_attr_extraction:
-          description: "optional, custom role attribute parsing scheme\n\nSupported\
-            \ Role Parsing Schemes\n<table><tr><th>Name</th><th>Scheme</th></tr><tr><td>cn</td><td><ul><li>The\
+          description: "if `idp_type`==`saml`, custom role attribute parsing scheme\n\
+            \nSupported Role Parsing Schemes\n<table><tr><th>Name</th><th>Scheme</th></tr><tr><td>cn</td><td><ul><li>The\
             \ expected role attribute format in SAML Assertion is \u201CCN=cn,OU=ou1,OU=ou2,\u2026\
             \u201D</li><li>CN (the key) is case insensitive and exactly 1 CN is expected\
             \ (or the entire entry will be ignored)</li><li>E.g. if role attribute\
@@ -76263,28 +76293,40 @@ components:
           type: string
         role_attr_from:
           default: Role
-          description: name of the attribute in SAML Assertion to extract role from
+          description: if `idp_type`==`saml`, name of the attribute in SAML Assertion
+            to extract role from
           type: string
         scim_enabled:
           default: false
-          description: indicates if SCIM provisioning is enabled for the OAuth IDP
+          description: if `idp_type`==`oauth`, indicates if SCIM provisioning is enabled
+            for the OAuth IDP
           type: boolean
         scim_secret_token:
-          description: scim_secret_token (generated by caller, crypto-random) is used
-            as the Bearer token in the Authorization header of SCIM provisioning requests
-            by the IDP
+          description: if `idp_type`==`oauth`, scim_secret_token (generated by caller,
+            crypto-random) is used as the Bearer token in the Authorization header
+            of SCIM provisioning requests by the IDP
           example: secret token
           type: string
         site_id:
           $ref: '#/components/schemas/site_id'
-        type:
-          type: string
       required:
       - name
+      - idp_type
       type: object
+    sso_idp_sign_algo:
+      description: Required if `idp_type`==`saml`, Signing algorithm for SAML Assertion.
+        enum `sha1`, `sha256`, `sha384`, `sha512`
+      enum:
+      - sha1
+      - sha256
+      - sha384
+      - sha512
+      type: string
     sso_idp_type:
       default: saml
-      description: 'enum: `ldap`, `mxedge_proxy`, `oauth`, `saml`'
+      description: '* For Admin SSO, enum: `saml`
+
+        * For NAC SSO, enum: `ldap`, `mxedge_proxy`, `oauth`'
       enum:
       - ldap
       - mxedge_proxy
@@ -76297,7 +76339,7 @@ components:
         type: string
       type: array
     sso_ldap_server_hosts:
-      description: if `idp_type`==`ldap`
+      description: Required if `idp_type`==`ldap`
       items:
         type: string
       type: array
@@ -76393,7 +76435,7 @@ components:
       type: string
     sso_oauth_type:
       default: azure
-      description: 'enum: `azure`, `azure-gov`, `okta`, `ping_identity`'
+      description: 'if `idp_type`==`oauth`. enum: `azure`, `azure-gov`, `okta`, `ping_identity`'
       enum:
       - azure
       - azure-gov
@@ -87060,27 +87102,28 @@ components:
           $ref: '#/components/schemas/wlan_portal_sponsors'
         sso_default_role:
           default: ''
-          description: "default role to assign if there\u2019s no match. By default,\
-            \ an assertion is treated as invalid when there\u2019s no role matched"
+          description: "if `wlan_portal_auth`==`sso`, default role to assign if there\u2019\
+            s no match. By default, an assertion is treated as invalid when there\u2019\
+            s no role matched"
           type: string
         sso_forced_role:
           default: ''
+          description: if `wlan_portal_auth`==`sso`
           type: string
         sso_idp_cert:
           default: ''
-          description: IDP Cert (used to verify the signed response)
+          description: if `wlan_portal_auth`==`sso`, IDP Cert (used to verify the
+            signed response)
           type: string
         sso_idp_sign_algo:
-          default: sha1
-          description: signing algorithm for SAML Assertion
-          type: string
+          $ref: '#/components/schemas/wlan_portal_idp_sign_algo'
         sso_idp_sso_url:
           default: ''
-          description: IDP Single-Sign-On URL
+          description: if `wlan_portal_auth`==`sso`, IDP Single-Sign-On URL
           type: string
         sso_issuer:
           default: ''
-          description: IDP issuer URL
+          description: if `wlan_portal_auth`==`sso`, IDP issuer URL
           type: string
         sso_nameid_format:
           $ref: '#/components/schemas/wlan_portal_sso_nameid_format'
@@ -87172,6 +87215,16 @@ components:
       items:
         type: string
       type: array
+    wlan_portal_idp_sign_algo:
+      default: sha1
+      description: if `wlan_portal_auth`==`sso`, Signing algorithm for SAML Assertion.
+        enum `sha1`, `sha256`, `sha384`, `sha512`
+      enum:
+      - sha1
+      - sha256
+      - sha384
+      - sha512
+      type: string
     wlan_portal_microsoft_email_domains:
       default: []
       description: Matches authenticated user email against provided domains. If null
@@ -87225,7 +87278,7 @@ components:
       type: object
     wlan_portal_sso_nameid_format:
       default: email
-      description: 'enum: `email`, `unspecified`'
+      description: 'if `wlan_portal_auth`==`sso`. enum: `email`, `unspecified`'
       enum:
       - email
       - unspecified
