@@ -1,14 +1,20 @@
 import yaml
 
 SPEC_FILE = "./mist.openapi.yml"
+EXCEPTIONS = [
+    "privilege_self_views",
+    "privilege_org_views",
+    "privilege_msp_view",
+    "admin_privilege_view",
+]
 
-with open(SPEC_FILE, 'r') as f_in:
+with open(SPEC_FILE, "r") as f_in:
     data = yaml.load(f_in, Loader=yaml.loader.SafeLoader)
 
 
 schemas = data.get("components", {}).get("schemas")
 for n, s in schemas.items():
-    if n not in ["privilege_self_views", "privilege_org_views", "privilege_msp_view"]:
+    if n not in EXCEPTIONS:
         if s.get("enum"):
             enum_desc = []
             e = s["enum"]
@@ -18,10 +24,10 @@ for n, s in schemas.items():
             new_desc = f"enum: {', '.join(enum_desc)}"
             if not s.get("description"):
                 s["description"] = new_desc
-            elif not "enum: " in s["description"]:
+            elif not "enum: " in s["description"] and not "enum:\n" in s["description"]:
                 s["description"] += ". " + new_desc
 
-data["components"]["schemas"]=schemas
+data["components"]["schemas"] = schemas
 
 with open(SPEC_FILE, "w") as f:
     yaml.dump({"openapi": data["openapi"]}, f)
