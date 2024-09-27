@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2409.1.8**
+  description: '> Version: **2409.1.9**
 
     >
 
-    > Date: **September 26, 2024**
+    > Date: **September 27, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2409.1.8
+  version: 2409.1.9
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -76214,36 +76214,47 @@ components:
           description: if `idp_type`==`saml`. IDP issuer URL
           type: string
         ldap_base_dn:
-          description: Required if `idp_type`==`ldap`
-          example: DC=mycorp,DC=org
+          description: Required if `idp_type`==`ldap`, whole domain or a specific
+            organization unit (container) in Search base to specify where users and
+            groups are found in the LDAP tree
+          example: DC=abc,DC=com
           type: string
         ldap_bind_dn:
-          description: Required if `idp_type`==`ldap`
-          example: admin@mycorp.org
+          description: Required if `idp_type`==`ldap`, the account used to authenticate
+            against the LDAP
+          example: CN=nas,CN=users,DC=abc,DC=com
           type: string
         ldap_bind_password:
-          description: Required if `idp_type`==`ldap`
+          description: Required if `idp_type`==`ldap`, the password used to authenticate
+            against the LDAP
           example: secret
           type: string
-        ldap_certs:
-          $ref: '#/components/schemas/sso_ldap_certs'
+        ldap_cacerts:
+          $ref: '#/components/schemas/sso_ldap_ca_certs'
         ldap_client_cert:
-          description: if `idp_type`==`ldap`
+          description: if `idp_type`==`ldap`, LDAPS Client certificate
+          example: '-----BEGIN CERTIFICATE-----\nMIIFZjCCA06gAwIBAgIIP61/1qm/uDowDQYJKoZIhvcNAQELBQE\n-----END
+            CERTIFICATE-----'
           type: string
         ldap_client_key:
-          description: if `idp_type`==`ldap`
+          description: if `idp_type`==`ldap`, Key for the `ldap_client_cert`
+          example: '-----BEGIN PRI...'
           type: string
         ldap_group_attr:
+          default: memberOf
           description: if `ldap_type`==`custom`
           type: string
         ldap_group_dn:
+          default: base_dn
           description: if `ldap_type`==`custom`
           type: string
         ldap_group_filter:
-          description: Required if `ldap_type`==`custom`
+          description: Required if `ldap_type`==`custom`, LDAP filter that will identify
+            the type of group
           type: string
         ldap_member_filter:
-          description: Required if `ldap_type`==`custom`
+          description: Required if `ldap_type`==`custom`,LDAP filter that will identify
+            the type of member
           example: (CN=%s)
           type: string
         ldap_resolve_groups:
@@ -76256,7 +76267,9 @@ components:
         ldap_type:
           $ref: '#/components/schemas/sso_ldap_type'
         ldap_user_filter:
-          description: Required if `ldap_type`==`custom`
+          description: Required if `ldap_type`==`custom`, LDAP filter that will identify
+            the type of user
+          example: (mail=%s)
           type: string
         modified_time:
           readOnly: true
@@ -76351,13 +76364,23 @@ components:
       - oauth
       - saml
       type: string
-    sso_ldap_certs:
-      description: if `idp_type`==`ldap`
+    sso_ldap_ca_certs:
+      description: Required if `idp_type`==`ldap`, list of CA certificates to validate
+        the LDAP certificate
+      example:
+      - '-----BEGIN CERTIFICATE-----\nMIIFZjCCA06gAwIBAgIIP61/1qm/uDowDQYJKoZIhvcNAQELBQE\n-----END
+        CERTIFICATE-----'
+      - '-----BEGIN CERTIFICATE-----\nBhMCRVMxFDASBgNVBAoMC1N0YXJ0Q29tIENBMSwwKgYDVn-----END
+        CERTIFICATE-----'
       items:
         type: string
       type: array
     sso_ldap_server_hosts:
-      description: Required if `idp_type`==`ldap`
+      description: if `idp_type`==`ldap`, list of LDAP/LDAPS server IP Addresses or
+        Hostnames
+      example:
+      - hostname
+      - 63.1.3.5
       items:
         type: string
       type: array
