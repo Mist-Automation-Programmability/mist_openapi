@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2409.1.9**
+  description: '> Version: **2409.1.11**
 
     >
 
-    > Date: **September 27, 2024**
+    > Date: **October 17, 2024**
 
 
     ---
@@ -19,7 +19,7 @@ info:
 
     * [Mist Location SDK](https://www.juniper.net/documentation/us/en/software/mist/location_services/topics/concept/mist-how-get-mist-sdk.html)
 
-    * [Mist Product Updates](https://www.mist.com/documentation/category/product-updates/)
+    * [Mist Product Updates](https://www.juniper.net/documentation/us/en/software/mist/product-updates/)
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2409.1.9
+  version: 2409.1.11
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -615,6 +615,8 @@ tags:
   name: Orgs Stats - Other Devices
 - description: API Calls to retrieve statistics about the Wired Ports at the Org level
   name: Orgs Stats - Ports
+- description: API Calls to retrieve statistics about the Organization Sites
+  name: Orgs Stats - Sites
 - description: API Calls to retrieve statistics about the Mist Tunnels at the Org
     level
   name: Orgs Stats - Tunnels
@@ -6525,17 +6527,24 @@ paths:
         name: hostname
         schema:
           type: string
+      - description: 'Radio band. enum: `24`, `5`, `6`'
+        in: query
+        name: band
+        schema:
+          type: string
       - description: device type, e.g. Mac, Nvidia, iPhone
         in: query
         name: device
         schema:
           type: string
-      - description: os, e.g. Sierra, Yosemite, Windows 10
+      - description: only available for clients running the Marvis Client app, os,
+          e.g. Sierra, Yosemite, Windows 10
         in: query
         name: os
         schema:
           type: string
-      - description: "model, e.g. \u201CMBP 15 late 2013\u201D, 6, 6s, \u201C8+ GSM\u201D"
+      - description: "only available for clients running the Marvis Client app, model,\
+          \ e.g. \u201CMBP 15 late 2013\u201D, 6, 6s, \u201C8+ GSM\u201D"
         in: query
         name: model
         schema:
@@ -6546,9 +6555,16 @@ paths:
         schema:
           type: string
       - $ref: '#/components/parameters/psk_id_query'
-      - description: PSK Name
+      - description: only available for clients using PPSK authentication, the Name
+          of the PSK
         in: query
         name: psk_name
+        schema:
+          type: string
+      - description: only available for clients using 802.1X authentication, partial
+          / full username
+        in: query
+        name: username
         schema:
           type: string
       - description: vlan
@@ -8973,7 +8989,7 @@ paths:
                   minutes: 0
                   name: string
             schema:
-              $ref: '#/components/schemas/guest'
+              $ref: '#/components/schemas/guest_org'
       responses:
         '200':
           $ref: '#/components/responses/Guest'
@@ -13467,7 +13483,7 @@ paths:
         \ websocket. As there can be multiple command issued against the same AP at\
         \ the same time and the output all goes through the same websocket stream,\
         \ session is introduced for demux.\n\n#### Subscribe to Device Command outputs\n\
-        `WS /api-ws/v1/stream`\n\n```json\n{\n    subscribe: \"/sites/{site_id}/pcaps\"\
+        `WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/pcaps\"\
         \n}\n```\n#### Response (Wireless/RadioTap)\n```json\n{\n  \"event\": \"data\"\
         \n  \"channel\": \"/orgs/67970e46-4e12-11e6-9188-0242ac110007/pcaps\"\n  \"\
         data\": {\n      \"capture_id\": \"f039b1b4-a23e-48b2-906a-0da40524de73\"\
@@ -17952,6 +17968,34 @@ paths:
       - Orgs Stats - Ports
     parameters:
     - $ref: '#/components/parameters/org_id'
+  /api/v1/orgs/{org_id}/stats/sites:
+    get:
+      description: Get List of Org Site Stats
+      operationId: listOrgSiteStats
+      parameters:
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/SitesArrayStats'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listOrgSiteStats
+      tags:
+      - Orgs Stats - Sites
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/stats/switch_ports/count:
     get:
       description: Count by Distinct Attributes of Switch/Gateway Ports
@@ -19646,17 +19690,17 @@ paths:
         name: site_id
         schema:
           type: string
-      - description: device mac
+      - description: device mac (Gateway/Switch) where the client has connected to
         in: query
         name: device_mac
         schema:
           type: string
-      - description: client mac
+      - description: partial / full MAC address
         in: query
         name: mac
         schema:
           type: string
-      - description: port id
+      - description: port id where the client has connected to
         in: query
         name: port_id
         schema:
@@ -19666,17 +19710,13 @@ paths:
         name: vlan
         schema:
           type: integer
-      - description: ip
-        in: query
-        name: ip
-        schema:
-          type: string
+      - $ref: '#/components/parameters/ip'
       - description: client manufacturer
         in: query
         name: manufacture
         schema:
           type: string
-      - description: single entry of hostname/mac
+      - description: partial / full MAC address, hostname or username
         in: query
         name: text
         schema:
@@ -24602,7 +24642,19 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: Releases an active DHCP lease.
+      description: "Releases an active DHCP lease.\n\nThe output will be available\
+        \ through websocket. As there can be multiple command issued  against the\
+        \ same Device at the same time and the output all goes through the same websocket\
+        \ stream, session is introduced for demux.\n\n\n#### Subscribe to Device Command\
+        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+        \n}```\n\n\n\n#### Example output from ws stream\n\n```json\n{  \n  \"channel\"\
+        : \"/sites/d6fb4f96-xxxx-xxxx-xxxx-xxxxxxxxxxxx/devices/00000000-0000-0000-1000-xxxxxxxxxxxx/cmd\"\
+        ,\n  \"event\": \"data\",\n  \"data\": {\n    \"session\": \"9106e908-74dc-4a4f-9050-9c2adcaf44a5\"\
+        ,\n    \"raw\": \"Running traceroute...\\ntraceroute to 8.8.8.8, 64 hops max\\\
+        n 0  192.168.1.1 1 ms  192.168.1.1 1 ms  192.168.1.1 1 ms\\n 1  80.10.236.81\
+        \ 2 ms  80.10.236.81 4 ms  80.10.236.81 2 ms\\n 2  193.253.80.250 3 ms  193.253.80.250\
+        \ 2 ms  193.253.80.250 2 ms\\n 3  193.252.159.41 2 ms  193.252.159.41 1 ms\
+        \  193.252.159.41 3 ms\\n\"\n  }\n}\n```\n\""
       operationId: releaseSiteSsrDhcpLease
       requestBody:
         content:
@@ -24615,7 +24667,7 @@ paths:
               $ref: '#/components/schemas/utils_release_dhcp'
       responses:
         '200':
-          $ref: '#/components/responses/OK'
+          $ref: '#/components/responses/WebsocketSession'
         '400':
           description: Parameter `port ` absent
         '401':
@@ -24885,7 +24937,7 @@ paths:
         \ stream, `session` is introduced for demux.\n\n#### Subscribe to Device Command\
         \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
         \n}\n```\n"
-      operationId: getSiteDeviceArpTable
+      operationId: showSiteDeviceArpTable
       requestBody:
         content:
           application/json:
@@ -24905,7 +24957,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteDeviceArpTable
+      summary: showSiteDeviceArpTable
       tags:
       - Utilities Common
   /api/v1/sites/{site_id}/devices/{device_id}/show_bgp_rummary:
@@ -24917,10 +24969,10 @@ paths:
         \ be available through websocket. As there can be multiple command issued\
         \ against the same device at the same time and the output all goes through\
         \ the same websocket stream, `session` is introduced for demux.\n\n#### Subscribe\
-        \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \\\"\
-        subscribe\\\": \\\"/sites/{site_id}/devices/{device_id}/cmd\\\"\\\n\n}\n```\n\
-        \n##### Example output from ws stream\n```\nTue 2024-04-23 16:36:06 UTC\n\
-        Retrieving bgp entries...\nBGP table version is 354, local router ID is 10.224.8.16,\
+        \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
+        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n\n}\n```\n\n#####\
+        \ Example output from ws stream\n```\nTue 2024-04-23 16:36:06 UTC\nRetrieving\
+        \ bgp entries...\nBGP table version is 354, local router ID is 10.224.8.16,\
         \ vrf id 0\nDefault local pref 100, local AS 65000\nStatus codes:  s suppressed,\
         \ d damped, h history, * valid, > best, = multipath,\n              i internal,\
         \ r RIB_failure, S Stale, R Removed\nNexthop codes: @NNN nexthop's vrf id,\
@@ -24928,7 +24980,7 @@ paths:
         \ validation codes: V valid, I invalid, N Not found\n\n  Network         \
         \                             Next Hop                                  Metric\
         \ LocPrf Weight Path\n*> 161.161.161.0/24\n```\""
-      operationId: getSiteDeviceBgpSummary
+      operationId: showSiteDeviceBgpSummary
       requestBody:
         content:
           application/json:
@@ -24948,7 +25000,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteDeviceBgpSummary
+      summary: showSiteDeviceBgpSummary
       tags:
       - Utilities Common
   /api/v1/sites/{site_id}/devices/{device_id}/show_dhcp_leases:
@@ -24965,7 +25017,7 @@ paths:
               $ref: '#/components/schemas/utils_show_dhcp_leases'
       responses:
         '200':
-          $ref: '#/components/responses/WebsocketSessionWithUrl'
+          $ref: '#/components/responses/WebsocketSession'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -24986,7 +25038,7 @@ paths:
     post:
       description: Get EVPN Database from the Device. The output will be available
         through websocket.
-      operationId: getSiteDeviceEvpnDatabase
+      operationId: showSiteDeviceEvpnDatabase
       requestBody:
         content:
           application/json:
@@ -25006,7 +25058,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteDeviceEvpnDatabase
+      summary: showSiteDeviceEvpnDatabase
       tags:
       - Utilities Common
   /api/v1/sites/{site_id}/devices/{device_id}/show_forwarding_table:
@@ -25035,7 +25087,7 @@ paths:
         \         10 branch1-Kiosk      -     internet-wan_and_lte   1-2.0       broadband\
         \      1 1-4.0       lte           10 branch1-MGT        -     internet-wan_and_lte\
         \   1-2.0       broadband      1 1-4.0       lte           10\n\n```\n"
-      operationId: getSiteDeviceForwardingTable
+      operationId: showSiteDeviceForwardingTable
       requestBody:
         content:
           application/json:
@@ -25055,7 +25107,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteDeviceForwardingTable
+      summary: showSiteDeviceForwardingTable
       tags:
       - Utilities Common
   /api/v1/sites/{site_id}/devices/{device_id}/show_mac_table:
@@ -25069,7 +25121,7 @@ paths:
         \ stream, `session` is introduced for demux.\n\n#### Subscribe to Device Command\
         \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
         \n}\n```\n"
-      operationId: getSiteDeviceMacTable
+      operationId: showSiteDeviceMacTable
       requestBody:
         content:
           application/json:
@@ -25089,7 +25141,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteDeviceMacTable
+      summary: showSiteDeviceMacTable
       tags:
       - Utilities Common
   /api/v1/sites/{site_id}/devices/{device_id}/show_ospf_database:
@@ -25113,7 +25165,7 @@ paths:
         \      1   Full       852               38   172.16.4.2          Backup\n\
         \      1.0.0.4                     1   Full       811               34   172.16.4.2\
         \          DROther\n```"
-      operationId: getSiteSsrOspfDatabase
+      operationId: showSiteSsrOspfDatabase
       requestBody:
         content:
           application/json:
@@ -25133,7 +25185,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteSsrOspfDatabase
+      summary: showSiteSsrOspfDatabase
       tags:
       - Utilities WAN
   /api/v1/sites/{site_id}/devices/{device_id}/show_ospf_interfaces:
@@ -25156,7 +25208,7 @@ paths:
         \  g3                          True   172.16.3.2/24   Broadcast   0.0.0.0\
         \   default\n      net4               g4                          True   172.16.4.2/24\
         \   Broadcast   0.0.0.4   default\n```"
-      operationId: getSiteSsrOspfInterface
+      operationId: showSiteSsrOspfInterfaces
       requestBody:
         content:
           application/json:
@@ -25176,7 +25228,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteSsrOspfInterface
+      summary: showSiteSsrOspfInterfaces
       tags:
       - Utilities WAN
   /api/v1/sites/{site_id}/devices/{device_id}/show_ospf_neighbors:
@@ -25200,7 +25252,7 @@ paths:
         \      1   Full       852               38   172.16.4.2          Backup\n\
         \      1.0.0.4                     1   Full       811               34   172.16.4.2\
         \          DROther\n```"
-      operationId: getSiteSsrOspfNeighbors
+      operationId: showSiteSsrOspfNeighbors
       requestBody:
         content:
           application/json:
@@ -25220,7 +25272,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteSsrOspfNeighbors
+      summary: showSiteSsrOspfNeighbors
       tags:
       - Utilities WAN
   /api/v1/sites/{site_id}/devices/{device_id}/show_ospf_summary:
@@ -25242,7 +25294,7 @@ paths:
         \      1.0.0.2     cisco            False                    0   0.0.0.0\n\
         \      1.0.0.2     cisco            False                    0   0.0.0.4 \
         \  default\n```"
-      operationId: getSiteSsrOspfSummary
+      operationId: showSiteSsrOspfSummary
       requestBody:
         content:
           application/json:
@@ -25262,7 +25314,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteSsrOspfSummary
+      summary: showSiteSsrOspfSummary
       tags:
       - Utilities WAN
   /api/v1/sites/{site_id}/devices/{device_id}/show_route:
@@ -25285,7 +25337,7 @@ paths:
         \    Address family IPv4 Unicast: advertised and received\n    Graceful Restart\
         \ Capabilty: advertised and received\n      Remote Restart timer is 120 seconds\n\
         \      Address families by peer:\n        none\n        ...\n```"
-      operationId: getSiteSsrAndSrxRoutes
+      operationId: showSiteSsrAndSrxRoutes
       requestBody:
         content:
           application/json:
@@ -25305,7 +25357,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteDeviceRoutes
+      summary: showSiteSsrAndSrxRoutes
       tags:
       - Utilities WAN
   /api/v1/sites/{site_id}/devices/{device_id}/show_service_path:
@@ -25313,27 +25365,29 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Get service path information of the Device.\n\nThe output will\
-        \ be available through websocket. As there can be multiple command issued\
-        \ against the same device at the same time and the output all goes through\
-        \ the same websocket stream, session is introduced for demux.\n\n\n#### Subscribe\
-        \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
-        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```\n##### Example\
-        \ output from ws stream\n```\nshow service_path\n\nService    Service-route\
-        \     Type              Destination  Next-Hop  Interface  Vector  Cost  Rate\
-        \  Capacity        State\n\nWeb        web-route1        service_agent   \
-        \  4.4.4.4      1.1.1.2     lan        red     10    1    200/3000       Up*\n\
-        Web        web-route1        service_agent     4.4.4.4      1.1.1.3     lan\
-        \        red     10    1    200/3000       Up\nWeb        web-route2     \
-        \   service_agent     5.5.5.5      2.2.2.2     lan       blue     20    2\
-        \    50/unlimited   Down\nLogin      <None>            BgpOverSVR        10.1.1.1\
-        \     1.2.3.4     wan        red     10    3        -          Up\nLogin \
-        \     <None>            BgpOverSVR        11.1.1.1     1.2.3.4     wan   \
-        \     red     10    1        -          Up\nApp1       <None>            Routed\
-        \                -           -         -          -      -     -        -\
-        \          -\nApp1       learned-routed    Routed                -       \
-        \    -         -          -      -     -        -          -\n```"
-      operationId: getSiteSsrServicePath
+      description: 'Get service path information of the Device.
+
+
+        The output will be available through websocket. As there can be multiple command
+        issued against the same device at the same time and the output all goes through
+        the same websocket stream, session is introduced for demux.
+
+
+
+        #### Subscribe to Device Command outputs
+
+        `WS /api-ws/v1/stream`
+
+
+        ```json { "subscribe": "/sites/{site_id}/devices/{device_id}/cmd" } ```
+
+        #### Example output from ws stream
+
+        ```json { "channel": "/sites/d6fb4f96-xxxx-xxxx-xxxx-xxxxxxxxxxxx/devices/00000000-0000-0000-1000-xxxxxxxxxxxx/cmd",
+        "event": "data", "data": { "session":"5cb8a6db-d11a-42cd-bed7-19e9f29e637",
+        "raw":"{\"status\":\"SUCCESS\",\"finished\":true,\"rows\":[{\"service\":\"management\",\"type\":\"service-agent\",\"network_interface\":\"ge-0/0/0\",\"destination\":\"\",\"gateway_ip\":\"192.168.1.1\",\"vector\":\"\",\"cost\":0,\"rate\":0,\"state\":\"Up\",\"capacity\":\"0/unlimited\",\"meetsSLA\":\"Yes\"},{\"service\":\"management\",\"type\":\"service-agent\",\"network_interface\":\"ge-0/0/1\",\"destination\":\"\",\"gateway_ip\":\"192.168.0.1\",\"vector\":\"\",\"cost\":0,\"rate\":0,\"state\":\"Up\",\"capacity\":\"0/unlimited\",\"meetsSLA\":\"Yes\"}]}"
+        } } ```'
+      operationId: showSiteSsrServicePath
       requestBody:
         content:
           application/json:
@@ -25357,7 +25411,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteSsrServicePath
+      summary: showSiteSsrServicePath
       tags:
       - Utilities WAN
   /api/v1/sites/{site_id}/devices/{device_id}/show_session:
@@ -25365,47 +25419,30 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Get active sessions passing through the Device.\n\nThe output\
-        \ will be available through websocket. As there can be multiple command issued\
-        \ against the same device at the same time and the output all goes through\
-        \ the same websocket stream, session is introduced for demux.\n\n\n#### Subscribe\
-        \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
-        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n  }\n```\n\n#####\
-        \ Example output from ws stream\n\n```console\nadmin@ssr.node# show sessions\n\
-        Fri 2020-04-17 16:55:34 UTC\n\nNode: node1\n\n======================================\
-        \ ===== ============= =========== ========== ====== ======= =================\
-        \ ========== ================= =========== ================= ========== ===================\
-        \ ========= =================\nSession Id                             Dir\
-        \   Service       Tenant      Dev Name   VLAN   Proto   Src IP           \
-        \ Src Port   Dest IP           Dest Port   NAT IP            NAT Port   Payload\
-        \ Encrypted   Timeout   Uptime\n====================================== =====\
-        \ ============= =========== ========== ====== ======= ================= ==========\
-        \ ================= =========== ================= ========== ===================\
-        \ ========= =================\n01187fb8-765a-45e5-ae90-37d77f15e292   fwd\
-        \   Internet      lanSubnet   lan           0   udp     192.168.0.28     \
-        \    44674   35.166.173.18          9930   96.230.191.130       19569   false\
-        \                   154   0 days  0:00:28\n01187fb8-765a-45e5-ae90-37d77f15e292\
-        \   rev   Internet      lanSubnet   wan           0   udp     35.166.173.18\
-        \         9930   96.230.191.130        19569   0.0.0.0                  0\
-        \   false                   154   0 days  0:00:28\n0859a4ae-bcff-4aa6-b812-79a5236a6c13\
-        \   fwd   Internet      lanSubnet   lan           0   tcp     192.168.0.41\
-        \         60843   17.249.171.246          443   96.230.191.130       51941\
-        \   false                     2   0 days  0:00:10\n\n\nadmin@node0.90ec7732e327#\
-        \ show sessions by-id 262900cd-bca8-443a-8aab-e5c93d147ab5\nWed 2024-06-26\
-        \ 20:37:48 UTC\nRetrieving session information...\n\n=======================================================================================================================================================================================\n\
-        90ec7732e327.node0    Session ID: 262900cd-bca8-443a-8aab-e5c93d147ab5\n=======================================================================================================================================================================================\n\
-        Service Name:                      Internet\nService Route Name:         \
-        \       Internet-sr-local-breakout-1-node0\nSession Source:              \
-        \      SourceType: PUBLIC\nSession Type:                      HTTPS\nService\
-        \ Class:                     service-class-0-low\nSource Tenant:         \
-        \            LAN\nPeer Name:                         N/A\nInter Node:    \
-        \                    N/A\nInter Router:                      N/A\nIngress\
-        \ Source Nat:                N/A\nPayload Security Policy:           internal\n\
-        Payload Encrypted:                 True\nCommon Name Info:               \
-        \   N/A\nTcp Time To Establish:             76\nTls Time To Establish:   \
-        \          76\nDomain Name:                       N/A\nUri:              \
-        \                 N/A\nCategory:                          N/A\n```\""
-      operationId: getSiteSsrAndSrxSessions
+      description: 'Get active sessions passing through the Device.
+
+
+        The output will be available through websocket. As there can be multiple command
+        issued against the same device at the same time and the output all goes through
+        the same websocket stream, session is introduced for demux.
+
+
+
+        #### Subscribe to Device Command outputs
+
+        `WS /api-ws/v1/stream`
+
+
+        ```json { "subscribe": "/sites/{site_id}/devices/{device_id}/cmd" }```
+
+
+        #### Example output from ws stream
+
+        ```json { "channel": "/sites/d6fb4f96-xxxx-xxxx-xxxx-xxxxxxxxxxxx/devices/00000000-0000-0000-1000-xxxxxxxxxxxx/cmd",
+        "event": "data", "data": { "session": "f517bf29-1141-41ae-a084-17cacb0ccb57",
+        "raw": "{\"status\":\"SUCCESS\",\"finished\":true,\"rows\":[{\"session_id\":\"a04b1cc7-dcc1-40a6-a010-0fe46ca38551\",\"direction\":\"forward\",\"service\":\"internet\",\"tenant\":\"SRV.PRD-Core\",\"device_interface\":\"ge-0/0/3\",\"network_interface\":\"ge-0/0/3.100\",\"protocol\":\"TCP\",\"source_ip\":\"10.3.20.101\",\"source_port\":45733,\"destination_ip\":\"13.38.46.35\",\"destination_port\":443,\"nat_ip\":\"192.168.1.115\",\"nat_port\":45256,\"payload_encrypted\":false,\"timeout\":1581,\"uptime\":319},{\"session_id\":\"a04b1cc7-dcc1-40a6-a010-0fe46ca38551\",\"direction\":\"reverse\",\"service\":\"internet\",\"tenant\":\"SRV.PRD-Core\",\"device_interface\":\"ge-0/0/0\",\"network_interface\":\"ge-0/0/0\",\"protocol\":\"TCP\",\"source_ip\":\"13.38.46.35\",\"source_port\":443,\"destination_ip\":\"192.168.1.115\",\"destination_port\":45256,\"nat_ip\":\"0.0.0.0\",\"nat_port\":0,\"payload_encrypted\":false,\"timeout\":1581,\"uptime\":319}]}\n"
+        } } ```'
+      operationId: showSiteSsrAndSrxSessions
       requestBody:
         content:
           application/json:
@@ -25429,7 +25466,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getSiteSsrAndSrxSessions
+      summary: showSiteSsrAndSrxSessions
       tags:
       - Utilities WAN
   /api/v1/sites/{site_id}/devices/{device_id}/snapshot:
@@ -25470,17 +25507,37 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Support / Upload device support files\n\n#### Info Param\n**Parameter**|**Description**\
-        \ \n :-------------: |:-------------: |:-------------: \nprocess|Upload 1\
-        \ file with output of show system processes extensive\noutbound-ssh|Upload\
-        \ 1 file that concatenates all /var/log/outbound-ssh.log* files\nmessages|Upload\
-        \ 1 to 10 /var/log/messages* files\ncore-dumps|Upload all core dump files,\
-        \ if any\nfull|string|Upload 1 file with output of request support information,\
-        \ 1 file that concatenates all /var/log/outbound-ssh.log files, all core dump\
-        \ files, the 3 most recent /var/log/messages files, and Mist agent logs (for\
-        \ Junos devices running the Mist agent)\nvar-logs|Upload all non-empty files\
-        \ in the /var/log/ directory\njma-logs|Upload Mist agent logs (for Junos devices\
-        \ running the Mist agent only)"
+      description: 'Support / Upload device support files
+
+
+        #### Info Param
+
+        | Name | Type | Description |
+
+        | --- | --- | --- |
+
+        | process | string | Upload 1 file with output of show system processes extensive
+        |
+
+        | outbound-ssh | string | Upload 1 file that concatenates all /var/log/outbound-ssh.log*
+        files |
+
+        | messages | string | Upload 1 to 10 /var/log/messages* files |
+
+        | core-dumps | string | Upload all core dump files, if any |
+
+        | full | string | Upload 1 file with output of request support information,
+        1 file that concatenates all /var/log/outbound-ssh.log files, all core dump
+        files, the 3 most recent /var/log/messages files, and Mist agent logs (for
+        Junos devices running the Mist agent) |
+
+        | var-logs | string | Upload all non-empty files in the /var/log/ directory
+        |
+
+        | jma-logs | string | Upload Mist agent logs (for Junos devices running the
+        Mist agent only) |
+
+        "'
       operationId: uploadSiteDeviceSupportFile
       requestBody:
         content:
@@ -25578,10 +25635,17 @@ paths:
     post:
       description: "Traceroute can be performed from the Device.\n\nThe output will\
         \ be available through websocket. As there can be multiple command issued\
-        \ against the same AP at the same time and the output all goes through the\
-        \ same websocket stream, session is introduced for demux.\n\n#### Subscribe\
+        \ against the same Device at the same time and the output all goes through\
+        \ the same websocket stream, session is introduced for demux.\n\n\n#### Subscribe\
         \ to Device Command outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"\
-        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n}\n```"
+        subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\n}```\n\n\n\n####\
+        \ Example output from ws stream\n\n```json\n{  \n  \"channel\": \"/sites/d6fb4f96-xxxx-xxxx-xxxx-xxxxxxxxxxxx/devices/00000000-0000-0000-1000-xxxxxxxxxxxx/cmd\"\
+        ,\n  \"event\": \"data\",\n  \"data\": {\n    \"session\": \"9106e908-74dc-4a4f-9050-9c2adcaf44a5\"\
+        ,\n    \"raw\": \"Running traceroute...\\ntraceroute to 8.8.8.8, 64 hops max\\\
+        n 0  192.168.1.1 1 ms  192.168.1.1 1 ms  192.168.1.1 1 ms\\n 1  80.10.236.81\
+        \ 2 ms  80.10.236.81 4 ms  80.10.236.81 2 ms\\n 2  193.253.80.250 3 ms  193.253.80.250\
+        \ 2 ms  193.253.80.250 2 ms\\n 3  193.252.159.41 2 ms  193.252.159.41 1 ms\
+        \  193.252.159.41 3 ms\\n\"\n  }\n}\n```\n\""
       operationId: tracerouteFromDevice
       requestBody:
         content:
@@ -28516,7 +28580,7 @@ paths:
         \ through websocket. As there can be multiple command issued against the same\
         \ AP at the same time and the output all goes through the same websocket stream,\
         \ session is introduced for demux.\n\n#### Subscribe to Device Command outputs\n\
-        `WS /api-ws/v1/stream`\n\n```json\n{\n    subscribe: \"/sites/{site_id}/pcaps\"\
+        `WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/pcaps\"\
         \n}\n```\n#### Response (MxEdge)\n```json\n{\n    \"event\": \"data\"\n  \
         \  \"channel\": \"/sites/:site_id/pcaps\"\n    \"data\": {\n         \"capture_id\"\
         : \"6b1be4fb-b239-44d9-9d3b-cb1ff3af1721\",\n     \"lost_messages\": 0\n \
@@ -28533,9 +28597,9 @@ paths:
         \ MHz 11g -75dBm signal -82dBm noise antenna 0 Probe Response (ATTKmsWiVS)\
         \ [1.0* 2.0* 5.5* 11.0* 18.0 24.0 36.0 54.0 Mbit] CH: 2, PRIVACY\\\\n\",\n\
         \         }, \n        \"pcap_raw\": \"1MOyoQIABAAAAAAAAAAAAP//AAABAAAAEEh7Yh5VBwCgAQAAoAEAAAAAKwBvCADAAQAAAIw7reCS2VNkAAAAABACbAmABLWuAAEAEBgAAwACAABQADoBeL28ygsKGLgfTJHAGLgfTJHAcIZ2WDlBJQAAAGQAERUACkFUVEttc1dpVlMBCIKEi5YkMEhsAwECBwZVUyABCx4gAQAjAhkAKgEEMgQMEhhgMBQBAAAPrAQBAAAPrAQBAAAPrAIMAAsFAQAbAABGBTIIAQAALRqtCR////8AAAAAAAAAAAAAAAAAAAAAAAAAAD0WAggVAAAAAAAAAAAAAAAAAAAAAAAAAH8IBAAIAAAAAEDdkwBQ8gQQSgABEBBEAAECEDsAAQMQRwAQn2481frn3KT+uGod2ERx+RAhAAtBcnJpcywgSW5jLhAjAApCR1cyMTAtNzAwECQACkJHVzIxMC03MDAQQgAKQkdXMjEwLTcwMBBUAAgABgBQ8gQAARARAA5BcnJpcyBXaXJlbGVzcxAIAAIgCBA8AAEBEEkABgA3KgABIN0JABAYAgEQHAAA3RgAUPICAQGEAAOkAAAnpAAAQkNeAGIyLwAzjakr\"\
-        \n}\n```\n\n#### vResponse (Wired)\n```json\n{\n    \"event\": \"data\"\n\
-        \    \"channel\": \"/sites/67970e46-4e12-11e6-9188-0242ac110007/pcaps\"\n\
-        \    \"data\": {\n        \"capture_id\": \"f039b1b4-a23e-48b2-906a-0da40524de73\"\
+        \n}\n```\n\n#### Response (Wired)\n```json\n{\n    \"event\": \"data\"\n \
+        \   \"channel\": \"/sites/67970e46-4e12-11e6-9188-0242ac110007/pcaps\"\n \
+        \   \"data\": {\n        \"capture_id\": \"f039b1b4-a23e-48b2-906a-0da40524de73\"\
         , \n        \"pcap_dict\": {\n             \"dst_mac\": \"68:ec:c5:09:2e:87\"\
         ,\n             \"src_mac\": \"8c:3b:ad:e0:47:40\", \n             \"vlan\"\
         : 1, \n             \"src_ip\": \"34.224.147.117\", \n             \"dst_ip\"\
@@ -31898,7 +31962,6 @@ paths:
       - Sites Stats - Calls
     parameters:
     - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/client_mac'
   /api/v1/sites/{site_id}/stats/clients:
     get:
       description: Get List of Site All Clients Stats Details
@@ -36491,7 +36554,7 @@ paths:
       - Samples Webhooks
   /webhook_example/_client_info_:
     post:
-      description: 'Webhook sample for `client_info` topic
+      description: 'Webhook sample for `client-info` topic
 
 
         **Note**: The server host will be your own server FQDN where the Mist Cloud
@@ -36504,21 +36567,12 @@ paths:
               example-1:
                 value:
                   events:
-                  - ap: string
-                    ap_name: string
-                    band: string
-                    bssid: string
-                    connect: 0
-                    connect_float: 0
-                    mac: string
-                    org_id: a40f5d1f-d889-42e9-94ea-b9b33585fc6b
-                    rssi: 0
-                    site_id: 72771e6a-6f5e-4de4-a5b9-1266c4197811
-                    site_name: string
-                    ssid: string
-                    timestamp: 0
-                    version: 0
-                    wlan_id: 5028e92b-fc59-4056-91d1-ea4b4ca1617a
+                  - hostname: service.company.net
+                    ip: 21.0.128.151
+                    mac: 6ebaa47a3fd4
+                    org_id: 0c160b7f-1027-4cd1-923b-744534c4b070
+                    site_id: 6e77a2ea-d579-471c-9056-5ff5b4ed70ed
+                    timestamp: 1703003296
                   topic: client-info
             schema:
               $ref: '#/components/schemas/webhook_client_info'
@@ -39228,7 +39282,7 @@ components:
                   - 10.5.23.43
                   - 192.168.0.2
                   last_ap: a83a79a947ee
-                  last_devuce: Mac
+                  last_device: Mac
                   last_firmware: 'wl0: Jan 20 2024 04:08:41 version 20.103.12.0.8.7.171
                     FWID 01-e09d2675'
                   last_hostname: hostname-a
@@ -49610,6 +49664,53 @@ components:
           schema:
             $ref: '#/components/schemas/sites'
       description: OK
+    SitesArrayStats:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+              - address: 1601 S De Anza Blvd, Cupertino, CA 95014, USA
+                alarmtemplate_id: null
+                analyticEnabled: true
+                aptemplate_id: null
+                country_code: US
+                created_time: 1472591606
+                engagementEnabled: true
+                gatewaytemplate_id: e571f2a2-d748-4ad4-bd6c-895467957c21
+                id: 83bc290a-b76d-47fa-a294-d34e47f30f7f
+                lat: 37.295553
+                latlng:
+                  lat: 37.295553
+                  lng: -122.033007
+                lng: -122.033007
+                modified_time: 1728057857
+                msp_id: a9af4951-a1de-4520-b398-c95a58947349
+                name: Live-Demo
+                networktemplate_id: 964cb213-deb2-469d-8c1e-a5f8661c6886
+                notes: This site is used for demonstration purposes.
+                num_ap: 17
+                num_ap_connected: 14
+                num_clients: 14
+                num_devices: 26
+                num_devices_connected: 22
+                num_gateway: 1
+                num_gateway_connected: 1
+                num_switch: 8
+                num_switch_connected: 7
+                org_id: b9814b40-ac4b-4424-86a8-b787eb68b86a
+                rftemplate_id: 2c134c07-3c57-46b3-a53b-8aea92ed7234
+                secpolicy_id: null
+                sitegroup_ids:
+                - 5644a432-eea9-4a2f-a30a-ddaf4dbc79cf
+                - 5fc0f305-f626-49db-8869-10b87f201bba
+                - 882796ef-190b-405e-98ef-cb487140cf64
+                sitetemplate_id: null
+                timezone: America/Los_Angeles
+                tzoffset: 960
+          schema:
+            $ref: '#/components/schemas/stats_sites'
+      description: OK
     SitesSearch:
       content:
         application/json:
@@ -55514,15 +55615,17 @@ components:
       - name
       type: object
     avprofile_fallback_action_enum:
+      description: 'enum: `block`, `permit`'
       enum:
-      - permit
       - block
+      - permit
       type: string
     avprofile_protocols:
       items:
         $ref: '#/components/schemas/avprofile_protocols_enum'
       type: array
     avprofile_protocols_enum:
+      description: 'enum: `ftp`, `http`, `imap`, `pop3`, `smtp`'
       enum:
       - ftp
       - http
@@ -57079,7 +57182,7 @@ components:
           description: latest AP where the client is/was connected to
           example: a83a79a947ee
           type: string
-        last_devuce:
+        last_device:
           description: "latest type of device we identified (e.g. iPhone, Mac, \u2026\
             )"
           example: Mac
@@ -57090,15 +57193,15 @@ components:
           example: 'wl0: Jan 20 2024 04:08:41 version 20.103.12.0.8.7.171 FWID 01-e09d2675'
           type: string
         last_hostname:
-          description: lastest hostname we detected for the the client
+          description: latest hostname we detected for the client
           example: hostname-a
           type: string
         last_ip:
-          description: lastest ip address we detected for the client
+          description: latest ip address we detected for the client
           example: 10.5.23.43
           type: string
         last_model:
-          description: only when client has the Marvis Client app running. lastest
+          description: only when client has the Marvis Client app running. latest
             client hardware model we detected for the client
           example: MBP 16\" M1 2021
           type: string
@@ -57123,12 +57226,12 @@ components:
           example: iot
           type: string
         last_ssid:
-          description: only for PPSK authentication. Latest PPSK Name used by the
-            client
+          description: Name of the latest SSID (WLAN) the client is/was connected
+            to client
           example: IoT SSID
           type: string
         last_username:
-          description: only for 802.1X authentifcation. Latest username used by the
+          description: only for 802.1X authentication. Latest username used by the
             client
           example: user@corp.com
           type: string
@@ -57164,7 +57267,7 @@ components:
         os_version:
           $ref: '#/components/schemas/client_wireless_os_version'
         protocol:
-          description: 802.11 amendmant
+          description: 802.11 amendment
           example: ax
           type: string
         psk_id:
@@ -57291,8 +57394,7 @@ components:
         type: string
       type: array
     client_wireless_username:
-      description: only for 802.1X authentifcation. List of usernames used by the
-        client
+      description: only for 802.1X authentication. List of usernames used by the client
       example:
       - user@corp.com
       items:
@@ -61452,7 +61554,22 @@ components:
     guest:
       description: Guest
       properties:
+        access_code_email:
+          description: if `auth_method`==`email`, the email address where the authorization
+            code has been sent to
+          readOnly: true
+          type: string
+        ap_mac:
+          description: the MAC Address of the AP the guest was connected to during
+            the registration process
+          readOnly: true
+          type: string
+        auth_method:
+          description: type of guest authorization
+          readOnly: true
+          type: string
         authorized:
+          default: true
           description: whether the guest is current authorized
           type: boolean
         authorized_expiring_time:
@@ -61485,23 +61602,131 @@ components:
           type: string
         mac:
           description: mac
+          readOnly: true
           type: string
         minutes:
-          description: minutes, the maximum is 259200 (180 days)
+          default: 1440
+          description: Authorization duration, in minutes. Default is 1440 minutes
+            (1 day), maximum is 259200 (180 days)
+          maximum: 259200
+          minimum: 0
           type: integer
         name:
           description: optional, the info provided by user
           example: John Smith
+          readOnly: true
           type: string
+        random_mac:
+          description: if the client is using a randomized MAC Address to connect
+            the SSID
+          readOnly: true
+          type: boolean
         ssid:
+          description: name of the SSID
           example: Guest-SSID
           readOnly: true
           type: string
         wlan_id:
+          description: ID of the SSID
           example: 6748cfa6-4e12-11e6-9188-0242ac110007
           format: uuid
           readOnly: true
           type: string
+      type: object
+    guest_org:
+      description: Guest
+      properties:
+        access_code_email:
+          description: if `auth_method`==`email`, the email address where the authorization
+            code has been sent to
+          readOnly: true
+          type: string
+        allow_wlan_id_roam:
+          description: based on the WLAN portal configuration (field `allow_wlan_id_roam`),
+            if the user is also authorized on other Guest WLANs of the same Org without
+            reauthentication
+          readOnly: true
+          type: boolean
+        ap_mac:
+          description: the MAC Address of the AP the guest was connected to during
+            the registration process
+          readOnly: true
+          type: string
+        auth_method:
+          description: type of guest authorization
+          readOnly: true
+          type: string
+        authorized:
+          default: true
+          description: whether the guest is current authorized
+          type: boolean
+        authorized_expiring_time:
+          description: when the authorization would expire
+          example: 1480704955
+          readOnly: true
+          type: number
+        authorized_time:
+          description: when the guest was authorized
+          example: 1480704355
+          readOnly: true
+          type: number
+        company:
+          description: optional, the info provided by user
+          example: abc
+          type: string
+        cross_site:
+          description: based on the WLAN portal configuration (field `cross_site`),
+            if the user is also authorized on other sites (same `wlan.ssid`) of the
+            same Org without reauthentication
+          readOnly: true
+          type: boolean
+        email:
+          description: optional, the info provided by user
+          example: john@abc.com
+          format: email
+          type: string
+        field1:
+          description: optional, the info provided by user
+          type: string
+        field2:
+          type: string
+        field3:
+          type: string
+        field4:
+          type: string
+        mac:
+          description: mac
+          readOnly: true
+          type: string
+        minutes:
+          default: 1440
+          description: Authorization duration, in minutes. Default is 1440 minutes
+            (1 day), maximum is 259200 (180 days)
+          maximum: 259200
+          minimum: 0
+          type: integer
+        name:
+          description: optional, the info provided by user
+          example: John Smith
+          readOnly: true
+          type: string
+        random_mac:
+          description: if the client is using a randomized MAC Address to connect
+            the SSID
+          readOnly: true
+          type: boolean
+        ssid:
+          description: name of the SSID
+          example: Guest-SSID
+          readOnly: true
+          type: string
+        wlan_id:
+          description: ID of the WLAN
+          example: 6748cfa6-4e12-11e6-9188-0242ac110007
+          format: uuid
+          type: string
+      required:
+      - wlan_id
       type: object
     guests:
       items:
@@ -61606,13 +61831,13 @@ components:
       type: object
     idp_machine_cert_lookup_field_enum:
       default: automatic
-      description: allow customer to choose the EAP-TLS client certificate's field
-        to use for IDP Machine Groups lookup
+      description: 'allow customer to choose the EAP-TLS client certificate''s field
+        to use for IDP Machine Groups lookup. enum: `automatic`, `cn`, `email`, `upn`'
       enum:
       - automatic
+      - cn
       - email
       - upn
-      - cn
       type: string
     idp_profile:
       properties:
@@ -61707,13 +61932,14 @@ components:
       type: array
     idp_user_cert_lookup_field_enum:
       default: automatic
-      description: allow customer to choose the EAP-TLS client certificate's field
-        to use for IDP User Groups lookup
+      description: 'allow customer to choose the EAP-TLS client certificate''s field
+
+        to use for IDP User Groups lookup. enum: `automatic`, `cn`, `email`, `upn`'
       enum:
       - automatic
+      - cn
       - email
       - upn
-      - cn
       type: string
     if_stat:
       additionalProperties:
@@ -62114,7 +62340,9 @@ components:
         type:
           $ref: '#/components/schemas/device_type'
         vc_mac:
-          description: only if `type`==`switch`, MAC Address of the Virtual Chassis
+          description: if `type`==`switch` and device part of a Virtual Chassis, MAC
+            Address of the Virtual Chassis. if `type`==`gateway` and device part of
+            a Clust, MAC Address of the Cluster
           type: string
       type: object
     inventory_list:
@@ -62826,6 +63054,7 @@ components:
           example:
             assetHoldTime: 5
             storeTime: 10
+          readOnly: true
           type: object
         for_site:
           readOnly: true
@@ -64849,8 +65078,8 @@ components:
       type: object
     nac_portal_sso_idp_sign_algo:
       default: sha256
-      description: Signing algorithm for SAML Assertion. enum `sha1`, `sha256`, `sha384`,
-        `sha512`
+      description: 'Signing algorithm for SAML Assertion. enum: `sha1`, `sha256`,
+        `sha384`, `sha512`.'
       enum:
       - sha1
       - sha256
@@ -64888,9 +65117,10 @@ components:
           type: boolean
       type: object
     nac_portal_type_enum:
+      description: 'enum: `guest`, `marvis_client`'
       enum:
-      - marvis_client
       - guest
+      - marvis_client
       type: string
     nac_portals:
       items:
@@ -65156,12 +65386,13 @@ components:
       minLength: 1
       type: string
     nac_tag_username_attr_enum:
+      description: 'enum: `automatic`, `cn`, `dns`, `email`, `upn`'
       enum:
       - automatic
       - cn
-      - upn
-      - email
       - dns
+      - email
+      - upn
       type: string
     nac_tag_values:
       description: if `type`==`match`
@@ -67952,8 +68183,8 @@ components:
       type: array
     psk_portal_sso_idp_sign_algo:
       default: sha256
-      description: Signing algorithm for SAML Assertion. enum `sha1`, `sha256`, `sha384`,
-        `sha512`
+      description: 'Signing algorithm for SAML Assertion. enum: `sha1`, `sha256`,
+        `sha384`, `sha512`. enum: `sha1`, `sha256`, `sha384`, `sha512`'
       enum:
       - sha1
       - sha256
@@ -72810,8 +73041,8 @@ components:
       description: 'enum: `CC`, `IH` (Infected Host), `DNS`'
       enum:
       - CC
-      - IH
       - DNS
+      - IH
       type: string
     secintel_profile_profiles:
       items:
@@ -76162,9 +76393,10 @@ components:
       type: array
     ssl_proxy_ciphers_catagory_enum:
       default: strong
+      description: 'enum: `medium`, `strong`, `weak`'
       enum:
-      - strong
       - medium
+      - strong
       - weak
       type: string
     sso:
@@ -76345,8 +76577,8 @@ components:
       - name
       type: object
     sso_idp_sign_algo:
-      description: Required if `idp_type`==`saml`, Signing algorithm for SAML Assertion.
-        enum `sha1`, `sha256`, `sha384`, `sha512`
+      description: 'Required if `idp_type`==`saml`, Signing algorithm for SAML Assertion.
+        enum: `sha1`, `sha256`, `sha384`, `sha512`'
       enum:
       - sha1
       - sha256
@@ -78817,6 +79049,7 @@ components:
           type: string
         alarmtemplate_id:
           format: uuid
+          nullable: true
           type: string
         country_code:
           type: string
@@ -78836,11 +79069,14 @@ components:
           readOnly: true
           type: number
         msp_id:
+          format: uuid
+          nullable: true
           type: string
         name:
           type: string
         networktemplate_id:
           format: uuid
+          nullable: true
           type: string
         num_ap:
           type: integer
@@ -78864,8 +79100,12 @@ components:
           $ref: '#/components/schemas/org_id'
         rftemplate_id:
           format: uuid
+          nullable: true
           type: string
-        secpolicy_id: {}
+        secpolicy_id:
+          format: uuid
+          nullable: true
+          type: string
         sitegroup_ids:
           $ref: '#/components/schemas/site_stats_sitegroup_ids'
         timezone:
@@ -78900,6 +79140,10 @@ components:
       - timezone
       - tzoffset
       type: object
+    stats_sites:
+      items:
+        $ref: '#/components/schemas/stats_site'
+      type: array
     stats_switch:
       description: Switch statistics
       properties:
@@ -81094,8 +81338,8 @@ components:
       description: 'if `type`==`lan_connectivity`. enum: `ping`, `traceroute`, `ping+traceroute`'
       enum:
       - ping
-      - traceroute
       - ping+traceroute
+      - traceroute
       type: string
     synthetictest_device_vlan_id:
       description: required for AP
@@ -81638,15 +81882,15 @@ components:
         \ (2048-bit ECP)"
       enum:
       - '1'
-      - '2'
-      - '5'
       - '14'
       - '15'
       - '16'
       - '19'
+      - '2'
       - '20'
       - '21'
       - '24'
+      - '5'
       type: string
     tunnel_configs_enc_algo:
       default: aes256
@@ -83002,6 +83246,8 @@ components:
           type: string
         node:
           $ref: '#/components/schemas/ha_cluster_node_enum'
+      required:
+      - network
       type: object
     utils_show_evpn_database:
       properties:
@@ -85460,8 +85706,8 @@ components:
       - client-join
       - client-latency
       - client-sessions
-      - device-updowns
       - device-events
+      - device-updowns
       - discovered-raw-rssi
       - location
       - location_asset
@@ -86839,6 +87085,12 @@ components:
     wlan_portal:
       description: portal wlan settings
       properties:
+        allow_wlan_id_roam:
+          default: false
+          description: whether to allow guest to connect to other Guest WLANs (with
+            different `WLAN.ssid`) of same org without reauthentication (disable random_mac
+            for seamless roaming)
+          type: boolean
         amazon_client_id:
           default: ''
           description: amazon OAuth2 client id. This is optional. If not provided,
@@ -87258,8 +87510,8 @@ components:
       type: array
     wlan_portal_idp_sign_algo:
       default: sha1
-      description: if `wlan_portal_auth`==`sso`, Signing algorithm for SAML Assertion.
-        enum `sha1`, `sha256`, `sha384`, `sha512`
+      description: 'if `wlan_portal_auth`==`sso`, Signing algorithm for SAML Assertion.
+        enum: `sha1`, `sha256`, `sha384`, `sha512`'
       enum:
       - sha1
       - sha256
@@ -88160,8 +88412,8 @@ components:
       description: 'enum: `11r`, `OKC`, `NONE`'
       enum:
       - 11r
-      - OKC
       - NONE
+      - OKC
       example: NONE
       type: string
     wlan_schedule:
@@ -88996,6 +89248,7 @@ x-tagGroups:
   - Orgs Stats - MxEdges
   - Orgs Stats - Other Devices
   - Orgs Stats - Ports
+  - Orgs Stats - Sites
   - Orgs Stats - Tunnels
   - Orgs Stats - VPN Peers
   - Orgs Subscriptions
