@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2409.1.12**
+  description: '> Version: **2409.2.1**
 
     >
 
-    > Date: **October 21, 2024**
+    > Date: **October 25, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2409.1.12
+  version: 2409.2.1
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -1069,6 +1069,9 @@ tags:
     \ can accept or deny the changes made by the auto-orientation feature with the\
     \ API Call [Confirm Site AP Localization Data]($e/Sites%20Maps%20-%20Auto-placement/confirmSiteApLocalizationData)."
   name: Sites Maps - Auto-placement
+- description: The auto zones service is a map parsing service that uses map image
+    data to suggest spaces to designate as location zones.
+  name: Sites Maps - Auto-Zone
 - description: 'MxEdges (Mist Edges) at the site level are deployed to tunnel traffic
     at each site due to network constraints or security concerns.
 
@@ -1717,6 +1720,26 @@ paths:
       summary: getLicenseTypes
       tags:
       - Constants Definitions
+  /api/v1/const/marvisclient_versions:
+    get:
+      description: Get List of the available Marvis Client Versions.
+      operationId: listMarvisClientVersions
+      responses:
+        '200':
+          $ref: '#/components/responses/ConstMarvisClientVersions'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listMarvisClientVersions
+      tags:
+      - Constants Definitions
   /api/v1/const/mxedge_events:
     get:
       description: Get List of available MX Edge Events
@@ -1882,6 +1905,26 @@ paths:
         '429':
           $ref: '#/components/responses/HTTP429'
       summary: listTrafficTypes
+      tags:
+      - Constants Definitions
+  /api/v1/const/webhook_topics:
+    get:
+      description: Get List of the available Webhook Topics.
+      operationId: listWebhookTopics
+      responses:
+        '200':
+          $ref: '#/components/responses/ConstWebhookTopics'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listWebhookTopics
       tags:
       - Constants Definitions
   /api/v1/installer/orgs/{org_id}/alarmtemplates:
@@ -4082,7 +4125,7 @@ paths:
                 value:
                   custom_logout_url: string
                   idp_cert: string
-                  idp_sign_algo: string
+                  idp_sign_algo: sha256
                   idp_sso_url: string
                   ignore_unmatched_roles: true
                   issuer: string
@@ -4132,11 +4175,11 @@ paths:
     - $ref: '#/components/parameters/sso_id'
   /api/v1/msps/{msp_id}/ssos/{sso_id}/metadata:
     get:
-      description: Get MSP SSO SAML Metadata
-      operationId: getMspSsoSamlMetadata
+      description: Get MSP SAML Metadata
+      operationId: getMspSamlMetadata
       responses:
         '200':
-          $ref: '#/components/responses/SsoSamlMetadata'
+          $ref: '#/components/responses/SamlMetadata'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -4147,7 +4190,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getMspSsoSamlMetadata
+      summary: getMspSamlMetadata
       tags:
       - MSPs SSO
     parameters:
@@ -4155,7 +4198,7 @@ paths:
     - $ref: '#/components/parameters/sso_id'
   /api/v1/msps/{msp_id}/ssos/{sso_id}/metadata.xml:
     get:
-      description: "Download MSP SSO SAML Metadata\n\nExample of metadata.xml:\n```xml\n\
+      description: "Download MSP SAML Metadata\n\nExample of metadata.xml:\n```xml\n\
         <?xml version=\"1.0\" encoding=\"UTF-8\"?><md:EntityDescriptor xmlns:md=\"\
         urn:oasis:names:tc:SAML:2.0:metadata\" entityID=\"https://api.mist.com/api/v1/saml/5hdF5g/login\"\
         \ validUntil=\"2027-10-12T21:59:01Z\" xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\"\
@@ -4174,7 +4217,7 @@ paths:
         urn:oasis:names:tc:SAML:2.0:attrname-format:basic\" isRequired=\"false\"/>\n\
         \      </md:AttributeConsumingService>\n  </md:SPSSODescriptor>\n</md:EntityDescriptor>\n\
         ```"
-      operationId: downloadMspSsoSamlMetadata
+      operationId: downloadMspSamlMetadata
       responses:
         '200':
           $ref: '#/components/responses/File'
@@ -4188,7 +4231,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: downloadMspSsoSamlMetadata
+      summary: downloadMspSamlMetadata
       tags:
       - MSPs SSO
     parameters:
@@ -6994,7 +7037,7 @@ paths:
                       wan_type: broadband
                     ge-0/0/6-7:
                       ae_disable_lacp: false
-                      ae_idx: 0
+                      ae_idx: '0'
                       ae_lacp_force_up: true
                       aggregated: true
                       networks:
@@ -7091,7 +7134,7 @@ paths:
                   disable_module: true
                   mesh:
                     enabled: true
-                    group: 0
+                    group: 1
                     role: base
                   name: string
                   poe_passthrough: true
@@ -7102,11 +7145,9 @@ paths:
                       allow_rrm_disable: true
                       antenna_mode: default
                       bandwidth: 20
-                      channel: 0
+                      channel: 6
                       disabled: true
-                      power: 0
-                      power_max: 0
-                      power_min: 0
+                      power: 8
                       preamble: auto
                       usage: '24'
                     band_24_usage: '24'
@@ -7114,22 +7155,10 @@ paths:
                       allow_rrm_disable: true
                       antenna_mode: default
                       bandwidth: 20
-                      channel: 0
+                      channel: 50
                       disabled: true
-                      power: 0
-                      power_max: 0
-                      power_min: 0
-                      preamble: auto
-                      usage: '24'
-                    band_5_on_24_radio:
-                      allow_rrm_disable: true
-                      antenna_mode: default
-                      bandwidth: 20
-                      channel: 0
-                      disabled: true
-                      power: 0
-                      power_max: 0
-                      power_min: 0
+                      power_max: 8
+                      power_min: 15
                       preamble: auto
                       usage: '24'
                     scanning_enabled: true
@@ -7241,7 +7270,7 @@ paths:
                     - drive
                     tenants:
                     - ITParis
-                  - action: allow
+                  - action: deny
                     idp:
                       enabled: false
                     name: ITParis-internet
@@ -7250,127 +7279,6 @@ paths:
                     - internet_any
                     tenants:
                     - ITParis
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: mgmt-to-core
-                    path_preference: core
-                    services:
-                    - internal_dns
-                    - internal_ntp
-                    tenants:
-                    - Corp-Mgmt
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: mgmt-to-mxe-tt-in
-                    path_preference: mxe-in
-                    services:
-                    - internal_any
-                    tenants:
-                    - Corp-Mgmt
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: mgmt-to-untrust
-                    path_preference: untrust
-                    services:
-                    - mxedge-updates
-                    - radsec
-                    - icmp
-                    - internet_dns
-                    - internet_ntp
-                    tenants:
-                    - Corp-Mgmt
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: mxe-data-0-to-untrust
-                    path_preference: untrust
-                    services:
-                    - internet_any
-                    tenants:
-                    - ITParis
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: core-to-mgt
-                    path_preference: mgmt
-                    services:
-                    - mgmt
-                    tenants:
-                    - domain.Corp-Core
-                    - lan.Corp-Core
-                    - servers.Corp-Core
-                    - Corp-Core
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: core-to-edge-in
-                    path_preference: mxe-in
-                    services:
-                    - internal_any
-                    tenants:
-                    - lan.Corp-Core
-                    - Corp-Core
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: core-to-iot
-                    path_preference: iot
-                    services:
-                    - iot
-                    tenants:
-                    - lan.Corp-Core
-                    - servers-hassio.Corp-Core
-                    - servers-kubes.Corp-Core
-                  - action: allow
-                    idp:
-                      enabled: false
-                    name: tanker-to-cctv
-                    path_preference: iot
-                    services:
-                    - rtsp
-                    tenants:
-                    - servers-tanker.Corp-Core
-                  - action: allow
-                    idp:
-                      enabled: false
-                    name: core-to-untrust
-                    path_preference: untrust
-                    services:
-                    - internet_any
-                    tenants:
-                    - lan.Corp-Core
-                    - domain.Corp-Core
-                    - servers.Corp-Core
-                  - action: deny
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: iot-upgrade-cctv
-                    path_preference: untrust
-                    services:
-                    - motioneye
-                    - nodejs
-                    - raspbian
-                    tenants:
-                    - printer
                   type: gateway
             schema:
               $ref: '#/components/schemas/deviceprofile'
@@ -7854,6 +7762,12 @@ paths:
         name: mxedge_id
         schema:
           type: string
+      - description: comma separated list of Mist Edge ids, if AP is connecting to
+          a Mist Edge
+        in: query
+        name: mxedge_ids
+        schema:
+          type: string
       - description: LLDP system name
         in: query
         name: lldp_system_name
@@ -7874,19 +7788,19 @@ paths:
         name: lldp_mgmt_addr
         schema:
           type: string
-      - description: Bandwith of band_24
+      - description: bandwidth of band_24
         in: query
-        name: band_24_bandwith
+        name: band_24_bandwidth
         schema:
           type: integer
-      - description: Bandwith of band_5
+      - description: bandwidth of band_5
         in: query
-        name: band_5_bandwith
+        name: band_5_bandwidth
         schema:
           type: integer
-      - description: Bandwith of band_6
+      - description: bandwidth of band_6
         in: query
-        name: band_6_bandwith
+        name: band_6_bandwidth
         schema:
           type: integer
       - description: Channel of band_24
@@ -8369,7 +8283,7 @@ paths:
                     - drive
                     tenants:
                     - ITParis
-                  - action: allow
+                  - action: deny
                     idp:
                       enabled: false
                     name: ITParis-internet
@@ -8378,127 +8292,6 @@ paths:
                     - internet_any
                     tenants:
                     - ITParis
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: mgmt-to-core
-                    path_preference: core
-                    services:
-                    - internal_dns
-                    - internal_ntp
-                    tenants:
-                    - Corp-Mgmt
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: mgmt-to-mxe-tt-in
-                    path_preference: mxe-in
-                    services:
-                    - internal_any
-                    tenants:
-                    - Corp-Mgmt
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: mgmt-to-untrust
-                    path_preference: untrust
-                    services:
-                    - mxedge-updates
-                    - radsec
-                    - icmp
-                    - internet_dns
-                    - internet_ntp
-                    tenants:
-                    - Corp-Mgmt
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: mxe-data-0-to-untrust
-                    path_preference: untrust
-                    services:
-                    - internet_any
-                    tenants:
-                    - ITParis
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: core-to-mgt
-                    path_preference: mgmt
-                    services:
-                    - mgmt
-                    tenants:
-                    - domain.Corp-Core
-                    - lan.Corp-Core
-                    - servers.Corp-Core
-                    - Corp-Core
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: core-to-edge-in
-                    path_preference: mxe-in
-                    services:
-                    - internal_any
-                    tenants:
-                    - lan.Corp-Core
-                    - Corp-Core
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: core-to-iot
-                    path_preference: iot
-                    services:
-                    - iot
-                    tenants:
-                    - lan.Corp-Core
-                    - servers-hassio.Corp-Core
-                    - servers-kubes.Corp-Core
-                  - action: allow
-                    idp:
-                      enabled: false
-                    name: tanker-to-cctv
-                    path_preference: iot
-                    services:
-                    - rtsp
-                    tenants:
-                    - servers-tanker.Corp-Core
-                  - action: allow
-                    idp:
-                      enabled: false
-                    name: core-to-untrust
-                    path_preference: untrust
-                    services:
-                    - internet_any
-                    tenants:
-                    - lan.Corp-Core
-                    - domain.Corp-Core
-                    - servers.Corp-Core
-                  - action: deny
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: iot-upgrade-cctv
-                    path_preference: untrust
-                    services:
-                    - motioneye
-                    - nodejs
-                    - raspbian
-                    tenants:
-                    - printer
                   type: standalone
             schema:
               $ref: '#/components/schemas/gateway_template'
@@ -8675,7 +8468,7 @@ paths:
                     - drive
                     tenants:
                     - ITParis
-                  - action: allow
+                  - action: deny
                     idp:
                       enabled: false
                     name: ITParis-internet
@@ -8684,127 +8477,6 @@ paths:
                     - internet_any
                     tenants:
                     - ITParis
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: mgmt-to-core
-                    path_preference: core
-                    services:
-                    - internal_dns
-                    - internal_ntp
-                    tenants:
-                    - Corp-Mgmt
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: mgmt-to-mxe-tt-in
-                    path_preference: mxe-in
-                    services:
-                    - internal_any
-                    tenants:
-                    - Corp-Mgmt
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: mgmt-to-untrust
-                    path_preference: untrust
-                    services:
-                    - mxedge-updates
-                    - radsec
-                    - icmp
-                    - internet_dns
-                    - internet_ntp
-                    tenants:
-                    - Corp-Mgmt
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: mxe-data-0-to-untrust
-                    path_preference: untrust
-                    services:
-                    - internet_any
-                    tenants:
-                    - ITParis
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: core-to-mgt
-                    path_preference: mgmt
-                    services:
-                    - mgmt
-                    tenants:
-                    - domain.Corp-Core
-                    - lan.Corp-Core
-                    - servers.Corp-Core
-                    - Corp-Core
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: core-to-edge-in
-                    path_preference: mxe-in
-                    services:
-                    - internal_any
-                    tenants:
-                    - lan.Corp-Core
-                    - Corp-Core
-                  - action: allow
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: core-to-iot
-                    path_preference: iot
-                    services:
-                    - iot
-                    tenants:
-                    - lan.Corp-Core
-                    - servers-hassio.Corp-Core
-                    - servers-kubes.Corp-Core
-                  - action: allow
-                    idp:
-                      enabled: false
-                    name: tanker-to-cctv
-                    path_preference: iot
-                    services:
-                    - rtsp
-                    tenants:
-                    - servers-tanker.Corp-Core
-                  - action: allow
-                    idp:
-                      enabled: false
-                    name: core-to-untrust
-                    path_preference: untrust
-                    services:
-                    - internet_any
-                    tenants:
-                    - lan.Corp-Core
-                    - domain.Corp-Core
-                    - servers.Corp-Core
-                  - action: deny
-                    idp:
-                      alert_only: true
-                      enabled: true
-                      profile: standard
-                    name: iot-upgrade-cctv
-                    path_preference: untrust
-                    services:
-                    - motioneye
-                    - nodejs
-                    - raspbian
-                    tenants:
-                    - printer
                   type: standalone
             schema:
               $ref: '#/components/schemas/gateway_template'
@@ -8975,13 +8647,10 @@ paths:
                 value:
                   company: string
                   email: user@example.com
-                  field1: string
-                  field2: string
-                  field3: string
-                  field4: string
                   mac: string
                   minutes: 1440
-                  name: string
+                  name: John Smith
+                  wlan_id: 6748cfa6-4e12-11e6-9188-0242ac110007
             schema:
               $ref: '#/components/schemas/guest_org'
       responses:
@@ -9358,6 +9027,39 @@ paths:
       summary: updateOrgInventoryAssignment
       tags:
       - Orgs Inventory
+  /api/v1/orgs/{org_id}/inventory/count:
+    get:
+      description: Count in the Org Inventory
+      operationId: countOrgInventory
+      parameters:
+      - in: query
+        name: type
+        schema:
+          $ref: '#/components/schemas/device_type'
+      - in: query
+        name: distinct
+        schema:
+          $ref: '#/components/schemas/inventory_count_distinct'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/Count'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: countOrgInventory
+      tags:
+      - Orgs Inventory
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/inventory/create_ha_cluster:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -9491,6 +9193,85 @@ paths:
       summary: replaceOrgDevices
       tags:
       - Orgs Inventory
+  /api/v1/orgs/{org_id}/inventory/search:
+    get:
+      description: Search in the Org Inventory
+      operationId: searchOrgInventory
+      parameters:
+      - in: query
+        name: type
+        schema:
+          $ref: '#/components/schemas/device_type'
+      - description: MAC address
+        in: query
+        name: mac
+        schema:
+          type: string
+      - description: Virtual Chassis MAC Address
+        in: query
+        name: vc_mac
+        schema:
+          type: string
+      - description: master device mac for virtual mac cluster
+        in: query
+        name: master_mac
+        schema:
+          type: string
+      - description: site id if assigned, null if not assigned
+        in: query
+        name: site_id
+        schema:
+          type: string
+      - description: device serial
+        in: query
+        name: serial
+        schema:
+          type: string
+      - description: true / false
+        in: query
+        name: master
+        schema:
+          type: string
+      - description: device sku
+        in: query
+        name: sku
+        schema:
+          type: string
+      - description: device version
+        in: query
+        name: version
+        schema:
+          type: string
+      - description: device status
+        in: query
+        name: status
+        schema:
+          type: string
+      - description: wildcards for name, mac, serial
+        in: query
+        name: text
+        schema:
+          type: string
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          $ref: '#/components/responses/OrgInventorySearch'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: searchOrgInventory
+      tags:
+      - Orgs Inventory
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/invites:
     parameters:
     - $ref: '#/components/parameters/org_id'
@@ -11916,11 +11697,11 @@ paths:
       - Orgs NAC Portals
   /api/v1/orgs/{org_id}/nacportals/{nacportal_id}/saml_metadata:
     get:
-      description: Get Org NAC Portal SSO SAML Metadata
-      operationId: getOrgNacPortalSsoSamlMetadata
+      description: Get Org NAC Portal SAML Metadata
+      operationId: getOrgNacPortalSamlMetadata
       responses:
         '200':
-          $ref: '#/components/responses/SsoSamlMetadata'
+          $ref: '#/components/responses/SamlMetadata'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -11931,7 +11712,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getOrgNacPortalSsoSamlMetadata
+      summary: getOrgNacPortalSamlMetadata
       tags:
       - Orgs NAC Portals
     parameters:
@@ -11939,7 +11720,7 @@ paths:
     - $ref: '#/components/parameters/nacportal_id'
   /api/v1/orgs/{org_id}/nacportals/{nacportal_id}/saml_metadata.xml:
     get:
-      description: "Download Org NAC Portal SSO SAML Metdata\n\nExample of metadata.xml:\n\
+      description: "Download Org NAC Portal SAML Metdata\n\nExample of metadata.xml:\n\
         ```xml\n<?xml version=\"1.0\" encoding=\"UTF-8\"?><md:EntityDescriptor xmlns:md=\"\
         urn:oasis:names:tc:SAML:2.0:metadata\" entityID=\"https://api.mist.com/api/v1/saml/5hdF5g/login\"\
         \ validUntil=\"2027-10-12T21:59:01Z\" xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\"\
@@ -11959,7 +11740,7 @@ paths:
         urn:oasis:names:tc:SAML:2.0:attrname-format:basic\" isRequired=\"false\"/>\n\
         \        </md:AttributeConsumingService>\n    </md:SPSSODescriptor>\n</md:EntityDescriptor>\n\
         ```"
-      operationId: downloadOrgNacPortalSsoSamlMetadata
+      operationId: downloadOrgNacPortalSamlMetadata
       responses:
         '200':
           $ref: '#/components/responses/File'
@@ -11973,7 +11754,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: downloadOrgNacPortalSsoSamlMetadata
+      summary: downloadOrgNacPortalSamlMetadata
       tags:
       - Orgs NAC Portals
     parameters:
@@ -13473,11 +13254,13 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
-      description: "Initiate a Packet Capture\n\nThe output will be available through\
-        \ websocket. As there can be multiple command issued against the same AP at\
-        \ the same time and the output all goes through the same websocket stream,\
-        \ session is introduced for demux.\n\n#### Subscribe to Device Command outputs\n\
-        `WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/pcaps\"\
+      description: "Initiate a Packet Capture\n\n**NOTE**: For packet captures of\
+        \ org level Mist Edges only. Use [Start Site Packet Capture]($e/Utilities%20PCAPs/startSitePacketCapture)\
+        \ for site level Mist Edges. \n\nThe output will be available through websocket.\
+        \ As there can be multiple command issued against the same AP at the same\
+        \ time and the output all goes through the same websocket stream, session\
+        \ is introduced for demux.\n\n#### Subscribe to Device Command outputs\n`WS\
+        \ /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/pcaps\"\
         \n}\n```\n#### Response (Wireless/RadioTap)\n```json\n{\n  \"event\": \"data\"\
         \n  \"channel\": \"/orgs/67970e46-4e12-11e6-9188-0242ac110007/pcaps\"\n  \"\
         data\": {\n      \"capture_id\": \"f039b1b4-a23e-48b2-906a-0da40524de73\"\
@@ -13602,7 +13385,7 @@ paths:
                     default_role: string
                     forced_role: string
                     idp_cert: string
-                    idp_sign_algo: string
+                    idp_sign_algo: sha256
                     idp_sso_url: string
                     issuer: string
                     nameid_format: string
@@ -13811,10 +13594,10 @@ paths:
                     default_role: string
                     forced_role: string
                     idp_cert: string
-                    idp_sign_algo: string
+                    idp_sign_algo: sha256
                     idp_sso_url: string
                     issuer: string
-                    nameid_format: string
+                    nameid_format: email
                   sso_required_role: string
                   template_url: string
                   type: byod
@@ -15048,7 +14831,7 @@ paths:
                       sso_default_role: string
                       sso_forced_role: string
                       sso_idp_cert: string
-                      sso_idp_sign_algo: string
+                      sso_idp_sign_algo: sha256
                       sso_idp_sso_url: string
                       sso_issuer: string
                       sso_nameid_format: email
@@ -15979,10 +15762,10 @@ paths:
     parameters:
     - $ref: '#/components/parameters/org_id'
     post:
-      description: Import NAC Org CRL file is a multipart POST which has a .crl file
-        to allow user to manually upload a Certificate Revocation List file. We support
-        one file upload per Issuer. Re-uploads for the same issuer will overwrite
-        the existing file.
+      description: The Import NAC Org CRL File endpoint allows users to manually upload
+        a Certificate Revocation List (CRL) file in either PEM or DER format. This
+        is a multipart POST request. We support one file upload per issuer, and re-uploads
+        for the same issuer will overwrite the existing file.
       operationId: importOrgNacCrl
       requestBody:
         content:
@@ -17140,7 +16923,7 @@ paths:
                 value:
                   custom_logout_url: string
                   idp_cert: string
-                  idp_sign_algo: string
+                  idp_sign_algo: sha256
                   idp_sso_url: string
                   ignore_unmatched_roles: true
                   issuer: string
@@ -17263,11 +17046,11 @@ paths:
     - $ref: '#/components/parameters/sso_id'
   /api/v1/orgs/{org_id}/ssos/{sso_id}/metadata:
     get:
-      description: Get Org SSO SAML Metadata
-      operationId: getOrgSsoSamlMetadata
+      description: Get Org SAML Metadata
+      operationId: getOrgSamlMetadata
       responses:
         '200':
-          $ref: '#/components/responses/SsoSamlMetadata'
+          $ref: '#/components/responses/SamlMetadata'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -17278,7 +17061,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getOrgSsoSamlMetadata
+      summary: getOrgSamlMetadata
       tags:
       - Orgs SSO
     parameters:
@@ -17286,7 +17069,7 @@ paths:
     - $ref: '#/components/parameters/sso_id'
   /api/v1/orgs/{org_id}/ssos/{sso_id}/metadata.xml:
     get:
-      description: "Download Org SSO SAML Metdata\n\nExample of metadata.xml:\n```xml\n\
+      description: "Download Org SAML Metdata\n\nExample of metadata.xml:\n```xml\n\
         <?xml version=\"1.0\" encoding=\"UTF-8\"?><md:EntityDescriptor xmlns:md=\"\
         urn:oasis:names:tc:SAML:2.0:metadata\" entityID=\"https://api.mist.com/api/v1/saml/5hdF5g/login\"\
         \ validUntil=\"2027-10-12T21:59:01Z\" xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\"\
@@ -17306,7 +17089,7 @@ paths:
         urn:oasis:names:tc:SAML:2.0:attrname-format:basic\" isRequired=\"false\"/>\n\
         \        </md:AttributeConsumingService>\n    </md:SPSSODescriptor>\n</md:EntityDescriptor>\n\
         ```"
-      operationId: downloadOrgSsoSamlMetadata
+      operationId: downloadOrgSamlMetadata
       responses:
         '200':
           $ref: '#/components/responses/File'
@@ -17320,7 +17103,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: downloadOrgSsoSamlMetadata
+      summary: downloadOrgSamlMetadata
       tags:
       - Orgs SSO
     parameters:
@@ -23336,17 +23119,17 @@ paths:
           type: integer
       - description: Bandwidth of band_24
         in: query
-        name: band_24_bandwith
+        name: band_24_bandwidth
         schema:
           type: integer
       - description: Bandwidth of band_5
         in: query
-        name: band_5_bandwith
+        name: band_5_bandwidth
         schema:
           type: integer
       - description: Bandwidth of band_6
         in: query
-        name: band_6_bandwith
+        name: band_6_bandwidth
         schema:
           type: integer
       - description: Port speed of eth0
@@ -23747,28 +23530,27 @@ paths:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/device_id'
     post:
-      description: "Port Bounce can be performed from the Switch.The output will be\
-        \ available through websocket. As there can be multiple command issued against\
-        \ the same AP at the same time and the output all goes through the same websocket\
-        \ stream, session is introduced for demux.\n\n#### Subscribe to Device Command\
-        \ outputs\n`WS /api-ws/v1/stream`\n\n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
+      description: "Port Bounce can be performed from Switch/Gateway.\n\n **Note:**\
+        \ Ports starting with vme, ae, irb, and HA control ports (for SSR only) are\
+        \ not supported\n\nThe output will be available through websocket. As there\
+        \ can be multiple command issued against the same AP at the same time and\
+        \ the output all goes through the same websocket stream, session is introduced\
+        \ for demux.\n\n#### Subscribe to Device Command outputs\n`WS /api-ws/v1/stream`\n\
+        \n```json\n{\n    \"subscribe\": \"/sites/{site_id}/devices/{device_id}/cmd\"\
         \n}\n```\n##### Example output from ws stream\n```json\n{\n    \"event\":\
         \ \"data\",\n    \"channel\": \"/sites/4ac1dcf4-9d8b-7211-65c4-057819f0862b/devices/00000000-0000-0000-1000-5c5b350e0060/cmd\"\
         ,\n    \"data\": {\n        \"session\": \"session_id\",\n        \"raw\"\
         : \"Port bounce complete.\"\n    }\n}\n```"
-      operationId: portsBounceFromSwitch
+      operationId: bounceDevicePort
       requestBody:
         content:
           application/json:
             examples:
-              multiple:
+              Example:
                 value:
                   ports:
                   - ge-0/0/0
                   - ge-0/0/1
-              single:
-                value:
-                  port: ge-0/0/0
             schema:
               $ref: '#/components/schemas/utils_bounce_port'
         description: Request Body
@@ -23785,9 +23567,9 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: portsBounceFromSwitch
+      summary: bounceDevicePort
       tags:
-      - Utilities LAN
+      - Utilities Common
   /api/v1/sites/{site_id}/devices/{device_id}/cable_test:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -24429,17 +24211,18 @@ paths:
             examples:
               example-1:
                 value:
-                  ae_disable_lacp: true
-                  ae_idx: 0
-                  aggregated: false
-                  description: string
-                  disable_autoneg: true
-                  duplex: auto
-                  dynamic_usage: string
-                  esilag: true
-                  poe_disabled: true
-                  speed: auto
-                  usage: string
+                  ge-0/0/0-1:
+                    ae_disable_lacp: true
+                    ae_idx: 0
+                    aggregated: false
+                    description: string
+                    disable_autoneg: true
+                    duplex: auto
+                    dynamic_usage: string
+                    esilag: true
+                    poe_disabled: true
+                    speed: auto
+                    usage: string
             schema:
               $ref: '#/components/schemas/local_port_config'
       responses:
@@ -25552,22 +25335,6 @@ paths:
     get:
       description: Get Device Synthetic Test
       operationId: getSiteDeviceSyntheticTest
-      parameters:
-      - description: synthetic test type
-        in: query
-        name: type
-        schema:
-          $ref: '#/components/schemas/synthetictest_type'
-      - description: tenant network in which `lan_connectivity` test is run
-        in: query
-        name: tenant
-        schema:
-          type: string
-      - description: tenant network in which `lan_connectivity` test is run
-        in: query
-        name: node
-        schema:
-          $ref: '#/components/schemas/ha_cluster_node_enum'
       responses:
         '200':
           $ref: '#/components/responses/SynthetictestStatus'
@@ -27381,6 +27148,74 @@ paths:
       summary: runSiteApAutoplacement
       tags:
       - Sites Maps - Auto-placement
+  /api/v1/sites/{site_id}/maps/{map_id}/auto_zones:
+    delete:
+      description: This API is called to cancel auto zones for a given map and to
+        delete the suggested zones returned by the service. If the service was not
+        it will still delete any suggested zones and clear the auto zones service
+        status.
+      operationId: deleteSiteMapAutoZone
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: deleteSiteMapAutoZone
+      tags:
+      - Sites Maps - Auto-Zone
+    get:
+      description: This API provides the current status of the auto zones service
+        for a given map
+      operationId: getSiteMapAutoZoneStatus
+      responses:
+        '200':
+          $ref: '#/components/responses/AutoZoneStatus'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteMapAutoZoneStatus
+      tags:
+      - Sites Maps - Auto-Zone
+    parameters:
+    - $ref: '#/components/parameters/map_id'
+    - $ref: '#/components/parameters/site_id'
+    post:
+      description: This API starts the auto zones service for a specified map. This
+        map must have an image to parse for the auto zones service. Reppeated POST
+        requests to this endpoint while the auto zones service is proccessing the
+        map will be rejected.
+      operationId: startSiteMapAutoZone
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: startSiteMapAutoZone
+      tags:
+      - Sites Maps - Auto-Zone
   /api/v1/sites/{site_id}/maps/{map_id}/clear_auto_orient:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -31918,6 +31753,42 @@ paths:
       - Sites Stats - Calls
     parameters:
     - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/stats/calls/summary:
+    get:
+      description: Summarized, aggregated stats for the site calls
+      operationId: getSiteCallsSummary
+      parameters:
+      - description: AP MAC, optional
+        in: query
+        name: ap_mac
+        schema:
+          type: string
+      - description: app name (`zoom` or `teams`). default is both. Optional
+        in: query
+        name: app
+        schema:
+          example: zoom
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/end'
+      responses:
+        '200':
+          $ref: '#/components/responses/CallStatsSummary'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteCallsSummary
+      tags:
+      - Sites Stats - Calls
+    parameters:
+    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/calls/troubleshoot:
     get:
       description: Summary of calls troubleshoot by site
@@ -33516,6 +33387,11 @@ paths:
         name: type
         schema:
           $ref: '#/components/schemas/synthetictest_type'
+      - description: connectivity protocol
+        in: query
+        name: protocol
+        schema:
+          $ref: '#/components/schemas/synthetictest_protocol'
       - description: tenant network in which lan_connectivity test was run
         in: query
         name: tenant
@@ -38754,6 +38630,37 @@ components:
           schema:
             $ref: '#/components/schemas/response_auto_placement_info'
       description: OK
+    AutoZoneStatus:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                status: awaiting_review
+                zones:
+                - name: zone1
+                  vertices:
+                  - x: 0
+                    y: 0
+                  - x: 0
+                    y: 10
+                  - x: 10
+                    y: 10
+                  - x: 10
+                    y: 0
+                - name: zone2
+                  vertices:
+                  - x: 0
+                    y: 0
+                  - x: 0
+                    y: 20
+                  - x: 20
+                    y: 20
+                  - x: 20
+                    y: 0
+          schema:
+            $ref: '#/components/schemas/response_auto_zone'
+      description: Status of Auto-Zone request
     AvProfile:
       content:
         application/json:
@@ -38876,6 +38783,22 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/response_stats_calls'
+      description: Example response
+    CallStatsSummary:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+                bad_minutes: 5566
+                bad_minutes_client: 526
+                bad_minutes_site_wan: 3612
+                bad_minutes_wireless: 1428
+                num_aps: 1
+                num_users: 3
+                total_minutes: 575217
+          schema:
+            $ref: '#/components/schemas/response_stats_calls_summary'
       description: Example response
     CallTroubleshoot:
       content:
@@ -40228,6 +40151,30 @@ components:
           schema:
             $ref: '#/components/schemas/const_license_types'
       description: List of Licence Types
+    ConstMarvisClientVersions:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+              - label: default
+                notes: ''
+                os: android
+                url: https://mobile.mist.com/installers/marvisclient/android/1.1.9/marvisclient-installer.apk
+                version: 1.1.9
+              - label: default
+                notes: ''
+                os: macos
+                url: https://mobile.mist.com/installers/marvisclient/macos/0.100.29/marvisclient-installer.dmg
+                version: 0.100.29
+              - label: default
+                notes: ''
+                os: windows
+                url: https://mobile.mist.com/installers/marvisclient/windows/0.100.26/marvisclient-installer.zip
+                version: 0.100.26
+          schema:
+            $ref: '#/components/schemas/const_marvis_client_versions'
+      description: List of Webhook Topics
     ConstMxEdgeEvents:
       content:
         application/json:
@@ -40384,6 +40331,35 @@ components:
           schema:
             $ref: '#/components/schemas/const_traffic_types'
       description: List of Traffic Types
+    ConstWebhookTopics:
+      content:
+        application/json:
+          examples:
+            Example:
+              value:
+              - for_org: true
+                has_delivery_results: true
+                key: alarms
+              - key: asset-raw
+              - key: asset-raw-rssi
+              - for_org: true
+                has_delivery_results: true
+                key: audits
+              - for_org: true
+                key: client-info
+              - for_org: true
+                key: client-join
+              - key: client-latency
+              - for_org: true
+                key: client-sessions
+              - for_org: true
+                key: device-events
+              - for_org: true
+                has_delivery_results: true
+                key: device-updowns
+          schema:
+            $ref: '#/components/schemas/const_webhook_topics'
+      description: List of Webhook Topics
     Count:
       content:
         application/json:
@@ -42199,7 +42175,7 @@ components:
                   - drive
                   tenants:
                   - ITParis
-                - action: allow
+                - action: deny
                   idp:
                     enabled: false
                   name: ITParis-internet
@@ -42208,143 +42184,6 @@ components:
                   - internet_any
                   tenants:
                   - ITParis
-                - action: allow
-                  created_time: 1655832493
-                  id: b221a14e-3f0c-4dd8-87c4-2aa0bce89f5d
-                  idp:
-                    alert_only: true
-                    enabled: true
-                    profile: standard
-                  modified_time: 1655832493
-                  name: mgmt-to-core
-                  org_id: 93986f10-773b-42be-9438-8d3e6d127f1a
-                  path_preference: core
-                  services:
-                  - internal_dns
-                  - internal_ntp
-                  tenants:
-                  - Corp-Mgmt
-                - action: allow
-                  idp:
-                    alert_only: true
-                    enabled: true
-                    profile: standard
-                  name: mgmt-to-mxe-tt-in
-                  path_preference: mxe-in
-                  services:
-                  - internal_any
-                  tenants:
-                  - Corp-Mgmt
-                - action: allow
-                  created_time: 1655832500
-                  id: 5186b54c-410e-44d6-a0b6-1dd52a28e0e7
-                  idp:
-                    alert_only: true
-                    enabled: true
-                    profile: standard
-                  modified_time: 1655832500
-                  name: mgmt-to-untrust
-                  org_id: 93986f10-773b-42be-9438-8d3e6d127f1a
-                  path_preference: untrust
-                  services:
-                  - mxedge-updates
-                  - radsec
-                  - icmp
-                  - internet_dns
-                  - internet_ntp
-                  tenants:
-                  - Corp-Mgmt
-                - action: allow
-                  idp:
-                    alert_only: true
-                    enabled: true
-                    profile: standard
-                  name: mxe-data-0-to-untrust
-                  path_preference: untrust
-                  services:
-                  - internet_any
-                  tenants:
-                  - ITParis
-                - action: allow
-                  created_time: 1655832481
-                  id: 10da85d8-2f00-4249-afcf-b82dde91aa2b
-                  idp:
-                    alert_only: true
-                    enabled: true
-                    profile: standard
-                  modified_time: 1655832481
-                  name: core-to-mgt
-                  org_id: 93986f10-773b-42be-9438-8d3e6d127f1a
-                  path_preference: mgmt
-                  services:
-                  - mgmt
-                  tenants:
-                  - domain.Corp-Core
-                  - lan.Corp-Core
-                  - servers.Corp-Core
-                  - Corp-Core
-                - action: allow
-                  idp:
-                    alert_only: true
-                    enabled: true
-                    profile: standard
-                  name: core-to-edge-in
-                  path_preference: mxe-in
-                  services:
-                  - internal_any
-                  tenants:
-                  - lan.Corp-Core
-                  - Corp-Core
-                - action: allow
-                  created_time: 1655832476
-                  id: 268b4904-be7a-45b2-be25-136238ebd188
-                  idp:
-                    alert_only: true
-                    enabled: true
-                    profile: standard
-                  modified_time: 1655832476
-                  name: core-to-iot
-                  org_id: 93986f10-773b-42be-9438-8d3e6d127f1a
-                  path_preference: iot
-                  services:
-                  - iot
-                  tenants:
-                  - lan.Corp-Core
-                  - servers-hassio.Corp-Core
-                  - servers-kubes.Corp-Core
-                - action: allow
-                  idp:
-                    enabled: false
-                  name: tanker-to-cctv
-                  path_preference: iot
-                  services:
-                  - rtsp
-                  tenants:
-                  - servers-tanker.Corp-Core
-                - action: allow
-                  idp:
-                    enabled: false
-                  name: core-to-untrust
-                  path_preference: untrust
-                  services:
-                  - internet_any
-                  tenants:
-                  - lan.Corp-Core
-                  - domain.Corp-Core
-                  - servers.Corp-Core
-                - action: deny
-                  idp:
-                    alert_only: true
-                    enabled: true
-                    profile: standard
-                  name: iot-upgrade-cctv
-                  path_preference: untrust
-                  services:
-                  - motioneye
-                  - nodejs
-                  - raspbian
-                  tenants:
-                  - printer
                 type: gateway
           schema:
             $ref: '#/components/schemas/deviceprofile'
@@ -42676,7 +42515,7 @@ components:
                   - drive
                   tenants:
                   - ITParis
-                - action: allow
+                - action: deny
                   idp:
                     enabled: false
                   name: ITParis-internet
@@ -42685,143 +42524,6 @@ components:
                   - internet_any
                   tenants:
                   - ITParis
-                - action: allow
-                  created_time: 1655832493
-                  id: b221a14e-3f0c-4dd8-87c4-2aa0bce89f5d
-                  idp:
-                    alert_only: true
-                    enabled: true
-                    profile: standard
-                  modified_time: 1655832493
-                  name: mgmt-to-core
-                  org_id: 93986f10-773b-42be-9438-8d3e6d127f1a
-                  path_preference: core
-                  services:
-                  - internal_dns
-                  - internal_ntp
-                  tenants:
-                  - Corp-Mgmt
-                - action: allow
-                  idp:
-                    alert_only: true
-                    enabled: true
-                    profile: standard
-                  name: mgmt-to-mxe-tt-in
-                  path_preference: mxe-in
-                  services:
-                  - internal_any
-                  tenants:
-                  - Corp-Mgmt
-                - action: allow
-                  created_time: 1655832500
-                  id: 5186b54c-410e-44d6-a0b6-1dd52a28e0e7
-                  idp:
-                    alert_only: true
-                    enabled: true
-                    profile: standard
-                  modified_time: 1655832500
-                  name: mgmt-to-untrust
-                  org_id: 93986f10-773b-42be-9438-8d3e6d127f1a
-                  path_preference: untrust
-                  services:
-                  - mxedge-updates
-                  - radsec
-                  - icmp
-                  - internet_dns
-                  - internet_ntp
-                  tenants:
-                  - Corp-Mgmt
-                - action: allow
-                  idp:
-                    alert_only: true
-                    enabled: true
-                    profile: standard
-                  name: mxe-data-0-to-untrust
-                  path_preference: untrust
-                  services:
-                  - internet_any
-                  tenants:
-                  - ITParis
-                - action: allow
-                  created_time: 1655832481
-                  id: 10da85d8-2f00-4249-afcf-b82dde91aa2b
-                  idp:
-                    alert_only: true
-                    enabled: true
-                    profile: standard
-                  modified_time: 1655832481
-                  name: core-to-mgt
-                  org_id: 93986f10-773b-42be-9438-8d3e6d127f1a
-                  path_preference: mgmt
-                  services:
-                  - mgmt
-                  tenants:
-                  - domain.Corp-Core
-                  - lan.Corp-Core
-                  - servers.Corp-Core
-                  - Corp-Core
-                - action: allow
-                  idp:
-                    alert_only: true
-                    enabled: true
-                    profile: standard
-                  name: core-to-edge-in
-                  path_preference: mxe-in
-                  services:
-                  - internal_any
-                  tenants:
-                  - lan.Corp-Core
-                  - Corp-Core
-                - action: allow
-                  created_time: 1655832476
-                  id: 268b4904-be7a-45b2-be25-136238ebd188
-                  idp:
-                    alert_only: true
-                    enabled: true
-                    profile: standard
-                  modified_time: 1655832476
-                  name: core-to-iot
-                  org_id: 93986f10-773b-42be-9438-8d3e6d127f1a
-                  path_preference: iot
-                  services:
-                  - iot
-                  tenants:
-                  - lan.Corp-Core
-                  - servers-hassio.Corp-Core
-                  - servers-kubes.Corp-Core
-                - action: allow
-                  idp:
-                    enabled: false
-                  name: tanker-to-cctv
-                  path_preference: iot
-                  services:
-                  - rtsp
-                  tenants:
-                  - servers-tanker.Corp-Core
-                - action: allow
-                  idp:
-                    enabled: false
-                  name: core-to-untrust
-                  path_preference: untrust
-                  services:
-                  - internet_any
-                  tenants:
-                  - lan.Corp-Core
-                  - domain.Corp-Core
-                  - servers.Corp-Core
-                - action: deny
-                  idp:
-                    alert_only: true
-                    enabled: true
-                    profile: standard
-                  name: iot-upgrade-cctv
-                  path_preference: untrust
-                  services:
-                  - motioneye
-                  - nodejs
-                  - raspbian
-                  tenants:
-                  - printer
                 type: gateway
           schema:
             $ref: '#/components/schemas/deviceprofiles'
@@ -46502,6 +46204,14 @@ components:
                 type: match
                 values:
                 - /C=CN/ST=defy/O=defy/OU=defy/CN=steve
+            matches_cert_template:
+              value:
+                match: cert_template
+                name: templ1
+                type: match
+                values:
+                - GWI WLAN Computer*
+                - LAB2 Computer
             matches_radius_group:
               value:
                 name: VIP_group
@@ -47390,6 +47100,34 @@ components:
                 - c15353123096
           schema:
             $ref: '#/components/schemas/response_org_inventory_change'
+      description: OK
+    OrgInventorySearch:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                limit: 1000
+                results:
+                - mac: f01c2df166e0
+                  master: true
+                  members:
+                  - mac: f01c2df166e0
+                    model: EX4300-48P
+                    serial: PD3714460200
+                  model: EX4300-48P
+                  name: mist-wa-ex4300-VC
+                  org_id: 9b853544-51e4-45fb-81ac-a442e4a111d0
+                  serial: PD3714460200
+                  site_id: 01dc141d-b6af-4baa-b00f-0e31ef954c4f
+                  sku: EX4300-48P
+                  status: disconnected
+                  type: switch
+                  vc_mac: f01c2df166e0
+                  version: 21.4R3.5
+                total: 1
+          schema:
+            $ref: '#/components/schemas/inventory_search'
       description: OK
     OrgInventoryUnassignFailed:
       content:
@@ -48546,6 +48284,24 @@ components:
                 site_id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
           schema:
             $ref: '#/components/schemas/rssi_zones'
+      description: OK
+    SamlMetadata:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                acs_url: https://api.mist.com/api/v1/saml/llDfa13f/login
+                entity_id: https://api.mist.com/api/v1/saml/llDfa13f/login
+                logout_url: https://api.mist.com/api/v1/saml/llDfa13f/logout
+                metadata: <?xml version="1.0" encoding="UTF-8"?><md:EntityDescriptor
+                  xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://api.mist.com/api/v1/saml/llDfa13f/login"
+                  validUntil="2027-10-12T21:59:01Z" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"><md:SPSSODescriptor
+                  AuthnRequestsSigned="false" WantAssertionsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"><md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat><md:AssertionConsumerService
+                  Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://api.mist.com/api/v1/saml/llDfa13f/login"
+                  index="0" isDefault="true"/></md:SPSSODescriptor></md:EntityDescriptor>
+          schema:
+            $ref: '#/components/schemas/saml_metadata'
       description: OK
     Sdkinvite:
       content:
@@ -50753,7 +50509,7 @@ components:
                 domain: string
                 id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                 idp_cert: string
-                idp_sign_algo: string
+                idp_sign_algo: sha256
                 idp_sso_url: string
                 ignore_unmatched_roles: true
                 issuer: string
@@ -50832,24 +50588,6 @@ components:
           schema:
             $ref: '#/components/schemas/sso_roles_org'
       description: Example response
-    SsoSamlMetadata:
-      content:
-        application/json:
-          examples:
-            example-1:
-              value:
-                acs_url: https://api.mist.com/api/v1/saml/llDfa13f/login
-                entity_id: https://api.mist.com/api/v1/saml/llDfa13f/login
-                logout_url: https://api.mist.com/api/v1/saml/llDfa13f/logout
-                metadata: <?xml version="1.0" encoding="UTF-8"?><md:EntityDescriptor
-                  xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://api.mist.com/api/v1/saml/llDfa13f/login"
-                  validUntil="2027-10-12T21:59:01Z" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"><md:SPSSODescriptor
-                  AuthnRequestsSigned="false" WantAssertionsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"><md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat><md:AssertionConsumerService
-                  Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://api.mist.com/api/v1/saml/llDfa13f/login"
-                  index="0" isDefault="true"/></md:SPSSODescriptor></md:EntityDescriptor>
-          schema:
-            $ref: '#/components/schemas/sso_saml_metadata'
-      description: OK
     SsosArray:
       content:
         application/json:
@@ -50862,7 +50600,7 @@ components:
                 domain: string
                 id: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
                 idp_cert: string
-                idp_sign_algo: string
+                idp_sign_algo: sha256
                 idp_sso_url: string
                 ignore_unmatched_roles: true
                 issuer: string
@@ -52887,11 +52625,15 @@ components:
         type: string
       type: array
     acl_tag:
+      description: resource tags (`type`==`resource` or `type`==`gbp_resource`) can
+        only be used in `dst_tags`
       properties:
         gbp_tag:
           description: 'required if
 
             - `type`==`dynamic_gbp` (gbp_tag received from RADIUS)
+
+            - `type`==`gbp_resource`
 
             - `type`==`static_gbp` (applying gbp tag against matching conditions)'
           type: integer
@@ -52935,7 +52677,7 @@ components:
           type: string
       type: object
     acl_tag_specs:
-      description: 'if `type`==`resource`
+      description: 'if `type`==`resource` or `type`==`gbp_resource`
 
         empty means unrestricted, i.e. any'
       items:
@@ -52948,11 +52690,15 @@ components:
         type: string
       type: array
     acl_tag_type:
-      description: 'enum: `any`, `dynamic_gbp`, `mac`, `network`, `radius_group`,
-        `resource`, `static_gbp`, `subnet`'
+      description: "enum: \n  * `any`: matching anything not identified\n  * `dynamic_gbp`:\
+        \ from the gbp_tag received from RADIUS\n  * `gbp_resource`: can only be used\
+        \ in `dst_tags`\n  * `mac`\n  * `network`\n  * `radius_group`\n  * `resource`:\
+        \ can only be used in `dst_tags`\n  * `static_gbp`: applying gbp tag against\
+        \ matching conditions\n  * `subnet`'"
       enum:
       - any
       - dynamic_gbp
+      - gbp_resource
       - mac
       - network
       - radius_group
@@ -52979,11 +52725,7 @@ components:
     admin:
       properties:
         admin_id:
-          description: ID of the administrator
-          example: 456b7016-a916-a4b1-78dd-72b947c152b7
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/admin_id'
         compliance_status:
           $ref: '#/components/schemas/admin_compliance_status'
         email:
@@ -53074,6 +52816,12 @@ components:
       - blocked
       - restricted
       type: string
+    admin_id:
+      description: ID of the administrator
+      example: 456b7016-a916-a4b1-78dd-72b947c152b7
+      format: uuid
+      readOnly: true
+      type: string
     admin_invite:
       properties:
         account_only:
@@ -53154,9 +52902,7 @@ components:
       description: Privilieges settings
       properties:
         msp_id:
-          example: 0a9c626d-be6d-4e00-8402-b11370c5a308
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/admin_privilege_msp_id'
         msp_logo_url:
           description: logo of the MSP (if the MSP belongs to an Advanced tier)
           readOnly: true
@@ -53174,9 +52920,7 @@ components:
           description: name of the org/site/MSP depending on object scope
           type: string
         org_id:
-          example: 6d03c926-72e3-40cd-92ab-4560c1f4e33d
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/admin_privilege_org_id'
         org_name:
           description: name of the org (for a site belonging to org)
           type: string
@@ -53187,9 +52931,7 @@ components:
         scope:
           $ref: '#/components/schemas/admin_privilege_scope'
         site_id:
-          example: 52b50564-8821-4c3e-97be-5061c7760002
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/admin_privilege_site_id'
         sitegroup_ids:
           $ref: '#/components/schemas/admin_privilege_sitegroup_ids'
         views:
@@ -53198,6 +52940,16 @@ components:
       - role
       - scope
       type: object
+    admin_privilege_msp_id:
+      description: required if `scope`==`msp`
+      example: b9d42c2e-88ee-41f8-b798-f009ce7fe909
+      format: uuid
+      type: string
+    admin_privilege_org_id:
+      description: required if `scope`==`org`
+      example: a97c1b22-a4e9-411e-9bfd-d8695a0f9e61
+      format: uuid
+      type: string
     admin_privilege_orggroup_ids:
       description: if `scope`==`orggroup`
       items:
@@ -53221,6 +52973,11 @@ components:
       - orggroup
       - site
       - sitegroup
+      type: string
+    admin_privilege_site_id:
+      description: required if `scope`==`site`
+      example: 441a1214-6928-442a-8e92-e1d34b8ec6a6
+      format: uuid
       type: string
     admin_privilege_sitegroup_ids:
       items:
@@ -53339,11 +53096,7 @@ components:
         hostnames:
           $ref: '#/components/schemas/alarm_hostnames'
         id:
-          description: UUID of the alarm
-          example: 483f6eca-6276-4993-bfeb-56cbbbba7f08
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         last_seen:
           description: Epoch (seconds) of the last incident/alarm within an alarm
             window
@@ -53503,10 +53256,7 @@ components:
         delivery:
           $ref: '#/components/schemas/delivery'
         id:
-          example: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         name:
@@ -54292,6 +54042,11 @@ components:
         enable_mac_auth:
           default: false
           type: boolean
+        flow_control:
+          default: false
+          description: for some AP models, flow_control can be enabled to address
+            some switch compatibility issue
+          type: boolean
         forwarding:
           $ref: '#/components/schemas/ap_port_config_forwarding'
         mac_auth_preferred:
@@ -54807,23 +54562,23 @@ components:
       type: object
     ap_search:
       properties:
-        band_24_bandwith:
-          description: Bandwith of band_24
+        band_24_bandwidth:
+          description: bandwidth of band_24
           type: string
         band_24_channel:
           description: Channel of band_24
           type: integer
         band_24_power:
           type: integer
-        band_5_bandwith:
-          description: Bandwith of band_5
+        band_5_bandwidth:
+          description: bandwidth of band_5
           type: string
         band_5_channel:
           description: Channel of band_5
           type: integer
         band_5_power:
           type: integer
-        band_6_bandwith:
+        band_6_bandwidth:
           type: string
         band_6_channel:
           description: Channel of band_6
@@ -54865,6 +54620,10 @@ components:
           type: string
         mxedge_id:
           description: Mist Edge id, if AP is connecting to a Mist Edge
+          type: string
+        mxedge_ids:
+          description: Comma separated list of Mist Edge ids, if AP is connecting
+            to a Mist Edge
           type: string
         mxtunnel_status:
           description: MxTunnel status
@@ -55055,15 +54814,11 @@ components:
           readOnly: true
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         org_id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/org_id'
         site_id:
           $ref: '#/components/schemas/site_id'
         wifi:
@@ -55279,9 +55034,7 @@ components:
           readOnly: true
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         mac:
           description: bluetooth MAC
           type: string
@@ -55340,9 +55093,7 @@ components:
           format: uuid
           type: string
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         mfg_company_id:
           description: ble manufacturing-specific company-id used to filter assets
           example: 935
@@ -55399,9 +55150,7 @@ components:
         device_name:
           type: string
         id:
-          minLength: 1
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         last_seen:
           type: number
         mac:
@@ -55422,9 +55171,7 @@ components:
     asset_rssi_zone:
       properties:
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         since:
           type: number
       type: object
@@ -55436,9 +55183,7 @@ components:
     asset_zone:
       properties:
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         since:
           type: number
       type: object
@@ -55476,10 +55221,7 @@ components:
     audit_log:
       properties:
         admin_id:
-          example: 456b7016-a916-a4b1-78dd-72b947c152b7
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/admin_id'
         admin_name:
           type: string
         after:
@@ -55490,14 +55232,11 @@ components:
           readOnly: true
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         message:
           type: string
         org_id:
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/org_id'
         site_id:
           $ref: '#/components/schemas/site_id'
         timestamp:
@@ -55588,9 +55327,7 @@ components:
         fallback_action:
           $ref: '#/components/schemas/avprofile_fallback_action_enum'
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         mex_filesize:
           description: in KB
           maximum: 40000
@@ -55665,9 +55402,7 @@ components:
           format: uuid
           type: string
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         mac:
           description: optiona, MAC of the beacon, currently used only to identify
             battery voltage
@@ -55808,7 +55543,7 @@ components:
     bgp_config_community:
       properties:
         id:
-          type: string
+          $ref: '#/components/schemas/id'
         local_preference:
           type: integer
         vpn_name:
@@ -56080,10 +55815,11 @@ components:
           type: string
         power:
           default: 9
-          description: required if `power_mode`==`custom`
+          description: required if `power_mode`==`custom`; else use `power_mode` as
+            default
           example: 10
-          maximum: 10
-          minimum: 1
+          maximum: 7
+          minimum: 2
           type: integer
         power_mode:
           $ref: '#/components/schemas/ble_config_power_mode'
@@ -56432,7 +56168,7 @@ components:
       properties:
         ports:
           additionalProperties:
-            $ref: '#/components/schemas/capture_gateway_gateways_port'
+            $ref: '#/components/schemas/capture_gateway_gateways_ports'
           description: Property key is the port ID
           type: object
       type: object
@@ -56443,10 +56179,10 @@ components:
           type: string
       type: object
     capture_gateway_gateways_ports:
-      description: dict of port which uses port id as the key
-      items:
-        type: string
-      type: array
+      additionalProperties:
+        $ref: '#/components/schemas/capture_gateway_gateways_port'
+      description: Property key is the port ID
+      type: object
     capture_gateway_type:
       description: 'enum: `gateway`'
       enum:
@@ -56926,12 +56662,7 @@ components:
     capture_switch_switches:
       properties:
         ports:
-          additionalProperties:
-            additionalProperties: true
-            nullable: true
-            type: object
-          description: Property key is the interface name
-          type: object
+          $ref: '#/components/schemas/capture_switch_ports'
       type: object
     capture_switch_type:
       description: 'enum: `switch`'
@@ -57257,10 +56988,7 @@ components:
           example: MBP 16\" M1 2021
           type: string
         org_id:
-          description: Mist Org ID
-          example: 1abff1aa-4571-4c1f-a409-153a1e7a7a24
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/org_id'
         os:
           $ref: '#/components/schemas/client_wireless_os'
         os_version:
@@ -58342,6 +58070,30 @@ components:
       items:
         $ref: '#/components/schemas/const_license_type'
       type: array
+    const_marvis_client_version:
+      properties:
+        label:
+          example: default
+          type: string
+        notes:
+          type: string
+        os:
+          description: Client OS
+          example: windows
+          type: string
+        url:
+          description: Client download url
+          example: https://mobile.mist.com/installers/marvisclient/...
+          type: string
+        version:
+          description: Client version
+          example: 0.100.29
+          type: string
+      type: object
+    const_marvis_client_versions:
+      items:
+        $ref: '#/components/schemas/const_marvis_client_version'
+      type: array
     const_mxedge_model:
       properties:
         custom_ports:
@@ -58495,6 +58247,26 @@ components:
     const_traffic_types:
       items:
         $ref: '#/components/schemas/const_traffic_type'
+      type: array
+    const_webhook_topic:
+      properties:
+        for_org:
+          description: can be used in org webhooks, optional
+          type: boolean
+        has_delivery_results:
+          description: supports webhook delivery results /api/v1/:scope/:scope_id/webhooks/:webhook_id/events/search
+          type: boolean
+        internal:
+          description: internal topic (not selectable in site/org webhooks)
+          type: boolean
+        key:
+          description: webhook topic name
+          example: alarms
+          type: string
+      type: object
+    const_webhook_topics:
+      items:
+        $ref: '#/components/schemas/const_webhook_topic'
       type: array
     count_org_devices_mxtunnel_status:
       description: 'enum: `down`, `up`'
@@ -58674,9 +58446,7 @@ components:
           format: double
           type: number
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         image1_url:
           nullable: true
           type: string
@@ -58800,9 +58570,7 @@ components:
           readOnly: true
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         idp_profiles:
           $ref: '#/components/schemas/gateway_idp_profiles'
         image1_url:
@@ -58834,9 +58602,7 @@ components:
         modified_time:
           $ref: '#/components/schemas/modified_time'
         msp_id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/msp_id'
         name:
           type: string
         networks:
@@ -58906,6 +58672,11 @@ components:
       required:
       - type
       type: object
+    device_id:
+      example: 00000000-0000-0000-1000-d8695a0f9e61
+      format: uuid
+      readOnly: true
+      type: string
     device_id_string:
       properties:
         device_id:
@@ -58921,8 +58692,7 @@ components:
         device_mac:
           type: string
         id:
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         mac:
           type: string
         model:
@@ -58992,9 +58762,7 @@ components:
         extra_routes6:
           $ref: '#/components/schemas/extra_routes6'
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         image1_url:
           nullable: true
           type: string
@@ -59260,9 +59028,7 @@ components:
           readOnly: true
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         iot_config:
           $ref: '#/components/schemas/ap_iot'
         ip_config:
@@ -59337,9 +59103,7 @@ components:
         gateway_matching:
           $ref: '#/components/schemas/gateway_matching'
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         idp_profiles:
           $ref: '#/components/schemas/gateway_idp_profiles'
         ip_configs:
@@ -59644,8 +59408,7 @@ components:
         model:
           type: string
         org_id:
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/org_id'
         site_id:
           $ref: '#/components/schemas/site_id'
         system_desc:
@@ -59942,9 +59705,7 @@ components:
           example: inventory not empty
           type: string
         org_id:
-          example: 24f6eca-7276-4993-bfeb-53cbbbba6f05
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/org_id'
       required:
       - detail
       - org_id
@@ -60398,10 +60159,7 @@ components:
         config:
           $ref: '#/components/schemas/switch_mgmt'
         id:
-          example: 9197ec96-4c8d-529f-c595-035895e688b2
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         name:
           example: CC
           type: string
@@ -61068,6 +60826,13 @@ components:
         wan_ext_ip:
           description: optional, if spoke should reach this port by a different IP
           type: string
+        wan_extra_routes:
+          additionalProperties:
+            $ref: '#/components/schemas/wan_extra_routes'
+          description: Property Key is the destianation CIDR (e.g "100.100.100.0/24")
+          type: object
+        wan_probe_override:
+          $ref: '#/components/schemas/gateway_wan_probe_override'
         wan_source_nat:
           $ref: '#/components/schemas/gateway_port_wan_source_nat'
         wan_type:
@@ -61181,11 +60946,17 @@ components:
           $ref: '#/components/schemas/gateway_port_vpn_path_bfd_profile'
         bfd_use_tunnel_mode:
           default: false
-          description: whether to use tunnel mode. SSR only
+          description: Only if the VPN `type`==`hub_spoke`. Whether to use tunnel
+            mode. SSR only
           type: boolean
+        link_name:
+          description: Only if the VPN `type`==`mesh`
+          example: wan0
+          type: string
         preference:
-          description: for a given VPN, when `path_selection.strategy`==`simple`,
-            the preference for a path (lower is preferred)
+          description: Only if the VPN `type`==`hub_spoke`. For a given VPN, when
+            `path_selection.strategy`==`simple`, the preference for a path (lower
+            is preferred)
           type: integer
         role:
           $ref: '#/components/schemas/gateway_port_vpn_path_role'
@@ -61194,14 +60965,14 @@ components:
       type: object
     gateway_port_vpn_path_bfd_profile:
       default: broadband
-      description: 'enum: `broadband`, `lte`'
+      description: 'Only if the VPN `type`==`hub_spoke`. enum: `broadband`, `lte`'
       enum:
       - broadband
       - lte
       type: string
     gateway_port_vpn_path_role:
       default: spoke
-      description: 'enum: `hub`, `spoke`'
+      description: 'Only if the VPN `type`==`hub_spoke`. enum: `hub`, `spoke`'
       enum:
       - hub
       - spoke
@@ -61209,6 +60980,7 @@ components:
     gateway_port_vpn_paths:
       additionalProperties:
         $ref: '#/components/schemas/gateway_port_vpn_path'
+      description: Property key is the VPN name
       type: object
     gateway_port_wan_arp_policer:
       default: default
@@ -61295,9 +61067,7 @@ components:
         gateway_matching:
           $ref: '#/components/schemas/gateway_matching'
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         idp_profiles:
           $ref: '#/components/schemas/gateway_idp_profiles'
         ip_configs:
@@ -61527,6 +61297,23 @@ components:
       - none
       - pap
       type: string
+    gateway_wan_probe_override:
+      description: if `usage`==`wan`
+      properties:
+        ips:
+          items:
+            type: string
+          type: array
+        probe_profile:
+          $ref: '#/components/schemas/gateway_wan_probe_override_probe_profile'
+      type: object
+    gateway_wan_probe_override_probe_profile:
+      default: broadband
+      description: 'enum: `broadband`, `lte`'
+      enum:
+      - broadband
+      - lte
+      type: string
     gateway_wan_type:
       default: dhcp
       description: 'enum: `dhcp`, `pppoe`, `static`'
@@ -61688,7 +61475,6 @@ components:
           type: string
         mac:
           description: mac
-          readOnly: true
           type: string
         minutes:
           default: 1440
@@ -61700,7 +61486,6 @@ components:
         name:
           description: optional, the info provided by user
           example: John Smith
-          readOnly: true
           type: string
         random_mac:
           description: if the client is using a randomized MAC Address to connect
@@ -61803,6 +61588,12 @@ components:
           example: 09:00-17:00
           type: string
       type: object
+    id:
+      description: Unique ID of the object instance in the Mist Organnization
+      example: 53f10664-3ce8-4c27-b382-0ef66432349f
+      format: uuid
+      readOnly: true
+      type: string
     idp_config:
       properties:
         alert_only:
@@ -61824,12 +61615,11 @@ components:
     idp_machine_cert_lookup_field_enum:
       default: automatic
       description: 'allow customer to choose the EAP-TLS client certificate''s field
-        to use for IDP Machine Groups lookup. enum: `automatic`, `cn`, `email`, `upn`'
+        to use for IDP Machine Groups lookup. enum: `automatic`, `cn`, `dns`'
       enum:
       - automatic
       - cn
-      - email
-      - upn
+      - dns
       type: string
     idp_profile:
       properties:
@@ -61838,10 +61628,7 @@ components:
         created_time:
           $ref: '#/components/schemas/created_time'
         id:
-          example: 874ca978-d736-4d4b-bc90-a49a29eec133
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         name:
@@ -62218,10 +62005,7 @@ components:
           example: US
           type: string
         id:
-          example: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         latlng:
           $ref: '#/components/schemas/lat_lng'
         name:
@@ -62259,10 +62043,7 @@ components:
     installers_item:
       properties:
         id:
-          example: 684dfc5c-fe77-2290-eb1d-ef3d677fe168
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         name:
           example: 'Entry #1'
           type: string
@@ -62294,8 +62075,7 @@ components:
           description: device hardware revision number
           type: string
         id:
-          description: device id
-          type: string
+          $ref: '#/components/schemas/id'
         jsi:
           type: boolean
         mac:
@@ -62330,9 +62110,88 @@ components:
             a Clust, MAC Address of the Cluster
           type: string
       type: object
+    inventory_count_distinct:
+      default: model
+      description: 'enum: `model`, `status`, `site_id`, `sku`, `version`'
+      enum:
+      - model
+      - status
+      - site_id
+      - sku
+      - version
+      type: string
     inventory_list:
       items:
         $ref: '#/components/schemas/inventory'
+      type: array
+    inventory_search:
+      properties:
+        limit:
+          example: 1000
+          type: integer
+        page:
+          example: 1
+          type: integer
+        results:
+          $ref: '#/components/schemas/inventory_search_results'
+      type: object
+    inventory_search_result:
+      properties:
+        mac:
+          example: f01c2df166e0
+          type: string
+        master:
+          example: true
+          type: boolean
+        members:
+          $ref: '#/components/schemas/inventory_search_result_members'
+        model:
+          example: EX4300-48P
+          type: string
+        name:
+          example: mist-wa-ex4300-VC
+          type: string
+        org_id:
+          $ref: '#/components/schemas/org_id'
+        serial:
+          example: PD3714460200
+          type: string
+        site_id:
+          $ref: '#/components/schemas/site_id'
+        sku:
+          example: EX4300-48P
+          type: string
+        status:
+          example: disconnected
+          type: string
+        type:
+          $ref: '#/components/schemas/device_type'
+        vc_mac:
+          example: f01c2df166e0
+          type: string
+        version:
+          example: 21.4R3.5
+          type: string
+      type: object
+    inventory_search_result_member:
+      properties:
+        mac:
+          example: f01c2df166e0
+          type: string
+        model:
+          example: EX4300-48P
+          type: string
+        serial:
+          example: PD3714460200
+          type: string
+      type: object
+    inventory_search_result_members:
+      items:
+        $ref: '#/components/schemas/inventory_search_result_member'
+      type: array
+    inventory_search_results:
+      items:
+        $ref: '#/components/schemas/inventory_search_result'
       type: array
     inventory_update:
       properties:
@@ -62462,8 +62321,7 @@ components:
         created_time:
           $ref: '#/components/schemas/created_time'
         device_id:
-          example: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-          type: string
+          $ref: '#/components/schemas/device_id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         serial_number:
@@ -62834,8 +62692,7 @@ components:
           readOnly: true
           type: integer
         id:
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         quantity:
@@ -62866,9 +62723,7 @@ components:
           readOnly: true
           type: integer
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         order_id:
@@ -63105,9 +62960,7 @@ components:
           format: double
           type: number
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         latlng_br:
           $ref: '#/components/schemas/latlng_br'
         latlng_tl:
@@ -63439,10 +63292,7 @@ components:
           example: actual
           type: string
         id:
-          example: 63eda950-c6da-11e4-a628-60f81dd250ce
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         name:
           example: Default
           type: string
@@ -63529,10 +63379,7 @@ components:
           default: false
           type: boolean
         id:
-          example: 3a14098f-b995-7552-b0a4-b8ee39b337a6
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         name:
           example: Handhelds
           type: string
@@ -63862,9 +63709,7 @@ components:
         created_time:
           $ref: '#/components/schemas/created_time'
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         logo_url:
           description: For advanced tier (uMSPs) only
           type: string
@@ -63878,6 +63723,11 @@ components:
           description: For advanced tier (uMSPs) only
           type: string
       type: object
+    msp_id:
+      example: b9d42c2e-88ee-41f8-b798-f009ce7fe909
+      format: uuid
+      readOnly: true
+      type: string
     msp_license_action:
       properties:
         amendment_id:
@@ -63885,7 +63735,7 @@ components:
           type: string
         dst_org_id:
           description: required if `op`==`amend`, destination org id
-          minLength: 1
+          format: uuid
           type: string
         notes:
           description: required if `op`== `annotate`
@@ -63982,9 +63832,7 @@ components:
           readOnly: true
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         mist_das:
           $ref: '#/components/schemas/mxedge_das'
         mist_nac:
@@ -64281,10 +64129,7 @@ components:
           readOnly: true
           type: boolean
         id:
-          example: 95ddd29a-6a3c-929e-a431-51a5b09f36a6
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         magic:
           example: L-NpT5gi-ADR8WTFd4EiQPY3cP5WdSoD
           readOnly: true
@@ -64750,14 +64595,30 @@ components:
       properties:
         allow_downgrades:
           $ref: '#/components/schemas/mxedge_upgrade_multi_allow_downgrades'
+        canary_phases:
+          description: Only if `strategy`==`canary`. Phases for canary deployment.
+            Each phase represents percentage of devices that need to be upgraded in
+            that phase. default is [1, 10, 50, 100]
+          items:
+            type: integer
+          type: array
         channel:
           $ref: '#/components/schemas/mxedge_upgrade_channel'
         distro:
           description: distro upgrade, optional, to specific codename (e.g. bullseye)
             with highest qualified versions
           type: string
+        max_failure_percentage:
+          default: 5
+          description: Failure threshold before we stop the upgrade and mark it as
+            failed
+          type: integer
         mxedge_ids:
           $ref: '#/components/schemas/mxedge_upgrade_multi_mxedge_ids'
+        start_time:
+          description: upgrade start time in epoch seconds, default is now
+          format: double
+          type: number
         strategy:
           $ref: '#/components/schemas/mxedge_upgrade_strategy'
         versions:
@@ -64810,9 +64671,10 @@ components:
       type: object
     mxedge_upgrade_strategy:
       default: big_bang
-      description: "enum:\n  * `big_bang`: upgrade all at once\n  * `serial`: one\
-        \ at a time. enum: `big_bang`, `serial`'"
+      description: "enum:\n  * `big_bang`: upgrade all at once, no orchestration\n\
+        \  * `serial`: one at a time'\n  * `canary`: upgrade in phases"
       enum:
+      - canary
       - big_bang
       - serial
       type: string
@@ -64910,9 +64772,7 @@ components:
           nullable: true
           type: integer
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         ipsec:
           $ref: '#/components/schemas/mxtunnel_ipsec'
         modified_time:
@@ -65003,19 +64863,20 @@ components:
         created_time:
           $ref: '#/components/schemas/created_time'
         id:
-          description: ID for file upload, used to identify file even for deletion
+          description: Unique ID for the uploaded CRL file, used to reference the
+            file
           example: a1ca26f3-44dd-4833-9a7b-97bbb2ab5230
           readOnly: true
           type: string
         modified_time:
           $ref: '#/components/schemas/modified_time'
         name:
-          description: Name for the .crl file issuer if set
+          description: Issuer name for the CRL file
           example: SampleCertificateSigner
           type: string
         url:
-          description: Download URL for the .crl file
-          example: http://url/to/crl_file.crl
+          description: URL to download the uploaded CRL file
+          example: http://url/to/crl_file
           type: string
       type: object
     nac_crl_files:
@@ -65166,10 +65027,7 @@ components:
           description: enabled or not
           type: boolean
         id:
-          format: uuid
-          minLength: 1
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         matching:
           $ref: '#/components/schemas/nac_rule_matching'
         modified_time:
@@ -65293,9 +65151,7 @@ components:
           description: if `type`==`gbp_tag`
           type: integer
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         match:
           $ref: '#/components/schemas/nac_tag_match'
         match_all:
@@ -65348,14 +65204,15 @@ components:
       type: array
     nac_tag_match:
       description: 'if `type`==`match`. enum: `cert_cn`, `cert_issuer`, `cert_san`,
-        `cert_serial`, `cert_sub`, `client_mac`, `idp_role`, `ingress_vlan`, `mdm_status`,
-        `nas_ip`, `radius_group`, `realm`, `ssid`, `user_name`, `usermac_label`'
+        `cert_serial`, `cert_sub`, `cert_template`, `client_mac`, `idp_role`, `ingress_vlan`,
+        `mdm_status`, `nas_ip`, `radius_group`, `realm`, `ssid`, `user_name`, `usermac_label`'
       enum:
       - cert_cn
       - cert_issuer
       - cert_san
       - cert_serial
       - cert_sub
+      - cert_template
       - client_mac
       - idp_role
       - ingress_vlan
@@ -65451,9 +65308,7 @@ components:
           format: ipv6
           type: string
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         internal_access:
           $ref: '#/components/schemas/network_internal_access'
         internet_access:
@@ -65463,6 +65318,8 @@ components:
           type: boolean
         modified_time:
           $ref: '#/components/schemas/modified_time'
+        multicast:
+          $ref: '#/components/schemas/network_multicast'
         name:
           type: string
         org_id:
@@ -65525,6 +65382,32 @@ components:
         static_nat:
           $ref: '#/components/schemas/network_static_nat'
       type: object
+    network_multicast:
+      description: whether to enable multicast support (only PIM-sparse mode is supported)
+      properties:
+        disable_igmp:
+          default: false
+          description: if the network will only be the soruce of the multicast traffic,
+            IGMP can be disabled
+          type: boolean
+        enabled:
+          default: false
+          type: boolean
+        groups:
+          $ref: '#/components/schemas/network_multicast_groups'
+      type: object
+    network_multicast_group:
+      properties:
+        rp_ip:
+          description: RP (rendezvous point) IP Address
+          type: string
+      type: object
+    network_multicast_groups:
+      additionalProperties:
+        $ref: '#/components/schemas/network_multicast_group'
+      description: Group address to RP (rendezvous point) mapping. Property Key is
+        the CIDR (example "225.1.0.3/32")
+      type: object
     network_routed_for_networks:
       description: for a Network (usually LAN), it can be routable to other networks
         (e.g. OSPF)
@@ -65582,9 +65465,7 @@ components:
         extra_routes6:
           $ref: '#/components/schemas/extra_routes6'
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         import_org_networks:
           $ref: '#/components/schemas/network_template_import_org_networks'
         mist_nac:
@@ -65760,6 +65641,35 @@ components:
       - vmware
       - zoom
       type: string
+    oauth_ping_identity_region:
+      default: us
+      description: 'enum: `us` (United States, default), `ca` (Canada), `eu` (Europe),
+        `asia` (Asia), `au` (Australia)'
+      enum:
+      - asia
+      - au
+      - ca
+      - eu
+      - us
+      type: string
+    optic_port_config:
+      additionalProperties:
+        $ref: '#/components/schemas/optic_port_config_port'
+      description: Property key is the interface name or range (e.g. `et-0/0/47`,
+        `et-0/0/48-49`)
+      type: object
+    optic_port_config_port:
+      properties:
+        channelized:
+          default: false
+          description: enable channelization
+          type: boolean
+        speed:
+          description: interface speed (e.g. `25g`, `50g`), use the chassis speed
+            by default
+          example: 25g
+          type: string
+      type: object
     optional_stat_bgps:
       description: 'only present when `bgp_peers` in `fields` query parameter
 
@@ -66122,16 +66032,11 @@ components:
         created_time:
           $ref: '#/components/schemas/created_time'
         id:
-          example: 2818e386-8dec-2562-9ede-5b8a0fbbdc71
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         msp_id:
-          example: b9d42c2e-88ee-41f8-b798-f009ce7fe909
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/msp_id'
         msp_logo_url:
           description: logo uploaded by the MSP with advanced tier, only present if
             provided
@@ -66172,10 +66077,7 @@ components:
         created_time:
           $ref: '#/components/schemas/created_time'
         id:
-          example: 497f6eca-6276-4993-bfeb-53ecbbba6f08
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         key:
           example: 1qkb...QQCL
           readOnly: true
@@ -66341,11 +66243,11 @@ components:
     org_crl_import_file:
       properties:
         file:
-          description: a binary .crl file
+          description: a PEM or DER formatted CRL file
           format: binary
           type: string
         json:
-          description: json string with name for .crl file (optional)
+          description: a JSON string with "name" field for CRL file issuer (optional)
           type: string
       type: object
     org_device:
@@ -66361,9 +66263,7 @@ components:
     org_device_upgrade:
       properties:
         id:
-          example: 31223085-405d-4b64-8aea-9c5b98098b4b
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/id'
         site_upgrades:
           $ref: '#/components/schemas/org_device_upgrade_site_upgrades'
       type: object
@@ -66604,9 +66504,7 @@ components:
         ewf:
           $ref: '#/components/schemas/service_policy_ewf'
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         idp:
           $ref: '#/components/schemas/idp_config'
         local_routing:
@@ -66728,13 +66626,13 @@ components:
           nullable: true
           type: integer
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         installer:
           $ref: '#/components/schemas/org_setting_installer'
         jcloud:
           $ref: '#/components/schemas/org_setting_jcloud'
+        jcloud_ra:
+          $ref: '#/components/schemas/org_setting_jcloud_ra'
         juniper:
           $ref: '#/components/schemas/account_juniper_info'
         mgmt:
@@ -66744,14 +66642,14 @@ components:
         modified_time:
           $ref: '#/components/schemas/modified_time'
         msp_id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/msp_id'
         mxedge_fips_enabled:
           default: false
           type: boolean
         mxedge_mgmt:
           $ref: '#/components/schemas/mxedge_mgmt'
+        optic_port_config:
+          $ref: '#/components/schemas/optic_port_config'
         org_id:
           $ref: '#/components/schemas/org_id'
         password_policy:
@@ -66761,8 +66659,6 @@ components:
         pcap_bucket_verified:
           readOnly: true
           type: boolean
-        port_channelization:
-          $ref: '#/components/schemas/port_channelization'
         security:
           $ref: '#/components/schemas/org_setting_security'
         simple_alert:
@@ -66908,13 +66804,15 @@ components:
     org_setting_gateway_mgmt_host_out_policies:
       description: 'optional, for some of the host-out traffic, the path preference
         can be specified by default, ECMP will be used from all available route/path
-        available services: dns/mist/ntp'
+        available services: dns/mist/ntp/pim'
       properties:
         dns:
           $ref: '#/components/schemas/org_setting_gateway_mgmt_host_out_policies_dns'
         mist:
           $ref: '#/components/schemas/org_setting_gateway_mgmt_host_out_policies_mist'
         ntp:
+          $ref: '#/components/schemas/org_setting_gateway_mgmt_host_out_policies_ntp'
+        pim:
           $ref: '#/components/schemas/org_setting_gateway_mgmt_host_out_policies_ntp'
       type: object
     org_setting_gateway_mgmt_host_out_policies_dns:
@@ -66969,6 +66867,19 @@ components:
           type: string
         org_id:
           description: JCloud Org ID
+          type: string
+      type: object
+    org_setting_jcloud_ra:
+      description: JCloud Routing Assurance connexion
+      properties:
+        org_apitoken:
+          description: JCloud Routing Assurance Org Token
+          type: string
+        org_apitoken_name:
+          description: JCloud Routing Assurance Org Token Name
+          type: string
+        org_id:
+          description: JCloud Routing Assurance Org ID
           type: string
       type: object
     org_setting_mgmt:
@@ -67049,10 +66960,7 @@ components:
         exclude_realms:
           $ref: '#/components/schemas/org_setting_mist_nac_idp_exclude_realms'
         id:
-          example: 4c441a74-d0de-32c4-78a7-a05e00d080ae
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         user_realms:
           $ref: '#/components/schemas/org_setting_mist_nac_idp_user_realms'
       type: object
@@ -67486,15 +67394,11 @@ components:
         created_time:
           $ref: '#/components/schemas/created_time'
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         msp_id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/msp_id'
         name:
           type: string
         org_ids:
@@ -67720,18 +67624,6 @@ components:
           example: https://api.mist.com/api/v1/forward/looker?jwt=...
           type: string
       type: object
-    port_channelization:
-      additionalProperties:
-        $ref: '#/components/schemas/port_channelization_port'
-      properties:
-        enabled:
-          default: false
-          type: boolean
-      type: object
-    port_channelization_port:
-      description: Property key is the interface name or range (e.g. `et-0/0/47`,
-        `et-0/0/48-49`), Property value is the interface speed (e.g. `25g`, `50g`)
-      type: string
     portal_template_alignment:
       default: center
       description: 'defines alignment on portal. enum: `center`, `left`, `right`'
@@ -67923,9 +67815,7 @@ components:
             sending reminder notification when the psk is about to expire
           type: integer
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         mac:
           description: if `usage`==`single`, the mac that this PSK ties to, empty
             if `auto-binding`
@@ -68031,8 +67921,7 @@ components:
           description: only if `type`==`admin`
           type: boolean
         id:
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         max_usage:
           default: 0
           description: '`max_usage`==`0` means unlimited'
@@ -68731,10 +68620,7 @@ components:
     reponse_synthetictest:
       properties:
         id:
-          example: a42775f6-edc8-69b5-f979-542fa1b43ff9
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         message:
           example: Successfully queued synthetic test for the site.
           type: string
@@ -68857,6 +68743,48 @@ components:
         status:
           $ref: '#/components/schemas/auto_placement_info_status'
       type: object
+    response_auto_zone:
+      properties:
+        status:
+          $ref: '#/components/schemas/response_auto_zone_status'
+        zones:
+          $ref: '#/components/schemas/response_auto_zone_zone'
+      type: object
+    response_auto_zone_status:
+      description: "The status for the auto zones service for a given map. enum:\n\
+        \  * not_started: The auto zones service has not been run on this map or the\
+        \ results were cleared by the user\n  * in_progress: The auto zones service\
+        \ is currently in progress\n  * awaiting_review: The auto zones service has\
+        \ completed and suggested location zones to be added to the map\n  * error:\
+        \ There was an error with the auto zones service"
+      enum:
+      - in_progress
+      - awaiting_review
+      - not_started
+      - error
+      type: string
+    response_auto_zone_zone:
+      description: A list of suggested zones to review and accept for a given map
+      properties:
+        name:
+          description: The name of the suggested zone
+          example: zone1
+          type: string
+        vertices:
+          description: A list of of points comprising the zones map location in pixels
+          items:
+            $ref: '#/components/schemas/response_auto_zone_zone_vertices'
+          type: array
+      type: object
+    response_auto_zone_zone_vertices:
+      properties:
+        x:
+          example: 10
+          type: integer
+        y:
+          example: 42
+          type: integer
+      type: object
     response_bgp_search_list_results:
       items:
         $ref: '#/components/schemas/bgp_stats'
@@ -68957,9 +68885,7 @@ components:
     response_claim_mx_edge:
       properties:
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         magic:
           type: string
       required:
@@ -69086,9 +69012,7 @@ components:
           readOnly: true
           type: string
         org_id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/org_id'
         site_id:
           $ref: '#/components/schemas/site_id'
         ssid:
@@ -69198,9 +69122,7 @@ components:
         bands:
           $ref: '#/components/schemas/strings'
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         ssid:
           type: string
         vlan_ids:
@@ -69439,11 +69361,7 @@ components:
             running version
           type: boolean
         id:
-          description: unique id for the upgrade
-          format: uuid
-          minLength: 1
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         max_failure_percentage:
           description: percentage of failures allowed
           type: integer
@@ -70130,18 +70048,13 @@ components:
           readOnly: true
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         message:
           description: log message
           readOnly: true
           type: string
         org_id:
-          description: org id
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/org_id'
         site_id:
           $ref: '#/components/schemas/site_id'
         timestamp:
@@ -70265,9 +70178,7 @@ components:
         action:
           type: string
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         map_id:
           format: uuid
           type: string
@@ -70311,8 +70222,7 @@ components:
         name:
           type: string
         org_id:
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/org_id'
         secret:
           type: string
       required:
@@ -70332,9 +70242,7 @@ components:
           readOnly: true
           type: string
         org_id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/org_id'
         serial:
           readOnly: true
           type: string
@@ -70401,9 +70309,7 @@ components:
         counts:
           $ref: '#/components/schemas/mxedge_upgrade_response_counts'
         id:
-          minLength: 1
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         status:
           minLength: 1
           type: string
@@ -70521,9 +70427,7 @@ components:
     response_org_search_item:
       properties:
         msp_id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/msp_id'
         name:
           description: org name
           readOnly: true
@@ -70688,9 +70592,7 @@ components:
           example: stream
           type: string
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         max_num_packets:
           example: 1024
           type: number
@@ -70737,7 +70639,7 @@ components:
       properties:
         band:
           type: string
-        bandwith:
+        bandwidth:
           type: string
         channel:
           type: integer
@@ -70768,9 +70670,7 @@ components:
         format:
           type: string
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         include_mcast:
           type: boolean
         max_pkt_len:
@@ -70821,10 +70721,7 @@ components:
         gateways:
           $ref: '#/components/schemas/response_pcap_status_gateways'
         id:
-          description: unique id for the capture
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         includes_mcast:
           type: boolean
         max_num_packets:
@@ -70834,6 +70731,8 @@ components:
         max_pkt_len:
           example: 128
           type: integer
+        mxedges:
+          $ref: '#/components/schemas/response_pcap_status_mxedges'
         num_packets:
           description: total number of packets captured by all AP, not applicable
             for type [client, new_assoc]
@@ -70898,6 +70797,12 @@ components:
       type: array
     response_pcap_status_gateways:
       description: Information on gateways to capture packets on if a gateway capture
+        type is specified
+      items:
+        type: string
+      type: array
+    response_pcap_status_mxedges:
+      description: nformation on mxedges to capture packets on if a mxedge capture
         type is specified
       items:
         type: string
@@ -70969,10 +70874,7 @@ components:
     response_psk_portal_logs_search_item:
       properties:
         id:
-          example: 8a3dcaa7-80e3-4bb0-a75b-7bc6322cfd09
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         message:
           example: Rotate PSK test@mist.com
           type: string
@@ -71071,9 +70973,7 @@ components:
     response_search_item:
       properties:
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         text:
           type: string
         type:
@@ -71162,8 +71062,7 @@ components:
         action:
           type: string
         id:
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
       required:
       - action
       - id
@@ -71222,11 +71121,7 @@ components:
             running version
           type: boolean
         id:
-          description: unique id for the upgrade
-          format: uuid
-          minLength: 1
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         max_failure_percentage:
           description: percentage of failures allowed
           type: integer
@@ -71329,9 +71224,7 @@ components:
         honeypot_enabled:
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         name:
           readOnly: true
           type: string
@@ -71401,8 +71294,7 @@ components:
         device_type:
           type: string
         id:
-          minLength: 1
-          type: string
+          $ref: '#/components/schemas/id'
         status:
           minLength: 1
           type: string
@@ -71473,6 +71365,27 @@ components:
           type: number
         total:
           type: integer
+      type: object
+    response_stats_calls_summary:
+      properties:
+        bad_minutes_client:
+          example: 526.0
+          type: number
+        bad_minutes_site_wan:
+          example: 3612.0
+          type: number
+        bad_minutes_wireless:
+          example: 1428.0
+          type: number
+        num_aps:
+          example: 1
+          type: integer
+        num_users:
+          example: 3
+          type: integer
+        total_minutes:
+          example: 5566.0,
+          type: number
       type: object
     response_switch_metrics:
       properties:
@@ -71644,10 +71557,7 @@ components:
             running version
           type: boolean
         id:
-          example: 31223085-405d-4b64-8aea-9c5b98098b4b
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         strategy:
           $ref: '#/components/schemas/device_upgrade_strategy'
         target_version:
@@ -71800,8 +71710,7 @@ components:
           description: Number of frames in the output
           type: integer
         id:
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         mac:
           description: if `type`==`client` or `asset`, mac of the device
           type: string
@@ -71886,9 +71795,7 @@ components:
           readOnly: true
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         model_specific:
           additionalProperties:
             $ref: '#/components/schemas/rf_template_model_specific_property'
@@ -72543,10 +72450,7 @@ components:
           readOnly: true
           type: boolean
         id:
-          example: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         name:
@@ -72563,9 +72467,7 @@ components:
     rssi_zone_device:
       properties:
         device_id:
-          example: b069b358-4c97-5319-1f8c-7c5ca64d6ab1
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/device_id'
         rssi:
           description: RSSI threshold
           example: 0
@@ -72585,6 +72487,38 @@ components:
       items:
         $ref: '#/components/schemas/rssi_zone'
       type: array
+    saml_metadata:
+      properties:
+        acs_url:
+          description: if `idp_type`==`saml`
+          example: https://api.mist.com/api/v1/saml/llDfa13f/login
+          readOnly: true
+          type: string
+        entity_id:
+          description: if `idp_type`==`saml`
+          example: https://api.mist.com/api/v1/saml/llDfa13f/login
+          readOnly: true
+          type: string
+        logout_url:
+          description: if `idp_type`==`saml`
+          example: https://api.mist.com/api/v1/saml/llDfa13f/logout
+          readOnly: true
+          type: string
+        metadata:
+          description: if `idp_type`==`saml`
+          example: <?xml version="1.0" encoding="UTF-8"?><md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
+            entityID="https://api.mist.com/api/v1/saml/llDfa13f/login" validUntil="2027-10-12T21:59:01Z"
+            xmlns:ds="http://www.w3.org/2000/09/xmldsig#"><md:SPSSODescriptor AuthnRequestsSigned="false"
+            WantAssertionsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"><md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat><md:AssertionConsumerService
+            Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://api.mist.com/api/v1/saml/llDfa13f/login"
+            index="0" isDefault="true"/></md:SPSSODescriptor></md:EntityDescriptor>
+          readOnly: true
+          type: string
+        scim_base_url:
+          description: if `idp_type`==`oauth` and `scim_enabled`==`true`
+          example: https://scim.nac-staging.mistsys.com/S_41b2525a-e8b8-4809-8168-f1d8dcbe9735/azure/4d72b1dc-7503-4717-81ea-80d0125b886e
+          type: string
+      type: object
     scan_data_item_band:
       description: '5GHz or 2.4GHz band, associated with the BSSID scanned. enum:
         `2.4`, `5`'
@@ -72611,9 +72545,7 @@ components:
         expire_time:
           type: integer
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         name:
@@ -72641,9 +72573,7 @@ components:
       description: SDK Client Details statistics
       properties:
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         last_seen:
           description: last seen timestamp
           type: number
@@ -72681,9 +72611,7 @@ components:
     sdkstats_wireless_client_vbeacon:
       properties:
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         since:
           type: number
       required:
@@ -72701,9 +72629,7 @@ components:
     sdkstats_wireless_client_zone:
       properties:
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         since:
           type: number
       required:
@@ -72737,9 +72663,7 @@ components:
         header_txt:
           type: string
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         name:
@@ -73059,9 +72983,7 @@ components:
         created_time:
           $ref: '#/components/schemas/created_time'
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         name:
@@ -73119,9 +73041,7 @@ components:
         hostnames:
           $ref: '#/components/schemas/service_hostnames'
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         max_jitter:
           $ref: '#/components/schemas/service_max_jitter'
         max_latency:
@@ -73525,9 +73445,7 @@ components:
           nullable: true
           type: string
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         latlng:
           $ref: '#/components/schemas/lat_lng'
         modified_time:
@@ -73836,9 +73754,7 @@ components:
         hosts:
           $ref: '#/components/schemas/site_mxtunnel_hosts'
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         mtu:
@@ -74212,9 +74128,7 @@ components:
           nullable: true
           type: integer
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         led:
           $ref: '#/components/schemas/ap_led'
         mist_nac:
@@ -75073,9 +74987,7 @@ components:
         created_time:
           $ref: '#/components/schemas/created_time'
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         name:
@@ -76409,9 +76321,7 @@ components:
             the type of group
           type: string
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         idp_cert:
           description: if `idp_type`==`saml`. IDP Cert (used to verify the signed
             response)
@@ -76488,9 +76398,7 @@ components:
         modified_time:
           $ref: '#/components/schemas/modified_time'
         msp_id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/msp_id'
         mxedge_proxy:
           $ref: '#/components/schemas/sso_mxedge_proxy'
         name:
@@ -76510,6 +76418,8 @@ components:
         oauth_discovery_url:
           description: if `idp_type`==`oauth`
           type: string
+        oauth_ping_identity_region:
+          $ref: '#/components/schemas/oauth_ping_identity_region'
         oauth_ropc_client_id:
           description: if `idp_type`==`oauth`, ropc = Resource Owner Password Credentials
           example: 9ce04c97-b5b1-4ec8-af17-f5ed42d2daf7
@@ -76547,10 +76457,11 @@ components:
             for the OAuth IDP
           type: boolean
         scim_secret_token:
-          description: if `idp_type`==`oauth`, scim_secret_token (generated by caller,
-            crypto-random) is used as the Bearer token in the Authorization header
-            of SCIM provisioning requests by the IDP
-          example: secret token
+          description: if `idp_type`==`oauth`, scim_secret_token (auto-generated when
+            not provided by caller and `scim_enabled`==`true`, empty string when `scim_enabled`==`false`)
+            is used as the Bearer token in the Authorization header of SCIM provisioning
+            requests by the IDP
+          example: FBitbKPE1aecSloPGBuqqPxDUrFeZyZk
           type: string
         site_id:
           $ref: '#/components/schemas/site_id'
@@ -76606,7 +76517,6 @@ components:
       - custom
       - google
       - okta
-      - ping_identity
       type: string
     sso_mxedge_proxy:
       description: if `idp_type`==`mxedge_proxy`, this requires `mist_nac` to be enabled
@@ -76705,15 +76615,11 @@ components:
           readOnly: true
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         msp_id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/msp_id'
         name:
           type: string
         org_id:
@@ -76741,15 +76647,11 @@ components:
           readOnly: true
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         msp_id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/msp_id'
         name:
           type: string
         org_id:
@@ -76776,35 +76678,6 @@ components:
       items:
         $ref: '#/components/schemas/sso_role_org'
       type: array
-    sso_saml_metadata:
-      properties:
-        acs_url:
-          example: https://api.mist.com/api/v1/saml/llDfa13f/login
-          readOnly: true
-          type: string
-        entity_id:
-          example: https://api.mist.com/api/v1/saml/llDfa13f/login
-          readOnly: true
-          type: string
-        logout_url:
-          example: https://api.mist.com/api/v1/saml/llDfa13f/logout
-          readOnly: true
-          type: string
-        metadata:
-          example: <?xml version="1.0" encoding="UTF-8"?><md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
-            entityID="https://api.mist.com/api/v1/saml/llDfa13f/login" validUntil="2027-10-12T21:59:01Z"
-            xmlns:ds="http://www.w3.org/2000/09/xmldsig#"><md:SPSSODescriptor AuthnRequestsSigned="false"
-            WantAssertionsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol"><md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat><md:AssertionConsumerService
-            Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://api.mist.com/api/v1/saml/llDfa13f/login"
-            index="0" isDefault="true"/></md:SPSSODescriptor></md:EntityDescriptor>
-          readOnly: true
-          type: string
-      required:
-      - acs_url
-      - logout_url
-      - metadata
-      - entity_id
-      type: object
     ssos:
       items:
         $ref: '#/components/schemas/sso'
@@ -76876,8 +76749,7 @@ components:
         device_type:
           type: string
         id:
-          minLength: 1
-          type: string
+          $ref: '#/components/schemas/id'
         status:
           minLength: 1
           type: string
@@ -76999,14 +76871,14 @@ components:
           type: string
         fwupdate:
           $ref: '#/components/schemas/fwupdate_stat'
+        gps:
+          $ref: '#/components/schemas/stats_ap_gps_stat'
         hw_rev:
           nullable: true
           readOnly: true
           type: string
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         inactive_wired_vlans:
           $ref: '#/components/schemas/integers'
         iot_stat:
@@ -77104,10 +76976,7 @@ components:
           description: how many WLANs are applied to the device
           type: integer
         org_id:
-          format: uuid
-          nullable: true
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/org_id'
         port_stat:
           additionalProperties:
             $ref: '#/components/schemas/stats_ap_port_stat'
@@ -77166,9 +77035,7 @@ components:
           readOnly: true
           type: string
         site_id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/site_id'
         status:
           nullable: true
           readOnly: true
@@ -77523,6 +77390,40 @@ components:
           type: boolean
       readOnly: true
       type: object
+    stats_ap_gps_stat:
+      properties:
+        accuracy:
+          description: The estimated accuracy or accuracy of the GPS coordinates,
+            measured in meters.
+          example: 12.5
+          type: number
+        altitude:
+          description: The elevation of the AP above sea level, measured in meters.
+          example: 99.939
+          type: number
+        latitude:
+          description: The geographic latitude of the AP, measured in degrees.
+          example: 37.29548
+          type: number
+        longitude:
+          description: The geographic longitude of the AP, measured in degrees.
+          example: -122.03304
+          type: number
+        src:
+          $ref: '#/components/schemas/stats_ap_gps_stat_src'
+        timestamp:
+          description: The unix timestamp when the GPS data was recorded.
+          example: 1428949501
+          format: double
+          type: number
+      type: object
+    stats_ap_gps_stat_src:
+      description: "The origin of the GPS data. enum:\n  * `gps`: from this device\u2019\
+        s GPS estimates\n  * `other_ap` from neighboring device GPS estimates"
+      enum:
+      - gps
+      - other_ap
+      type: string
     stats_ap_iot_stat:
       additionalProperties:
         $ref: '#/components/schemas/stats_ap_iot_stat_additional_properties'
@@ -78102,8 +78003,7 @@ components:
         health_score:
           type: integer
         id:
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         mode:
           type: string
         model:
@@ -78178,10 +78078,7 @@ components:
           example: sj1
           type: string
         id:
-          description: serial
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         if2_stat:
           $ref: '#/components/schemas/if_stat'
         if_stat:
@@ -78238,10 +78135,7 @@ components:
           readOnly: true
           type: string
         org_id:
-          description: serial
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/org_id'
         ports:
           $ref: '#/components/schemas/optional_stat_ports'
         route_summary_stats:
@@ -78263,10 +78157,7 @@ components:
         service_status:
           $ref: '#/components/schemas/stats_gateway_service_status'
         site_id:
-          description: serial
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/site_id'
         spu2_stat:
           $ref: '#/components/schemas/stats_gateway_spu'
         spu_stat:
@@ -78361,9 +78252,7 @@ components:
           example: false
           type: boolean
         id:
-          example: 00000000-0000-0000-1000-020000a80cb4
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/id'
         ip_stat:
           $ref: '#/components/schemas/stats_mxedge_ip_stat'
         lag_stat:
@@ -78403,9 +78292,6 @@ components:
           $ref: '#/components/schemas/org_id'
         port_stat:
           $ref: '#/components/schemas/stats_mxedge_port_stats'
-        sensor_stat:
-          additionalProperties: true
-          type: object
         serial:
           nullable: true
           type: string
@@ -78867,13 +78753,11 @@ components:
         created_time:
           $ref: '#/components/schemas/created_time'
         id:
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         msp_id:
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/msp_id'
         name:
           type: string
         num_devices:
@@ -78948,10 +78832,7 @@ components:
       description: SDK Client statistics
       properties:
         id:
-          example: de87bf9d-183f-e383-cc68-6ba43947d403
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         last_seen:
           description: last seen timestamp
           example: 1428939600
@@ -79025,8 +78906,7 @@ components:
         created_time:
           $ref: '#/components/schemas/created_time'
         id:
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/id'
         lat:
           type: number
         latlng:
@@ -79036,9 +78916,7 @@ components:
         modified_time:
           $ref: '#/components/schemas/modified_time'
         msp_id:
-          format: uuid
-          nullable: true
-          type: string
+          $ref: '#/components/schemas/msp_id'
         name:
           type: string
         networktemplate_id:
@@ -79163,9 +79041,7 @@ components:
           description: device hardware revision number
           type: string
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         if_stat:
           $ref: '#/components/schemas/if_stat'
         ip:
@@ -79206,9 +79082,7 @@ components:
           readOnly: true
           type: string
         org_id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/org_id'
         ports:
           $ref: '#/components/schemas/optional_stat_ports'
         route_summary_stats:
@@ -79220,9 +79094,7 @@ components:
         service_stat:
           $ref: '#/components/schemas/service_stat'
         site_id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/site_id'
         status:
           example: connected
           readOnly: true
@@ -79991,9 +79863,7 @@ components:
     stats_wireless_client_rssi_zone:
       properties:
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         since:
           type: integer
       type: object
@@ -80006,9 +79876,7 @@ components:
     stats_wireless_client_vbeacon:
       properties:
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         since:
           type: integer
       type: object
@@ -80034,9 +79902,7 @@ components:
     stats_wireless_client_zone:
       properties:
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         since:
           type: integer
       type: object
@@ -80155,10 +80021,7 @@ components:
         created_time:
           $ref: '#/components/schemas/created_time'
         id:
-          description: id of the zone
-          example: 123470c7-5d9d-424a-8475-8b344c621234
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/id'
         map_id:
           description: map_id of the zone
           example: 123449d4-d12f-4feb-b40f-5be0e2ae1234
@@ -80250,10 +80113,7 @@ components:
         clients:
           $ref: '#/components/schemas/stats_zone_details_clients'
         id:
-          description: id of the zone
-          example: 8ac84899-32db-6327-334c-9b6d58544cfe
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/id'
         map_id:
           description: map_id of the zone
           example: 63eda950-c6da-11e4-a628-60f81dd250cc
@@ -80963,6 +80823,10 @@ components:
         stp_p2p:
           default: false
           type: boolean
+        use_vstp:
+          default: false
+          description: if this is connected to a vstp network
+          type: boolean
         voip_network:
           description: Only if `mode`!=`dynamic` network/vlan for voip traffic, must
             also set port_network. to authenticate device, set port_auth
@@ -81137,10 +81001,11 @@ components:
       type: object
     switch_stp_config:
       properties:
-        vstp_enabled:
-          default: false
-          description: ignored for switches participating in EVPN
-          type: boolean
+        bridge_priority:
+          default: 8k
+          description: 'Switch STP priority: from `0k` to `15k`'
+          example: 40k
+          type: string
       type: object
     switch_virtual_chassis:
       description: required for preprovisioned Virtual Chassis
@@ -81383,6 +81248,12 @@ components:
       items:
         $ref: '#/components/schemas/vlan_id_with_variable'
       type: array
+    synthetictest_protocol:
+      description: 'enum: `ping`, `traceroute`'
+      enum:
+      - ping
+      - traceroute
+      type: string
     synthetictest_radius_server:
       properties:
         password:
@@ -81489,9 +81360,7 @@ components:
           description: whether to further filter by Device Profile
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         name:
@@ -81609,9 +81478,7 @@ components:
           readOnly: true
           type: integer
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         requester:
           readOnly: true
           type: string
@@ -81688,10 +81555,7 @@ components:
           example: crash.png
           type: string
         id:
-          example: d56bd5fa-0a0a-4861-a9df-5ac83d3a2eeb
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         size_in_bytes:
           example: 1943
           type: integer
@@ -82039,6 +81903,11 @@ components:
           type: integer
         protocol:
           $ref: '#/components/schemas/tuntern_monitoring_protocol'
+        src_vlan_id:
+          description: optional source for the monitoring check, vlan_id configured
+            in tunterm_other_ip_configs
+          example: 5
+          type: integer
         timeout:
           default: 300
           example: 300
@@ -82124,10 +81993,7 @@ components:
           readOnly: true
           type: boolean
         id:
-          example: 3bdcc7e8-c04d-4512-b4fc-093da9057eb0
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         isCustomDataboard:
           type: boolean
         isScopeLinked:
@@ -82205,10 +82071,7 @@ components:
         hideEmptyRows:
           type: boolean
         id:
-          example: 7a9ab38c-cfc3-483d-b51a-0aec571fadc0
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         metric:
           $ref: '#/components/schemas/ui_settings_tile_metric'
         name:
@@ -82434,10 +82297,7 @@ components:
     upgrade_org_device_upgrade:
       properties:
         id:
-          example: 473f6eca-6276-4993-bfeb-53cbbbba6f18
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         start_time:
           example: 1717658765
           type: number
@@ -82696,10 +82556,7 @@ components:
         created_time:
           $ref: '#/components/schemas/created_time'
         id:
-          example: 864f351a-1377-4ad9-83f8-72f3fe6199ba
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         key:
           example: 1qkb...QQCL
           readOnly: true
@@ -82721,9 +82578,7 @@ components:
     user_mac:
       properties:
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         labels:
           $ref: '#/components/schemas/user_mac_labels'
         mac:
@@ -82808,9 +82663,6 @@ components:
       type: object
     utils_bounce_port:
       properties:
-        port:
-          description: the port to bounce
-          type: string
         ports:
           $ref: '#/components/schemas/utils_bounce_port_ports'
       type: object
@@ -83464,9 +83316,7 @@ components:
           readOnly: true
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         major:
           description: bluetooth tag major
           example: 1356
@@ -83673,9 +83523,9 @@ components:
         created_time:
           $ref: '#/components/schemas/created_time'
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
+        links:
+          $ref: '#/components/schemas/vpn_links'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         name:
@@ -83683,13 +83533,28 @@ components:
           type: string
         org_id:
           $ref: '#/components/schemas/org_id'
+        path_selection:
+          $ref: '#/components/schemas/vpn_path_selection'
         paths:
-          additionalProperties:
-            $ref: '#/components/schemas/vpn_path'
-          type: object
+          $ref: '#/components/schemas/vpn_paths'
+        type:
+          $ref: '#/components/schemas/vpn_type'
       required:
       - name
       - paths
+      type: object
+    vpn_links:
+      additionalProperties:
+        $ref: '#/components/schemas/vpn_links_steering'
+      description: "Gateways participating in mesh overlay by, on its vpn_path under\
+        \ wan port. \nThe steering behavior is defined at the overlay level.\n\nProperty\
+        \ Key is the Gateway Port name (e.g. `wan0`, `wan1`, `mpls`, ..)"
+      type: object
+    vpn_links_steering:
+      properties:
+        preference:
+          minimum: 0
+          type: integer
       type: object
     vpn_path:
       properties:
@@ -83712,6 +83577,25 @@ components:
       - broadband
       - lte
       type: string
+    vpn_path_selection:
+      description: Only if `type`==`hub_spoke`
+      properties:
+        strategy:
+          $ref: '#/components/schemas/vpn_path_selection_strategy'
+      type: object
+    vpn_path_selection_strategy:
+      default: disabled
+      description: 'enum: `disabled`, `simple`, `manual`'
+      enum:
+      - disabled
+      - simple
+      - manual
+      type: string
+    vpn_paths:
+      additionalProperties:
+        $ref: '#/components/schemas/vpn_path'
+      description: Only if `type`==`hub_spoke`. Property key is the VPN name
+      type: object
     vpn_peer_stat:
       properties:
         is_active:
@@ -83788,6 +83672,13 @@ components:
         $ref: '#/components/schemas/vpn_peer_stat'
       type: array
       uniqueItems: true
+    vpn_type:
+      default: hub_spoke
+      description: 'enum: `hub_spoke`, `mesh`'
+      enum:
+      - hub_spoke
+      - mesh
+      type: string
     vpns:
       items:
         $ref: '#/components/schemas/vpn'
@@ -83889,6 +83780,11 @@ components:
         example: guest
         type: string
       type: array
+    wan_extra_routes:
+      properties:
+        via:
+          type: string
+      type: object
     wan_tunnel_protocol:
       description: 'enum: `gre`, `ipsec`'
       enum:
@@ -83963,9 +83859,7 @@ components:
           nullable: true
           type: object
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         name:
@@ -84039,9 +83933,7 @@ components:
           readOnly: true
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         last_seen:
           readOnly: true
           type: number
@@ -84211,11 +84103,9 @@ components:
         admin_name:
           type: string
         device_id:
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/device_id'
         id:
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/id'
         message:
           type: string
         org_id:
@@ -84540,10 +84430,7 @@ components:
           description: error message, if there is one
           type: string
         id:
-          description: delivery ID
-          example: 55b0f02f-ebf6-4ad2-8b10-200508a97581
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/id'
         org_id:
           $ref: '#/components/schemas/org_id'
         req_headers:
@@ -84891,9 +84778,7 @@ components:
           example: 648520a1020000
           type: string
         site_id:
-          example: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/site_id'
         timestamp:
           example: 1461220784
           type: integer
@@ -84985,9 +84870,7 @@ components:
           format: uuid
           type: string
         site_id:
-          example: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/site_id'
         timestamp:
           example: 1461220784
           type: integer
@@ -85030,10 +84913,7 @@ components:
           format: uuid
           type: string
         id:
-          description: unique id of the client (a client would have different id for
-            different org)
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/id'
         mac:
           type: string
         map_id:
@@ -85099,9 +84979,7 @@ components:
     webhook_location_sdk_event:
       properties:
         id:
-          example: de87bf9d-183f-e383-cc68-6ba43947d403
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/id'
         map_id:
           example: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
           format: uuid
@@ -85110,9 +84988,7 @@ components:
           example: optional
           type: string
         site_id:
-          example: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/site_id'
         timestamp:
           example: 1461220784
           type: integer
@@ -85158,9 +85034,7 @@ components:
           format: uuid
           type: string
         site_id:
-          example: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/site_id'
         timestamp:
           example: 1461220784
           type: integer
@@ -85434,9 +85308,7 @@ components:
         occupancy_limit:
           type: integer
         org_id:
-          example: 52b50564-8821-4c3e-97be-5061c7760002
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/org_id'
         timestamp:
           type: number
         type:
@@ -85477,14 +85349,11 @@ components:
     webhook_ping_event:
       properties:
         id:
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/id'
         name:
           type: string
         site_id:
-          example: 43e9c864-a7e4-4310-8031-d9817d2c5a43
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/site_id'
         timestamp:
           type: number
       required:
@@ -85535,9 +85404,7 @@ components:
         scan_data:
           $ref: '#/components/schemas/webhook_sdkclient_scan_data_event_scan_data'
         site_id:
-          example: 3e9c864-a7e4-4310-8031-d9817d2c5a43
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/site_id'
       required:
       - connection_ap
       - connection_band
@@ -85608,13 +85475,9 @@ components:
     webhook_site_sle_event:
       properties:
         org_id:
-          example: 52b50564-8821-4c3e-97be-5061c7760002
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/org_id'
         site_id:
-          example: 3e9c864-a7e4-4310-8031-d9817d2c5a43
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/site_id'
         sle:
           $ref: '#/components/schemas/webhook_site_sle_event_sle'
         timestamp:
@@ -85637,48 +85500,11 @@ components:
       items:
         $ref: '#/components/schemas/webhook_site_sle_event'
       type: array
-    webhook_topic:
-      description: 'enum: `alarms`, `asset-raw`, `asset-raw-rssi`, `audits`, `client-info`,
-        `client-join`, `client-latency`, `client-sessions`, `device-updowns`, `device-events`,
-        `discovered-raw-rssi`, `location`, `location_asset`, `location_centrak`, `location_client`,
-        `location_sdk`, `location_unclient`, `mxedge-events`, `nac-accounting`, `nac_events`,
-        `occupancy-alerts`, `rssizone`, `sdkclient_scan_data`, `site_sle`, `vbeacon`,
-        `wifi-conn-raw`, `wifi-unconn-raw`, `zone`'
-      enum:
-      - alarms
-      - asset-raw
-      - asset-raw-rssi
-      - audits
-      - client-info
-      - client-join
-      - client-latency
-      - client-sessions
-      - device-events
-      - device-updowns
-      - discovered-raw-rssi
-      - location
-      - location_asset
-      - location_centrak
-      - location_client
-      - location_sdk
-      - location_unclient
-      - mxedge-events
-      - nac-accounting
-      - nac_events
-      - occupancy-alerts
-      - rssizone
-      - sdkclient_scan_data
-      - site_sle
-      - vbeacon
-      - wifi-conn-raw
-      - wifi-unconn-raw
-      - zone
-      type: string
     webhook_topics:
-      description: N.B. For org webhooks, only alarms/audits/client-info/client-join/client-sessions/device-events/device-updowns/mxedge-events/nac-sessions/nac_events
-        topics are supported.
+      description: List of supported webhook topics available with the API Call [List
+        Webhook Topics]($e/Constants%20Definitions/listWebhookTopics)
       items:
-        $ref: '#/components/schemas/webhook_topic'
+        type: string
       type: array
     webhook_type:
       default: http-post
@@ -85710,9 +85536,7 @@ components:
           format: uuid
           type: string
         id:
-          description: uuid of SDK-client
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/id'
         mac:
           description: mac address of wifi client or asset
           type: string
@@ -85724,9 +85548,7 @@ components:
           description: name of the client, may be empty
           type: string
         site_id:
-          example: 3e9c864-a7e4-4310-8031-d9817d2c5a43
-          format: uuid
-          type: string
+          $ref: '#/components/schemas/site_id'
         timestamp:
           description: timestamp of the event, epoch
           type: integer
@@ -86166,9 +85988,7 @@ components:
         hotspot20:
           $ref: '#/components/schemas/wlan_hotspot_20'
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         inject_dhcp_option_82:
           $ref: '#/components/schemas/wlan_inject_dhcp_option_82'
         interface:
@@ -86215,10 +86035,7 @@ components:
         modified_time:
           $ref: '#/components/schemas/modified_time'
         msp_id:
-          default: ''
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/msp_id'
         mxtunnel_id:
           deprecated: true
           description: (deprecated, use mxtunnel_ids instead) when `interface`==`mxtunnel`,
@@ -86981,6 +86798,10 @@ components:
     wlan_inject_dhcp_option_82:
       properties:
         circuit_id:
+          description: "information to set in the `circuit_id` field of the DHCP Option\
+            \ 82. It is possible to use static string or the following variables (e.g.\
+            \ `{{SSID}}:{{AP_MAC}}`):\n  * {{AP_MAC}}\n  * {{AP_MAC_DASHED}}\n  *\
+            \ {{AP_MODEL}}\n  * {{AP_NAME}}\n  * {{SITE_NAME}}\n  * {{SSID}}"
           example: '{{SSID}}:{{AP_MAC}}'
           type: string
         enabled:
@@ -88414,9 +88235,7 @@ components:
           readOnly: true
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         modified_time:
           $ref: '#/components/schemas/modified_time'
         order:
@@ -88521,9 +88340,7 @@ components:
           readOnly: true
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         last_ips:
           $ref: '#/components/schemas/wxlan_tag_last_ips'
         mac:
@@ -88701,9 +88518,7 @@ components:
             \ to MAC\n  * %M: MAC (e.g. 5c5b350e0060)"
           type: string
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         ipsec:
           $ref: '#/components/schemas/wxlan_tunnel_ipsec'
         is_static:
@@ -88886,9 +88701,7 @@ components:
           readOnly: true
           type: boolean
         id:
-          format: uuid
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/id'
         map_id:
           description: map where this zone is defined
           format: uuid
