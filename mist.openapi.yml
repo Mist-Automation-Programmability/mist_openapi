@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2410.1.9**
+  description: '> Version: **2410.1.10**
 
     >
 
-    > Date: **November 15, 2024**
+    > Date: **November 18, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2410.1.9
+  version: 2410.1.10
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -59970,12 +59970,14 @@ components:
     evpn_topology_switch:
       properties:
         config:
-          $ref: '#/components/schemas/device_switch'
+          $ref: '#/components/schemas/evpn_topology_switch_config'
         deviceprofile_id:
           example: 6a1deab1-96df-4fa2-8455-d5253f943d06
           format: uuid
           readOnly: true
           type: string
+        downlink_ips:
+          $ref: '#/components/schemas/evpn_topology_switch_downlink_ips'
         downlinks:
           $ref: '#/components/schemas/evpn_topology_switch_downlinks'
         esilaglinks:
@@ -59989,6 +59991,8 @@ components:
           minLength: 1
           type: string
         model:
+          example: QFX10002-36Q
+          readOnly: true
           type: string
         pod:
           default: 1
@@ -60003,6 +60007,10 @@ components:
           $ref: '#/components/schemas/evpn_topology_switch_pods'
         role:
           $ref: '#/components/schemas/evpn_topology_switch_role'
+        router_id:
+          example: 172.16.254.4
+          readOnly: true
+          type: string
         site_id:
           $ref: '#/components/schemas/site_id'
         suggested_downlinks:
@@ -60013,19 +60021,57 @@ components:
           $ref: '#/components/schemas/evpn_topology_switch_suggested_uplinks'
         uplinks:
           $ref: '#/components/schemas/evpn_topology_switch_uplinks'
+      required:
+      - mac
+      - role
       type: object
-    evpn_topology_switch_downlinks:
+    evpn_topology_switch_config:
+      properties:
+        dhcpd_config:
+          $ref: '#/components/schemas/switch_dhcpd_config'
+        networks:
+          $ref: '#/components/schemas/switch_networks'
+        other_ip_configs:
+          additionalProperties:
+            $ref: '#/components/schemas/junos_other_ip_config'
+          description: Property key is the network name
+          type: object
+        port_config:
+          additionalProperties:
+            $ref: '#/components/schemas/junos_port_config'
+          description: Property key is the port name or range (e.g. "ge-0/0/0-10")
+          type: object
+        port_usages:
+          $ref: '#/components/schemas/switch_port_usages'
+        router_id:
+          description: used for OSPF / BGP / EVPN
+          example: 10.2.1.10
+          type: string
+        vrf_config:
+          $ref: '#/components/schemas/vrf_config'
+      type: object
+    evpn_topology_switch_downlink_ips:
       items:
-        example: 5c5b35000007
         readOnly: true
         type: string
       readOnly: true
       type: array
-    evpn_topology_switch_esilaglinks:
+    evpn_topology_switch_downlinks:
+      example:
+      - 5c5b35000005
+      - 5c5b35000006
       items:
-        example: 5c5b3500000f
+        type: string
+      readOnly: true
+      type: array
+    evpn_topology_switch_esilaglinks:
+      example:
+      - 5c5b35000005
+      - 5c5b35000006
+      items:
         readOnly: true
         type: string
+      readOnly: true
       type: array
     evpn_topology_switch_pods:
       description: "by default, core switches are assumed to be connecting all pods.\
@@ -60050,6 +60096,7 @@ components:
       - 5c5b35000005
       - 5c5b35000006
       items:
+        readOnly: true
         type: string
       readOnly: true
       type: array
@@ -60058,6 +60105,7 @@ components:
       - 5c5b35000005
       - 5c5b35000006
       items:
+        readOnly: true
         type: string
       readOnly: true
       type: array
@@ -60066,13 +60114,15 @@ components:
       - 5c5b35000005
       - 5c5b35000006
       items:
+        readOnly: true
         type: string
       readOnly: true
       type: array
     evpn_topology_switch_uplinks:
-      description: if not specified in the request, suggested ones will be used
+      example:
+      - 5c5b35000005
+      - 5c5b35000006
       items:
-        example: 5c5b35000005
         readOnly: true
         type: string
       readOnly: true
