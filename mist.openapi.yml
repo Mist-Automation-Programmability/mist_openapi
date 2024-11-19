@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2410.1.11**
+  description: '> Version: **2410.1.12**
 
     >
 
-    > Date: **November 18, 2024**
+    > Date: **November 19, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2410.1.11
+  version: 2410.1.12
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -58599,7 +58599,8 @@ components:
         other_ip_configs:
           additionalProperties:
             $ref: '#/components/schemas/junos_other_ip_config'
-          description: Property key is the network name
+          description: Property key is the network name. Defines the additional IP
+            Addresses configured on the device.
           type: object
         port_config:
           additionalProperties:
@@ -60025,11 +60026,47 @@ components:
       type: object
     evpn_topology_switch_config:
       properties:
+        dhcpd_config:
+          $ref: '#/components/schemas/evpn_topology_switch_config_dhcpd_config'
+        networks:
+          $ref: '#/components/schemas/networks'
+        other_ip_configs:
+          $ref: '#/components/schemas/evpn_topology_switch_config_other_ip_configs'
         port_config:
           additionalProperties:
             $ref: '#/components/schemas/junos_port_config'
           description: Property key is the port name or range (e.g. "ge-0/0/0-10")
           type: object
+        port_usages:
+          $ref: '#/components/schemas/switch_port_usages'
+        router_id:
+          description: used for OSPF / BGP / EVPN
+          example: 10.2.1.10
+          readOnly: true
+          type: string
+        vrf_config:
+          $ref: '#/components/schemas/evpn_topology_switch_config_vrf_config'
+      type: object
+    evpn_topology_switch_config_dhcpd_config:
+      properties:
+        enabled:
+          description: If DHCPD is enabled on the switch
+          type: boolean
+      readOnly: true
+      type: object
+    evpn_topology_switch_config_other_ip_configs:
+      additionalProperties:
+        $ref: '#/components/schemas/junos_other_ip_config'
+      description: additional IP Addresses configured on the switch. Property key
+        is the port network name
+      readOnly: true
+      type: object
+    evpn_topology_switch_config_vrf_config:
+      properties:
+        enabled:
+          description: whether to enable VRF (when supported on the device)
+          type: boolean
+      readOnly: true
       type: object
     evpn_topology_switch_downlink_ips:
       items:
@@ -60043,16 +60080,13 @@ components:
       - 5c5b35000006
       items:
         type: string
-      readOnly: true
       type: array
     evpn_topology_switch_esilaglinks:
       example:
       - 5c5b35000005
       - 5c5b35000006
       items:
-        readOnly: true
         type: string
-      readOnly: true
       type: array
     evpn_topology_switch_pods:
       description: "by default, core switches are assumed to be connecting all pods.\
@@ -60104,9 +60138,7 @@ components:
       - 5c5b35000005
       - 5c5b35000006
       items:
-        readOnly: true
         type: string
-      readOnly: true
       type: array
     evpn_topology_switches:
       items:
@@ -60371,7 +60403,7 @@ components:
       type: object
     gateway_matching_rule:
       additionalProperties:
-        description: 'property key define the type of matchine. e.g: `match_name[0:3]`,
+        description: 'property key defines the type of matchine. e.g: `match_name[0:3]`,
           `match_model[0-6]` or `match_role`'
         type: string
       properties:
@@ -62506,8 +62538,7 @@ components:
         speed:
           $ref: '#/components/schemas/junos_port_config_speed'
         usage:
-          description: "port usage name. \n\nIf EVPN is used, use `evpn_uplink`or\
-            \ `evpn_downlink`"
+          description: port usage name. If EVPN is used, use `evpn_uplink`or `evpn_downlink`
           type: string
       required:
       - usage
@@ -80324,7 +80355,7 @@ components:
     switch_matching_rule:
       additionalProperties:
         type: string
-      description: 'property key define the type of matching, value is the string
+      description: 'property key defines the type of matching, value is the string
         to match. e.g: `match_name[0:3]`, `match_name[2:6]`, `match_model`,  `match_model[0-6]`'
       example:
         match_model: EX4300
@@ -80977,6 +81008,8 @@ components:
     switch_port_usages:
       additionalProperties:
         $ref: '#/components/schemas/switch_port_usage'
+      description: Property key is the port usage name. Defines the profiles of port
+        configuration configured on the switch
       type: object
     switch_radius:
       description: by default, `radius_config` will be used. if a different one has
