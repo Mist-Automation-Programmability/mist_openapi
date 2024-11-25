@@ -3,7 +3,7 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2410.1.14**
+  description: '> Version: **2410.1.15**
 
     >
 
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2410.1.14
+  version: 2410.1.15
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -59873,10 +59873,11 @@ components:
           $ref: '#/components/schemas/evpn_options_overlay'
         per_vlan_vga_v4_mac:
           default: false
-          description: 'by default, JUNOS uses 00-00-5e-00-01-01 as the virtual-gateway-address''s
-            v4_mac
+          description: 'only for by Core-Distribution architecture when `evpn_options.routed_at`==`core`.
+            By default, JUNOS uses 00-00-5e-00-01-01 as the virtual-gateway-address''s
 
-            if enabled, 00-00-5e-00-XX-YY will be used (where XX=vlan_id/256, YY=vlan_id%256)'
+            v4_mac. If enabled, 00-00-5e-00-XX-YY will be used (where XX=vlan_id/256,
+            YY=vlan_id%256)'''
           type: boolean
         routed_at:
           $ref: '#/components/schemas/evpn_options_routed_at'
@@ -86637,10 +86638,10 @@ components:
       description: data rates wlan settings
       properties:
         ht:
-          description: MCS bitmasks for 4 streams (16-bit for each stream, MCS0 is
-            least significant bit), e.g. 00ff 00f0 001f limits HT rates to MCS 0-7
-            for 1 stream, MCS 4-7 for 2 stream (i.e. MCS 12-15), MCS 1-5 for 3 stream
-            (i.e. MCS 16-20)
+          description: if `template`==`custom`. MCS bitmasks for 4 streams (16-bit
+            for each stream, MCS0 is least significant bit), e.g. 00ff 00f0 001f limits
+            HT rates to MCS 0-7 for 1 stream, MCS 4-7 for 2 stream (i.e. MCS 12-15),
+            MCS 1-5 for 3 stream (i.e. MCS 16-20)
           example: 00ff00ff00ff
           nullable: true
           type: string
@@ -86651,31 +86652,21 @@ components:
           example: -70
           type: integer
         template:
-          description: '* `no-legacy`: no 11b
-
-            * `compatible`: all, like before, default setting that Broadcom/Atheros
-            used
-
-            * `legacy-only`: disable 802.11n and 802.11ac
-
-            * `high-density`: no 11b, no low rates
-
-            * `custom`: user defined'
-          nullable: true
-          type: string
+          $ref: '#/components/schemas/wlan_datarates_template'
         vht:
-          description: MCS bitmasks for 4 streams (16-bit for each stream, MCS0 is
-            least significant bit), e.g. 03ff 01ff 00ff limits VHT rates to MCS 0-9
-            for 1 stream, MCS 0-8 for 2 streams, and MCS 0-7 for 3 streams.
+          description: if `template`==`custom`. MCS bitmasks for 4 streams (16-bit
+            for each stream, MCS0 is least significant bit), e.g. 03ff 01ff 00ff limits
+            VHT rates to MCS 0-9 for 1 stream, MCS 0-8 for 2 streams, and MCS 0-7
+            for 3 streams.
           example: 03ff03ff03ff01ff
           type: string
       type: object
     wlan_datarates_legacy:
-      description: "list of supported rates (IE=1) and extended supported rates (IE=50)\
-        \ for custom template, append \u2018b\u2019 at the end to indicate a rate\
-        \ being basic/mandatory. If `template`==`custom` is configured and legacy\
-        \ does not define at least one basic rate, it will use `no-legacy` default\
-        \ values"
+      description: "if `template`==`custom`. List of supported rates (IE=1) and extended\
+        \ supported rates (IE=50) for custom template, append \u2018b\u2019 at the\
+        \ end to indicate a rate being basic/mandatory. If `template`==`custom` is\
+        \ configured and legacy does not define at least one basic rate, it will use\
+        \ `no-legacy` default values"
       example:
       - '6'
       - '9'
@@ -86717,6 +86708,18 @@ components:
       - 6b
       - '9'
       - 9b
+      type: string
+    wlan_datarates_template:
+      description: "Data Rates template to apply. enum: \n  * `no-legacy`: no 11b\n\
+        \  * `compatible`: all, like before, default setting that Broadcom/Atheros\
+        \ used\n  * `legacy-only`: disable 802.11n and 802.11ac\n  * `high-density`:\
+        \ no 11b, no low rates\n  * `custom`: user defined"
+      enum:
+      - compatible
+      - legacy-only
+      - custom
+      - no-legacy
+      nullable: true
       type: string
     wlan_dns_server_rewrite:
       description: for radius_group-based DNS server (rewrite DNS request depending
@@ -88283,7 +88286,7 @@ components:
           $ref: '#/components/schemas/wlan_datarates'
       type: object
     wlan_roam_mode:
-      default: none
+      default: NONE
       description: 'enum: `11r`, `OKC`, `NONE`'
       enum:
       - 11r
