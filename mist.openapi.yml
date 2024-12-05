@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2410.1.19**
+  description: '> Version: **2412.1.0**
 
     >
 
-    > Date: **December 3, 2024**
+    > Date: **December 5, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2410.1.19
+  version: 2412.1.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -6420,6 +6420,34 @@ paths:
       summary: claimOrgLicense
       tags:
       - Orgs Licenses
+  /api/v1/orgs/{org_id}/claim/status:
+    get:
+      description: Get Processing Status for Async Claim
+      operationId: GetOrgLicenseAsyncClaimStatus
+      parameters:
+      - description: request license details
+        in: query
+        name: detail
+        schema:
+          type: boolean
+      responses:
+        '200':
+          $ref: '#/components/responses/AsyncLicence'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: GetOrgLicenseAsyncClaimStatus
+      tags:
+      - Orgs Licenses
+    parameters:
+    - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/clients/count:
     get:
       description: Count Org Wireless Clients
@@ -7569,7 +7597,7 @@ paths:
       - in: query
         name: device_type
         schema:
-          $ref: '#/components/schemas/device_type'
+          $ref: '#/components/schemas/device_type_with_all'
       - description: event message
         in: query
         name: text
@@ -7750,6 +7778,11 @@ paths:
         name: version
         schema:
           type: string
+      - description: External IP Address
+        in: query
+        name: ext_ip
+        schema:
+          type: string
       - description: power_constrained
         in: query
         name: power_constrained
@@ -7792,6 +7825,16 @@ paths:
         name: lldp_mgmt_addr
         schema:
           type: string
+      - description: LLDP Allocated Powe
+        in: query
+        name: lldp_power_allocated
+        schema:
+          type: integer
+      - description: LLDP Negotiated Power
+        in: query
+        name: lldp_power_draw
+        schema:
+          type: integer
       - description: bandwidth of band_24
         in: query
         name: band_24_bandwidth
@@ -7820,6 +7863,21 @@ paths:
       - description: Channel of band_6
         in: query
         name: band_6_channel
+        schema:
+          type: integer
+      - description: Power of band_24
+        in: query
+        name: band_24_power
+        schema:
+          type: integer
+      - description: Power of band_5
+        in: query
+        name: band_5_power
+        schema:
+          type: integer
+      - description: Power of band_6
+        in: query
+        name: band_6_power
         schema:
           type: integer
       - description: Port speed of eth0
@@ -10544,14 +10602,49 @@ paths:
         content:
           application/json:
             examples:
-              example-1:
+              Upgrade_MxEdge:
                 value:
+                  allow_downgrades:
+                    mxagent: false
+                    tunterm: true
+                  canary_phases:
+                  - 5
+                  - 25
+                  - 50
+                  - 100
                   channel: stable
+                  max_failure_percentage: 5
+                  max_failures:
+                  - 1
+                  - 1
+                  - 5
+                  - 5
                   mxedge_ids:
                   - 387804a7-3474-85ce-15a2-f9a9684c9c90
+                  start_time: 1624399840
+                  strategy: serial
                   versions:
-                    mxagent: current
+                    mxagent: latest
+                    radsecproxy: <version>
                     tunterm: default
+              Upgrade_MxEdge_Distro:
+                value:
+                  canary_phases:
+                  - 5
+                  - 25
+                  - 50
+                  - 100
+                  distro: buster
+                  max_failure_percentage: 5
+                  max_failures:
+                  - 1
+                  - 1
+                  - 5
+                  - 5
+                  mxedge_ids:
+                  - 387804a7-3474-85ce-15a2-f9a9684c9c90
+                  start_time: 1624399840
+                  strategy: serial
             schema:
               $ref: '#/components/schemas/mxedge_upgrade_multi'
         description: Request Body
@@ -16144,7 +16237,7 @@ paths:
               $ref: '#/components/schemas/account_oauth_add'
       responses:
         '200':
-          description: Successful
+          $ref: '#/components/responses/OauthAppLink'
         '400':
           description: Unsuccessful
         '401':
@@ -17775,166 +17868,6 @@ paths:
       summary: listOrgSiteStats
       tags:
       - Orgs Stats - Sites
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-  /api/v1/orgs/{org_id}/stats/switch_ports/count:
-    get:
-      description: Count by Distinct Attributes of Switch/Gateway Ports
-      operationId: countOrgSwitchPorts
-      parameters:
-      - in: query
-        name: distinct
-        schema:
-          $ref: '#/components/schemas/org_switch_port_count_distinct'
-      - description: indicates full or half duplex
-        in: query
-        name: full_duplex
-        schema:
-          type: boolean
-      - description: device identifier
-        in: query
-        name: mac
-        schema:
-          type: string
-      - description: Chassis identifier of the chassis type listed
-        in: query
-        name: neighbor_mac
-        schema:
-          type: string
-      - description: "Description supplied by the system on the interface E.g. \u201C\
-          GigabitEthernet2/0/39\u201D"
-        in: query
-        name: neighbor_port_desc
-        schema:
-          type: string
-      - description: "Name supplied by the system on the interface E.g. neighbor system\
-          \ name E.g. \u201CKumar-Acc-SW.mist.local\u201D"
-        in: query
-        name: neighbor_system_name
-        schema:
-          type: string
-      - description: is the POE configured not be disabled.
-        in: query
-        name: poe_disabled
-        schema:
-          type: boolean
-      - description: "poe mode depending on class E.g. \u201C802.3at\u201D"
-        in: query
-        name: poe_mode
-        schema:
-          type: string
-      - description: is the device attached to POE
-        in: query
-        name: poe_on
-        schema:
-          type: boolean
-      - description: interface name
-        in: query
-        name: port_id
-        schema:
-          type: string
-      - description: interface mac address
-        in: query
-        name: port_mac
-        schema:
-          type: string
-      - description: Amount of power being used by the interface at the time the command
-          is executed. Unit in watts.
-        in: query
-        name: power_draw
-        schema:
-          type: number
-      - description: Output packets
-        in: query
-        name: tx_pkts
-        schema:
-          type: integer
-      - description: Input packets
-        in: query
-        name: rx_pkts
-        schema:
-          type: integer
-      - description: Input bytes
-        in: query
-        name: rx_bytes
-        schema:
-          type: integer
-      - description: Output rate
-        in: query
-        name: tx_bps
-        schema:
-          type: integer
-      - description: Input rate
-        in: query
-        name: rx_bps
-        schema:
-          type: integer
-      - description: Multicast output packets
-        in: query
-        name: tx_mcast_pkts
-        schema:
-          type: integer
-      - description: Broadcast output packets
-        in: query
-        name: tx_bcast_pkts
-        schema:
-          type: integer
-      - description: Multicast input packets
-        in: query
-        name: rx_mcast_pkts
-        schema:
-          type: integer
-      - description: Broadcast input packets
-        in: query
-        name: rx_bcast_pkts
-        schema:
-          type: integer
-      - description: port speed
-        in: query
-        name: speed
-        schema:
-          type: integer
-      - description: if `up`==`true`
-        in: query
-        name: stp_state
-        schema:
-          $ref: '#/components/schemas/count_ports_stp_state'
-      - description: if `up`==`true`
-        in: query
-        name: stp_role
-        schema:
-          $ref: '#/components/schemas/count_ports_stp_role'
-      - description: if `up`==`true`
-        in: query
-        name: auth_state
-        schema:
-          $ref: '#/components/schemas/count_ports_auth_state'
-      - description: indicates if interface is up
-        in: query
-        name: up
-        schema:
-          type: boolean
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
-      responses:
-        '200':
-          $ref: '#/components/responses/Count'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: countOrgSwitchPorts
-      tags:
-      - Orgs Stats - Ports
     parameters:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/stats/tunnels/count:
@@ -27154,10 +27087,10 @@ paths:
       - Sites Maps - Auto-placement
   /api/v1/sites/{site_id}/maps/{map_id}/auto_zones:
     delete:
-      description: This API is called to cancel auto zones for a given map and to
-        delete the suggested zones returned by the service. If the service was not
-        it will still delete any suggested zones and clear the auto zones service
-        status.
+      description: This API starts the auto zones service for a specified map. This
+        map must have an image to parse for the auto zones service. Repeated POST
+        requests to this endpoint while the auto zones service is proccessing the
+        map or awaiting review will be rejected.
       operationId: deleteSiteMapAutoZone
       responses:
         '200':
@@ -32816,321 +32749,6 @@ paths:
     parameters:
     - $ref: '#/components/parameters/site_id'
     - $ref: '#/components/parameters/sdkclient_id'
-  /api/v1/sites/{site_id}/stats/switch_ports/count:
-    get:
-      description: Count by Distinct Attributes of Switch/Gateway Ports
-      operationId: countSiteSwitchPorts
-      parameters:
-      - in: query
-        name: distinct
-        schema:
-          $ref: '#/components/schemas/site_switch_ports_count_distinct'
-      - description: indicates full or half duplex
-        in: query
-        name: full_duplex
-        schema:
-          type: boolean
-      - description: device identifier
-        in: query
-        name: mac
-        schema:
-          type: string
-      - description: Chassis identifier of the chassis type listed
-        in: query
-        name: neighbor_mac
-        schema:
-          type: string
-      - description: "Description supplied by the system on the interface E.g. \u201C\
-          GigabitEthernet2/0/39\u201D"
-        in: query
-        name: neighbor_port_desc
-        schema:
-          type: string
-      - description: "Name supplied by the system on the interface E.g. neighbor system\
-          \ name E.g. \u201CKumar-Acc-SW.mist.local\u201D"
-        in: query
-        name: neighbor_system_name
-        schema:
-          type: string
-      - description: is the POE configured not be disabled.
-        in: query
-        name: poe_disabled
-        schema:
-          type: boolean
-      - description: "poe mode depending on class E.g. \u201C802.3at\u201D"
-        in: query
-        name: poe_mode
-        schema:
-          type: string
-      - description: is the device attached to POE
-        in: query
-        name: poe_on
-        schema:
-          type: boolean
-      - description: interface name
-        in: query
-        name: port_id
-        schema:
-          type: string
-      - description: interface mac address
-        in: query
-        name: port_mac
-        schema:
-          type: string
-      - description: Amount of power being used by the interface at the time the command
-          is executed. Unit in watts.
-        in: query
-        name: power_draw
-        schema:
-          type: number
-      - description: Output packets
-        in: query
-        name: tx_pkts
-        schema:
-          type: integer
-      - description: Input packets
-        in: query
-        name: rx_pkts
-        schema:
-          type: integer
-      - description: Input bytes
-        in: query
-        name: rx_bytes
-        schema:
-          type: integer
-      - description: Output rate
-        in: query
-        name: tx_bps
-        schema:
-          type: integer
-      - description: Input rate
-        in: query
-        name: rx_bps
-        schema:
-          type: integer
-      - description: Multicast output packets
-        in: query
-        name: tx_mcast_pkts
-        schema:
-          type: integer
-      - description: Broadcast output packets
-        in: query
-        name: tx_bcast_pkts
-        schema:
-          type: integer
-      - description: Multicast input packets
-        in: query
-        name: rx_mcast_pkts
-        schema:
-          type: integer
-      - description: Broadcast input packets
-        in: query
-        name: rx_bcast_pkts
-        schema:
-          type: integer
-      - description: port speed
-        in: query
-        name: speed
-        schema:
-          type: integer
-      - description: if `up`==`true`
-        in: query
-        name: stp_state
-        schema:
-          $ref: '#/components/schemas/count_ports_stp_state'
-      - description: if `up`==`true`
-        in: query
-        name: stp_role
-        schema:
-          $ref: '#/components/schemas/count_ports_stp_role'
-      - description: if `up`==`true`
-        in: query
-        name: auth_state
-        schema:
-          $ref: '#/components/schemas/count_ports_auth_state'
-      - description: indicates if interface is up
-        in: query
-        name: up
-        schema:
-          type: boolean
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
-      responses:
-        '200':
-          $ref: '#/components/responses/Count'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: countSiteSwitchPorts
-      tags:
-      - Sites Stats - Ports
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/stats/switch_ports/search:
-    get:
-      description: Search Switch / Gateway Ports
-      operationId: searchSiteSwitchPorts
-      parameters:
-      - description: indicates full or half duplex
-        in: query
-        name: full_duplex
-        schema:
-          type: boolean
-      - description: device identifier
-        in: query
-        name: mac
-        schema:
-          type: string
-      - description: Chassis identifier of the chassis type listed
-        in: query
-        name: neighbor_mac
-        schema:
-          type: string
-      - description: "Description supplied by the system on the interface E.g. \u201C\
-          GigabitEthernet2/0/39\u201D"
-        in: query
-        name: neighbor_port_desc
-        schema:
-          type: string
-      - description: "Name supplied by the system on the interface E.g. neighbor system\
-          \ name E.g. \u201CKumar-Acc-SW.mist.local\u201D"
-        in: query
-        name: neighbor_system_name
-        schema:
-          type: string
-      - description: is the POE configured not be disabled.
-        in: query
-        name: poe_disabled
-        schema:
-          type: boolean
-      - description: "poe mode depending on class E.g. \u201C802.3at\u201D"
-        in: query
-        name: poe_mode
-        schema:
-          type: string
-      - description: is the device attached to POE
-        in: query
-        name: poe_on
-        schema:
-          type: boolean
-      - description: interface name
-        in: query
-        name: port_id
-        schema:
-          type: string
-      - description: interface mac address
-        in: query
-        name: port_mac
-        schema:
-          type: string
-      - description: Amount of power being used by the interface at the time the command
-          is executed. Unit in watts.
-        in: query
-        name: power_draw
-        schema:
-          type: number
-      - description: Output packets
-        in: query
-        name: tx_pkts
-        schema:
-          type: integer
-      - description: Input packets
-        in: query
-        name: rx_pkts
-        schema:
-          type: integer
-      - description: Input bytes
-        in: query
-        name: rx_bytes
-        schema:
-          type: integer
-      - description: Output rate
-        in: query
-        name: tx_bps
-        schema:
-          type: integer
-      - description: Input rate
-        in: query
-        name: rx_bps
-        schema:
-          type: integer
-      - description: Multicast output packets
-        in: query
-        name: tx_mcast_pkts
-        schema:
-          type: integer
-      - description: Broadcast output packets
-        in: query
-        name: tx_bcast_pkts
-        schema:
-          type: integer
-      - description: Multicast input packets
-        in: query
-        name: rx_mcast_pkts
-        schema:
-          type: integer
-      - description: Broadcast input packets
-        in: query
-        name: rx_bcast_pkts
-        schema:
-          type: integer
-      - description: port speed
-        in: query
-        name: speed
-        schema:
-          type: integer
-      - description: if `up`==`true`
-        in: query
-        name: stp_state
-        schema:
-          $ref: '#/components/schemas/search_site_switch_ports_stp_state'
-      - description: if `up`==`true`
-        in: query
-        name: stp_role
-        schema:
-          $ref: '#/components/schemas/search_site_switch_ports_stp_role'
-      - description: if `up`==`true` && has Authenticator role
-        in: query
-        name: auth_state
-        schema:
-          $ref: '#/components/schemas/search_site_switch_ports_auth_state'
-      - description: indicates if interface is up
-        in: query
-        name: up
-        schema:
-          type: boolean
-      - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
-      - $ref: '#/components/parameters/duration'
-      responses:
-        '200':
-          $ref: '#/components/responses/SwitchPortsSearch'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: searchSiteSwitchPorts
-      tags:
-      - Sites Stats - Ports
-    parameters:
-    - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/switches/metrics:
     get:
       description: Get version compliance metrics for managed or monitored switches
@@ -38549,6 +38167,30 @@ components:
           schema:
             $ref: '#/components/schemas/response_assign_success'
       description: OK - list only devices that has deviceprofile_id changed
+    AsyncLicence:
+      content:
+        application/json:
+          examples:
+            example-1:
+              value:
+                completed:
+                - '000000000022'
+                - '000000000011'
+                details:
+                - mac: '000000000022'
+                  status: added
+                  timestamp: 1709598053
+                failed: 0
+                incompleted: []
+                processed: 2
+                scheduled_at: 1709598052
+                status: done
+                succeed: 2
+                timestamp: 1709598053
+                total: 2
+          schema:
+            $ref: '#/components/schemas/response_async_license'
+      description: OK
     AutoOrientation:
       content:
         application/json:
@@ -44663,13 +44305,16 @@ components:
                 end: 1428954000
                 limit: 100
                 results:
-                - admin_id: 72bfa2bd-e58a-4670-9d20-a1468f7a6f58
-                  admin_name: test@mistsys.com
-                  id: c6f9347b-b0a4-4a23-b927-fa9249f2ffb2
-                  message: TEST AUDIT
-                  org_id: 469f6eca-6276-4993-bfeb-53cbbbba6f58
-                  site_id: 4ac1dcf4-9d8b-7211-65c4-057819f0862b
-                  timestamp: 1431382121
+                - admin_id: 48f4d7aa-97a0-43e1-81f7-74dbda4a9dae
+                  admin_name: Chia-Wei Tang tangc@juniper.net
+                  id: ac4415e5-7aef-4c79-9d17-7a7edd268e16
+                  message: Accessed Org "DELETE_ME"
+                  org_id: b0d0c697-c4c8-459a-bf61-bfe820aead98
+                  site_id: null
+                  src_ip: 165.225.242.194
+                  timestamp: 1729278563
+                  user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:130.0)
+                    Gecko/20100101 Firefox/130.0
                 start: 1428939600
                 total: 135
           schema:
@@ -45441,9 +45086,11 @@ components:
             example-1:
               value:
               - default: true
+                distro: bullseye
                 package: mxagent
                 version: 2.4.100
-              - package: tunterm
+              - distro: bullseye
+                package: tunterm
                 version: 1.0.0
           schema:
             $ref: '#/components/schemas/mxedge_upgrade_info'
@@ -46520,6 +46167,23 @@ components:
       content:
         application/json:
           examples:
+            Crowdstrike:
+              value:
+                accounts:
+                - account_id: ae9dee49-69e7-4710-a114-5b827a777738
+                  last_status: success
+                  last_sync: 1665465339000
+                  linked_by: Testname1
+                  linked_timestamp: 1728275689.284758
+                  name: Test Company1 Ltd
+                - account_id: 845a23bf-bed9-e43c-4c86-6fa474be7ae5
+                  error: Get token failed, please re-link crowdstrike
+                  last_status: failed
+                  last_sync: 1234567890123
+                  linked_by: Testname2
+                  linked_timestamp: 1728275689.284758
+                  name: Test Company2 Ltd
+                linked: true
             Jamf:
               value:
                 accounts:
@@ -46571,6 +46235,14 @@ components:
                   linked_timestamp: 1702284364
                   name: Test Compay2 Ltd
                 linked: true
+            ZDX:
+              value:
+                account_id: 80364a28-7ccc-4746-b110-ecf3dfd3a359
+                cloud_name: zdxcloud.net
+                key_id: K35vrZcK3JvrZc
+                webhook_token: f92591d7-02f0-4e8c-b2eb-033c7902018
+                webhook_url: https://webhook.url/xxx
+                zdx_org_id: '123456'
             Zoom:
               value:
                 accounts:
@@ -51904,11 +51576,28 @@ components:
         enable_lldp:
           type: boolean
       type: object
+    account_crowdstrike_config:
+      description: OAuth linked CrowdStrike apps account details
+      properties:
+        client_id:
+          description: customer account api client ID
+          type: string
+        client_secret:
+          description: customer account api client Secret
+          type: string
+        customer_id:
+          description: customer id of an admin
+          type: string
+      required:
+      - customer_id
+      - client_id
+      - client_secret
+      type: object
     account_jamf_config:
       description: OAuth linked Jamf apps account details
       properties:
         client_id:
-          description: customer account api client id
+          description: customer account api client id. Required if `app_name`==`crowdstrike`
           type: string
         client_secret:
           description: customer account api client secret
@@ -51926,49 +51615,6 @@ components:
       - client_id
       - client_secret
       - smartgroup_name
-      type: object
-    account_jamf_info:
-      description: OAuth linked Jamf apps account details
-      properties:
-        client_id:
-          description: customer account client id
-          type: string
-        error:
-          description: This error is provided when the Jamf account fails to fetch
-            token/data
-          example: OAuth token refresh failed, please re-link your account
-          readOnly: true
-          type: string
-        instance_url:
-          description: customer account Jamf instance URL
-          example: junipertest.jamfcloud.com
-          type: string
-        last_status:
-          description: Is the last data pull for Jamf account is successful or not
-          example: failed
-          readOnly: true
-          type: string
-        last_sync:
-          description: Last data pull timestamp, background jobs that pull Jamf account
-            data
-          example: 1665465339000
-          readOnly: true
-          type: integer
-        linked_by:
-          description: First name of the user who linked the Jamf account
-          example: Testname1
-          readOnly: true
-          type: string
-        name:
-          description: Name of the company whose Jamf account mist has subscribed
-            to
-          example: Test Compay1 Ltd
-          readOnly: true
-          type: string
-        smartgroup_name:
-          description: smart group membership for determining compliance status
-          example: CompliantGroup1
-          type: string
       type: object
     account_jse_config:
       properties:
@@ -52037,58 +51683,13 @@ components:
       - username
       - password
       type: object
-    account_mobicontrol_info:
-      description: OAuth linked Mobicontrol apps account details
-      properties:
-        account_id:
-          description: customer account client id
-          type: string
-        client_id:
-          description: Linked MobiControl Client Id
-          type: string
-        error:
-          description: This error is provided when the MobiControl account fails to
-            fetch token/data
-          example: Get token failed, please re-link MobiControl account
-          readOnly: true
-          type: string
-        instance_url:
-          description: Linked MobiControl Instance URL
-          example: https://a0032314.mobicontrol.cloud
-          type: string
-        last_status:
-          description: Is the last data pull for MobiControl account is successful
-            or not
-          example: failed
-          readOnly: true
-          type: string
-        last_sync:
-          description: Last data pull timestamp, background jobs that pull MobiControl
-            account data
-          example: 1665465339000
-          readOnly: true
-          type: integer
-        linked_by:
-          description: First name of the user who linked the MobiControl account
-          example: Testname1
-          readOnly: true
-          type: string
-        linked_timestamp:
-          example: 1665465339000
-          readOnly: true
-          type: integer
-        name:
-          description: Name of the company whose MobiControl account mist has subscribed
-            to
-          example: Test Compay1 Ltd
-          readOnly: true
-          type: string
-      type: object
     account_oauth_add:
       oneOf:
       - $ref: '#/components/schemas/account_jamf_config'
       - $ref: '#/components/schemas/account_vmware_config'
       - $ref: '#/components/schemas/account_mobicontrol_config'
+      - $ref: '#/components/schemas/account_zdx_config'
+      - $ref: '#/components/schemas/account_crowdstrike_config'
     account_oauth_config:
       description: OAuth linked apps (zoom/teams/intune) account details
       properties:
@@ -52104,11 +51705,30 @@ components:
       - account_id
       type: object
     account_oauth_info:
-      description: OAuth linked apps (zoom/teams/intune) account details
+      properties:
+        accounts:
+          $ref: '#/components/schemas/account_oauth_info_accounts'
+        authorization_url:
+          readOnly: true
+          type: string
+        linked:
+          readOnly: true
+          type: boolean
+      required:
+      - linked
+      - accounts
+      type: object
+    account_oauth_info_account:
+      description: OAuth linked apps account info
       properties:
         account_id:
           description: Linked app(zoom/teams/intune) account id
           example: iojzXIJWEuiD73ZvydOfg
+          readOnly: true
+          type: string
+        client_id:
+          description: customer account Client ID
+          readOnly: true
           type: string
         company:
           description: Name of the company whose account mist has subscribed to
@@ -52122,6 +51742,10 @@ components:
           type: string
         errors:
           $ref: '#/components/schemas/oauth_account_errors'
+        instance_url:
+          description: customer account instance URL
+          readOnly: true
+          type: string
         last_status:
           description: Is the last data pull for account is successful or not
           example: failed
@@ -52138,11 +51762,39 @@ components:
           example: Testname1
           readOnly: true
           type: string
+        linked_timestamp:
+          example: 1665465339000
+          readOnly: true
+          type: number
         max_daily_api_requests:
           description: Zoom daily api request quota, https://developers.zoom.us/docs/api/rest/rate-limits/
           example: 5000
+          readOnly: true
           type: integer
+        name:
+          description: Name of the company whose account mist has subscribed to
+          example: Test Compay1 Ltd
+          readOnly: true
+          type: string
+        password:
+          description: customer account password instance URL
+          readOnly: true
+          type: string
+        smartgroup_name:
+          description: smart group membership for determining compliance status
+          example: CompliantGroup1
+          readOnly: true
+          type: string
+        username:
+          description: customer account username
+          readOnly: true
+          type: string
       type: object
+    account_oauth_info_accounts:
+      description: List of linked account details
+      items:
+        $ref: '#/components/schemas/account_oauth_info_account'
+      type: array
     account_vmware_config:
       properties:
         client_id:
@@ -52159,31 +51811,70 @@ components:
       - client_secret
       - client_id
       type: object
-    account_vmware_info:
+    account_zdx_config:
+      description: OAuth linked ZDX apps account details
+      properties:
+        cloud_name:
+          default: zdxcloud.net
+          description: ZDX cloud name. Refer https://help.zscaler.com/zdx/getting-started-zdx-api
+            for ZDX cloud name
+          type: string
+        key_id:
+          description: Customer account API key ID
+          example: K35vrZcK3JvrZc
+          type: string
+        key_secret:
+          description: Customer account API key Secret
+          example: K35vrZcK3JvrZcjjswpp2eii1oo100
+          type: string
+        zdx_org_id:
+          description: ZDX organization id
+          example: '123456'
+          type: string
+      required:
+      - key_id
+      - key_secret
+      - zdx_org_id
+      type: object
+    account_zdx_info:
       properties:
         account_id:
+          description: Generated account id (uuid)
+          example: 80364a28-7ccc-4746-b110-ecf3dfd3a359
+          readOnly: true
           type: string
-        instance_url:
-          description: Linked VMware Instance URL
+        cloud_name:
+          description: ZDX cloud name
+          example: zdxcloud.net
+          readOnly: true
           type: string
-        last_status:
-          description: Is the last data pull for VMware account is successful or not
+        key_id:
+          description: Customer account API key ID
+          example: K35vrZcK3JvrZc
+          readOnly: true
           type: string
-        last_sync:
-          description: Last data pull timestamp, background jobs that pull VMware
-            account data
-          type: integer
-        linked_by:
-          description: First name of the user who linked the VMware account
+        webhook_token:
+          description: Bearer token for the webhook url
+          example: f92591d7-02f0-4e8c-b2eb-033c7902018
+          readOnly: true
           type: string
-        linked_timestamp:
-          description: This error is provided when the VMware account fails to fetch
-            token/data
-          type: integer
-        name:
-          description: Name of the company whose VMware account mist has subscribed
-            to
+        webhook_url:
+          description: Webhook url to notify Mist about a ZDX alert
+          example: https://webhook.url/xxx
+          readOnly: true
           type: string
+        zdx_org_id:
+          description: ZDX organization id
+          example: '123456'
+          readOnly: true
+          type: string
+      required:
+      - key_id
+      - account_id
+      - webhook_url
+      - webhook_token
+      - zdx_org_id
+      - cloud_name
       type: object
     account_zscaler_config:
       description: OAuth linked Zscaler apps account details
@@ -52310,19 +52001,19 @@ components:
     acl_tag_spec:
       properties:
         port_range:
-          default: '80'
+          default: '0'
           description: matched dst port, "0" means any
           type: string
         protocol:
           default: any
-          description: '`tcp` / `udp` / `icmp` / `gre` / `any` / `:protocol_number`.
-            `protocol_number` is between 1-254'
+          description: '`tcp` / `udp` / `icmp` / `icmp6` / `gre` / `any` / `:protocol_number`,
+            `protocol_number` is between 1-254, default is `any` `protocol_number`
+            is between 1-254'
           type: string
       type: object
     acl_tag_specs:
-      description: 'if `type`==`resource` or `type`==`gbp_resource`
-
-        empty means unrestricted, i.e. any'
+      description: if `type`==`resource` or `type`==`gbp_resource`. Empty means unrestricted,
+        i.e. any
       items:
         $ref: '#/components/schemas/acl_tag_spec'
       type: array
@@ -52403,9 +52094,11 @@ components:
           description: for Org API Token Only
           type: string
         no_tracking:
-          description: "when it doesn\u2019t exist, it\u2019s assumed true on EU (i.e.\
-            \ no tracking, the user has to opt-in); otherwise, the user would have\
-            \ to opt-out"
+          default: null
+          description: "optional, whether to store privacy-consent information. When\
+            \ it doesn\u2019t exist, it\u2019s assumed true on EU (i.e. no tracking,\
+            \ the user has to opt-in); otherwise, the user would have to opt-out"
+          nullable: true
           type: boolean
         oauth_google:
           description: if admin account is not an Org API Token
@@ -53682,11 +53375,6 @@ components:
           $ref: '#/components/schemas/ap_port_config_dynamic_vlan'
         enable_mac_auth:
           default: false
-          type: boolean
-        flow_control:
-          default: false
-          description: for some AP models, flow_control can be enabled to address
-            some switch compatibility issue
           type: boolean
         forwarding:
           $ref: '#/components/schemas/ap_port_config_forwarding'
@@ -56409,6 +56097,10 @@ components:
       type: string
     claim_activation:
       properties:
+        async:
+          default: false
+          description: whether to do a async claim process
+          type: boolean
         code:
           description: activation code
           type: string
@@ -58074,6 +57766,11 @@ components:
           type: boolean
         esl_config:
           $ref: '#/components/schemas/ap_esl_config'
+        flow_control:
+          default: false
+          description: for some AP models, flow_control can be enabled to address
+            some switch compatibility issue
+          type: boolean
         for_site:
           readOnly: true
           type: boolean
@@ -60119,14 +59816,13 @@ components:
       properties:
         progress:
           example: 10
+          maximum: 100
+          minimum: 0
           nullable: true
           readOnly: true
           type: integer
         status:
-          example: inprogress
-          nullable: true
-          readOnly: true
-          type: string
+          $ref: '#/components/schemas/fwupdate_stat_status'
         status_id:
           example: 5
           nullable: true
@@ -60144,6 +59840,15 @@ components:
           readOnly: true
           type: boolean
       type: object
+    fwupdate_stat_status:
+      description: 'enum: `inprogress`, `failed`, `upgraded`'
+      enum:
+      - inprogress
+      - failed
+      - upgraded
+      nullable: true
+      readOnly: true
+      type: string
     gateway_cluster:
       properties:
         nodes:
@@ -60551,6 +60256,8 @@ components:
             $ref: '#/components/schemas/wan_extra_routes'
           description: Property Key is the destianation CIDR (e.g "100.100.100.0/24")
           type: object
+        wan_networks:
+          $ref: '#/components/schemas/gateway_port_config_wan_networks'
         wan_probe_override:
           $ref: '#/components/schemas/gateway_wan_probe_override'
         wan_source_nat:
@@ -60589,6 +60296,12 @@ components:
         type:
           $ref: '#/components/schemas/gateway_wan_type'
       type: object
+    gateway_port_config_wan_networks:
+      description: if some networks are connected to this WAN port, it can be added
+        here so policies can be defined
+      items:
+        type: string
+      type: array
     gateway_port_dsl_type:
       default: vdsl
       description: 'if `wan_type`==`dsl`. enum: `adsl`, `vdsl`'
@@ -62272,6 +61985,10 @@ components:
           type: integer
         networks:
           $ref: '#/components/schemas/switch_port_usage_networks'
+        note:
+          description: Additional note for the port config override
+          example: force 100M for camera
+          type: string
         persist_mac:
           default: false
           description: Only if `mode`==`access` and `port_auth`!=`dot1x` whether the
@@ -63815,6 +63532,15 @@ components:
         host:
           description: ip / hostname of RADIUS server
           type: string
+        inband_status_check:
+          default: false
+          description: whether to enable inband status check
+          type: boolean
+        inband_status_interval:
+          default: 1800
+          description: inband status interval, in seconds
+          minimum: 0
+          type: integer
         keywrap_enabled:
           description: if used for Mist APs, enable keywrap algorithm. Default is
             false
@@ -64401,6 +64127,8 @@ components:
       properties:
         default:
           type: boolean
+        distro:
+          type: string
         package:
           type: string
         version:
@@ -65178,6 +64906,11 @@ components:
         port:
           example: 443
           type: integer
+        wan_name:
+          description: If not set, we configure the nat policies against all WAN ports
+            for simplicity
+          example: wan0
+          type: string
       type: object
     network_internal_access:
       properties:
@@ -65452,13 +65185,16 @@ components:
       readOnly: true
       type: array
     oauth_app_name:
-      description: 'enum: `intune`, `jamf`, `mobicontrol`, `teams`, `vmware`, `zoom`'
+      description: 'enum: `crowdstrike`, `intune`, `jamf`, `mobicontrol`, `teams`,
+        `vmware`, `zdx`, `zoom`'
       enum:
+      - crowdstrike
       - intune
       - jamf
       - mobicontrol
       - teams
       - vmware
+      - zdx
       - zoom
       type: string
     oauth_ping_identity_region:
@@ -67123,25 +66859,6 @@ components:
             CERTIFICATE-----'
           type: string
       type: object
-    org_switch_port_count_distinct:
-      default: mac
-      description: 'enum: `full_duplex`, `mac`, `neighbor_mac`, `neighbor_port_desc`,
-        `neighbor_system_name`, `poe_disabled`, `poe_mode`, `poe_on`, `port_id`, `port_mac`,
-        `speed`, `up`'
-      enum:
-      - full_duplex
-      - mac
-      - neighbor_mac
-      - neighbor_port_desc
-      - neighbor_system_name
-      - poe_disabled
-      - poe_mode
-      - poe_on
-      - port_id
-      - port_mac
-      - speed
-      - up
-      type: string
     org_tickets_count_distinct:
       default: status
       description: 'enum: `status`, `type`'
@@ -68549,6 +68266,62 @@ components:
       required:
       - success
       type: object
+    response_async_license:
+      properties:
+        completed:
+          $ref: '#/components/schemas/response_async_license_completed'
+        detail:
+          $ref: '#/components/schemas/response_async_license_detail'
+        failed:
+          description: current failed number of device
+          type: integer
+        incompleted:
+          $ref: '#/components/schemas/response_async_license_incompleted'
+        processed:
+          description: current proceseed number of device
+          type: integer
+        scheduled_at:
+          description: epoch time of aysnc claim scheduled
+          type: integer
+        status:
+          $ref: '#/components/schemas/response_async_license_status'
+        succeed:
+          description: current succeed number of device
+          type: integer
+        timestamp:
+          description: epoch time of last reporting time
+          type: integer
+        total:
+          description: total number of device included in claim
+          type: integer
+      type: object
+    response_async_license_completed:
+      items:
+        type: string
+      type: array
+    response_async_license_detail:
+      description: detail claim status per device
+      properties:
+        mac:
+          description: device MAC Address
+          type: string
+        status:
+          type: string
+        timestamp:
+          type: number
+      type: object
+    response_async_license_incompleted:
+      description: current incompleted lists (macs)
+      items:
+        type: string
+      type: array
+    response_async_license_status:
+      description: 'processing status of async. enum: `prepared`, `ongoing`, `done`'
+      enum:
+      - prepared
+      - ongoing
+      - done
+      type: string
     response_auto_orientation:
       properties:
         state:
@@ -68576,7 +68349,7 @@ components:
         status:
           $ref: '#/components/schemas/response_auto_zone_status'
         zones:
-          $ref: '#/components/schemas/response_auto_zone_zone'
+          $ref: '#/components/schemas/response_auto_zone_zones'
       type: object
     response_auto_zone_status:
       description: "The status for the auto zones service for a given map. enum:\n\
@@ -68614,6 +68387,10 @@ components:
       description: A list of of points comprising the zones map location in pixels
       items:
         $ref: '#/components/schemas/response_auto_zone_zone_vertex'
+      type: array
+    response_auto_zone_zones:
+      items:
+        $ref: '#/components/schemas/response_auto_zone_zone'
       type: array
     response_bgp_search_list_results:
       items:
@@ -69886,7 +69663,13 @@ components:
         org_id:
           $ref: '#/components/schemas/org_id'
         site_id:
-          $ref: '#/components/schemas/site_id'
+          format: uuid
+          nullable: true
+          readOnly: true
+          type: string
+        src_ip:
+          description: sender source ip address
+          type: string
         timestamp:
           description: start time, in epoch
           readOnly: true
@@ -70174,25 +69957,9 @@ components:
           $ref: '#/components/schemas/nac_crl_files'
       type: object
     response_oauth_app_link:
-      properties:
-        accounts:
-          $ref: '#/components/schemas/response_oauth_app_link_accounts'
-        linked:
-          description: Basic Auth application linked status in mist portal enabled
-            for VMware
-          type: boolean
-      type: object
-    response_oauth_app_link_accounts:
-      description: List of linked account details
-      items:
-        $ref: '#/components/schemas/response_oauth_app_link_item'
-      type: array
-    response_oauth_app_link_item:
       oneOf:
-      - $ref: '#/components/schemas/account_jamf_info'
       - $ref: '#/components/schemas/account_oauth_info'
-      - $ref: '#/components/schemas/account_vmware_info'
-      - $ref: '#/components/schemas/account_mobicontrol_info'
+      - $ref: '#/components/schemas/account_zdx_info'
     response_org_device_upgrades:
       items:
         $ref: '#/components/schemas/org_device_upgrade'
@@ -71882,6 +71649,8 @@ components:
           $ref: '#/components/schemas/routing_policy_term_action_add_community'
         add_target_vrfs:
           $ref: '#/components/schemas/routing_policy_term_action_add_target_vrfs'
+        aggregate:
+          $ref: '#/components/schemas/routing_policy_term_action_aggregate'
         community:
           $ref: '#/components/schemas/routing_policy_term_action_community'
         exclude_as_path:
@@ -71903,6 +71672,14 @@ components:
       type: array
     routing_policy_term_action_add_target_vrfs:
       description: for SSR, hub decides how VRF routes are leaked on spoke
+      items:
+        type: string
+      type: array
+    routing_policy_term_action_aggregate:
+      description: route aggregation
+      example:
+      - 192.168.0.0/16
+      - 10.234.30.0/18
       items:
         type: string
       type: array
@@ -72614,32 +72391,6 @@ components:
       - root-prevented
       type: string
     search_site_sw_or_gw_ports_stp_state:
-      description: 'enum: `blocking`, `disabled`, `forwarding`, `learning`, `listening`'
-      enum:
-      - blocking
-      - disabled
-      - forwarding
-      - learning
-      - listening
-      type: string
-    search_site_switch_ports_auth_state:
-      description: 'enum: `authenticated`, `authenticating`, `held`, `init`'
-      enum:
-      - authenticated
-      - authenticating
-      - held
-      - init
-      type: string
-    search_site_switch_ports_stp_role:
-      description: 'enum: `alternate`, `backup`, `designated`, `root`, `root-prevented`'
-      enum:
-      - alternate
-      - backup
-      - designated
-      - root
-      - root-prevented
-      type: string
-    search_site_switch_ports_stp_state:
       description: 'enum: `blocking`, `disabled`, `forwarding`, `learning`, `listening`'
       enum:
       - blocking
@@ -73960,6 +73711,8 @@ components:
           type: integer
         id:
           $ref: '#/components/schemas/id'
+        juniper_srx:
+          $ref: '#/components/schemas/site_setting_juniper_srx'
         led:
           $ref: '#/components/schemas/ap_led'
         mist_nac:
@@ -74305,6 +74058,26 @@ components:
       items:
         type: string
       type: array
+    site_setting_juniper_srx:
+      properties:
+        gateways:
+          $ref: '#/components/schemas/site_setting_juniper_srx_gateways'
+        send_mist_nac_user_info:
+          type: boolean
+      type: object
+    site_setting_juniper_srx_gateway:
+      properties:
+        api_key:
+          example: 5abf7c8a-1a1c-4398-ba2d-b0c297094d1a
+          type: string
+        api_url:
+          example: https://23.43.12.78:8443
+          type: string
+      type: object
+    site_setting_juniper_srx_gateways:
+      items:
+        $ref: '#/components/schemas/site_setting_juniper_srx_gateway'
+      type: array
     site_setting_mxedge:
       description: site mist edges form a cluster of radsecproxy servers
       properties:
@@ -74615,25 +74388,6 @@ components:
         format: uuid
         type: string
       type: array
-    site_switch_ports_count_distinct:
-      default: mac
-      description: 'enum: `full_duplex`, `mac`, `neighbor_mac`, `neighbor_port_desc`,
-        `neighbor_system_name`, `poe_disabled`, `poe_mode`, `poe_on`, `port_id`, `port_mac`,
-        `speed`, `up`'
-      enum:
-      - full_duplex
-      - mac
-      - neighbor_mac
-      - neighbor_port_desc
-      - neighbor_system_name
-      - poe_disabled
-      - poe_mode
-      - poe_on
-      - port_id
-      - port_mac
-      - speed
-      - up
-      type: string
     site_system_events_count_distinct:
       default: type
       description: 'enum: `type`'
@@ -78082,8 +77836,14 @@ components:
         for_site:
           example: false
           type: boolean
+        fwupdate:
+          $ref: '#/components/schemas/fwupdate_stat'
         id:
           $ref: '#/components/schemas/id'
+        idrac_version:
+          description: IDRAC version of the mist edge device
+          example: 7.00.00.00
+          type: string
         ip_stat:
           $ref: '#/components/schemas/stats_mxedge_ip_stat'
         lag_stat:
@@ -78237,6 +77997,12 @@ components:
           example:
             ens18: e4434b217044
           type: object
+        netmask:
+          example: 255.255.255.0
+          type: string
+        netmask6:
+          example: /128
+          type: string
       type: object
     stats_mxedge_lag_stat:
       properties:
@@ -78489,9 +78255,14 @@ components:
         for_site:
           readOnly: true
           type: boolean
+        fwupdate:
+          $ref: '#/components/schemas/fwupdate_stat'
         last_seen:
           readOnly: true
           type: number
+        mtu:
+          readOnly: true
+          type: integer
         mxcluster_id:
           format: uuid
           readOnly: true
@@ -82406,7 +82177,7 @@ components:
         max_failures:
           $ref: '#/components/schemas/upgrade_site_devices_max_failures'
         models:
-          $ref: '#/components/schemas/strings'
+          $ref: '#/components/schemas/upgrade_site_devices_models'
         p2p_cluster_size:
           default: 10
           example: 0
@@ -82443,6 +82214,8 @@ components:
         rrm_slow_ramp:
           description: true will make rrm batch sizes slowly ramp up
           type: boolean
+        rules:
+          $ref: '#/components/schemas/upgrade_site_devices_rules'
         snapshot:
           default: false
           description: Perform recovery snapshot after device is rebooted (Available
@@ -82473,6 +82246,7 @@ components:
         type: integer
       type: array
     upgrade_site_devices_device_ids:
+      description: "id\u2019s of devices which will be selected for upgrade"
       items:
         format: uuid
         type: string
@@ -82488,6 +82262,11 @@ components:
       items:
         type: integer
       type: array
+    upgrade_site_devices_models:
+      description: models which will be selected for upgrade
+      items:
+        type: string
+      type: array
     upgrade_site_devices_rrm_node_order:
       default: fringe_to_center
       description: "Used in rrm to determine whether to start upgrade from fringe\
@@ -82496,6 +82275,23 @@ components:
       - center_to_fringe
       - fringe_to_center
       type: string
+    upgrade_site_devices_rule:
+      additionalProperties:
+        type: string
+      description: "property key defines the type of matching, value is the string\
+        \ to match. e.g:\n  * `match_name`: Device name must match the property value\n\
+        \  * `match_name[0:3]`: Device name must match the first 3 letters of the\
+        \ property value\n  * `match_name[2:6]`: Device name must match the property\
+        \ value from the 2nd to the 6th letter\n  * `match_model`: Device model must\
+        \ match the property value\n  * `match_model[1:3]`: Device model must match\
+        \ the property value from the 1nd to the 3rd letter\""
+      type: object
+    upgrade_site_devices_rules:
+      description: rules used to identify devices which will be selected for upgrade.
+        Device will be selected as long as it satisfies any one rule
+      items:
+        $ref: '#/components/schemas/upgrade_site_devices_rule'
+      type: array
     usage_org_licenses:
       items:
         $ref: '#/components/schemas/license_usage_org'
@@ -85911,6 +85707,15 @@ components:
           default: false
           description: disable sending v2 roam notification messages
           type: boolean
+        disable_when_gateway_unreachable:
+          default: false
+          description: "when any of the following is true, this WLAN will be disabled\n\
+            \   * cannot get IP\n   * cannot obtain default gateway\n   * cannot reach\
+            \ default gateway"
+          type: boolean
+        disable_when_mxtunnel_down:
+          default: false
+          type: boolean
         disable_wmm:
           default: false
           description: whether to disable WMM
@@ -86076,6 +85881,11 @@ components:
           $ref: '#/components/schemas/radsec'
         rateset:
           $ref: '#/components/schemas/wlan_rateset'
+        reconnect_clients_when_roaming_mxcluster:
+          default: false
+          description: when different mxcluster is on different subnet, we'd want
+            to disconnect clients (so they'll reconnect and get new IPs)
+          type: boolean
         roam_mode:
           $ref: '#/components/schemas/wlan_roam_mode'
         schedule:
