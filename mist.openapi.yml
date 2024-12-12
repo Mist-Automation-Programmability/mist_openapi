@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2412.1.1**
+  description: '> Version: **2412.1.2**
 
     >
 
-    > Date: **December 6, 2024**
+    > Date: **December 12, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2412.1.1
+  version: 2412.1.2
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -7885,6 +7885,7 @@ paths:
         name: eth0_port_speed
         schema:
           type: integer
+      - $ref: '#/components/parameters/device_type'
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
@@ -28445,7 +28446,7 @@ paths:
                         ge-0/0/0:
                           tcpdump_expression: udp
                         ge-0/0/1: {}
-                        ge-1/0/0: null
+                        ge-1/0/0: {}
                         ge-1/0/1: {}
                     '001122334466':
                       ports:
@@ -32702,6 +32703,51 @@ paths:
       - Sites Stats - Ports
     parameters:
     - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/stats/rssizones:
+    get:
+      description: Get List of Site RSSI Zones Stats
+      operationId: listSiteRssiZonesStats
+      responses:
+        '200':
+          $ref: '#/components/responses/RssiZoneStatsArray'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: listSiteRssiZonesStats
+      tags:
+      - Sites Stats - Zones
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/stats/rssizones/{zone_id}:
+    get:
+      description: Get Detail RSSI Zone Stats
+      operationId: getSiteRssiZoneStats
+      responses:
+        '200':
+          $ref: '#/components/responses/ZoneStats'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: getSiteRssiZoneStats
+      tags:
+      - Sites Stats - Zones
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/zone_id'
   /api/v1/sites/{site_id}/stats/sdkclients/{sdkclient_id}:
     get:
       description: Get Detail Stats of a SdkClient
@@ -32835,7 +32881,7 @@ paths:
       - Sites Stats - Zones
     parameters:
     - $ref: '#/components/parameters/site_id'
-  /api/v1/sites/{site_id}/stats/{zone_type}/{zone_id}:
+  /api/v1/sites/{site_id}/stats/zones/{zone_id}:
     get:
       description: Get Detail Zone Stats
       operationId: getSiteZoneStats
@@ -32857,7 +32903,6 @@ paths:
       - Sites Stats - Zones
     parameters:
     - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/zone_type'
     - $ref: '#/components/parameters/zone_id'
   /api/v1/sites/{site_id}/subscriptions:
     delete:
@@ -36902,6 +36947,12 @@ components:
         example: 0000000000ab
         pattern: ^[0-9a-fA-F]{12}$
         type: string
+    device_type:
+      description: 'Type of device. enum: `ap`, `gateway`, `switch`'
+      in: query
+      name: type
+      schema:
+        $ref: '#/components/schemas/device_type'
     deviceprofile_id:
       in: path
       name: deviceprofile_id
@@ -40965,7 +41016,7 @@ components:
                 ext_ip: 69.196.157.189
                 fwupdate:
                   progress: 100
-                  status: success
+                  status: upgraded
                   status_id: 3037
                   timestamp: 1718392692.580769
                   will_retry: false
@@ -41150,7 +41201,7 @@ components:
                 fw_versions_outofsync: false
                 fwupdate:
                   progress: 100
-                  status: success
+                  status: upgraded
                   status_id: 3037
                   timestamp: 1712409702.9714448
                   will_retry: false
@@ -41638,7 +41689,7 @@ components:
                   ibeacon_major: 13
                   ibeacon_minor: 138
                   ibeacon_uuid: f3f17139-704a-f03a-2786-0400279e37c3
-                  power: 10
+                  power: 7
                   power_mode: custom
                 created_time: 0
                 disable_eth1: false
@@ -42090,7 +42141,7 @@ components:
                 ext_ip: 69.196.157.189
                 fwupdate:
                   progress: 100
-                  status: success
+                  status: upgraded
                   status_id: 3037
                   timestamp: 1718392692.580769
                   will_retry: false
@@ -42277,7 +42328,7 @@ components:
                 fw_versions_outofsync: false
                 fwupdate:
                   progress: 100
-                  status: success
+                  status: upgraded
                   status_id: 3037
                   timestamp: 1712409702.9714448
                   will_retry: false
@@ -42771,7 +42822,7 @@ components:
                 ext_ip: 69.196.157.189
                 fwupdate:
                   progress: 100
-                  status: success
+                  status: upgraded
                   status_id: 3037
                   timestamp: 1718392692.580769
                   will_retry: false
@@ -42995,7 +43046,7 @@ components:
       content:
         application/json:
           examples:
-            example-1:
+            ap:
               value:
                 end: 0
                 limit: 0
@@ -43024,11 +43075,83 @@ components:
                   mxedge_id: 00000000-0000-0000-1000-43a81f238391
                   mxtunnel_status: down
                   org_id: 6748cfa6-4e12-11e6-9188-0242ac110007
+                  power_constrained: false
+                  power_opmode: ''
                   site_id: a8178443-ecb5-461c-b854-f16627619ab3
                   sku: AP41-US
                   timestamp: 1596588619.007
+                  type: ap
                   uptime: 85280
                   version: 0.7.20216
+                  wlans:
+                  - id: 28c36fc7-dc22-4960-9d81-34087511c2e5
+                    ssid: Live-Demo-NAC
+                  - id: 51b82e2b-f9e8-470b-a32a-cecde5501b0f
+                    ssid: Live-Demo
+                start: 0
+                total: 0
+            gateway:
+              value:
+                end: 0
+                limit: 0
+                next: string
+                results:
+                - clustered: true
+                  evpn_missing_links: false
+                  evpntopo_id: ''
+                  ext_ip: 250.242.0.102
+                  hostname:
+                  - wan-teleworker
+                  - 00ec77599d00
+                  - router
+                  ip: 250.242.0.102
+                  last_hostname: wan-teleworker
+                  mac: 00ec77599d00
+                  managed: true
+                  model: SSR120
+                  node: node1
+                  node0_mac: 00ec77599d00
+                  node1_mac: 00ec77599d01
+                  num_members: 0
+                  org_id: 6748cfa6-4e12-11e6-9188-0242ac110007
+                  role: ''
+                  site_id: a8178443-ecb5-461c-b854-f16627619ab3
+                  t128agent_version: 3.8.0-201
+                  time_drifted: false
+                  timestamp: 1734001399.025
+                  type: gateway
+                  uptime: 3586951
+                  version: 6.2.5-5.r2
+                start: 0
+                total: 0
+            switch:
+              value:
+                end: 0
+                limit: 0
+                next: string
+                results:
+                - clustered: false
+                  evpn_missing_links: false
+                  evpntopo_id: ''
+                  ext_ip: 0.0.0.0
+                  hostname:
+                  - ld-cup-idf-bbb
+                  ip: 10.0.0.217
+                  last_hostname: ld-cup-idf-bbb
+                  last_trouble_code: '106'
+                  last_trouble_timestamp: 1719540
+                  mac: 00c78d939c00
+                  managed: true
+                  model: EX4100-48MP
+                  num_members: 1
+                  org_id: 6748cfa6-4e12-11e6-9188-0242ac110007
+                  role: ''
+                  site_id: a8178443-ecb5-461c-b854-f16627619ab3
+                  time_drifted: false
+                  timestamp: 1733998766.256
+                  type: switch
+                  uptime: 19287811
+                  version: 22.4R3.25
                 start: 0
                 total: 0
           schema:
@@ -46709,9 +46832,9 @@ components:
                 - num_clients: 6
                   num_switches: 1
                   site_id: f5fcbee5-1234-5678-9101-1619ede87879
-                  switch_health: 1
-                  switch_stc: 1
-                  switch_throughput: 0.9669529756744796
+                  switch-bandwidth: 0.9669529756744796
+                  switch-health: 1
+                  switch-throughput: 1
                 start: 1651269600
                 total: 4
           schema:
@@ -47559,6 +47682,55 @@ components:
           schema:
             $ref: '#/components/schemas/response_rrm_neighbors'
       description: OK
+    RssiZoneStatsArray:
+      content:
+        application/json:
+          examples:
+            Example-1:
+              value:
+              - assets_wait:
+                  avg: 0
+                  max: 0
+                  min: 0
+                  p95: 0
+                clients_wait:
+                  avg: 39259.333333333336
+                  max: 58361
+                  min: 12376
+                  p95: 58361
+                created_time: 1733864928
+                devices:
+                - device_id: 00000000-0000-0000-1000-c8786708bb5d
+                  rssi: -70
+                discovered_assets_wait:
+                  avg: 0
+                  max: 0
+                  min: 0
+                  p95: 0
+                display_is_group: false
+                id: 17ef7169-e000-4dcd-abc7-f721f0a8ffda
+                modified_time: 1733864928
+                name: proximity openspace
+                num_assets: 0
+                num_clients: 3
+                num_discovered_assets: 0
+                num_sdkclients: 0
+                num_unconnected_clients: 7
+                org_id: c5fbc9e4-12bf-436e-98c4-1c842c66ab6c
+                sdkclients_wait:
+                  avg: 0
+                  max: 0
+                  min: 0
+                  p95: 0
+                site_id: 079fafd3-ef5c-4b23-90f0-9fcebec0023a
+                unconnected_clients_wait:
+                  avg: 37552.857142857145
+                  max: 68342
+                  min: 6649
+                  p95: 68342
+          schema:
+            $ref: '#/components/schemas/stats_rssi_zones'
+      description: Example response
     Rssizone:
       content:
         application/json:
@@ -48336,7 +48508,7 @@ components:
                     port_auth: dot1x
                     port_network: string
                     rejected_network: null
-                    speed: string
+                    speed: auto
                     storm_control:
                       no_broadcast: false
                       no_multicast: false
@@ -48367,7 +48539,7 @@ components:
                     poe_disabled: false
                     port_network: string
                     rejected_network: null
-                    speed: string
+                    speed: auto
                     storm_control:
                       no_broadcast: false
                       no_multicast: false
@@ -51431,7 +51603,7 @@ components:
       content:
         application/json:
           examples:
-            with-map_id-query-param:
+            Example-1:
               value:
               - assets_waits:
                   avg: 0
@@ -53902,8 +54074,12 @@ components:
           type: string
         hostname:
           $ref: '#/components/schemas/ap_search_hostnames'
+        inactive_wired_vlans:
+          $ref: '#/components/schemas/ap_search_inactive_wired_vlans'
         ip:
           description: ip address
+          type: string
+        last_hostname:
           type: string
         lldp_mgmt_addr:
           description: LLDP management ip address
@@ -53942,6 +54118,8 @@ components:
           $ref: '#/components/schemas/org_id'
         power_constrained:
           type: boolean
+        power_opmode:
+          type: string
         site_id:
           $ref: '#/components/schemas/site_id'
         sku:
@@ -53953,11 +54131,34 @@ components:
         version:
           description: version
           type: string
+        wlans:
+          $ref: '#/components/schemas/ap_search_wlans'
+      required:
+      - power_constrained
+      - power_opmode
+      - mxtunnel_status
+      - wlans
       type: object
     ap_search_hostnames:
       description: partial / full hostname
       items:
         type: string
+      type: array
+    ap_search_inactive_wired_vlans:
+      items:
+        type: integer
+      type: array
+    ap_search_wlan:
+      properties:
+        id:
+          format: uuid
+          type: string
+        ssid:
+          type: string
+      type: object
+    ap_search_wlans:
+      items:
+        $ref: '#/components/schemas/ap_search_wlan'
       type: array
     ap_stat_mesh_downlink:
       properties:
@@ -55451,6 +55652,7 @@ components:
           $ref: '#/components/schemas/capture_gateway_type'
       required:
       - type
+      - gateways
       type: object
     capture_gateway_format:
       default: stream
@@ -55462,10 +55664,7 @@ components:
     capture_gateway_gateways:
       properties:
         ports:
-          additionalProperties:
-            $ref: '#/components/schemas/capture_gateway_gateways_ports'
-          description: Property key is the port ID
-          type: object
+          $ref: '#/components/schemas/capture_gateway_gateways_ports'
       type: object
     capture_gateway_gateways_port:
       properties:
@@ -55932,6 +56131,7 @@ components:
           $ref: '#/components/schemas/capture_switch_type'
       required:
       - type
+      - switches
       type: object
     capture_switch_format:
       default: stream
@@ -56819,7 +57019,7 @@ components:
         band6:
           $ref: '#/components/schemas/const_device_ap_band6'
         band_24_usages:
-          $ref: '#/components/schemas/radio_band_24_usage'
+          $ref: '#/components/schemas/const_device_ap_band_24_usages'
         ce_dfs_ok:
           example: true
           type: boolean
@@ -56959,6 +57159,17 @@ components:
           example: 8
           type: integer
       type: object
+    const_device_ap_band_24_usage:
+      description: 'enum: `24`, `5`, `6`'
+      enum:
+      - '24'
+      - '5'
+      - '6'
+      type: string
+    const_device_ap_band_24_usages:
+      items:
+        $ref: '#/components/schemas/const_device_ap_band_24_usage'
+      type: array
     const_device_ap_disallowed_channels:
       items:
         type: integer
@@ -60427,6 +60638,12 @@ components:
       type: string
     gateway_search:
       properties:
+        clustered:
+          type: boolean
+        evpn_missing_links:
+          type: boolean
+        evpntopo_id:
+          type: string
         ext_ip:
           type: string
         hostname:
@@ -60435,24 +60652,44 @@ components:
           type: string
         last_hostname:
           type: string
+        last_trouble_code:
+          type: string
+        last_trouble_timestamp:
+          type: integer
         mac:
           type: string
+        managed:
+          type: boolean
         model:
+          type: string
+        node:
+          type: string
+        node0_mac:
+          type: string
+        node1_mac:
           type: string
         num_members:
           type: integer
         org_id:
           $ref: '#/components/schemas/org_id'
+        role:
+          type: string
         site_id:
           $ref: '#/components/schemas/site_id'
+        t128agent_version:
+          type: string
+        time_drifted:
+          type: boolean
         timestamp:
           type: number
         type:
-          type: string
+          $ref: '#/components/schemas/device_type_gateway'
         uptime:
           type: integer
         version:
           type: string
+      required:
+      - type
       type: object
     gateway_template:
       description: Gateway Template is applied to a site for gateway(s) in a site.
@@ -63119,7 +63356,6 @@ components:
     module_stat_item_fans:
       items:
         $ref: '#/components/schemas/module_stat_item_fans_items'
-      minItems: 1
       type: array
       uniqueItems: true
     module_stat_item_fans_items:
@@ -66671,6 +66907,7 @@ components:
           type: number
       required:
       - site_id
+      - gateway-health
       type: object
     org_site_sle_wan_results:
       items:
@@ -66729,6 +66966,7 @@ components:
           type: number
       required:
       - site_id
+      - ap-availability
       type: object
     org_site_sle_wifi_results:
       items:
@@ -66744,14 +66982,15 @@ components:
           type: number
         site_id:
           $ref: '#/components/schemas/site_id'
-        switch_health:
+        switch-bandwidth:
           type: number
-        switch_stc:
+        switch-health:
           type: number
-        switch_throughput:
+        switch-throughput:
           type: number
       required:
       - site_id
+      - switch-health
       type: object
     org_site_sle_wired_results:
       items:
@@ -78284,6 +78523,8 @@ components:
         uptime:
           readOnly: true
           type: integer
+      required:
+      - remote_ip
       type: object
     stats_mxtunnel_session:
       properties:
@@ -78315,11 +78556,11 @@ components:
       type: array
       uniqueItems: true
     stats_mxtunnel_state:
-      description: 'enum: `established`, `established_with_session`, `idle`, `wait-ctrl-conn`,
+      description: 'enum: `established`, `established_with_sessions`, `idle`, `wait-ctrl-conn`,
         `wait-ctrl-reply`'
       enum:
       - established
-      - established_with_session
+      - established_with_sessions
       - idle
       - wait-ctrl-conn
       - wait-ctrl-reply
@@ -78410,6 +78651,67 @@ components:
     stats_orgs:
       items:
         $ref: '#/components/schemas/stats_org'
+      type: array
+    stats_rssi_zone:
+      description: Zone statistics
+      properties:
+        assets_waits:
+          $ref: '#/components/schemas/stats_zone_assets_waits'
+        clients_waits:
+          $ref: '#/components/schemas/stats_zone_clients_waits'
+        created_time:
+          $ref: '#/components/schemas/created_time'
+        devices:
+          $ref: '#/components/schemas/stats_rssi_zones_devices'
+        id:
+          $ref: '#/components/schemas/id'
+        modified_time:
+          $ref: '#/components/schemas/modified_time'
+        name:
+          description: name of the zone
+          example: Zone A
+          type: string
+        num_assets:
+          description: number of assets
+          example: 0
+          type: integer
+        num_clients:
+          description: number of wifi clients (unconnected + connected)
+          example: 80
+          type: integer
+        num_sdkclients:
+          description: number of sdk clients
+          example: 10
+          type: integer
+        occupancy_limit:
+          example: 4
+          type: integer
+        org_id:
+          $ref: '#/components/schemas/org_id'
+        sdkclients_waits:
+          $ref: '#/components/schemas/stats_zone_sdkclients_waits'
+        site_id:
+          $ref: '#/components/schemas/site_id'
+      required:
+      - id
+      - name
+      - devices
+      type: object
+    stats_rssi_zones:
+      items:
+        $ref: '#/components/schemas/stats_rssi_zone'
+      type: array
+    stats_rssi_zones_device:
+      properties:
+        device_id:
+          format: uuid
+          type: string
+        rssi:
+          type: integer
+      type: object
+    stats_rssi_zones_devices:
+      items:
+        $ref: '#/components/schemas/stats_rssi_zones_device'
       type: array
     stats_sdkclient:
       description: SDK Client statistics
@@ -79150,6 +79452,8 @@ components:
           description: wan interface name
           example: wan
           type: string
+      required:
+      - peer_ip
       type: object
     stats_wan_tunnel_priority:
       description: 'enum: `primary`, `secondary`'
@@ -80701,6 +81005,12 @@ components:
       type: object
     switch_search:
       properties:
+        clustered:
+          type: boolean
+        evpn_missing_links:
+          type: boolean
+        evpntopo_id:
+          type: string
         ext_ip:
           type: string
         hostname:
@@ -80709,24 +81019,36 @@ components:
           type: string
         last_hostname:
           type: string
+        last_trouble_code:
+          type: string
+        last_trouble_timestamp:
+          type: integer
         mac:
           type: string
+        managed:
+          type: boolean
         model:
           type: string
         num_members:
           type: integer
         org_id:
           $ref: '#/components/schemas/org_id'
+        role:
+          type: string
         site_id:
           $ref: '#/components/schemas/site_id'
+        time_drifted:
+          type: boolean
         timestamp:
           type: number
         type:
-          type: string
+          $ref: '#/components/schemas/device_type_switch'
         uptime:
           type: integer
         version:
           type: string
+      required:
+      - type
       type: object
     switch_stp_config:
       properties:
