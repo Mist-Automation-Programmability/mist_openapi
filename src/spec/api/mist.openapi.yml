@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2412.1.8**
+  description: '> Version: **2412.1.9**
 
     >
 
-    > Date: **December 18, 2024**
+    > Date: **December 24, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2412.1.8
+  version: 2412.1.9
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -58161,7 +58161,7 @@ components:
           $ref: '#/components/schemas/site_id'
         tunnel_configs:
           additionalProperties:
-            $ref: '#/components/schemas/tunnel_configs'
+            $ref: '#/components/schemas/tunnel_config'
           description: Property key is the tunnel name
           type: object
         tunnel_provider_options:
@@ -58663,7 +58663,7 @@ components:
           $ref: '#/components/schemas/service_policies'
         tunnel_configs:
           additionalProperties:
-            $ref: '#/components/schemas/tunnel_configs'
+            $ref: '#/components/schemas/tunnel_config'
           description: Property key is the tunnel name
           type: object
         tunnel_provider_options:
@@ -60533,7 +60533,8 @@ components:
           type: integer
       type: object
     gateway_port_networks:
-      description: if `usage`==`lan`
+      description: if `usage`==`lan`, name of the [networks]($h/Orgs%20Networks/_overview)
+        to attach to the interface
       items:
         type: string
       type: array
@@ -60751,7 +60752,7 @@ components:
           $ref: '#/components/schemas/service_policies'
         tunnel_configs:
           additionalProperties:
-            $ref: '#/components/schemas/tunnel_configs'
+            $ref: '#/components/schemas/tunnel_config'
           description: Property key is the tunnel name
           type: object
         tunnel_provider_options:
@@ -60765,123 +60766,6 @@ components:
       required:
       - name
       type: object
-    gateway_template_probe_type:
-      default: icmp
-      description: 'enum: `http`, `icmp`'
-      enum:
-      - http
-      - icmp
-      type: string
-    gateway_template_tunnel_ike_dh_group:
-      default: '14'
-      description: "enum:\n  * 1\n  * 2 (1024-bit)\n  * 5\n  * 14 (default, 2048-bit)\n\
-        \  * 15 (3072-bit)\n  * 16 (4096-bit)\n  * 19 (256-bit ECP)\n  * 20 (384-bit\
-        \ ECP)\n  * 21 (521-bit ECP)\n  * 24 (2048-bit ECP)"
-      enum:
-      - '1'
-      - '14'
-      - '15'
-      - '16'
-      - '19'
-      - '2'
-      - '20'
-      - '21'
-      - '24'
-      - '5'
-      type: string
-    gateway_template_tunnel_ike_mode:
-      default: main
-      description: 'Only if `provider`== `custom-ipsec`. enum: `aggressive`, `main`'
-      enum:
-      - aggressive
-      - main
-      type: string
-    gateway_template_tunnel_ike_proposal:
-      properties:
-        auth_algo:
-          $ref: '#/components/schemas/tunnel_configs_auth_algo'
-        dh_group:
-          $ref: '#/components/schemas/gateway_template_tunnel_ike_dh_group'
-        enc_algo:
-          $ref: '#/components/schemas/tunnel_configs_enc_algo'
-      type: object
-    gateway_template_tunnel_ipsec_proposal:
-      properties:
-        auth_algo:
-          $ref: '#/components/schemas/tunnel_configs_auth_algo'
-        dh_group:
-          $ref: '#/components/schemas/tunnel_configs_dh_group'
-        enc_algo:
-          $ref: '#/components/schemas/tunnel_configs_enc_algo'
-      type: object
-    gateway_template_tunnel_mode:
-      default: active-standby
-      description: 'enum: `active-active`, `active-standby`'
-      enum:
-      - active-active
-      - active-standby
-      type: string
-    gateway_template_tunnel_node:
-      properties:
-        hosts:
-          $ref: '#/components/schemas/gateway_template_tunnel_node_hosts'
-        internal_ips:
-          $ref: '#/components/schemas/gateway_template_tunnel_node_internal_ips'
-        probe_ips:
-          $ref: '#/components/schemas/strings'
-        remote_ids:
-          $ref: '#/components/schemas/gateway_template_tunnel_node_remote_ids'
-        wan_names:
-          $ref: '#/components/schemas/gateway_template_tunnel_node_wan_names'
-      type: object
-    gateway_template_tunnel_node_hosts:
-      items:
-        description: IP Address of the remote host
-        type: string
-      type: array
-    gateway_template_tunnel_node_internal_ips:
-      description: "Only if:\n  * `provider`== `zscaler-gre`\n  * `provider`== `custom-gre`"
-      items:
-        type: string
-      type: array
-    gateway_template_tunnel_node_remote_ids:
-      description: Only if `provider`== `custom-ipsec`
-      items:
-        type: string
-      type: array
-    gateway_template_tunnel_node_wan_names:
-      items:
-        type: string
-      type: array
-    gateway_template_tunnel_probe:
-      description: Only if `provider`== `custom-ipsec`
-      properties:
-        interval:
-          description: how often to trigger the probe
-          type: integer
-        threshold:
-          description: number of consecutive misses before declaring the tunnel down
-          type: integer
-        timeout:
-          description: time within which to complete the connectivity check
-          type: integer
-        type:
-          $ref: '#/components/schemas/gateway_template_probe_type'
-      type: object
-    gateway_template_tunnel_protocol:
-      description: 'Only if `provider`== `custom-ipsec`. enum: `gre`, `ipsec`'
-      enum:
-      - gre
-      - ipsec
-      type: string
-    gateway_template_tunnel_version:
-      default: '2'
-      description: 'Only if `provider`== `custom-gre` or `provider`== `custom-ipsec`.
-        enum: `1`, `2`'
-      enum:
-      - '1'
-      - '2'
-      type: string
     gateway_template_type:
       default: standalone
       description: 'enum: `spoke`, `standalone`'
@@ -63479,7 +63363,7 @@ components:
           format: uuid
           type: string
         notes:
-          description: required if `op`== `annotate`
+          description: required if `op`==`annotate`
           type: string
         op:
           $ref: '#/components/schemas/msp_license_action_operation'
@@ -63487,7 +63371,7 @@ components:
           description: required if `op`==`amend`
           type: number
         subscription_id:
-          description: required if `op`== `annotate`
+          description: required if `op`==`annotate`
           minLength: 1
           type: string
       required:
@@ -81638,80 +81522,108 @@ components:
       - wired
       - wireless
       type: string
-    tunnel_configs:
+    tunnel_config:
       properties:
         auto_provision:
-          $ref: '#/components/schemas/tunnel_configs_auto_provision'
+          $ref: '#/components/schemas/tunnel_config_auto_provision'
         ike_lifetime:
-          description: Only if `provider`== `custom-ipsec`
+          description: Only if `provider`==`custom-ipsec`
           type: integer
         ike_mode:
-          $ref: '#/components/schemas/gateway_template_tunnel_ike_mode'
+          $ref: '#/components/schemas/tunnel_config_ike_mode'
         ike_proposals:
-          $ref: '#/components/schemas/tunnel_configs_ike_proposals'
+          $ref: '#/components/schemas/tunnel_config_ike_proposals'
         ipsec_lifetime:
-          description: if `provider`== `custom-ipsec`
+          description: if `provider`==`custom-ipsec`
           type: integer
         ipsec_proposals:
-          $ref: '#/components/schemas/tunnel_configs_ipsec_proposals'
+          $ref: '#/components/schemas/tunnel_config_ipsec_proposals'
         local_id:
-          description: "Only if:\n  * `provider`== `zscaler-ipsec`\n  * `provider`==`jse-ipsec`\n\
-            \  * `provider`== `custom-ipsec`"
+          description: Only if `provider`==`zscaler-ipsec`, `provider`==`jse-ipsec`
+            or `provider`==`custom-ipsec`
           type: string
         mode:
-          $ref: '#/components/schemas/gateway_template_tunnel_mode'
+          $ref: '#/components/schemas/tunnel_config_tunnel_mode'
         networks:
-          $ref: '#/components/schemas/tunnel_configs_networks'
+          $ref: '#/components/schemas/tunnel_config_networks'
         primary:
-          $ref: '#/components/schemas/gateway_template_tunnel_node'
+          $ref: '#/components/schemas/tunnel_config_node'
         probe:
-          $ref: '#/components/schemas/gateway_template_tunnel_probe'
+          $ref: '#/components/schemas/tunnel_config_probe'
         protocol:
-          $ref: '#/components/schemas/gateway_template_tunnel_protocol'
+          $ref: '#/components/schemas/tunnel_config_protocol'
         provider:
-          $ref: '#/components/schemas/tunnel_provider_options_name'
+          $ref: '#/components/schemas/tunnel_config_provider'
         psk:
-          description: "Only if:\n  * `provider`== `zscaler-ipsec`\n  * `provider`==`jse-ipsec`\n\
-            \  * `provider`== `custom-ipsec`"
+          description: Only if `provider`==`zscaler-ipsec`, `provider`==`jse-ipsec`
+            or `provider`==`custom-ipsec`
           type: string
         secondary:
-          $ref: '#/components/schemas/gateway_template_tunnel_node'
+          $ref: '#/components/schemas/tunnel_config_node'
         version:
-          $ref: '#/components/schemas/gateway_template_tunnel_version'
+          $ref: '#/components/schemas/tunnel_config_version'
       type: object
-    tunnel_configs_auth_algo:
+    tunnel_config_auth_algo:
       description: 'enum: `md5`, `sha1`, `sha2`'
       enum:
       - md5
       - sha1
       - sha2
       type: string
-    tunnel_configs_auto_provision:
+    tunnel_config_auto_provision:
       properties:
         enable:
           type: boolean
         latlng:
-          $ref: '#/components/schemas/lat_lng'
+          $ref: '#/components/schemas/tunnel_config_auto_provision_lat_lng'
         primary:
-          $ref: '#/components/schemas/tunnel_configs_auto_provision_node'
-        secondary:
-          $ref: '#/components/schemas/tunnel_configs_auto_provision_node'
-      type: object
-    tunnel_configs_auto_provision_node:
-      properties:
-        num_hosts:
+          $ref: '#/components/schemas/tunnel_config_auto_provision_node'
+        provider:
+          $ref: '#/components/schemas/tunnel_config_auto_provision_provider'
+        region:
+          description: API override for POP selection
           type: string
+        secondary:
+          $ref: '#/components/schemas/tunnel_config_auto_provision_node'
+      required:
+      - provider
+      type: object
+    tunnel_config_auto_provision_lat_lng:
+      description: API override for POP selection
+      properties:
+        lat:
+          example: 37.295833
+          format: double
+          type: number
+        lng:
+          example: -122.032946
+          format: double
+          type: number
+      required:
+      - lat
+      - lng
+      type: object
+    tunnel_config_auto_provision_node:
+      properties:
+        probe_ips:
+          $ref: '#/components/schemas/strings'
         wan_names:
-          $ref: '#/components/schemas/tunnel_configs_auto_provision_node_wan_names'
-    tunnel_configs_auto_provision_node_wan_names:
+          $ref: '#/components/schemas/tunnel_config_auto_provision_node_wan_names'
+    tunnel_config_auto_provision_node_wan_names:
       description: optional, only needed if `vars_only`==`false`
       items:
         example: wan0
         type: string
       type: array
-    tunnel_configs_dh_group:
+    tunnel_config_auto_provision_provider:
+      description: 'enum: `jse-ipsec`, `zscaler-ipsec`'
+      enum:
+      - jse-ipsec
+      - zscaler-ipsec
+      type: string
+    tunnel_config_dh_group:
       default: '14'
-      description: "Only if `provider`== `custom-ipsec`. enum:\n  * 1\n  * 2 (1024-bit)\n\
+      description: "Only if `provider`==`custom-ipsec`. enum:\n  * 1\n  * 2 (1024-bit)\n\
         \  * 5\n  * 14 (default, 2048-bit)\n  * 15 (3072-bit)\n  * 16 (4096-bit)\n\
         \  * 19 (256-bit ECP)\n  * 20 (384-bit ECP)\n  * 21 (521-bit ECP)\n  * 24\
         \ (2048-bit ECP)"
@@ -81727,7 +81639,7 @@ components:
       - '24'
       - '5'
       type: string
-    tunnel_configs_enc_algo:
+    tunnel_config_enc_algo:
       default: aes256
       description: 'enum: `3des`, `aes128`, `aes256`, `aes_gcm128`, `aes_gcm256`'
       enum:
@@ -81738,21 +81650,155 @@ components:
       - aes_gcm256
       nullable: true
       type: string
-    tunnel_configs_ike_proposals:
-      description: if `provider`== `custom-ipsec`
+    tunnel_config_ike_dh_group:
+      default: '14'
+      description: "enum:\n  * 1\n  * 2 (1024-bit)\n  * 5\n  * 14 (default, 2048-bit)\n\
+        \  * 15 (3072-bit)\n  * 16 (4096-bit)\n  * 19 (256-bit ECP)\n  * 20 (384-bit\
+        \ ECP)\n  * 21 (521-bit ECP)\n  * 24 (2048-bit ECP)"
+      enum:
+      - '1'
+      - '14'
+      - '15'
+      - '16'
+      - '19'
+      - '2'
+      - '20'
+      - '21'
+      - '24'
+      - '5'
+      type: string
+    tunnel_config_ike_mode:
+      default: main
+      description: 'Only if `provider`==`custom-ipsec`. enum: `aggressive`, `main`'
+      enum:
+      - aggressive
+      - main
+      type: string
+    tunnel_config_ike_proposal:
+      properties:
+        auth_algo:
+          $ref: '#/components/schemas/tunnel_config_auth_algo'
+        dh_group:
+          $ref: '#/components/schemas/tunnel_config_ike_dh_group'
+        enc_algo:
+          $ref: '#/components/schemas/tunnel_config_enc_algo'
+      type: object
+    tunnel_config_ike_proposals:
+      description: if `provider`==`custom-ipsec`
       items:
-        $ref: '#/components/schemas/gateway_template_tunnel_ike_proposal'
+        $ref: '#/components/schemas/tunnel_config_ike_proposal'
       type: array
-    tunnel_configs_ipsec_proposals:
-      description: Only if  `provider`== `custom-ipsec`
+    tunnel_config_ipsec_proposal:
+      properties:
+        auth_algo:
+          $ref: '#/components/schemas/tunnel_config_auth_algo'
+        dh_group:
+          $ref: '#/components/schemas/tunnel_config_dh_group'
+        enc_algo:
+          $ref: '#/components/schemas/tunnel_config_enc_algo'
+      type: object
+    tunnel_config_ipsec_proposals:
+      description: Only if  `provider`==`custom-ipsec`
       items:
-        $ref: '#/components/schemas/gateway_template_tunnel_ipsec_proposal'
+        $ref: '#/components/schemas/tunnel_config_ipsec_proposal'
       type: array
-    tunnel_configs_networks:
-      description: networks reachable via this tunnel
+    tunnel_config_networks:
+      description: if `provider`==`custom-ipsec`, networks reachable via this tunnel
       items:
         type: string
       type: array
+    tunnel_config_node:
+      description: Only if `provider`==`zscaler-ipsec`, `provider`==`jse-ipsec` or
+        `provider`==`custom-ipsec`
+      properties:
+        hosts:
+          $ref: '#/components/schemas/tunnel_config_node_hosts'
+        internal_ips:
+          $ref: '#/components/schemas/tunnel_config_node_internal_ips'
+        probe_ips:
+          $ref: '#/components/schemas/strings'
+        remote_ids:
+          $ref: '#/components/schemas/tunnel_config_node_remote_ids'
+        wan_names:
+          $ref: '#/components/schemas/tunnel_config_node_wan_names'
+      required:
+      - hosts
+      - wan_names
+      type: object
+    tunnel_config_node_hosts:
+      items:
+        description: IP Address of the remote host
+        type: string
+      type: array
+    tunnel_config_node_internal_ips:
+      description: Only if `provider`==`zscaler-gre`, `provider`==`jse-ipsec`, `provider`==`custom-ipsec`
+        or `provider`==`custom-gre`
+      items:
+        type: string
+      type: array
+    tunnel_config_node_remote_ids:
+      description: Only if  `provider`==`jse-ipsec` or `provider`==`custom-ipsec`
+      items:
+        type: string
+      type: array
+    tunnel_config_node_wan_names:
+      items:
+        type: string
+      type: array
+    tunnel_config_probe:
+      description: Only if `provider`==`custom-ipsec`
+      properties:
+        interval:
+          description: how often to trigger the probe
+          type: integer
+        threshold:
+          description: number of consecutive misses before declaring the tunnel down
+          type: integer
+        timeout:
+          description: time within which to complete the connectivity check
+          type: integer
+        type:
+          $ref: '#/components/schemas/tunnel_config_probe_type'
+      type: object
+    tunnel_config_probe_type:
+      default: icmp
+      description: 'enum: `http`, `icmp`'
+      enum:
+      - http
+      - icmp
+      type: string
+    tunnel_config_protocol:
+      description: 'Only if `provider`==`custom-ipsec`. enum: `gre`, `ipsec`'
+      enum:
+      - gre
+      - ipsec
+      type: string
+    tunnel_config_provider:
+      description: 'Only if `auto_provision.enabled`==`false`. enum: `custom-ipsec`,
+        `customer-gre`, `jse-ipsec`, `zscaler-gre`, `zscaler-ipsec`'
+      enum:
+      - custom-ipsec
+      - customer-gre
+      - jse-ipsec
+      - zscaler-gre
+      - zscaler-ipsec
+      type: string
+    tunnel_config_tunnel_mode:
+      default: active-standby
+      description: 'Required if `provider`==`zscaler-gre`, `provider`==`jse-ipsec`.
+        enum: `active-active`, `active-standby`'
+      enum:
+      - active-active
+      - active-standby
+      type: string
+    tunnel_config_version:
+      default: '2'
+      description: 'Only if `provider`==`custom-gre` or `provider`==`custom-ipsec`.
+        enum: `1`, `2`'
+      enum:
+      - '1'
+      - '2'
+      type: string
     tunnel_provider_options:
       properties:
         jse:
@@ -81764,102 +81810,171 @@ components:
       description: for jse-ipsec, this allow provisioning of adequate resource on
         JSE. Make sure adequate licenses are added
       properties:
-        name:
-          example: JSE_ORG1
-          type: string
         num_users:
           example: 5
           type: integer
+        org_name:
+          description: JSE Organization name. The list of available organizations
+            can be retrieved with the [Get Org JSE Info]($e/Orgs%20JSE/getOrgJseInfo)
+            API Call
+          example: JSE_ORG1
+          type: string
       type: object
-    tunnel_provider_options_name:
-      description: 'enum: `custom-ipsec`, `customer-gre`, `jse-ipsec`, `zscaler-gre`,
-        `zscaler-ipsec`'
-      enum:
-      - custom-ipsec
-      - customer-gre
-      - jse-ipsec
-      - zscaler-gre
-      - zscaler-ipsec
-      type: string
     tunnel_provider_options_zscaler:
       description: for zscaler-ipsec and zscaler-gre
       properties:
-        aup_acceptance_required:
-          default: true
+        aup_block_internet_until_accepted:
+          default: false
           type: boolean
-        aup_expire:
-          default: 1
-          description: days before AUP is requested again
-          type: integer
-        aup_ssl_proxy:
+        aup_enabled:
+          default: false
+          description: Can only be `true` when `auth_required`==`false`, display Acceptable
+            Use Policy (AUP)
+          type: boolean
+        aup_force_ssl_inspection:
           default: false
           description: proxy HTTPs traffic, requiring Zscaler cert to be installed
             in browser
           type: boolean
-        download_mbps:
-          description: the download bandwidth cap of the link, in Mbps
-          example: 200
+        aup_timeout_in_days:
+          description: Required if `aup_enabled`==`true`. Days before AUP is requested
+            again
+          maximum: 180
+          minimum: 1
           type: integer
-        enable_aup:
+        auth_required:
           default: false
-          description: if `use_xff`==`true`, display Acceptable Use Policy (AUP)
+          description: Enable this option to authenticate users
           type: boolean
-        enable_caution:
+        caution_enabled:
           default: false
-          description: when `enforce_authentication`==`false`, display caution notification
-            for non-authenticated users
+          description: Can only be `true` when `auth_required`==`false`, display caution
+            notification for non-authenticated users
           type: boolean
-        enforce_authentication:
+        dn_bandwidth:
+          description: the download bandwidth cap of the link, in Mbps. Disabled if
+            not set
+          example: 200
+          maximum: 99999
+          minimum: 0.1
+          nullable: true
+          type: number
+        idle_time_in_minutes:
+          description: Required if `surrogate_IP`==`true`, idle Time to Disassociation
+          maximum: 43200
+          minimum: 0
+          type: integer
+        ofw_enabled:
           default: false
+          description: if `true`, enable the firewall control option
           type: boolean
-        name:
-          example: guest-wifi
-          type: string
         sub_locations:
           $ref: '#/components/schemas/zscaler_sub_locations'
-        upload_mbps:
-          description: the download bandwidth cap of the link, in Mbps
-          example: 200
+        surrogate_IP:
+          default: false
+          description: Can only be `true` when `auth_required`==`true`. Map a user
+            to a private IP address so it applies the user's policies, instead of
+            the location's policies
+          type: boolean
+        surrogate_IP_enforced_for_known_browsers:
+          description: Can only be `true` when `surrogate_IP`==`true`, enforce surrogate
+            IP for known browsers
+          type: boolean
+        surrogate_refresh_time_in_minutes:
+          description: Required if `surrogate_IP_enforced_for_known_browsers`==`true`,
+            must be lower or equal than `idle_time_in_minutes`, refresh Time for re-validation
+            of Surrogacy
+          maximum: 43200
+          minimum: 1
           type: integer
-        use_xff:
+        up_bandwidth:
+          description: the download bandwidth cap of the link, in Mbps. Disabled if
+            not set
+          example: 200
+          maximum: 99999
+          minimum: 0.1
+          nullable: true
+          type: number
+        xff_forward_enabled:
+          default: false
           description: location uses proxy chaining to forward traffic
           type: boolean
       type: object
     tunnel_provider_options_zscaler_sub_location:
       properties:
-        aup_acceptance_required:
-          default: true
+        aup_block_internet_until_accepted:
+          default: false
           type: boolean
-        aup_expire:
-          default: 1
-          description: days before AUP is requested again
-          type: integer
-        aup_ssl_proxy:
+        aup_enabled:
+          default: false
+          description: Can only be `true` when `auth_required`==`false`, display Acceptable
+            Use Policy (AUP)
+          type: boolean
+        aup_force_ssl_inspection:
           default: false
           description: proxy HTTPs traffic, requiring Zscaler cert to be installed
             in browser
           type: boolean
-        download_mbps:
-          description: the download bandwidth cap of the link, in Mbps
-          example: 200
+        aup_timeout_in_days:
+          description: Required if `aup_enabled`==`true`. Days before AUP is requested
+            again
+          maximum: 180
+          minimum: 1
           type: integer
-        enable_aup:
-          description: if `use_xff`==`true`, display Acceptable Use Policy (AUP)
-          type: boolean
-        enable_caution:
+        auth_required:
           default: false
-          description: when `enforce_authentication`==`false`, display caution notification
-            for non-authenticated users
+          description: Enable this option to authenticate users
           type: boolean
-        enforce_authentication:
+        caution_enabled:
           default: false
+          description: Can only be `true` when `auth_required`==`false`, display caution
+            notification for non-authenticated users
           type: boolean
-        subnets:
-          $ref: '#/components/schemas/zscaler_sub_location_subnets'
-        upload_mbps:
-          description: the download bandwidth cap of the link, in Mbps
+        dn_bandwidth:
+          description: the download bandwidth cap of the link, in Mbps. Disabled if
+            not set
           example: 200
+          maximum: 99999
+          minimum: 0.1
+          nullable: true
+          type: number
+        idle_time_in_minutes:
+          description: Required if `surrogate_IP`==`true`, idle Time to Disassociation
+          maximum: 43200
+          minimum: 0
           type: integer
+        name:
+          description: '[network]($h/Orgs%20Networks/_overview) name'
+          type: string
+        ofw_enabled:
+          default: false
+          description: if `true`, enable the firewall control option
+          type: boolean
+        surrogate_IP:
+          default: false
+          description: Can only be `true` when `auth_required`==`true`. Map a user
+            to a private IP address so it applies the user's policies, instead of
+            the location's policies
+          type: boolean
+        surrogate_IP_enforced_for_known_browsers:
+          description: Can only be `true` when `surrogate_IP`==`true`, enforce surrogate
+            IP for known browsers
+          type: boolean
+        surrogate_refresh_time_in_minutes:
+          description: Required if `surrogate_IP_enforced_for_known_browsers`==`true`,
+            must be lower or equal than `idle_time_in_minutes`, refresh Time for re-validation
+            of Surrogacy
+          maximum: 43200
+          minimum: 1
+          type: integer
+        up_bandwidth:
+          description: the download bandwidth cap of the link, in Mbps. Disabled if
+            not set
+          example: 200
+          maximum: 99999
+          minimum: 0.1
+          nullable: true
+          type: number
       type: object
     tunnel_type:
       default: wxtunnel
@@ -88856,15 +88971,9 @@ components:
       items:
         $ref: '#/components/schemas/zone'
       type: array
-    zscaler_sub_location_subnets:
-      example:
-      - 172.16.8.0/24
-      - 172.16.32.0/23
-      items:
-        type: string
-      type: array
     zscaler_sub_locations:
-      description: if `use_xff`==`true`
+      description: '`sub-locations` can be used for specific uses cases to define
+        different configuration based on the user network'
       items:
         $ref: '#/components/schemas/tunnel_provider_options_zscaler_sub_location'
       type: array
