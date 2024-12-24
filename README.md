@@ -6,7 +6,7 @@ Juniper Mist APIs Open API 3.0 Specifications.
 
 Please be aware this specification is currently intended to be used for **documentation only**, and not for **NOT** code generation, testing tools, or other use cases.
 
-Live documentation: https://doc.mist-lab.fr/
+Live documentation: [Juniper Mist API Documentation](https://www.juniper.net/documentation/us/en/software/mist/api/http/getting-started/how-to-get-started)
 
 ## Files
 #### Mist.openapi_bundled.yml:
