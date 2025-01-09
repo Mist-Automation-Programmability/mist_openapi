@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2412.1.18**
+  description: '> Version: **2412.1.19**
 
     >
 
-    > Date: **January 8, 2024**
+    > Date: **January 9, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2412.1.18
+  version: 2412.1.19
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -43417,32 +43417,31 @@ components:
           examples:
             Example:
               value:
-              - id: 9197ec96-4c8d-529f-c595-035895e688b2
-                name: CC
-                overwrite: true
+              - created_time: 1736421230
+                evpn_options:
+                  auto_loopback_subnet: 172.16.192.0/24
+                  auto_loopback_subnet6: fd33:ab00:2::/64
+                  auto_router_id_subnet: 172.16.254.0/23
+                  core_as_border: true
+                  overlay:
+                    as: 65000
+                  per_vlan_vga_v4_mac: false
+                  routed_at: core
+                  underlay:
+                    as_base: 65001
+                    subnet: 10.255.240.0/20
+                    use_ipv6: false
+                for_site: false
+                id: 764fb173-94f9-447c-8454-def62e5a999f
+                modified_time: 1736421230
+                name: tert
+                org_id: 3a2627d7-bfbc-45af-b85d-8841581c6d63
                 pod_names:
-                  '1': default
-                  '2': default
-                switches:
-                - deviceprofile_id: 6a1deab1-96df-4fa2-8455-d5253f943d06
-                  downlink_ips:
-                  - 10.255.240.6
-                  - 10.255.240.8
-                  downlinks:
-                  - 5c5b35000007
-                  - 5c5b35000008
-                  esilaglinks:
-                  - 5c5b3500000f
-                  evpn_id: 1
-                  mac: 5c5b35000003
-                  model: QFX10002-36Q
-                  role: collapsed-core
-                  site_id: 1916d52a-4a90-11e5-8b45-1258369c38a9
-                  uplinks:
-                  - 5c5b35000005
-                  - 5c5b35000006
+                  '1': Pod 1
+                site_id: 00000000-0000-0000-0000-000000000000
+                version: 6
           schema:
-            $ref: '#/components/schemas/evpn_topologies'
+            $ref: '#/components/schemas/evpn_topologies_response'
       description: OK
     EvpnTopology:
       content:
@@ -54390,6 +54389,7 @@ components:
         $ref: '#/components/schemas/ap_template'
       type: array
     ap_uplink_port_config:
+      description: AP Uplink port configuration
       properties:
         dot1x:
           default: false
@@ -59673,9 +59673,9 @@ components:
           - iot-wifi
           - iot-lan
       type: object
-    evpn_topologies:
+    evpn_topologies_response:
       items:
-        $ref: '#/components/schemas/evpn_topology'
+        $ref: '#/components/schemas/evpn_topology_response'
       type: array
     evpn_topology:
       properties:
@@ -59701,6 +59701,27 @@ components:
           $ref: '#/components/schemas/evpn_topology_switches'
       required:
       - switches
+      type: object
+    evpn_topology_response:
+      properties:
+        evpn_options:
+          $ref: '#/components/schemas/evpn_options'
+        id:
+          $ref: '#/components/schemas/id'
+        name:
+          example: CC
+          type: string
+        org_id:
+          $ref: '#/components/schemas/org_id'
+        overwrite:
+          type: boolean
+        pod_names:
+          additionalProperties:
+            type: string
+          description: Property key is the pod number
+          type: object
+        site_id:
+          $ref: '#/components/schemas/site_id'
       type: object
     evpn_topology_switch:
       properties:
@@ -61083,39 +61104,30 @@ components:
       - node0
       - node1
       type: string
+    hour:
+      default: ''
+      description: Hour range of the day (e.g. `09:00-17:00`). If the hour is not
+        defined then it's treated as 00:00-23:59.
+      example: 09:00-17:00
+      type: string
     hours:
-      description: "hours of operation filter, the available days (mon, tue, wed,\
-        \ thu, fri, sat, sun). \n\n**Note**: If the dow is not defined then it\\u2019\\\
-        \ s treated as 00:00-23:59."
+      description: Days/Hours of operation filter, the available days (mon, tue, wed,
+        thu, fri, sat, sun)
       properties:
         fri:
-          default: ''
-          example: 09:00-17:00
-          type: string
+          $ref: '#/components/schemas/hour'
         mon:
-          default: ''
-          example: 09:00-17:00
-          type: string
+          $ref: '#/components/schemas/hour'
         sat:
-          default: ''
-          example: 09:00-12:00
-          type: string
+          $ref: '#/components/schemas/hour'
         sun:
-          default: ''
-          example: 09:00-12:00
-          type: string
+          $ref: '#/components/schemas/hour'
         thu:
-          default: ''
-          example: 09:00-17:00
-          type: string
+          $ref: '#/components/schemas/hour'
         tue:
-          default: ''
-          example: 09:00-17:00
-          type: string
+          $ref: '#/components/schemas/hour'
         wed:
-          default: ''
-          example: 09:00-17:00
-          type: string
+          $ref: '#/components/schemas/hour'
       type: object
     id:
       description: Unique ID of the object instance in the Mist Organnization
@@ -72577,7 +72589,7 @@ components:
       type: object
     search_wired_client_results:
       items:
-        $ref: '#/components/schemas/wired_client.response'
+        $ref: '#/components/schemas/wired_client_response'
       minItems: 1
       type: array
       uniqueItems: true
@@ -73328,13 +73340,9 @@ components:
       - version
       type: string
     site_engagement:
-      description: "**Note**: if hours does not exist, it\u2019s treated as everyday\
-        \ of the week, 00:00-23:59. Currently we don\u2019t allow multiple ranges\
-        \ for the same day\n\n**Note**: default values for `dwell_tags`: passerby\
-        \ (1,300) bounce (301, 14400) engaged (14401, 28800) stationed (28801, 42000)\n\
-        \n**Note**: default values for `dwell_tag_names`: passerby = \u201CPasserby\u201D\
-        , bounce = \u201CVisitor\u201D, engaged = \u201CAssociates\u201D, stationed\
-        \ = \u201CAssets\u201D"
+      description: '**Note**: if hours does not exist, it''s treated as everyday of
+        the week, 00:00-23:59. Currently we don''t allow multiple ranges for the same
+        day'
       properties:
         dwell_tag_names:
           $ref: '#/components/schemas/site_engagement_dwell_tag_names'
@@ -73355,38 +73363,42 @@ components:
           type: integer
       type: object
     site_engagement_dwell_tag_names:
+      description: name associated to each tag
       properties:
         bounce:
+          default: Visitor
           example: Bounce
           type: string
         engaged:
+          default: Associates
           example: Engaged
           type: string
         passerby:
+          default: Passerby
           example: Passer By
           type: string
         stationed:
+          default: Assets
           example: Stationed
           type: string
       type: object
     site_engagement_dwell_tags:
-      description: add tags to visits within the duration (in seconds), available
-        tags (passerby, bounce, engaged, stationed)
+      description: add tags to visits within the duration (in seconds)
       properties:
         bounce:
-          example: null
+          default: 301-14400
           nullable: true
           type: string
         engaged:
-          example: 300-14400
+          default: 14401-28800
           nullable: true
           type: string
         passerby:
-          example: null
+          default: 1-300
           nullable: true
           type: string
         stationed:
-          example: 14400-43200
+          default: 28801-42000
           nullable: true
           type: string
       type: object
@@ -82337,6 +82349,26 @@ components:
       items:
         type: string
       type: array
+    upgrade_devices_rule:
+      additionalProperties:
+        type: string
+      description: "property key defines the type of matching, value is the string\
+        \ to match. e.g:\n  * `match_name`: Device name must match the property value\n\
+        \  * `match_name[0:3]`: Device name must match the first 3 letters of the\
+        \ property value\n  * `match_name[2:6]`: Device name must match the property\
+        \ value from the 2nd to the 6th letter\n  * `match_model`: Device model must\
+        \ match the property value\n  * `match_model[1:3]`: Device model must match\
+        \ the property value from the 1nd to the 3rd letter\""
+      example:
+        match_model: AP43
+        match_name[2:8]: access
+      type: object
+    upgrade_devices_rules:
+      description: rules used to identify devices which will be selected for upgrade.
+        Device will be selected as long as it satisfies any one rule
+      items:
+        $ref: '#/components/schemas/upgrade_devices_rule'
+      type: array
     upgrade_fpga:
       properties:
         reboot:
@@ -82523,6 +82555,8 @@ components:
           description: For APs only and if `strategy`==`rrm`. True will make rrm batch
             sizes slowly ramp up
           type: boolean
+        rules:
+          $ref: '#/components/schemas/upgrade_devices_rules'
         site_ids:
           $ref: '#/components/schemas/upgrade_org_devices_site_ids'
         snapshot:
@@ -82611,7 +82645,7 @@ components:
             sizes slowly ramp up
           type: boolean
         rules:
-          $ref: '#/components/schemas/upgrade_site_devices_rules'
+          $ref: '#/components/schemas/upgrade_devices_rules'
         snapshot:
           default: false
           description: For Junos devices only. Perform recovery snapshot after device
@@ -82634,23 +82668,6 @@ components:
       items:
         format: uuid
         type: string
-      type: array
-    upgrade_site_devices_rule:
-      additionalProperties:
-        type: string
-      description: "property key defines the type of matching, value is the string\
-        \ to match. e.g:\n  * `match_name`: Device name must match the property value\n\
-        \  * `match_name[0:3]`: Device name must match the first 3 letters of the\
-        \ property value\n  * `match_name[2:6]`: Device name must match the property\
-        \ value from the 2nd to the 6th letter\n  * `match_model`: Device model must\
-        \ match the property value\n  * `match_model[1:3]`: Device model must match\
-        \ the property value from the 1nd to the 3rd letter\""
-      type: object
-    upgrade_site_devices_rules:
-      description: rules used to identify devices which will be selected for upgrade.
-        Device will be selected as long as it satisfies any one rule
-      items:
-        $ref: '#/components/schemas/upgrade_site_devices_rule'
       type: array
     usage_org_licenses:
       items:
@@ -85746,7 +85763,11 @@ components:
           description: sequence control field of 802.11 header
           type: integer
       type: object
-    wired_client.response:
+    wired_client_dhcp_client_options:
+      items:
+        $ref: '#/components/schemas/dhcp_client_option'
+      type: array
+    wired_client_response:
       properties:
         device_mac:
           $ref: '#/components/schemas/wired_client_response_device_mac'
@@ -85786,10 +85807,6 @@ components:
         vlan:
           $ref: '#/components/schemas/wired_client_response_vlan'
       type: object
-    wired_client_dhcp_client_options:
-      items:
-        $ref: '#/components/schemas/dhcp_client_option'
-      type: array
     wired_client_response_device_mac:
       items:
         readOnly: true
