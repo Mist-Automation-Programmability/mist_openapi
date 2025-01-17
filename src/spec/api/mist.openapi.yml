@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2412.1.21**
+  description: '> Version: **2412.1.22**
 
     >
 
-    > Date: **January 15, 2024**
+    > Date: **January 17, 2024**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2412.1.21
+  version: 2412.1.22
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -2254,10 +2254,10 @@ paths:
       description: "For models (e.g. EX3400 and up) having dedicated VC ports, it\
         \ is easier to form a VC by just connecting cables with the dedicated VC ports.\
         \ Cloud will detect the new VC and update the inventory.\n\nIn case that the\
-        \ user would like to choose the dedicated switch as a VC master. Or for EX2300-C-12P\
+        \ user would like to choose the dedicated switch as a VC master or for EX2300-C-12P\
         \ and EX2300-C-12T which doesn\u2019t have dedicated VC ports, below are procedures\
         \ to automate the VC creation:\n\n1. Power on the switch that is choosen as\
-        \ the VC master first. And the powering on the other member switches.\n2.\
+        \ the VC master first. And then powering on the other member switches.\n2.\
         \ Claim or adopt all these switches under the same organization\u2019s Inventory\n\
         3. Assign these switches into the same Site\n4. Invoke vc command on the switch\
         \ choosen to be the VC master. For EX2300-C-12P, VC ports will be created\
@@ -2354,11 +2354,11 @@ paths:
         3. Waiting for the VC state (vc_state) of this switch is changed to not-present\n\
         4. Invoke update_vc with remove to remove this switch from the VC\n5. The\
         \ Org\u2019s Inventory shows the switch is removed.\n\nPlease notice that\
-        \ member ID 0 (fpc0) cannot be removed. When a VC has two switches left, unpluging\
+        \ member ID 0 (fpc0) cannot be removed. When a VC has two switches left, unplugging\
         \ the cable may result in the situation that fpc0 becomes a line card (LC).\
-        \ When this situation is happened, please re-plug in the cable, wait for both\
-        \ switches becoming present (show virtual-chassis) and then removing the cable\
-        \ again.\n\n## Renumber a member switch\nWhen a member switch doesn\u2019\
+        \ When this situation is happening, please re-plug in the cable, wait for\
+        \ both switches becoming present (show virtual-chassis) and then removing\
+        \ the cable again.\n\n## Renumber a member switch\nWhen a member switch doesn\u2019\
         \ t work properly and needed to be replaced, the renumber API could be used.\
         \ The following two types of renumber are supported:\n\n1. Replace a non-fpc0\
         \ member switch\n2. Replace fpc0. When fpc0 is relaced, PAPI device config\
@@ -25573,17 +25573,17 @@ paths:
     post:
       description: "For models (e.g. EX3400 and up) having dedicated VC ports, it\
         \ is easier to form a VC by just connecting cables with the dedicated VC ports.\
-        \ Cloud will detect the new VC and update the inventory.\n\nIn case that the\
-        \ user would like to choose the dedicated switch as a VC master. Or for EX2300-C-12P\
-        \ and EX2300-C-12T which doesn\u2019t have dedicated VC ports, below are procedures\
-        \ to automate the VC creation:\n\n1. Power on the switch that is choosen as\
-        \ the VC master first. And the powering on the other member switches.\n2.\
-        \ Claim or adopt all these switches under the same organization\u2019s Inventory\n\
-        3. Assign these switches into the same Site\n4. Invoke vc command on the switch\
-        \ choosen to be the VC master. For EX2300-C-12P, VC ports will be created\
-        \ automatically.\n5. Connect the cables to the VC ports for these switches\n\
-        6. Wait for the VC to be formed. The Org\u2019s inventory will be updated\
-        \ for the new VC."
+        \ Cloud will detect the new VC and update the inventory.  \nIn case that the\
+        \ user would like to choose the dedicated switch as a VC master or for EX2300-C-12P\
+        \ and EX2300-C-12T which doesn\\u2019t have dedicated VC ports, below are\
+        \ procedures to automate the VC creation:\n1. Power on the switch that is\
+        \ choosen as the VC master first, and then powering on the other member switches.\n\
+        2. Claim or adopt all these switches under the same organization's Inventory\n\
+        3. Assign these switches into the same Site\n4. Wait for all the switches\
+        \ to be connected to Mist\n5. Invoke vc command on the switch choosen to be\
+        \ the VC master. For EX2300-C-12P, VC ports will be created automatically.\n\
+        6. Connect the cables to the VC ports for these switches\n7. Wait for the\
+        \ VC to be formed. The Org's inventory will be updated for the new VC."
       operationId: createSiteVirtualChassis
       requestBody:
         content:
@@ -25647,14 +25647,17 @@ paths:
       tags:
       - Sites Devices - Wired - Virtual Chassis
     put:
-      description: "The VC creation and adding member switch API will update the device\u2019\
+      description: "The VC creation and adding member switch API will update the device'\
         \ s virtual chassis config which is applied after VC is formed to create JUNOS\
-        \ pre-provisioned virtual chassis configuration.\n\n## Change to use preprovisioned\
+        \ pre-provisioned virtual chassis configuration.\n\n**Note:** Update Device's\
+        \ VC config can achieve similar purpose by directly modifying current virtual_chassis\
+        \ config. However, it cannot fulfill requests to enabling vc_ports on new\
+        \ members that are yet to belong to current VC.\n\n\n## Change to use preprovisioned\
         \ VC\nTo switch the VC to use preprovisioned VC, enable preprovisioned in\
         \ virtual_chassis config. Both vc_role master and backup will be matched to\
         \ routing-engine role in Junos preprovisioned VC config.\n\nIn this config,\
         \ fpc0 has to be the same as the mac of device_id. Use renumber if you want\
-        \ to replace fpc0 which involves device_id change.\n\nNotice: to configure\
+        \ to replace fpc0 which involves device_id change.\n\n**Notice:** to configure\
         \ preprovisioned VC, every member of the VC must be in the inventory.\n\n\
         ## Add new members\nFor models (e.g. EX4300 and up) having dedicated VC ports,\
         \ it is easier to add new member switches into a VC by just connecting cables\
@@ -25662,21 +25665,21 @@ paths:
         \ the inventory.\n\nFor EX2300 VC, adding new members requires to follow the\
         \ procedures below:\n1. Powering on the new member switches and ensuring cables\
         \ are not connected to any VC ports.\n2. Claim or adopt all new member switches\
-        \ under the VC\u2019s organization Inventory\n3. Assign all new member switches\
+        \ under the VC's organization Inventory\n3. Assign all new member switches\
         \ to the same Site as the VC\n4. Invoke vc command to add switches to the\
         \ VC.\n5. Connect the cables to the VC ports for these switches\n6. After\
-        \ a while, the Org\u2019s Inventory shows this new switches has been added\
-        \ into the VC.\n\n## Removing member switch\nTo remove a member switch from\
-        \ the VC, following the procedures below:\n\n1. Ensuring the VC is connected\
-        \ to the cloud first\n2. Unplug the cable from the VC port of the switch\n\
-        3. Waiting for the VC state (vc_state) of this switch is changed to not-present\n\
+        \ a while, the Org's Inventory shows that new switches has been added into\
+        \ the VC.\n\n## Removing member switch\nTo remove a member switch from the\
+        \ VC, following the procedures below:\n\n1. Ensuring the VC is connected to\
+        \ the cloud first\n2. Unplug the cable from the VC port of the switch\n3.\
+        \ Waiting for the VC state (vc_state) of this switch is changed to not-present\n\
         4. Invoke update_vc with remove to remove this switch from the VC\n5. The\
-        \ Org\u2019s Inventory shows the switch is removed.\n\nPlease notice that\
-        \ member ID 0 (fpc0) cannot be removed. When a VC has two switches left, unpluging\
+        \ Org's Inventory shows the switch is removed.\n\nPlease notice that member\
+        \ ID 0 (fpc0) cannot be removed. When a VC has two switches left, unplugging\
         \ the cable may result in the situation that fpc0 becomes a line card (LC).\
-        \ When this situation is happened, please re-plug in the cable, wait for both\
-        \ switches becoming present (show virtual-chassis) and then removing the cable\
-        \ again.\n\n## Renumber a member switch\nWhen a member switch doesn\u2019\
+        \ When this situation is happening, please re-plug in the cable, wait for\
+        \ both switches becoming present (show virtual-chassis) and then removing\
+        \ the cable again.\n\n## Renumber a member switch\nWhen a member switch doesn'\
         \ t work properly and needed to be replaced, the renumber API could be used.\
         \ The following two types of renumber are supported:\n\n1. Replace a non-fpc0\
         \ member switch\n2. Replace fpc0. When fpc0 is relaced, PAPI device config\
@@ -25684,18 +25687,15 @@ paths:
         \ procedures are needed: \n1. Ensuring the VC is connected to the cloud and\
         \ the state of the member switch to be replaced must be non present. \n2.\
         \ Adding the new member switch to the VC \n3. Waiting for the VC state (vc_state)\
-        \ of this VC to be updated to API server \n4. Invoke vc with renumber to replace\
+        \ of this VC to be updated to API server \n4. Invoke vc with renumber to replace\\\
         \ the new member switch from fpc X to\n\n## Perprovision VC members\nBy specifying\
-        \ \u201Cpreprovision\u201D op, you can convert the current VC to pre-provisioned\
-        \ mode, update VC members as well as specify vc_ports when adding new members\
-        \ for device models without dedicated vc ports. Use renumber for fpc0 replacement\
+        \ \"preprovision\" op, you can convert the current VC to pre-provisioned mode,\
+        \ update VC members as well as specify vc_ports when adding new members for\
+        \ device models without dedicated vc ports. Use renumber for fpc0 replacement\
         \ which involves device_id change.\n\nNote: \n1. vc_ports is used for adding\
-        \ new members and not needed if * the device model has dedicated vc ports,\
-        \ or * no new member is added \n2. New VC members to be added should exist\
-        \ in the same Site as the VC\n\nUpdate Device\u2019s VC config can achieve\
-        \ similar purpose by directly modifying current virtual_chassis config. However,\
-        \ it cannot fulfill requests to enabling vc_ports on new members that are\
-        \ yet to belong to current VC."
+        \ new members and not needed if \n  * the device model has dedicated vc ports,\
+        \ or \n  * no new member is added \n2. New VC members to be added should exist\
+        \ in the same Site as the VC"
       operationId: updateSiteVirtualChassisMember
       requestBody:
         content:
