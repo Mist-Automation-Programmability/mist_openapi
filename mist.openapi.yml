@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2412.1.38**
+  description: '> Version: **2412.1.39**
 
     >
 
-    > Date: **February 20, 2025**
+    > Date: **February 21, 2025**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2412.1.38
+  version: 2412.1.39
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -66471,25 +66471,12 @@ components:
       items:
         $ref: '#/components/schemas/org_service_policy'
       type: array
-    org_service_policies_secintel:
-      description: For SRX Only
-      properties:
-        enabled:
-          default: false
-          type: boolean
-        profile:
-          $ref: '#/components/schemas/secintel_profile_profile_action'
-        secintelprofile_id:
-          description: org-level secintel Profile can be used, this takes precendence
-            over 'profile'
-          type: string
-      type: object
     org_service_policy:
       properties:
         action:
           $ref: '#/components/schemas/allow_deny'
         antivirus:
-          $ref: '#/components/schemas/org_service_policy_antivirus'
+          $ref: '#/components/schemas/service_policy_antivirus'
         appqoe:
           $ref: '#/components/schemas/service_policy_appqoe'
         created_time:
@@ -66514,28 +66501,13 @@ components:
             you can customize by using `path_preference`
           type: string
         secintel:
-          $ref: '#/components/schemas/org_service_policies_secintel'
+          $ref: '#/components/schemas/service_policy_secintel'
         services:
           $ref: '#/components/schemas/strings'
         ssl_proxy:
           $ref: '#/components/schemas/org_service_policy_ssl_proxy'
         tenants:
           $ref: '#/components/schemas/strings'
-      type: object
-    org_service_policy_antivirus:
-      description: For SRX-only
-      properties:
-        avprofile_id:
-          description: org-level AV Profile can be used, this takes precendence over
-            'profile'
-          format: uuid
-          type: string
-        enabled:
-          default: false
-          type: boolean
-        profile:
-          description: Default / noftp / httponly / or keys from av_profiles
-          type: string
       type: object
     org_service_policy_ssl_proxy:
       description: For SRX-only
@@ -73185,6 +73157,8 @@ components:
       properties:
         action:
           $ref: '#/components/schemas/allow_deny'
+        antivirus:
+          $ref: '#/components/schemas/service_policy_antivirus'
         appqoe:
           $ref: '#/components/schemas/service_policy_appqoe'
         ewf:
@@ -73200,6 +73174,8 @@ components:
           description: By default, we derive all paths available and use them. Optionally,
             you can customize by using `path_preference`
           type: string
+        secintel:
+          $ref: '#/components/schemas/service_policy_secintel'
         servicepolicy_id:
           description: Used to link servicepolicy defined at org level and overwrite
             some attributes
@@ -73209,6 +73185,21 @@ components:
           $ref: '#/components/schemas/strings'
         tenants:
           $ref: '#/components/schemas/strings'
+      type: object
+    service_policy_antivirus:
+      description: For SRX-only
+      properties:
+        avprofile_id:
+          description: org-level AV Profile can be used, this takes precendence over
+            'profile'
+          format: uuid
+          type: string
+        enabled:
+          default: false
+          type: boolean
+        profile:
+          description: Default / noftp / httponly / or keys from av_profiles
+          type: string
       type: object
     service_policy_appqoe:
       description: For SRX Only
@@ -73242,6 +73233,19 @@ components:
       - standard
       - strict
       type: string
+    service_policy_secintel:
+      description: For SRX Only
+      properties:
+        enabled:
+          default: false
+          type: boolean
+        profile:
+          $ref: '#/components/schemas/secintel_profile_profile_action'
+        secintelprofile_id:
+          description: org-level secintel Profile can be used, this takes precendence
+            over 'profile'
+          type: string
+      type: object
     service_spec:
       properties:
         port_range:
@@ -80401,7 +80405,10 @@ components:
         ip_config:
           $ref: '#/components/schemas/switch_matching_rule_ip_config'
         name:
-          example: rule name
+          example: 'Rule name. WARNING: the name `default` is reserved and can only
+            be used for the last rule in the list'
+          maxLength: 32
+          minLength: 1
           type: string
         oob_ip_config:
           $ref: '#/components/schemas/switch_matching_rule_oob_ip_config'
