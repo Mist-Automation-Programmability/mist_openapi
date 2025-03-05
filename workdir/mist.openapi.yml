@@ -3,7 +3,7 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2502.1.5**
+  description: '> Version: **2502.1.6**
 
     >
 
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2502.1.5
+  version: 2502.1.6
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -54889,7 +54889,11 @@ components:
       type: object
     ap_port_config_forwarding:
       default: all
-      description: 'enum: `all`, `limited`, `mxtunnel`, `site_mxedge`, `wxtunnel`'
+      description: "enum: \n  * `all`: local breakout, All VLANs\n  * `limited`: local\
+        \ breakout, only the VLANs configured in `port_vlan_id` and `vlan_ids`\n \
+        \ * `mxtunnel`: central breakout to an Org Mist Edge (requires `mxtunnel_id`)\n\
+        \  * `site_mxedge`: central breakout to a Site Mist Edge (requires `mxtunnel_name`)\n\
+        \  * `wxtunnel`': central breakout to an Org WxTunnel (requires `wxtunnel_id`)"
       enum:
       - all
       - limited
@@ -61236,6 +61240,10 @@ components:
     extra_routes:
       additionalProperties:
         $ref: '#/components/schemas/extra_route'
+      description: Property key is the destination CIDR (e.g. "10.0.0.0/8")
+      example:
+        0.0.0.0/0:
+          via: 192.168.1.10
       type: object
     extra_routes6:
       additionalProperties:
@@ -82760,11 +82768,17 @@ components:
       properties:
         aggregate_routes:
           $ref: '#/components/schemas/aggregate_routes'
-        evpn_auto_lookback_subnet:
+        aggregate_routes6:
+          $ref: '#/components/schemas/aggregate_routes6'
+        evpn_auto_loopback_subnet:
           example: 100.101.0.0/24
+          type: string
+        evpn_auto_loopback_subnet6:
           type: string
         extra_routes:
           $ref: '#/components/schemas/vrf_extra_routes'
+        extra_routes6:
+          $ref: '#/components/schemas/vrf_extra_routes6'
         networks:
           $ref: '#/components/schemas/strings'
       type: object
@@ -85873,6 +85887,13 @@ components:
           format: ipv4
           type: string
       type: object
+    vrf_extra_route6:
+      properties:
+        via:
+          description: Next-hop address
+          format: ipv6
+          type: string
+      type: object
     vrf_extra_routes:
       additionalProperties:
         $ref: '#/components/schemas/vrf_extra_route'
@@ -85880,6 +85901,14 @@ components:
       example:
         0.0.0.0/0:
           via: 192.168.1.10
+      type: object
+    vrf_extra_routes6:
+      additionalProperties:
+        $ref: '#/components/schemas/vrf_extra_route6'
+      description: Property key is the destination CIDR (e.g. "2a02:1234:420a:10c9::/64")
+      example:
+        2a02:1234:420a:10c9::/64:
+          via: 2a02:1234:200a::100
       type: object
     vrrp_config:
       description: Junos VRRP config
