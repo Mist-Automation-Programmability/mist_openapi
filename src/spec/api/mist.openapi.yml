@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2502.1.11**
+  description: '> Version: **2502.1.12**
 
     >
 
-    > Date: **March 6, 2025**
+    > Date: **March 11, 2025**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2502.1.11
+  version: 2502.1.12
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -17960,6 +17960,26 @@ paths:
     get:
       description: Search Org BGP Stats
       operationId: searchOrgBgpStats
+      parameters:
+      - in: query
+        name: mac
+        schema:
+          type: string
+      - in: query
+        name: neighbor_mac
+        schema:
+          type: string
+      - in: query
+        name: site_id
+        schema:
+          type: string
+      - in: query
+        name: vrf_name
+        schema:
+          type: string
+      - $ref: '#/components/parameters/start'
+      - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/BgpStatsArraySearch'
@@ -18503,8 +18523,16 @@ paths:
       description: Search Org Peer Path Stats
       operationId: searchOrgPeerPathStats
       parameters:
+      - in: query
+        name: mac
+        schema:
+          type: string
+      - in: query
+        name: site_id
+        schema:
+          type: string
+      - $ref: '#/components/parameters/vpn_type'
       - $ref: '#/components/parameters/start'
-      - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
       responses:
@@ -38175,6 +38203,15 @@ components:
         example: 000000ab-00ab-00ab-00ab-0000000000ab
         format: uuid
         type: string
+    vpn_type:
+      in: query
+      name: type
+      required: false
+      schema:
+        enum:
+        - ipsec
+        - srv
+        type: string
     webhook_id:
       in: path
       name: webhook_id
@@ -53605,6 +53642,16 @@ components:
         example: set snmp community public
         type: string
       type: array
+    additional_vlan_ids:
+      anyOf:
+      - type: string
+      - $ref: '#/components/schemas/additional_vlan_ids_array'
+      description: List or Comma separated list of additional VLAN IDs (on the LAN
+        side or from other WLANs) should we be forwarding bonjour queries/responses
+    additional_vlan_ids_array:
+      items:
+        $ref: '#/components/schemas/vlan_id_with_variable'
+      type: array
     admin:
       properties:
         admin_id:
@@ -55734,8 +55781,10 @@ components:
       minimum: 1
       type: integer
     ap_switch_setting_vlan_ids:
-      description: List of VLAN ids this
+      description: List of VLAN ids
       items:
+        maximum: 4094
+        minimum: 1
         type: integer
       type: array
     ap_template:
@@ -63112,14 +63161,6 @@ components:
           example: 'Entry #1'
           type: string
       type: object
-    integer_or_string:
-      anyOf:
-      - type: integer
-      - type: string
-    integer_or_string_array:
-      items:
-        $ref: '#/components/schemas/integer_or_string'
-      type: array
     integers:
       items:
         type: integer
@@ -65640,7 +65681,7 @@ components:
       type: object
     mxedge_tunterm_switch_config_vlan_ids:
       items:
-        $ref: '#/components/schemas/integer_or_string'
+        $ref: '#/components/schemas/vlan_id_with_variable'
       type: array
     mxedge_tunterm_switch_configs:
       additionalProperties:
@@ -66443,8 +66484,7 @@ components:
         egress_vlan_names:
           $ref: '#/components/schemas/nac_tag_egress_vlan_names'
         gbp_tag:
-          $ref: '#/components/schemas/integer_or_string'
-          description: If `type`==`gbp_tag`
+          $ref: '#/components/schemas/nac_tag_gbp_tag'
         id:
           $ref: '#/components/schemas/id'
         match:
@@ -66497,6 +66537,13 @@ components:
       items:
         type: string
       type: array
+    nac_tag_gbp_tag:
+      anyOf:
+      - maximum: 65535
+        minimum: 1
+        type: integer
+      - type: string
+      description: If `type`==`gbp_tag`
     nac_tag_match:
       description: 'if `type`==`match`. enum: `cert_cn`, `cert_issuer`, `cert_san`,
         `cert_serial`, `cert_sub`, `cert_template`, `client_mac`, `idp_role`, `ingress_vlan`,
@@ -88933,7 +88980,7 @@ components:
       description: Bonjour gateway wlan settings
       properties:
         additional_vlan_ids:
-          $ref: '#/components/schemas/wlan_bonjour_additional_vlan_ids'
+          $ref: '#/components/schemas/additional_vlan_ids'
         enabled:
           default: false
           description: Whether to enable bonjour for this WLAN. Once enabled, limit_bcast
@@ -88953,12 +89000,6 @@ components:
       - services
       - additional_vlan_ids
       type: object
-    wlan_bonjour_additional_vlan_ids:
-      anyOf:
-      - type: string
-      - $ref: '#/components/schemas/integer_or_string_array'
-      description: List or Comma separated list of additional VLAN IDs (on the LAN
-        side or from other WLANs) should we be forwarding bonjour queries/responses
     wlan_bonjour_service_properties:
       properties:
         disable_local:
