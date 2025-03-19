@@ -58076,6 +58076,13 @@ components:
         format: uuid
         type: string
       type: array
+    coa_port:
+      anyOf:
+      - maximum: 65545
+        minimum: 1
+        type: integer
+      - type: string
+      description: CoA Port, value from 1 to 65535
     coa_server:
       description: CoA Server
       properties:
@@ -69452,12 +69459,16 @@ components:
     remote_syslog_archive:
       properties:
         files:
-          example: 20
-          type: integer
+          $ref: '#/components/schemas/remote_syslog_archive_files'
         size:
           example: 5m
           type: string
       type: object
+    remote_syslog_archive_files:
+      anyOf:
+      - type: string
+      - type: integer
+      example: 20
     remote_syslog_console:
       properties:
         contents:
@@ -69534,8 +69545,7 @@ components:
           example: '!alarm|ntp|errors.crc_error[chan]'
           type: string
         port:
-          default: 514
-          type: integer
+          $ref: '#/components/schemas/remote_syslog_server_port'
         protocol:
           $ref: '#/components/schemas/remote_syslog_server_protocol'
         routing_instance:
@@ -69552,6 +69562,14 @@ components:
         tag:
           type: string
       type: object
+    remote_syslog_server_port:
+      anyOf:
+      - maximum: 65545
+        minimum: 1
+        type: integer
+      - type: string
+      default: 514
+      description: CoA Port, value from 1 to 65535
     remote_syslog_server_protocol:
       default: udp
       description: 'enum: `tcp`, `udp`'
@@ -82596,6 +82614,7 @@ components:
           description: Only if `mode`!=`dynamic` media maximum transmission unit (MTU)
             is the largest data unit that can be forwarded without fragmentation.
             The default value is 1514.
+          nullable: true
           type: integer
         networks:
           $ref: '#/components/schemas/switch_port_usage_networks'
@@ -82659,6 +82678,7 @@ components:
         voip_network:
           description: Only if `mode`!=`dynamic` network/vlan for voip traffic, must
             also set port_network. to authenticate device, set port_auth
+          nullable: true
           type: string
       type: object
     switch_port_usage_dot1x:
@@ -82839,6 +82859,8 @@ components:
     switch_radius_config:
       description: Junos Radius config
       properties:
+        acct_immediate_update:
+          type: boolean
         acct_interim_interval:
           default: 0
           description: How frequently should interim accounting be reported, 60-65535.
@@ -82850,6 +82872,8 @@ components:
           type: integer
         acct_servers:
           $ref: '#/components/schemas/radius_acct_servers'
+        auth_server_selection:
+          $ref: '#/components/schemas/switch_radius_config_auth_server_selection'
         auth_servers:
           $ref: '#/components/schemas/radius_auth_servers'
         auth_servers_retries:
@@ -82860,6 +82884,14 @@ components:
           default: 5
           description: Radius auth session timeout
           type: integer
+        coa_enabled:
+          default: false
+          type: boolean
+        coa_port:
+          $ref: '#/components/schemas/coa_port'
+        fast_dot1x_timers:
+          default: false
+          type: boolean
         network:
           description: Use `network`or `source_ip`. Which network the RADIUS server
             resides, if there's static IP for this network, we'd use it as source-ip
@@ -82868,6 +82900,13 @@ components:
           description: Use `network`or `source_ip`
           type: string
       type: object
+    switch_radius_config_auth_server_selection:
+      default: ordered
+      description: 'enum: `ordered`, `unordered`'
+      enum:
+      - ordered
+      - unordered
+      type: string
     switch_search:
       properties:
         clustered:
