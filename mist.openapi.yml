@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2502.1.19**
+  description: '> Version: **2502.1.20**
 
     >
 
-    > Date: **March 25, 2025**
+    > Date: **March 31, 2025**
 
 
     ---
@@ -43,7 +43,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2502.1.19
+  version: 2502.1.20
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -54310,7 +54310,7 @@ components:
           nullable: true
           type: string
         locate_connected:
-          default: true
+          default: false
           description: Whether to enable the feature to allow wireless clients data
             received and sent to AES server for location calculation
           type: boolean
@@ -60584,6 +60584,7 @@ components:
       example: 20
       type: integer
     dot11_bandwidth5:
+      default: 40
       description: 'channel width for the 5GHz band. enum: `20`, `40`, `80`'
       enum:
       - 20
@@ -62060,7 +62061,7 @@ components:
       anyOf:
       - type: integer
       - type: string
-      description: If HA mode
+      description: For SRX only and if HA Mode
     gateway_port_config_wan_networks:
       description: Only if `usage`==`wan`. If some networks are connected to this
         WAN port, it can be added here so policies can be defined
@@ -63714,6 +63715,7 @@ components:
           default: false
           type: boolean
         critical:
+          default: false
           description: To generate port up/down alarm
           type: boolean
         description:
@@ -63736,6 +63738,7 @@ components:
             that can be forwarded without fragmentation
           type: integer
         no_local_overwrite:
+          default: true
           description: Prevent helpdesk to override the port config
           type: boolean
         poe_disabled:
@@ -72917,10 +72920,13 @@ components:
     rf_template_model_specific_property:
       properties:
         ant_gain_24:
+          default: 0
           type: integer
         ant_gain_5:
+          default: 0
           type: integer
         ant_gain_6:
+          default: 0
           type: integer
         band_24:
           $ref: '#/components/schemas/rftemplate_radio_band24'
@@ -74117,14 +74123,14 @@ components:
           $ref: '#/components/schemas/service_apps'
         client_limit_down:
           default: 0
-          description: 0 means unlimited
+          description: 0 means unlimited, value from 0 to 107374182
           example: 300000
           maximum: 107374182
           minimum: 0
           type: integer
         client_limit_up:
           default: 0
-          description: 0 means unlimited
+          description: 0 means unlimited, value from 0 to 107374182
           example: 300000
           maximum: 107374182
           minimum: 0
@@ -74155,14 +74161,14 @@ components:
           $ref: '#/components/schemas/org_id'
         service_limit_down:
           default: 0
-          description: 0 means unlimited
+          description: 0 means unlimited, value from 0 to 107374182
           example: 300000
           maximum: 107374182
           minimum: 0
           type: integer
         service_limit_up:
           default: 0
-          description: 0 means unlimited
+          description: 0 means unlimited, value from 0 to 107374182
           example: 300000
           maximum: 107374182
           minimum: 0
@@ -78060,6 +78066,8 @@ components:
           $ref: '#/components/schemas/ap_led'
         lldp_stat:
           $ref: '#/components/schemas/stats_ap_lldp_stat'
+        lldp_stats:
+          $ref: '#/components/schemas/stats_ap_lldp_stats'
         locating:
           example: false
           nullable: true
@@ -78604,7 +78612,9 @@ components:
         $ref: '#/components/schemas/stats_ap_l2tp_stat_session'
       type: array
     stats_ap_lldp_stat:
-      description: LLDP Stat (neighbor information, power negotiations)
+      description: LLDP neighbor information and power negotiations. For backward
+        compatibility, when multiple neighbors exist, only information from the first
+        neighbor is displayed.
       properties:
         chassis_id:
           nullable: true
@@ -78616,33 +78626,49 @@ components:
           readOnly: true
           type: boolean
         mgmt_addr:
-          description: "Switch\u2019s management address (if advertised), can be IPv4,\
-            \ IPv6, or MAC"
+          description: Management IP address of the switch
           nullable: true
           readOnly: true
           type: string
         mgmt_addrs:
-          $ref: '#/components/schemas/strings'
+          $ref: '#/components/schemas/stats_ap_lldp_stat_mgmt_addrs'
         port_desc:
-          description: ge-0/0/4
+          description: "Port description, e.g. \u201C2/20\u201D, \u201CPort 2 on Switch0\u201D"
+          example: 2/20
           nullable: true
           readOnly: true
           type: string
         port_id:
+          description: Port identifier
           example: ge-0/0/4
           nullable: true
           readOnly: true
           type: string
         power_allocated:
-          description: In mW, provided/allocated by PSE
+          description: In mW, power allocated by PSE
           nullable: true
           readOnly: true
           type: number
+        power_avail:
+          description: In mW, total Power Avail at AP from pwr source
+          type: integer
+        power_budget:
+          description: In mW, surplus if positive or deficit if negative
+          type: integer
+        power_constrained:
+          description: Whether power is insufficient
+          type: boolean
         power_draw:
           description: In mW, total power needed by PD
           nullable: true
           readOnly: true
           type: number
+        power_needed:
+          description: In mW, total Power needed incl Peripherals
+          type: integer
+        power_opmode:
+          description: Constrained mode
+          type: string
         power_request_count:
           description: "Number of negotiations, if it keeps increasing, we don\u2019\
             \ t have a stable power"
@@ -78650,10 +78676,14 @@ components:
           readOnly: true
           type: integer
         power_requested:
-          description: In mW, the current power requested by PD
+          description: In mW, power requested by PD
           nullable: true
           readOnly: true
           type: number
+        power_src:
+          $ref: '#/components/schemas/stats_ap_lldp_stat_power_src'
+        power_srcs:
+          $ref: '#/components/schemas/stats_ap_lldp_stat_power_srcs'
         system_desc:
           description: Description provided by switch
           example: 'uniper Networks, Inc. ex4300-48t internet router, kernel JUNOS
@@ -78669,6 +78699,26 @@ components:
           readOnly: true
           type: string
       type: object
+    stats_ap_lldp_stat_mgmt_addrs:
+      description: List of management IP addresses (IPv4 and IPv6)
+      items:
+        type: string
+      type: array
+    stats_ap_lldp_stat_power_src:
+      description: Single power source (DC Input / PoE 802.3at / PoE 802.3af / PoE
+        802.3bt / MULTI-PD / LLDP / ? (unknown)).
+      type: string
+    stats_ap_lldp_stat_power_srcs:
+      description: List of management IP addresses (IPv4 and IPv6)
+      items:
+        $ref: '#/components/schemas/stats_ap_lldp_stat_power_src'
+      type: array
+    stats_ap_lldp_stats:
+      additionalProperties:
+        $ref: '#/components/schemas/stats_ap_lldp_stat'
+      description: Property key is the port name (e.g. "eth0", "eth1", ...). Map of
+        ethernet ports to their respective LLDP neighbor information and power negotiations.
+        Only present when multiple neighbors exist.
     stats_ap_port_stat:
       properties:
         full_duplex:
@@ -82320,6 +82370,8 @@ components:
         local_accounts:
           $ref: '#/components/schemas/config_switch_local_accounts'
         mxedge_proxy_host:
+          description: IP Address or FQDN of the Mist Edge used to proxy the switch
+            management traffic to the Mist Cloud
           type: string
         mxedge_proxy_port:
           $ref: '#/components/schemas/switch_mgmt_mxedge_proxy_port'
@@ -82343,7 +82395,7 @@ components:
       - type: string
       default: 2222
       description: Mist Edge port used to proxy the switch management traffic to the
-        Mist Cloud. Values are from 1 to 65535
+        Mist Cloud. Value in range 1-65535
     switch_mist_nac:
       description: Enable mist_nac to use RadSec
       properties:
@@ -86019,8 +86071,7 @@ components:
           $ref: '#/components/schemas/vpn_path_bfd_profile'
         bfd_use_tunnel_mode:
           default: false
-          description: If `type`==`mesh` and for SSR only, whether toi use tunnel
-            mode
+          description: If `type`==`mesh` and for SSR only, whether to use tunnel mode
           type: boolean
         ip:
           description: If different from the wan port
