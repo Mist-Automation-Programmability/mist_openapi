@@ -1,6 +1,6 @@
 OUT_FOLDER="../src"
 FILTER_FILE="./.filters"
-PORTAL_FOLDER="../../API/mistapi_portal/src"
+PORTAL_FOLDER="../../mistapi-portal/src"
 CONTENT_FOLDER="$PORTAL_FOLDER/content/api"
 SPEC_FOLDER="$PORTAL_FOLDER/spec"
 
