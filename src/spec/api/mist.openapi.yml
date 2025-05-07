@@ -3,14 +3,14 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2504.1.0**
+  description: '> Version: **2504.1.1**
 
     >
 
-    > Date: **April 18, 2025**
+    > Date: **May 7, 2025**
 
     <div class="notification"> NOTE:<br>Some important API changes will be introduced.
-    Please make sure to read the <a href="https://www.juniper.net/documentation/us/en/software/mist/api/http/guides/important-api-changes">annoucements</a>
+    Please make sure to read the <a href="https://www.juniper.net/documentation/us/en/software/mist/api/http/guides/important-api-changes">announcements</a>
     </div>
 
 
@@ -51,7 +51,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2504.1.0
+  version: 2504.1.1
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -69,8 +69,12 @@ servers:
   url: https://api.gc3.mist.com
 - description: Mist EMEA 03
   url: https://api.ac6.mist.com
+- description: Mist EMEA 03
+  url: https://api.gc6.mist.com
 - description: Mist APAC 01
   url: https://api.ac5.mist.com
+- description: Mist APAC 03
+  url: https://api.gc7.mist.com
 security:
 - apiToken: []
 - basicAuth: []
@@ -957,11 +961,11 @@ tags:
 
 
     It allows for the creation and management of wireless network settings, such as
-    ssids (service set identifiers), authentication settings, VLAN configurations,
+    SSIDs (service set identifiers), authentication settings, VLAN configurations,
     etc...
 
 
-    Org Wlans are created and managed at the org level and can only be referenced
+    Org WLANs are created and managed at the org level and can only be referenced
     and used within the WLAN Templates.'
   name: Orgs Wlans
 - description: 'ORg WxRules are a set of rules, restrictions, and settings that can
@@ -1321,7 +1325,7 @@ tags:
 
 
     It allows for the creation and management of wireless network settings, such as
-    ssids (service set identifiers), authentication settings, VLAN configurations,
+    SSIDs (service set identifiers), authentication settings, VLAN configurations,
     etc... for a particular site.
 
 
@@ -1473,14 +1477,10 @@ paths:
   /api/v1/const/alarm_defs:
     get:
       description: 'Get List of brief definitions of all the supported alarm types.
-
-
         The example field contains an example payload as you would receive in the
         alarm webhook output.
 
-
-
-        HA cluster node names will be specified in the `node` field, if applicable.'''
+        HA cluster node names will be specified in the `node` field, if applicable.'
       operationId: listAlarmDefinitions
       responses:
         '200':
@@ -1822,7 +1822,7 @@ paths:
       operationId: listLicenseTypes
       responses:
         '200':
-          $ref: '#/components/responses/ConstLicenceTypes'
+          $ref: '#/components/responses/ConstLicenseTypes'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -3317,7 +3317,7 @@ paths:
     - $ref: '#/components/parameters/msp_id'
     post:
       description: Claim an Order by Activation Code
-      operationId: claimMspLicence
+      operationId: claimMspLicense
       requestBody:
         content:
           application/json:
@@ -3340,7 +3340,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: claimMspLicence
+      summary: claimMspLicense
       tags:
       - MSPs Licenses
   /api/v1/msps/{msp_id}/insights/{metric}:
@@ -3523,7 +3523,7 @@ paths:
       operationId: listMspLicenses
       responses:
         '200':
-          $ref: '#/components/responses/Licence'
+          $ref: '#/components/responses/License'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -3550,7 +3550,7 @@ paths:
                 value:
                   op: delete
                   subscription_id: SUB-0000144
-              move-micense:
+              move-license:
                 value:
                   dst_org_id: 3eff35f7-c218-894e-bca2-24e5325601cc
                   op: amend
@@ -3674,13 +3674,15 @@ paths:
     - $ref: '#/components/parameters/msp_id'
   /api/v1/msps/{msp_id}/logs/count:
     get:
-      description: Count by Distinct Attributes of Audit Logs
+      description: Count by Distinct Attributes of Audit Logs.
       operationId: countMspAuditLogs
       parameters:
+      - $ref: '#/components/parameters/limit'
       - in: query
         name: distinct
         schema:
           $ref: '#/components/schemas/msp_logs_count_distinct'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -4362,11 +4364,11 @@ paths:
     - $ref: '#/components/parameters/sso_id'
   /api/v1/msps/{msp_id}/stats/licenses:
     get:
-      description: Get List of MSP Licences
+      description: Get List of MSP Licenses
       operationId: listMspOrgLicenses
       responses:
         '200':
-          $ref: '#/components/responses/Licence'
+          $ref: '#/components/responses/License'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -4409,7 +4411,7 @@ paths:
     - $ref: '#/components/parameters/msp_id'
   /api/v1/msps/{msp_id}/suggestion/count:
     get:
-      description: Count Marvis actions
+      description: Count by Distinct Attributes of Marvis actions
       operationId: countMspsMarvisActions
       parameters:
       - in: query
@@ -4417,7 +4419,6 @@ paths:
         schema:
           $ref: '#/components/schemas/msp_marvis_suggestions_count_distinct'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/CountMarvisActions'
@@ -4464,13 +4465,14 @@ paths:
     - $ref: '#/components/parameters/msp_id'
   /api/v1/msps/{msp_id}/tickets/count:
     get:
-      description: Count tickets
+      description: Count by Distinct Attributes of tickets
       operationId: countMspTickets
       parameters:
       - in: query
         name: distinct
         schema:
           $ref: '#/components/schemas/msp_tickets_count_distinct'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -4920,7 +4922,7 @@ paths:
       - Orgs Alarms
   /api/v1/orgs/{org_id}/alarms/count:
     get:
-      description: Count Org Alarms
+      description: Count by Distinct Attributes of Org Alarms
       operationId: countOrgAlarms
       parameters:
       - in: query
@@ -4931,7 +4933,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -6694,7 +6695,7 @@ paths:
           type: boolean
       responses:
         '200':
-          $ref: '#/components/responses/AsyncLicence'
+          $ref: '#/components/responses/AsyncLicense'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -6712,7 +6713,7 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/clients/count:
     get:
-      description: Count Org Wireless Clients
+      description: Count by Distinct Attributes of Org Wireless Clients
       operationId: countOrgWirelessClients
       parameters:
       - in: query
@@ -6764,7 +6765,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -6938,7 +6938,7 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/clients/sessions/count:
     get:
-      description: Count Org Wireless Clients Sessions
+      description: Count by Distinct Attributes of Org Wireless Clients Sessions
       operationId: countOrgWirelessClientsSessions
       parameters:
       - in: query
@@ -6985,7 +6985,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -7687,7 +7686,7 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/devices/count:
     get:
-      description: Count Org Devices
+      description: Count by Distinct Attributes of Org Devices
       operationId: countOrgDevices
       parameters:
       - in: query
@@ -7764,7 +7763,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -7785,7 +7783,7 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/devices/events/count:
     get:
-      description: Count Org Devices Events
+      description: Count by Distinct Attributes of Org Devices Events
       operationId: countOrgDeviceEvents
       parameters:
       - in: query
@@ -7823,10 +7821,10 @@ paths:
         schema:
           type: string
       - $ref: '#/components/parameters/device_event_type'
-      - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -7919,6 +7917,7 @@ paths:
           $ref: '#/components/schemas/org_devices_last_configs_count_distinct'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
+      - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
       responses:
         '200':
@@ -8456,7 +8455,7 @@ paths:
         \ by setting up ESI-Lag on distribution switches\n\n#### Leaf / Access / Collapsed-Core\n\
         For leaf nodes in a EVPN topology, you\u2019d have to configure the IPs for\
         \ networks that would participate in EVPN. Optionally, VRFs to isolate traffic\
-        \ from one tenant verus another"
+        \ from one tenant versus another"
       operationId: createOrgEvpnTopology
       requestBody:
         content:
@@ -8943,7 +8942,7 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/guests/count:
     get:
-      description: Count Org Authorized Guest
+      description: Count by Distinct Attributes of Org Authorized Guest
       operationId: countOrgGuestAuthorizations
       parameters:
       - in: query
@@ -8954,7 +8953,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -9320,7 +9318,7 @@ paths:
         \ Chassis ID and he `device_id` and `site_id` will be available\n    in the\
         \ device information.  \n    This is the case if the device is the Virtual\
         \ Chassis \"virtual device\" (MAC starting with `020003`) or if the device\
-        \ is the Virtual Chassis FPC0 and the Virtual Chaais is still using the FPC0\
+        \ is the Virtual Chassis FPC0 and the Virtual Chassis is still using the FPC0\
         \ MAC address to generate the device ID.\n"
       operationId: getOrgInventory
       parameters:
@@ -9464,7 +9462,7 @@ paths:
       - Orgs Inventory
   /api/v1/orgs/{org_id}/inventory/count:
     get:
-      description: Count in the Org Inventory
+      description: Count by Distinct Attributes of in the Org Inventory
       operationId: countOrgInventory
       parameters:
       - in: query
@@ -9476,7 +9474,6 @@ paths:
         schema:
           $ref: '#/components/schemas/inventory_count_distinct'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -9597,7 +9594,7 @@ paths:
         \ will be reset to factory settings but will still be in Inventory.Brownfield\
         \ or VM\u2019s will be\ndeleted from Inventory\n\n**Note:** For Gateway devices\
         \ only like-for-like replacements (can only replace a SRX320 with a SRX320\
-        \ and not some otehr model) are allowed."
+        \ and not some other model) are allowed."
       operationId: replaceOrgDevices
       requestBody:
         content:
@@ -9980,10 +9977,10 @@ paths:
   /api/v1/orgs/{org_id}/licenses:
     get:
       description: Get the list of licenses
-      operationId: getOrgLicencesSummary
+      operationId: getOrgLicensesSummary
       responses:
         '200':
-          $ref: '#/components/responses/Licence'
+          $ref: '#/components/responses/License'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -9994,7 +9991,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getOrgLicencesSummary
+      summary: getOrgLicensesSummary
       tags:
       - Orgs Licenses
     parameters:
@@ -10055,10 +10052,10 @@ paths:
 
         This shows license usage (i.e. needed) based on the features enabled for the
         site.'
-      operationId: getOrgLicencesBySite
+      operationId: getOrgLicensesBySite
       responses:
         '200':
-          $ref: '#/components/responses/LicenceUsageOrg'
+          $ref: '#/components/responses/LicenseUsageOrg'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -10069,7 +10066,7 @@ paths:
           $ref: '#/components/responses/HTTP404'
         '429':
           $ref: '#/components/responses/HTTP429'
-      summary: getOrgLicencesBySite
+      summary: getOrgLicensesBySite
       tags:
       - Orgs Licenses
     parameters:
@@ -10151,7 +10148,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -10684,7 +10680,7 @@ paths:
       - Orgs MxEdges
   /api/v1/orgs/{org_id}/mxedges/count:
     get:
-      description: Count Org Mist Edges
+      description: Count by Distinct Attributes of Org Mist Edges
       operationId: countOrgMxEdges
       parameters:
       - in: query
@@ -10735,7 +10731,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -10756,7 +10751,7 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/mxedges/events/count:
     get:
-      description: Count Org Mist Edge Events
+      description: Count by Distinct Attributes of Org Mist Edge Events
       operationId: countOrgSiteMxEdgeEvents
       parameters:
       - in: query
@@ -11647,7 +11642,7 @@ paths:
         name: mdm_compliance_status
         schema:
           type: string
-      - description: "MDM provider of client\u2019s organisation eg \"intune\", \"\
+      - description: "MDM provider of client\u2019s organization eg \"intune\", \"\
           jamf\""
         in: query
         name: mdm_provider
@@ -11657,7 +11652,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -11773,7 +11767,7 @@ paths:
         name: idp_username
         schema:
           type: string
-      - description: Radius attributes returned by NAC to NAS Devive
+      - description: Radius attributes returned by NAC to NAS derive
         in: query
         name: resp_attrs
         schema:
@@ -11942,7 +11936,7 @@ paths:
         name: mdm_compliance
         schema:
           type: string
-      - description: "MDM provider of client\u2019s organisation eg \"intune\", \"\
+      - description: "MDM provider of client\u2019s organization eg \"intune\", \"\
           jamf\""
         in: query
         name: mdm_provider
@@ -13515,7 +13509,7 @@ paths:
       - Orgs Devices - Others
   /api/v1/orgs/{org_id}/otherdevices/events/count:
     get:
-      description: Count Org OtherDevices Events
+      description: Count by Distinct Attributes of Org OtherDevices Events
       operationId: countOrgOtherDeviceEvents
       parameters:
       - in: query
@@ -13961,7 +13955,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -16984,7 +16977,7 @@ paths:
       - Orgs Sites
   /api/v1/orgs/{org_id}/sites/count:
     get:
-      description: Count Sites
+      description: Count by Distinct Attributes of Sites
       operationId: countOrgSites
       parameters:
       - in: query
@@ -16995,7 +16988,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -17846,13 +17838,14 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/stats/assets/count:
     get:
-      description: Count Org Assets
+      description: Count by Distinct Attributes of Org Assets
       operationId: countOrgAssetsByDistanceField
       parameters:
       - in: query
         name: distinct
         schema:
           $ref: '#/components/schemas/org_asset_count_distinct'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -17956,8 +17949,10 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/stats/bgp_peers/count:
     get:
-      description: Count Org BGP Stats
+      description: Count by Distinct Attributes of Org BGP Stats
       operationId: countOrgBgpStats
+      parameters:
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -18086,8 +18081,7 @@ paths:
         in: query
         name: for_site
         schema:
-          default: false
-          type: boolean
+          $ref: '#/components/schemas/for_site'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
@@ -18367,7 +18361,7 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/stats/tunnels/count:
     get:
-      description: Count Mist Tunnels Stats
+      description: Count by Distinct Attributes of Mist Tunnels Stats
       operationId: countOrgTunnelsStats
       parameters:
       - description: "- If `type`==`wxtunnel`: wxtunnel_id / ap / remote_ip / remote_port\
@@ -18383,6 +18377,7 @@ paths:
         name: type
         schema:
           $ref: '#/components/schemas/org_tunnel_type_count'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -18508,7 +18503,7 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/stats/vpn_peers/count:
     get:
-      description: Count Org Peer Path Stats
+      description: Count by Distinct Attributes of Org Peer Path Stats
       operationId: countOrgPeerPathStats
       parameters:
       - in: query
@@ -18519,7 +18514,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -18827,13 +18821,14 @@ paths:
       - Orgs Tickets
   /api/v1/orgs/{org_id}/tickets/count:
     get:
-      description: Count Org Tickets
+      description: Count by Distinct Attributes of Org Tickets
       operationId: countOrgTickets
       parameters:
       - in: query
         name: distinct
         schema:
           $ref: '#/components/schemas/org_tickets_count_distinct'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -19501,7 +19496,7 @@ paths:
     - $ref: '#/components/parameters/org_id'
   /api/v1/orgs/{org_id}/wan_clients/count:
     get:
-      description: Count Org WAN Clients
+      description: Count by Distinct Attributes of Org WAN Clients
       operationId: countOrgWanClients
       parameters:
       - in: query
@@ -19512,7 +19507,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -19931,7 +19925,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -21674,7 +21667,7 @@ paths:
       - Sites Alarms
   /api/v1/sites/{site_id}/alarms/count:
     get:
-      description: Count Site Alarms
+      description: Count by Distinct Attributes of Site Alarms
       operationId: countSiteAlarms
       parameters:
       - description: Group by and count the alarms by some distinct field
@@ -21712,7 +21705,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -22492,7 +22484,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -22577,10 +22568,10 @@ paths:
         name: wlan_id
         schema:
           type: string
-      - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -22777,7 +22768,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -23125,7 +23115,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -23238,7 +23227,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -23276,10 +23264,10 @@ paths:
         name: type_code
         schema:
           type: string
-      - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -23430,7 +23418,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -26453,7 +26440,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/events/system/count:
     get:
-      description: Count System Events
+      description: Count by Distinct Attributes of System Events
       operationId: countSiteSystemEvents
       parameters:
       - in: query
@@ -26461,10 +26448,10 @@ paths:
         schema:
           $ref: '#/components/schemas/site_system_events_count_distinct'
       - $ref: '#/components/parameters/system_event_type'
-      - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -26721,7 +26708,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/guests/count:
     get:
-      description: Count Authorized Guest
+      description: Count by Distinct Attributes of Authorized Guest
       operationId: countSiteGuestAuthorizations
       parameters:
       - example: auth_method
@@ -26733,7 +26720,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -26974,7 +26960,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -27166,7 +27151,7 @@ paths:
       operationId: getSiteLicenseUsage
       responses:
         '200':
-          $ref: '#/components/responses/LicenceUsageSite'
+          $ref: '#/components/responses/LicenseUsageSite'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -28213,7 +28198,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/mxedges/events/count:
     get:
-      description: Count Mist Edge Events
+      description: Count by Distinct Attributes of Mist Edge Events
       operationId: countSiteMxEdgeEvents
       parameters:
       - in: query
@@ -28510,7 +28495,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -28939,7 +28923,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/otherdevices/events/count:
     get:
-      description: Count Site OtherDevices Events
+      description: Count by Distinct Attributes of Site OtherDevices Events
       operationId: countSiteOtherDeviceEvents
       parameters:
       - in: query
@@ -29705,7 +29689,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/rogues/events/count:
     get:
-      description: Count Rogue Events
+      description: Count by Distinct Attributes of Rogue Events
       operationId: countSiteRogueEvents
       parameters:
       - in: query
@@ -29740,10 +29724,10 @@ paths:
         name: seen_on_lan
         schema:
           type: boolean
-      - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -30244,7 +30228,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/services/events/count:
     get:
-      description: Count Service Path Events
+      description: Count by Distinct Attributes of Service Path Events
       operationId: countSiteServicePathEvents
       parameters:
       - in: query
@@ -31061,10 +31045,10 @@ paths:
         schema:
           type: integer
       - $ref: '#/components/parameters/ip'
-      - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -32051,6 +32035,7 @@ paths:
         name: wired
         schema:
           type: string
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -32099,13 +32084,14 @@ paths:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/assets/count:
     get:
-      description: Count Asset by distinct field
+      description: Count by Distinct Attributes of Site Asset
       operationId: countSiteAssets
       parameters:
       - in: query
         name: distinct
         schema:
           $ref: '#/components/schemas/site_assets_count_distinct'
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -32268,7 +32254,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/stats/bgp_peers/count:
     get:
-      description: Count BGP Stats
+      description: Count by Distinct Attributes of BGP Stats
       operationId: countSiteBgpStats
       parameters:
       - in: query
@@ -32279,6 +32265,7 @@ paths:
         name: distinct
         schema:
           type: string
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -32393,6 +32380,7 @@ paths:
         name: end
         schema:
           type: string
+      - $ref: '#/components/parameters/limit'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -32763,7 +32751,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -33233,7 +33220,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -34248,7 +34234,7 @@ paths:
     - $ref: '#/components/parameters/site_id'
   /api/v1/sites/{site_id}/wan_clients/count:
     get:
-      description: Count Site WAN Clients
+      description: Count by Distinct Attributes of Site WAN Clients
       operationId: countSiteWanClients
       parameters:
       - in: query
@@ -34259,7 +34245,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -34427,7 +34412,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -34868,7 +34852,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -36542,7 +36525,7 @@ paths:
       - Sites Zones
   /api/v1/sites/{site_id}/{zone_type}/count:
     get:
-      description: Count Site Zone Sessions
+      description: Count by Distinct Attributes of Site Zone Sessions
       operationId: countSiteZoneSessions
       parameters:
       - example: scope_id
@@ -36574,7 +36557,6 @@ paths:
       - $ref: '#/components/parameters/end'
       - $ref: '#/components/parameters/duration'
       - $ref: '#/components/parameters/limit'
-      - $ref: '#/components/parameters/page'
       responses:
         '200':
           $ref: '#/components/responses/Count'
@@ -39091,7 +39073,7 @@ components:
           schema:
             $ref: '#/components/schemas/response_assign_success'
       description: OK - list only devices that has deviceprofile_id changed
-    AsyncLicence:
+    AsyncLicense:
       content:
         application/json:
           examples:
@@ -40888,7 +40870,7 @@ components:
           schema:
             $ref: '#/components/schemas/const_languages'
       description: List of Languages
-    ConstLicenceTypes:
+    ConstLicenseTypes:
       content:
         application/json:
           examples:
@@ -40902,7 +40884,7 @@ components:
                 name: SUB-EX12
           schema:
             $ref: '#/components/schemas/const_license_types'
-      description: List of Licence Types
+      description: List of License Types
     ConstMarvisClientVersions:
       content:
         application/json:
@@ -45512,7 +45494,7 @@ components:
           schema:
             $ref: '#/components/schemas/response_device_config_cmd'
       description: OK
-    Licence:
+    License:
       content:
         application/json:
           examples:
@@ -45678,7 +45660,7 @@ components:
           schema:
             $ref: '#/components/schemas/license'
       description: OK
-    LicenceUsageOrg:
+    LicenseUsageOrg:
       content:
         application/json:
           examples:
@@ -45695,7 +45677,7 @@ components:
           schema:
             $ref: '#/components/schemas/usage_org_licenses'
       description: OK
-    LicenceUsageSite:
+    LicenseUsageSite:
       content:
         application/json:
           examples:
@@ -62392,6 +62374,12 @@ components:
       - model
       - os
       - os_type
+      type: string
+    for_site:
+      enum:
+      - all
+      - 'true'
+      - 'false'
       type: string
     fwupdate_stat:
       properties:
