@@ -5,7 +5,7 @@ import yaml
 POSTMAN_FILE = "../mist.postman.json"
 POSTMAN_USAGE_FILE = "./mist.postman_usage.json"
 
-OAS_FILE = "./mist.openapi.yml"
+OAS_FILE = "./mist.openapi.yaml"
 POSTMAN_ENV_FILE = "./../mist.postman_env.json"
 
 def display_mess(message):

@@ -7,7 +7,7 @@
  """
 import yaml
 
-FILENAME="mist.openapi.yml"
+FILENAME="mist.openapi.yaml"
 
 VERBS = ["get", "post", "put", "delete"]
 CONTENT_TYPES = ["application/json", "application/xml", "multipart/form-data"]

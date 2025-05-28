@@ -8,7 +8,7 @@ import json
 import sys
 import os
 
-SPEC_FILE_IN="../tmp/mist.openapi_grp1.yml"
+SPEC_FILE_IN="../tmp/mist.openapi_grp1.yaml"
 SPEC_FOLDER_OUT="../src/spec"
 FILTER_FILE="./.filters"
 PRE_TAG="op"
@@ -106,7 +106,7 @@ for tag_entry in TAGS:
     if tag.startswith("api.v1"):
         if not os.path.isdir(f"{SPEC_FOLDER_OUT}/{tag}"):
             os.makedirs(f"{SPEC_FOLDER_OUT}/{tag}")
-        file = f"{SPEC_FOLDER_OUT}/{tag}/mist.openapi.{tag.lower()}.yml"
+        file = f"{SPEC_FOLDER_OUT}/{tag}/mist.openapi.{tag.lower()}.yaml"
         components = {"securitySchemes": data["components"]["securitySchemes"]}
         for verb in VERBS:
             if PATHS[path].get(verb):
@@ -127,7 +127,7 @@ for tag_entry in TAGS:
                         if not rtype in components:
                             components[rtype] = {}
                         if not rname in components[rtype]:
-                            components[rtype][rname] = {"$ref": f"../components/{rtype}/{rname}.yml"}
+                            components[rtype][rname] = {"$ref": f"../components/{rtype}/{rname}.yaml"}
                 elif item == "components":
                     yaml.dump({item: components}, oas_out_file)
                 elif item == "tags":

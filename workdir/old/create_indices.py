@@ -4,10 +4,10 @@ folders = ["./components/schemas", "./components/responses", "./components/param
 
 for folder in folders:
     files = os.listdir(folder)
-    if "_index.yml" in files:
-        i = files.index("_index.yml")
+    if "_index.yaml" in files:
+        i = files.index("_index.yaml")
         files.pop(i)
-    with open(f"{folder}/_index.yml", 'w') as f:
+    with open(f"{folder}/_index.yaml", 'w') as f:
         for file in files:
             filename = ".".join(file.split(".")[:-1])
             f.write(f"{filename}:\r\n")

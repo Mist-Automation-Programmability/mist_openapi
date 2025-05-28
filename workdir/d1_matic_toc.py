@@ -9,7 +9,7 @@ import sys
 import yaml
 import shutil
 
-SPEC_FILE_IN = "./mist.openapi.yml"
+SPEC_FILE_IN = "./mist.openapi.yaml"
 TOC_FOLDER = "../src/content/api"
 FILTER_FILE = "./.filters"
 ROOT_ITEMS = [
@@ -169,9 +169,9 @@ def generate_toc():
             )
             if not os.path.isdir(toc_file_path):
                 os.makedirs(toc_file_path)
-            with open(os.path.join(toc_file_path, "toc.yml"), "w") as toc_out_file:
+            with open(os.path.join(toc_file_path, "toc.yaml"), "w") as toc_out_file:
                 yaml.dump({"toc": items}, toc_out_file, indent=2)
-            post_processing(os.path.join(toc_file_path, "toc.yml"))
+            post_processing(os.path.join(toc_file_path, "toc.yaml"))
 
         else:
             toc_file_path = os.path.abspath(
@@ -179,9 +179,9 @@ def generate_toc():
             )
             if not os.path.isdir(toc_file_path):
                 os.makedirs(toc_file_path)
-            with open(os.path.join(toc_file_path, "toc.yml"), "w") as toc_out_file:
+            with open(os.path.join(toc_file_path, "toc.yaml"), "w") as toc_out_file:
                 yaml.dump({"toc": items}, toc_out_file, indent=2)
-            post_processing(os.path.join(toc_file_path, "toc.yml"))
+            post_processing(os.path.join(toc_file_path, "toc.yaml"))
 
     # main_toc = [
     #     {
@@ -203,7 +203,7 @@ def generate_toc():
     #     {"from": "models", "generate": "Models"},
     # ]
     # toc_file_path = os.path.abspath(os.path.join(os.path.curdir, TOC_FOLDER))
-    # with open(os.path.join(toc_file_path, "toc.yml"), "w") as toc_out_file:
+    # with open(os.path.join(toc_file_path, "toc.yaml"), "w") as toc_out_file:
     #     yaml.dump({"toc": main_toc}, toc_out_file, ind
     # ent=2)
 

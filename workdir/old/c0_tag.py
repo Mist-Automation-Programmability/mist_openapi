@@ -4,8 +4,8 @@ endpoint based on the path
 """
 import yaml
 
-SPEC_FILE_IN="./mist.openapi.yml"
-SPEC_FILE_OUT="../tmp/mist.openapi_grp1.yml"
+SPEC_FILE_IN="./mist.openapi.yaml"
+SPEC_FILE_OUT="../tmp/mist.openapi_grp1.yaml"
 
 
 with open(SPEC_FILE_IN, "r") as f:

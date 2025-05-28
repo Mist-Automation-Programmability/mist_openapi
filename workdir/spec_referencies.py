@@ -2,8 +2,8 @@ import yaml
 import json
 import re
 
-SPEC_FILE="./mist.openapi.yml"
-REF_FILE="./spec_referencies.yml"
+SPEC_FILE="./mist.openapi.yaml"
+REF_FILE="./spec_referencies.yaml"
 R = r'"\$ref": "([^"]*)"'
 
 def _check_refs( comp:dict):

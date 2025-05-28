@@ -4,7 +4,7 @@ validate every tag has a description
 
 import yaml
 
-FILE_IN = "./mist.openapi.yml"
+FILE_IN = "./mist.openapi.yaml"
 
 
 

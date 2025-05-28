@@ -7,8 +7,8 @@ import os
 import sys
 import yaml
 
-TOC_FILE_IN = "../src/src_toc.yml"
-TOC_FILE_OUT = "../src/content/toc.yml"
+TOC_FILE_IN = "../src/src_toc.yaml"
+TOC_FILE_OUT = "../src/content/toc.yaml"
 SPEC_FOLDER = "../src/spec/"
 TOC_FOLDER = "../src/content/api/"
 FILTER_FILE = "./.filters"
@@ -148,8 +148,8 @@ def generate_toc():
         if os.path.isdir(spec_folder_path):
             for file in os.listdir(spec_folder_path):
                 spec_file_path = os.path.join(spec_folder_path, file)
-                toc_file_path = os.path.join(toc_folder_path, "toc.yml")
-                if os.path.isfile(spec_file_path) and spec_file_path.endswith(".yml"):
+                toc_file_path = os.path.join(toc_folder_path, "toc.yaml")
+                if os.path.isfile(spec_file_path) and spec_file_path.endswith(".yaml"):
                     with open(spec_file_path, "r") as spec_file_data:
                         spec_data = yaml.load(
                             spec_file_data, Loader=yaml.loader.SafeLoader
