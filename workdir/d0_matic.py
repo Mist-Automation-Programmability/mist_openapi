@@ -3,9 +3,6 @@ This script is generating the spec files from the main openapi spec (single file
 Can be filtered to one or multiple spec files based on the .filters file
 """
 import yaml
-import re
-import json
-import sys
 import os
 import shutil
 
@@ -40,11 +37,6 @@ def check_folder(folder_path):
     full_path = os.path.join(os.path.curdir, SPEC_FOLDER_OUT, folder_path)
     if not os.path.isdir(full_path):
         os.mkdir(full_path)
-
-
-
-
-
 
 
 #####################################################

@@ -100,8 +100,8 @@ def generate_toc():
         for verb in ["get", "post", "put", "delete"]:
             if verb in properties:
                 tag_name = properties[verb]["tags"][0]
-                tag_data = get_tag_data(tag_name)
-                tag_desc = tag_data.get("description")
+                #tag_data = get_tag_data(tag_name)
+                #tag_desc = tag_data.get("description")
 
                 operation_id = properties[verb]["operationId"]
                 if not operation_id in OPERATION_IDS:
