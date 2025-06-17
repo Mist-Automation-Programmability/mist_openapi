@@ -155,32 +155,9 @@ def add_default_responses(oas):
         display_failure()
         print(e)
 
-
-def add_response_vnd(oas):
-    crud = ["get", "post", "put", "delete"]
-    display_mess("Adding application/vnd.api+json")
-    added = 0
-    try:
-        responses = oas["components"]["responses"]
-        for _, response in responses.items():
-            if response.get("content", {}).get("application/json"):
-                schema = response["content"]["application/json"].get("schema")
-                response["content"]["application/vnd.api+json"] = {}
-                if schema:
-                    response["content"]["application/vnd.api+json"]["schema"]= schema.copy()
-                added += 1
-                
-        oas["components"]["responses"] = responses.copy()
-        display_success()
-        return oas        
-    except Exception as e:
-        display_failure()
-        print(e)
-
 if __name__ == "__main__":
     data = open_src()
     data = add_default_responses(data)
-    data = add_response_vnd(data)
     data = sort_paths(data)
     data = sort_parameters(data)
     data = sort_responses(data)
