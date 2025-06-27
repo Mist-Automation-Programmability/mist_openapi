@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2505.1.10**
+  description: '> Version: **2506.1.0**
 
     >
 
-    > Date: **June 23, 2025**
+    > Date: **June 27, 2025**
 
     <div class="notification"> NOTE:<br>Some important API changes will be introduced.
     Please make sure to read the <a href="https://www.juniper.net/documentation/us/en/software/mist/api/http/guides/important-api-changes">announcements</a>
@@ -51,7 +51,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2505.1.10
+  version: 2506.1.0
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -7021,7 +7021,7 @@ paths:
         in: query
         name: nacrule_id
         schema:
-          example: '7dae216d-7c98-a51b-e068-dd7 - $ref: '
+          example: 7dae216d-7c98-a51b-e068-dd7d477b7216
           format: uuid
           type: string
       - $ref: '#/components/parameters/start'
@@ -8141,6 +8141,13 @@ paths:
         name: last_by
         schema:
           example: port_id
+          type: string
+      - description: Keyword to include events from additional indices (e.g. ext_tunnel
+          for prisma events)
+        in: query
+        name: includes
+        schema:
+          example: ext_tunnel
           type: string
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
@@ -12322,11 +12329,12 @@ paths:
         name: mdm_managed
         schema:
           type: boolean
-      - description: Connection status of client i.e "permitted", "denied, "session_ended"
+      - description: Connection status of client i.e "permitted", "denied, "session_stared",
+          "session_ended"
         in: query
         name: status
         schema:
-          type: string
+          $ref: '#/components/schemas/nac_client_last_status'
       - description: Client type i.e. "wireless", "wired" etc.
         in: query
         name: type
@@ -12335,6 +12343,31 @@ paths:
       - description: MDM compliance of client i.e "compliant", "not compliant"
         in: query
         name: mdm_compliance
+        schema:
+          type: string
+      - description: Client family, e.g. "Phone/Tablet/Wearable", "Access Point"
+        in: query
+        name: family
+        schema:
+          type: string
+      - description: Client model, e.g. "iPhone 12", "MX100"
+        in: query
+        name: model
+        schema:
+          type: string
+      - description: Client OS, e.g. "iOS 18.1", "Android", "Windows", "Linux"
+        in: query
+        name: os
+        schema:
+          type: string
+      - description: Client hostname, e.g. "my-laptop", "my-phone"
+        in: query
+        name: hostname
+        schema:
+          type: string
+      - description: Client manufacturer, e.g. "apple", "cisco", "juniper"
+        in: query
+        name: mfg
         schema:
           type: string
       - description: "MDM provider of client\u2019s organization eg \"intune\", \"\
@@ -16929,6 +16962,78 @@ paths:
       summary: verifyOrgCustomBucket
       tags:
       - Orgs Setting
+  /api/v1/orgs/{org_id}/setting/skyatp/secintel_allowlist:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    put:
+      description: Update Sky ATP Allowed List
+      operationId: udpateOrgAtpAllowedList
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  domains:
+                  - comment: restricted
+                    value: unsafe.xxx
+                  ips:
+                  - comment: nas
+                    value: 10.1.3.5
+            schema:
+              $ref: '#/components/schemas/skyatp_list'
+      responses:
+        '200':
+          $ref: '#/components/responses/SkyAtpList'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: udpateOrgAtpAllowedList
+      tags:
+      - Orgs Integration SkyATP
+  /api/v1/orgs/{org_id}/setting/skyatp/secintel_blocklist:
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    put:
+      description: Update Sky ATP Blocked List
+      operationId: udpateOrgAtpBlockedList
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  domains:
+                  - comment: restricted
+                    value: unsafe.xxx
+                  ips:
+                  - comment: nas
+                    value: 10.1.3.5
+            schema:
+              $ref: '#/components/schemas/skyatp_list'
+      responses:
+        '200':
+          $ref: '#/components/responses/SkyAtpList'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: udpateOrgAtpBlockedList
+      tags:
+      - Orgs Integration SkyATP
   /api/v1/orgs/{org_id}/setting/skyatp/setup:
     delete:
       description: Delete SkyATP Integration
@@ -16954,7 +17059,7 @@ paths:
       operationId: getOrgSkyAtpIntegration
       responses:
         '200':
-          $ref: '#/components/responses/AccountSkyAtpData'
+          $ref: '#/components/responses/AccountSkyAtpInfo'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -17037,78 +17142,6 @@ paths:
         '429':
           $ref: '#/components/responses/HTTP429'
       summary: udpateOrgAtpIntegration
-      tags:
-      - Orgs Integration SkyATP
-  /api/v1/orgs/{org_id}/setting/skyatp/setup/secintel_allowlist:
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    put:
-      description: Update Sky ATP Allowed List
-      operationId: udpateOrgAtpAllowedList
-      requestBody:
-        content:
-          application/json:
-            examples:
-              Example:
-                value:
-                  domains:
-                  - comment: restricted
-                    domain: unsafe.xxx
-                  ips:
-                  - comment: nas
-                    ip: 10.1.3.5
-            schema:
-              $ref: '#/components/schemas/skyatp_list'
-      responses:
-        '200':
-          $ref: '#/components/responses/SkyAtpList'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: udpateOrgAtpAllowedList
-      tags:
-      - Orgs Integration SkyATP
-  /api/v1/orgs/{org_id}/setting/skyatp/setup/secintel_blocklist:
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    put:
-      description: Update Sky ATP Blocked List
-      operationId: udpateOrgAtpBlockedList
-      requestBody:
-        content:
-          application/json:
-            examples:
-              Example:
-                value:
-                  domains:
-                  - comment: restricted
-                    domain: unsafe.xxx
-                  ips:
-                  - comment: nas
-                    ip: 10.1.3.5
-            schema:
-              $ref: '#/components/schemas/skyatp_list'
-      responses:
-        '200':
-          $ref: '#/components/responses/SkyAtpList'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: udpateOrgAtpBlockedList
       tags:
       - Orgs Integration SkyATP
   /api/v1/orgs/{org_id}/setting/zscaler/setup:
@@ -20722,6 +20755,11 @@ paths:
         name: auth_method
         schema:
           type: string
+      - description: source from where the client was learned (lldp, mac)
+        in: query
+        name: source
+        schema:
+          $ref: '#/components/schemas/client_info_source'
       - description: Site ID
         in: query
         name: site_id
@@ -24128,6 +24166,13 @@ paths:
         in: query
         name: last_by
         schema:
+          type: string
+      - description: Keyword to include events from additional indices (e.g. ext_tunnel
+          for prisma events)
+        in: query
+        name: includes
+        schema:
+          example: ext_tunnel
           type: string
       - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/start'
@@ -28738,12 +28783,10 @@ paths:
         \ is set to `false` by default. If `force_collection` is set to `false`, the\
         \ API attempts to start localization with existing data. If no data exists,\
         \ the API attempts to start orchestration.  \nIf `force_collection` is set\
-        \ to `true`, the API attempts to start orchestration.\n\n\nIf the flag `uwb_only`\
-        \ is set to `true`, the service shall be using UWB ranging and placement without\
-        \ invoking the Maintenance Mode. BLE-based orientation is disabled if `uwb_only`==`true`\n\
-        \n\nProviding a list of devices is optional. If provided, autoplacement suggestions\
-        \ will be made only for the specified devices. If no list is provided, all\
-        \ APs associated with the map are considered by default."
+        \ to `true`, the API attempts to start orchestration.\n\n\nProviding a list\
+        \ of devices is optional. If provided, autoplacement suggestions will be made\
+        \ only for the specified devices. If no list is provided, all APs associated\
+        \ with the map are considered by default."
       operationId: runSiteApAutoplacement
       requestBody:
         content:
@@ -29699,6 +29742,31 @@ paths:
       - description: Connection status of client i.e "permitted", "denied, "session_ended"
         in: query
         name: status
+        schema:
+          type: string
+      - description: Client family, e.g. "Phone/Tablet/Wearable", "Access Point"
+        in: query
+        name: family
+        schema:
+          type: string
+      - description: Client model, e.g. "iPhone 12", "MX100"
+        in: query
+        name: model
+        schema:
+          type: string
+      - description: Client OS, e.g. "iOS 18.1", "Android", "Windows", "Linux"
+        in: query
+        name: os
+        schema:
+          type: string
+      - description: Client hostname, e.g. "my-laptop", "my-phone"
+        in: query
+        name: hostname
+        schema:
+          type: string
+      - description: Client manufacturer, e.g. "apple", "cisco", "juniper"
+        in: query
+        name: mfg
         schema:
           type: string
       - description: Client type i.e. "wireless", "wired" etc.
@@ -35965,6 +36033,11 @@ paths:
         schema:
           example: ge-1/1/1
           type: string
+      - description: source from where the client was learned (lldp, mac)
+        in: query
+        name: source
+        schema:
+          $ref: '#/components/schemas/client_info_source'
       - description: VLAN
         in: query
         name: vlan
@@ -39292,6 +39365,7 @@ components:
         estimated_runtime: 300
         reason: Map has met the minimum requirements for auto orient
         valid: true
+        wifi_interrupting: true
     AutoOrientationFailedExample:
       value:
         detail: Map has less than 3 APs associated with it to perform auto orient
@@ -39324,6 +39398,7 @@ components:
         reason: Map Already Enqueued
         started: false
         valid: true
+        wifi_interrupting: true
     AutoOrientationServiceFailedToStartDueContainingInvalidAPs:
       value:
         devices:
@@ -39389,6 +39464,7 @@ components:
         reason: Unable to reach auto orient service
         started: false
         valid: true
+        wifi_interrupting: true
     AutoPlacementInfoDone:
       value:
         end_time: 1678900362
@@ -44495,6 +44571,7 @@ components:
         reason: Map Already Enqueued
         started: false
         valid: true
+        wifi_interrupting: true
     HTTP200AutoPlacementDryrunformapcompleted:
       value:
         devices:
@@ -44507,6 +44584,7 @@ components:
         estimated_runtime: 30
         reason: Map has met the minimum requirements for auto placement
         valid: true
+        wifi_interrupting: true
     HTTP200AutoPlacementMapfailedtostartasithadlessthan3APsassociatedwithit:
       value:
         devices: {}
@@ -44571,6 +44649,7 @@ components:
         reason: Started collection for auto placement
         started: true
         valid: false
+        wifi_interrupting: true
     HTTP200AutoPlacementServicestartedsuccessfullyforlocalization:
       value:
         devices:
@@ -44596,6 +44675,7 @@ components:
         reason: Started collection for auto placement
         started: true
         valid: true
+        wifi_interrupting: true
     HTTP200AutoPlacementUnabletoreachtheautoplacementservice:
       value:
         devices:
@@ -44609,6 +44689,7 @@ components:
         reason: Unable to reach auto placement service
         started: false
         valid: true
+        wifi_interrupting: true
     HTTP400Example:
       value:
         detail: 'JSON parse error - Expecting value: line 5 column 8 (char 56)'
@@ -46162,8 +46243,8 @@ components:
         name: templ1
         type: match
         values:
-        - GWI WLAN Computer*
-        - LAB2 Computer
+        - 1.3.6.1.4.1.311.21.8.4200806.605933.871088.11229391.9863893.29.13545645.4807979
+        - 1.3.6.1.4.1.311.21.8.3285427.4093958.2707341.9961608.11572555.6.4903431.2258457
     NacTagMatchesHostname:
       value:
         match: hostname
@@ -46829,15 +46910,13 @@ components:
       value:
         accounts:
         - account_id: 80364a28-7ccc-4746-b110-ecf3dfd3a359
+          auto_probe_subnet: 11.0.0.0/8
           cloud_name: api.sase.paloaltonetworks.com
-          region: americas
-          service_account_name: Demo SA
-          tsg_id: '189953456'
-        - account_id: 80364a28-7ccc-4746-b110-5678aafd65cc
-          cloud_name: api.sase.paloaltonetworks.com
+          enable_probe: true
           region: americas
           service_account_name: Corp SA
-          tsg_id: '189954023'
+          service_connections: []
+          tsg_id: '189953456'
         linked: true
     OauthAppLinkSentinelOne:
       value:
@@ -49512,10 +49591,10 @@ components:
       value:
         domains:
         - comment: restricted
-          domain: unsafe.xxx
+          value: unsafe.xxx
         ips:
         - comment: nas
-          ip: 10.1.3.5
+          value: 10.1.3.5
     SleClassifierSummaryExample:
       value:
         classifier:
@@ -58540,6 +58619,11 @@ components:
           example: iojzXIJWEuiD73ZvydOfg
           readOnly: true
           type: string
+        auto_probe_subnet:
+          description: For Prisma accounts only, tunnel auto probe subnet
+          example: 11.0.0.0/8
+          readOnly: true
+          type: string
         client_id:
           description: Customer account Client ID
           readOnly: true
@@ -58554,6 +58638,11 @@ components:
           example: Test Company1 Ltd
           readOnly: true
           type: string
+        enable_probe:
+          description: For Prisma accounts only, tunnel probe enable/disable
+          example: false
+          readOnly: true
+          type: boolean
         error:
           description: This error is provided when the account fails to fetch token/data
           example: OAuth token refresh failed, please re-link your account
@@ -58609,6 +58698,8 @@ components:
           example: Corp SA
           readOnly: true
           type: string
+        service_connections:
+          $ref: '#/components/schemas/account_oauth_info_account_service_connections'
         smartgroup_name:
           description: Smart group membership for determining compliance status
           example: CompliantGroup1
@@ -58624,6 +58715,14 @@ components:
           readOnly: true
           type: string
       type: object
+    account_oauth_info_account_service_connections:
+      description: For Prisma accounts only
+      example:
+      - sc1
+      - sc2
+      items:
+        type: string
+      type: array
     account_oauth_info_accounts:
       description: List of linked account details
       items:
@@ -58632,12 +58731,23 @@ components:
     account_prisma_config:
       description: OAuth linked CrowdStrike apps account details
       properties:
+        auto_probe_subnet:
+          description: Required If `enable_probe`==`true`. This field will accept
+            an IPv4 cidr and an IP address will be picked from this range to be used
+            as tunnel probe source ip address and as well as BGP neighbour IP address.
+            The subnet should be big enough for num_devices * num_tunnel * 2
+          example: 11.0.0.0/8
+          type: string
         client_id:
           description: Customer account api client ID
           type: string
         client_secret:
           description: Customer account api client Secret
           type: string
+        enable_probe:
+          default: false
+          description: To enable/disable tunnel probe
+          type: boolean
         tsg_id:
           description: Prisma Tenant Service Group id
           type: string
@@ -58833,6 +58943,8 @@ components:
       description: Resource tags (`type`==`resource` or `type`==`gbp_resource`) can
         only be used in `dst_tags`
       properties:
+        ether_types:
+          $ref: '#/components/schemas/acl_tag_ether_types'
         gbp_tag:
           description: "Required if\n  - `type`==`dynamic_gbp` (gbp_tag received from\
             \ RADIUS)\n  - `type`==`gbp_resource`\n  - `type`==`static_gbp` (applying\
@@ -58862,6 +58974,13 @@ components:
       required:
       - type
       type: object
+    acl_tag_ether_types:
+      default:
+      - any
+      description: Can only be used under dst tags.
+      items:
+        type: string
+      type: array
     acl_tag_macs:
       description: "Required if \n- `type`==`mac`\n- `type`==`static_gbp` if from\
         \ matching mac"
@@ -61599,11 +61718,6 @@ components:
           description: Set to `true` to run auto placement even if there are invalid
             APs in the selected APs.
           type: boolean
-        uwb_only:
-          default: false
-          description: If set to `true`, the service shall be using UWB ranging without
-            invoking Maintenance Mode.
-          type: boolean
       type: object
     auto_placement_info_status:
       description: 'the status of autoplacement for a given map. enum: `done`, `error`,
@@ -63082,6 +63196,13 @@ components:
         serial_numbers:
           $ref: '#/components/schemas/strings'
       type: object
+    client_info_source:
+      description: 'source from where the client was learned (lldp, mac). enum: `lldp`,
+        `mac`'
+      enum:
+      - lldp
+      - mac
+      type: string
     client_nac:
       properties:
         ap:
@@ -63131,7 +63252,7 @@ components:
         last_ssid:
           $ref: '#/components/schemas/last_ssid'
         last_status:
-          $ref: '#/components/schemas/last_status'
+          $ref: '#/components/schemas/nac_client_last_status'
         last_username:
           $ref: '#/components/schemas/last_username'
         last_vlan:
@@ -69267,16 +69388,6 @@ components:
         to
       example: MyCorp-NAC
       type: string
-    last_status:
-      description: 'Latest Authentication status of the client. enum: `denied`, `permitted`,
-        `session_started`, `session_stopped`'
-      enum:
-      - permitted
-      - session_started
-      - session_stopped
-      - denied
-      example: permitted
-      type: string
     last_trouble:
       description: Last trouble code of switch
       properties:
@@ -71513,6 +71624,16 @@ components:
         type: string
       readOnly: true
       type: array
+    nac_client_last_status:
+      description: 'Latest Authentication status of the client. enum: `denied`, `permitted`,
+        `session_started`, `session_stopped`'
+      enum:
+      - permitted
+      - session_started
+      - session_ended
+      - denied
+      example: permitted
+      type: string
     nac_client_mac:
       description: Client MAC address
       example: ac3eb179e535
@@ -72960,7 +73081,7 @@ components:
           readOnly: true
           type: string
         cacerts:
-          $ref: '#/components/schemas/cacerts'
+          $ref: '#/components/schemas/radsec_certs_ap'
         celona:
           $ref: '#/components/schemas/org_setting_celona'
         cloudshark:
@@ -73588,6 +73709,10 @@ components:
           example: https://scep.mistsys.com/api/v1/webhook/jamf/:org_id/scep
           readOnly: true
           type: string
+        suspended:
+          default: false
+          description: Whether SCEP is suspended for this org
+          type: boolean
       type: object
     org_setting_security:
       properties:
@@ -74287,6 +74412,10 @@ components:
             \ will be dropped\ne.g. ntp / dns / traffic to mist will be allowed by\
             \ default\n     if dhcpd is enabled, we'll make sure it works"
           type: boolean
+        hit_count:
+          default: false
+          description: Whether to enable hit count for Protect_RE policy
+          type: boolean
         trusted_hosts:
           $ref: '#/components/schemas/protect_re_trusted_hosts'
       type: object
@@ -74906,6 +75035,13 @@ components:
           description: To use Site mxedges when this WLAN does not use mxtunnel
           type: boolean
       type: object
+    radsec_certs_ap:
+      description: RADSec certificates for AP
+      items:
+        example: '-----BEGIN CERTIFICATE-----\nMIIFZjCCA06gAwIBAgIIP61/1qm/uDowDQYJKoZIhvcNAQELBQE\n-----END
+          CERTIFICATE-----'
+        type: string
+      type: array
     radsec_idle_timeout:
       anyOf:
       - type: integer
@@ -75340,6 +75476,10 @@ components:
         valid:
           description: Indicates whether the auto orient request is valid.
           type: boolean
+        wifi_interrupting:
+          description: Indicates whether the auto orient process will interrupt WiFi
+            traffic.
+          type: boolean
       type: object
     response_auto_orientation_device:
       properties:
@@ -75463,6 +75603,10 @@ components:
         valid:
           description: Indicates whether the autoplacement request is valid.
           readOnly: true
+          type: boolean
+        wifi_interrupting:
+          description: Indicates whether the auto placement process will interrupt
+            WiFi traffic.
           type: boolean
       type: object
     response_autoplacement_device:
@@ -80963,7 +81107,7 @@ components:
         auto_upgrade:
           $ref: '#/components/schemas/site_setting_auto_upgrade'
         auto_upgrade_linecard:
-          default: false
+          default: true
           type: boolean
         blacklist_url:
           example: https://papi.s3.amazonaws.com/blacklist/xxx...
@@ -81945,7 +82089,7 @@ components:
       properties:
         domains:
           $ref: '#/components/schemas/skyatp_list_domains'
-        ips:
+        ip:
           $ref: '#/components/schemas/skyatp_list_ips'
       type: object
     skyatp_list_domain:
@@ -81953,11 +82097,11 @@ components:
         comment:
           example: restricted
           type: string
-        domain:
+        value:
           example: unsafe.com
           type: string
       required:
-      - domain
+      - value
       type: object
     skyatp_list_domains:
       items:
@@ -81968,11 +82112,11 @@ components:
         comment:
           example: nas
           type: string
-        ip:
+        value:
           example: 10.1.3.5
           type: string
       required:
-      - ip
+      - value
       type: object
     skyatp_list_ips:
       items:
@@ -82875,6 +83019,8 @@ components:
           type: boolean
         engine_id:
           $ref: '#/components/schemas/snmp_config_engine_id'
+        engine_id_type:
+          $ref: '#/components/schemas/snmp_config_engine_id_type'
         location:
           example: Las Vegas, NV
           type: string
@@ -82912,6 +83058,13 @@ components:
       type: array
     snmp_config_engine_id:
       maxLength: 27
+      type: string
+    snmp_config_engine_id_type:
+      default: local
+      description: 'enum: `local`, `use_mac_address`'
+      enum:
+      - local
+      - use_mac_address
       type: string
     snmp_config_trap_group:
       properties:
@@ -89042,17 +89195,125 @@ components:
       type: object
     synthetictest_config:
       properties:
+        aggressiveness:
+          $ref: '#/components/schemas/synthetictest_config_aggressiveness'
+        custom_probes:
+          $ref: '#/components/schemas/synthetictest_config_custom_probes'
         disabled:
           default: false
           type: boolean
+        lan_networks:
+          $ref: '#/components/schemas/synthetictest_config_lan_networks'
         vlans:
           $ref: '#/components/schemas/synthetictest_config_vlans'
         wan_speedtest:
           $ref: '#/components/schemas/synthetictest_config_wan_speedtest'
       type: object
+    synthetictest_config_aggressiveness:
+      default: auto
+      description: 'enum: `auto`, `high`, `low`'
+      enum:
+      - auto
+      - high
+      - med
+      - low
+      type: string
+    synthetictest_config_custom_probe:
+      properties:
+        aggressiveness:
+          $ref: '#/components/schemas/synthetictest_config_aggressiveness'
+        host:
+          description: If `type`==`icmp` or `type`==`tcp`, Host to be used for the
+            custom probe
+          example: internal.host
+          type: string
+        port:
+          description: If `type`==`tcp`, Port to be used for the custom probe
+          example: 443
+          type: integer
+        threshold:
+          description: In milliseconds
+          example: 100
+          type: integer
+        type:
+          $ref: '#/components/schemas/synthetictest_config_custom_probe_type'
+        url:
+          description: If `type`==`curl`, URL to be used for the custom probe, can
+            be url or IP
+          example: https://10.3.5.1:8080/about
+          type: string
+      type: object
+    synthetictest_config_custom_probe_type:
+      default: icmp
+      description: 'enum: `curl`, `icmp`, `tcp`'
+      enum:
+      - curl
+      - icmp
+      - tcp
+      type: string
+    synthetictest_config_custom_probes:
+      additionalProperties:
+        $ref: '#/components/schemas/synthetictest_config_custom_probe'
+      description: Custom probes to be used for synthetic tests
+      type: object
+    synthetictest_config_lan_network:
+      description: configure minis probes to be tested on lan networks of gateways
+      properties:
+        networks:
+          $ref: '#/components/schemas/synthetictest_config_lan_networks_networks'
+        probes:
+          $ref: '#/components/schemas/synthetictest_config_probes'
+      type: object
+    synthetictest_config_lan_networks:
+      description: List of networks to be used for synthetic tests
+      items:
+        $ref: '#/components/schemas/synthetictest_config_lan_network'
+      type: array
+    synthetictest_config_lan_networks_networks:
+      description: List of networks to be used for synthetic tests
+      example:
+      - pos-stations
+      - pos-machines
+      items:
+        type: string
+      type: array
+    synthetictest_config_probes:
+      description: app name comes from `custom_probes` above or /const/synthetic_test_probes
+      items:
+        type: string
+      type: array
+    synthetictest_config_vlan:
+      properties:
+        custom_test_urls:
+          $ref: '#/components/schemas/synthetictest_config_vlan_custom_test_urls'
+        disabled:
+          default: false
+          description: For some vlans where we don't want this to run
+          type: boolean
+        probes:
+          $ref: '#/components/schemas/synthetictest_config_probes'
+        vlan_ids:
+          $ref: '#/components/schemas/synthetictest_config_vlan_vlan_ids'
+      type: object
+    synthetictest_config_vlan_custom_test_urls:
+      deprecated: true
+      example:
+      - https://www.abc.com/
+      - https://10.3.5.1:8080/about
+      items:
+        type: string
+      type: array
+    synthetictest_config_vlan_vlan_ids:
+      example:
+      - 10
+      - 20
+      - '{{vlan}}'
+      items:
+        $ref: '#/components/schemas/vlan_id_with_variable'
+      type: array
     synthetictest_config_vlans:
       items:
-        $ref: '#/components/schemas/synthetictest_properties'
+        $ref: '#/components/schemas/synthetictest_config_vlan'
       type: array
     synthetictest_config_wan_speedtest:
       properties:
@@ -89188,32 +89449,6 @@ components:
           example: 20
           type: integer
       type: object
-    synthetictest_properties:
-      properties:
-        custom_test_urls:
-          $ref: '#/components/schemas/synthetictest_properties_custom_test_urls'
-        disabled:
-          default: false
-          description: For some vlans where we don't want this to run
-          type: boolean
-        vlan_ids:
-          $ref: '#/components/schemas/synthetictest_properties_vlan_ids'
-      type: object
-    synthetictest_properties_custom_test_urls:
-      example:
-      - https://www.abc.com/
-      - https://10.3.5.1:8080/about
-      items:
-        type: string
-      type: array
-    synthetictest_properties_vlan_ids:
-      example:
-      - 10
-      - 20
-      - '{{vlan}}'
-      items:
-        $ref: '#/components/schemas/vlan_id_with_variable'
-      type: array
     synthetictest_protocol:
       description: 'enum: `ping`, `traceroute`'
       enum:
@@ -89695,10 +89930,22 @@ components:
         provider:
           $ref: '#/components/schemas/tunnel_config_auto_provision_provider'
         region:
-          description: API override for POP selection
+          description: API override for POP selection in the case user wants to override
+            the auto discovery of remote network location and force the tunnel to
+            use the specified peer location.
           type: string
         secondary:
           $ref: '#/components/schemas/tunnel_config_auto_provision_node'
+        service_connection:
+          description: if `provider`==`prisma-ipsec`. By default, we'll use the location
+            of the site to determine the optimal Remote Network location, optionally,
+            service_connection can be considered, then we'll also consider this along
+            with the site location. Define service_connection if the traffic is to
+            be routed to a specific service connection. This field takes a service
+            connection name that is configured in the Prisma cloud, Prisma Access
+            Setup -> Service Connections.
+          example: Juniper-Lab-SC-1
+          type: string
       required:
       - provider
       type: object
@@ -89817,7 +90064,8 @@ components:
         $ref: '#/components/schemas/tunnel_config_ipsec_proposal'
       type: array
     tunnel_config_networks:
-      description: If `provider`==`custom-ipsec`, networks reachable via this tunnel
+      description: If `provider`==`custom-ipsec` or `provider`==`prisma-ipsec`, networks
+        reachable via this tunnel
       items:
         type: string
       type: array
@@ -89889,11 +90137,12 @@ components:
       type: string
     tunnel_config_provider:
       description: 'Only if `auto_provision.enabled`==`false`. enum: `custom-ipsec`,
-        `custom-gre`, `jse-ipsec`, `zscaler-gre`, `zscaler-ipsec`'
+        `custom-gre`, `jse-ipsec`, `prisma-ipsec`, `zscaler-gre`, `zscaler-ipsec`'
       enum:
       - custom-ipsec
       - custom-gre
       - jse-ipsec
+      - prisma-ipsec
       - zscaler-gre
       - zscaler-ipsec
       type: string
@@ -89917,6 +90166,8 @@ components:
       properties:
         jse:
           $ref: '#/components/schemas/tunnel_provider_options_jse'
+        prisma:
+          $ref: '#/components/schemas/tunnel_provider_options_prisma'
         zscaler:
           $ref: '#/components/schemas/tunnel_provider_options_zscaler'
       type: object
@@ -89932,6 +90183,14 @@ components:
             can be retrieved with the [Get Org JSE Info](/#operations/getOrgJseInfo)
             API Call
           example: JSE_ORG1
+          type: string
+      type: object
+    tunnel_provider_options_prisma:
+      properties:
+        service_account_name:
+          description: For prisma-ipsec, service account name to used for tunnel auto
+            provisioning
+          example: sa1@1823425211
           type: string
       type: object
     tunnel_provider_options_zscaler:
