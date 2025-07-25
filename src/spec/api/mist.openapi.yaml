@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2506.1.2**
+  description: '> Version: **2506.1.3**
 
     >
 
-    > Date: **June 27, 2025**
+    > Date: **July 25, 2025**
 
     <div class="notification"> NOTE:<br>Some important API changes will be introduced.
     Please make sure to read the <a href="https://www.juniper.net/documentation/us/en/software/mist/api/http/guides/important-api-changes">announcements</a>
@@ -51,7 +51,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2506.1.2
+  version: 2506.1.3
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -65230,6 +65230,8 @@ components:
           $ref: '#/components/schemas/org_id'
         ospf_areas:
           $ref: '#/components/schemas/ospf_areas'
+        ospf_config:
+          $ref: '#/components/schemas/switch_ospf_config'
         other_ip_configs:
           additionalProperties:
             $ref: '#/components/schemas/junos_other_ip_config'
@@ -74169,7 +74171,8 @@ components:
     ospf_areas:
       additionalProperties:
         $ref: '#/components/schemas/ospf_area'
-      description: Junos OSPF areas
+      description: Junos OSPF areas. Property key is the OSPF Area (Area should be
+        a number (0-255) / IP address)
       type: object
     ospf_areas_network:
       description: Property key is the network name. Networks to participate in an
@@ -88546,6 +88549,34 @@ components:
             source network/ip is desired
           type: boolean
       type: object
+    switch_ospf_config:
+      properties:
+        areas:
+          $ref: '#/components/schemas/switch_ospf_config_areas'
+        enabled:
+          default: false
+          description: Enable OSPF on the switch
+          type: boolean
+        reference_bandwidth:
+          $ref: '#/components/schemas/switch_ospf_config_reference_bandwidth'
+    switch_ospf_config_area:
+      properties:
+        no_summary:
+          default: false
+          description: Disable OSPF summary routes for this area
+          type: boolean
+    switch_ospf_config_areas:
+      additionalProperties:
+        $ref: '#/components/schemas/switch_ospf_config_area'
+      description: Property key is the area name. Defines the OSPF areas configured
+        on the switch.
+      type: object
+    switch_ospf_config_reference_bandwidth:
+      anyOf:
+      - type: integer
+      - type: string
+      description: Reference bandwidth. Integer(100000) or String (10g)
+      example: 100000
     switch_port_local_usage_dot1x:
       description: 'if dot1x is desired, set to dot1x. enum: `dot1x`'
       enum:
@@ -89586,12 +89617,17 @@ components:
         sitegroup_ids
       properties:
         org_id:
-          $ref: '#/components/schemas/org_id'
+          $ref: '#/components/schemas/template_applies_org_id'
         site_ids:
           $ref: '#/components/schemas/template_applies_site_ids'
         sitegroup_ids:
           $ref: '#/components/schemas/template_applies_sitegroup_ids'
       type: object
+    template_applies_org_id:
+      example: a97c1b22-a4e9-411e-9bfd-d8695a0f9e61
+      format: uuid
+      readOnly: true
+      type: string
     template_applies_site_ids:
       description: List of site ids
       items:
