@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2506.1.4**
+  description: '> Version: **2506.1.5**
 
     >
 
-    > Date: **July 28, 2025**
+    > Date: **July 30, 2025**
 
     <div class="notification"> NOTE:<br>Some important API changes will be introduced.
     Please make sure to read the <a href="https://www.juniper.net/documentation/us/en/software/mist/api/http/guides/important-api-changes">announcements</a>
@@ -51,7 +51,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2506.1.4
+  version: 2506.1.5
   x-logo:
     altText: Juniper-MistAI
     backgroundColor: '#FFFFFF'
@@ -61900,26 +61900,29 @@ components:
         is configured
       properties:
         auth_key:
+          description: Optional if `via`==`lan`, `via`==`tunnel` or `via`==`wan`
           type: string
         bfd_minimum_interval:
           default: 350
-          description: "When bfd_multiplier is configured alone. Default:\n  * 1000\
-            \ if `type`==`external`\n  * 350 `type`==`internal`"
+          description: "Optional if `via`==`lan`, `via`==`tunnel` or `via`==`wan`,\
+            \ when bfd_multiplier is configured alone. Default:\n  * 1000 if `type`==`external`\n\
+            \  * 350 `type`==`internal`"
           maximum: 255000
           minimum: 1
           nullable: true
           type: integer
         bfd_multiplier:
           default: 3
-          description: When bfd_minimum_interval_is_configured alone
+          description: Optional if `via`==`lan`, `via`==`tunnel` or `via`==`wan`,
+            when bfd_minimum_interval_is_configured alone
           maximum: 255
           minimum: 1
           nullable: true
           type: integer
         disable_bfd:
           default: false
-          description: BFD provides faster path failure detection and is enabled by
-            default
+          description: Optional if `via`==`lan`, `via`==`tunnel` or `via`==`wan`.
+            BFD provides faster path failure detection and is enabled by default
           type: boolean
         export:
           type: string
@@ -61927,62 +61930,68 @@ components:
           description: Default export policies if no per-neighbor policies defined
           type: string
         extended_v4_nexthop:
-          description: By default, either inet/net6 unicast depending on neighbor
-            IP family (v4 or v6). For v6 neighbors, to exchange v4 nexthop, which
-            allows dual-stack support, enable this
+          description: Optional if `via`==`lan`, `via`==`tunnel` or `via`==`wan`.
+            By default, either inet/net6 unicast depending on neighbor IP family (v4
+            or v6). For v6 neighbors, to exchange v4 nexthop, which allows dual-stack
+            support, enable this
           type: boolean
         graceful_restart_time:
           default: 0
-          description: '`0` means disable'
+          description: Optional if `via`==`lan`, `via`==`tunnel` or `via`==`wan`.
+            `0` means disable
           maximum: 4095
           minimum: 0
           type: integer
         hold_time:
           default: 90
+          description: Optional if `via`==`lan`, `via`==`tunnel` or `via`==`wan`.
+            Default is 90.
           maximum: 65535
           minimum: 0
           type: integer
         import:
           type: string
         import_policy:
-          description: Default import policies if no per-neighbor policies defined
+          description: Optional if `via`==`lan`, `via`==`tunnel` or `via`==`wan`.
+            Default import policies if no per-neighbor policies defined
           type: string
         local_as:
-          $ref: '#/components/schemas/bgp_as'
+          $ref: '#/components/schemas/bgp_local_as'
         neighbor_as:
           $ref: '#/components/schemas/bgp_as'
         neighbors:
           additionalProperties:
             $ref: '#/components/schemas/bgp_config_neighbors'
-          description: If per-neighbor as is desired. Property key is the neighbor
-            address
+          description: Required if `via`==`lan`, `via`==`tunnel` or `via`==`wan`.
+            If per-neighbor as is desired. Property key is the neighbor address
           type: object
         networks:
           $ref: '#/components/schemas/bgp_config_networks'
         no_private_as:
           default: false
+          description: Optional if `via`==`lan`, `via`==`tunnel` or `via`==`wan`.
+            If true, we will not advertise private ASNs (AS 64512-65534) to this neighbor
           type: boolean
         no_readvertise_to_overlay:
           default: false
-          description: By default, we'll re-advertise all learned BGP routers toward
-            overlay
+          description: Optional if `via`==`lan`, `via`==`tunnel` or `via`==`wan`.
+            By default, we'll re-advertise all learned BGP routers toward overlay
           type: boolean
         tunnel_name:
-          description: If `type`==`tunnel`
+          description: Optional if `via`==`tunnel`
           type: string
         type:
           $ref: '#/components/schemas/bgp_config_type'
         via:
           $ref: '#/components/schemas/bgp_config_via'
         vpn_name:
+          description: Optional if `via`==`vpn`
           type: string
         wan_name:
-          description: If `via`==`wan`
+          description: Optional if `via`==`wan`
           type: string
       required:
-      - type
-      - local_as
-      - neighbors
+      - via
       type: object
     bgp_config_neighbors:
       properties:
@@ -62011,13 +62020,14 @@ components:
       - neighbor_as
       type: object
     bgp_config_networks:
-      description: If `type`!=`external`or `via`==`wan`networks where we expect BGP
+      description: Optional if `via`==`lan`. List of networks where we expect BGP
         neighbor to connect to/from
       items:
         type: string
       type: array
     bgp_config_type:
-      description: 'enum: `external`, `internal`'
+      description: 'Required if `via`==`lan`, `via`==`tunnel` or `via`==`wan`. enum:
+        `external`, `internal`'
       enum:
       - external
       - internal
@@ -62025,13 +62035,22 @@ components:
       type: string
     bgp_config_via:
       default: lan
-      description: 'network name. enum: `lan`, `tunnel`, `vpn`, `wan`'
+      description: 'enum: `lan`, `tunnel`, `vpn`, `wan`'
       enum:
       - lan
       - tunnel
       - vpn
       - wan
       type: string
+    bgp_local_as:
+      anyOf:
+      - type: string
+      - maximum: 4294967295
+        minimum: 1
+        type: integer
+      description: Required if `via`==`lan`, `via`==`tunnel` or `via`==`wan`. BGP
+        AS, value in range 1-4294967295
+      example: 65000
     bgp_peer:
       description: Only present when `bgp_peers` in `fields` query parameter
       properties:
