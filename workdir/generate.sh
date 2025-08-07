@@ -1,15 +1,15 @@
 #!/bin/sh
 ts=`date "+%s"`
 echo "backuping src"
-cp ./mist.openapi.yaml ./mist.openapi.yaml.$ts.bak
+cp ./openapi.yaml ./openapi.yaml.$ts.bak
 
-echo "removing spotlight entries"
-python3 ./a0_remove_xtags.py
-sleep 1
+# echo "removing spotlight entries"
+# python3 ./a0_remove_xtags.py
+# sleep 1
 
 echo "processing files"
 python3 ./a1_process.py
-#mv ./mist.openapi_reordered.yaml ./mist.openapi.yaml
+#mv ./openapi_reordered.yaml ./openapi.yaml
 sleep 1
 
 echo "yaml to postman conversion"

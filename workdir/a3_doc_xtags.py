@@ -7,7 +7,7 @@ import yaml
 import json
 import re
 
-FILE_IN = "./mist.openapi.yaml"
+FILE_IN = "./openapi.yaml"
 FILE_OUT_YAML = "../mist.openapi.yaml"
 FILE_OUT_JSON = "../mist.openapi.json"
 LOGO = {

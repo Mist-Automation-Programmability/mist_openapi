@@ -1,7 +1,7 @@
 import yaml
 import re
 
-SPEC_FILE_IN="./mist.openapi.yaml"
+SPEC_FILE_IN="./openapi.yaml"
 OUT_FOLDER="../src/spec/components"
 PARTS=["parameters", "responses", "schemas"]
 with open(SPEC_FILE_IN, "r") as f:

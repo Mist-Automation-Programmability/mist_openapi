@@ -8,7 +8,7 @@ import json
 
 ORDER = ["openapi", "info", "servers", "security", "tags", "paths", "components"]
 
-FILENAME = "mist.openapi"
+FILENAME = "openapi"
 SRC_FILE = f"./{FILENAME}.yaml"
 
 

@@ -2,7 +2,7 @@ import yaml
 import json
 import re
 
-SPEC_FILE="./mist.openapi.yaml"
+SPEC_FILE="./openapi.yaml"
 REF_FILE="./spec_referencies.yaml"
 R = r'"\$ref": "([^"]*)"'
 

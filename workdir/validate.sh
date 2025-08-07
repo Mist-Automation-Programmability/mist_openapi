@@ -1,2 +1,2 @@
-openapi-generator validate -i ./mist.openapi.yaml
+openapi-generator validate -i ./openapi.yaml
 

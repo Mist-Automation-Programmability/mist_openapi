@@ -1,6 +1,6 @@
 import yaml
 
-SPEC_FILE = "./mist.openapi.yaml"
+SPEC_FILE = "./openapi.yaml"
 EXCEPTIONS = [
     "privilege_self_views",
     "privilege_org_views",

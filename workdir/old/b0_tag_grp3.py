@@ -5,8 +5,8 @@ This script is parsing the main openapi spec (single file) and generate the docu
 import yaml
 
 
-SPEC_FILE_IN="../tmp/mist.openapi_grp2.yaml"
-SPEC_FILE_OUT="../tmp/mist.openapi_grp3.yaml"
+SPEC_FILE_IN="../tmp/openapi_grp2.yaml"
+SPEC_FILE_OUT="../tmp/openapi_grp3.yaml"
 PRE_TAG="op"
 with open(SPEC_FILE_IN, "r") as f:
     data = yaml.load(f, Loader=yaml.loader.SafeLoader)

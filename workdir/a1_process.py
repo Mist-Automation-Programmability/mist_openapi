@@ -8,7 +8,7 @@ import json
 
 ORDER = ["openapi", "info", "servers", "security", "tags", "paths", "components"]
 
-FILENAME = "mist.openapi"
+FILENAME = "openapi"
 SRC_FILE = f"./{FILENAME}.yaml"
 
 
@@ -32,8 +32,9 @@ def open_src():
             oas = yaml.safe_load(oas_in_file)
         display_success()
         return oas
-    except:
+    except Exception as e:
         display_failure()
+        print(e)
 
 
 def save_json(oas, filename):

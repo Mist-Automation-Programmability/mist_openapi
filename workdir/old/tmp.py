@@ -3,7 +3,7 @@ import os
 import yaml
 
 # schemas = {}
-# with open("mist.openapi.components.yaml", "r") as f:
+# with open("openapi.components.yaml", "r") as f:
 #     data = yaml.load(f, Loader=yaml.loader.SafeLoader)
 #     schemas = data.get("components", {}).get("parameters")
 
@@ -19,7 +19,7 @@ folders = ["schemas", "responses", "parameters"]
 for folder in folders:
     files = os.listdir(f"./components/{folder}/")
     data = {}
-    out_file = f"./mist.openapi.{folder}.yaml"
+    out_file = f"./openapi.{folder}.yaml"
     for file in files:
         if file != "_index.yaml":
             filename = ".".join(file.split(".")[:-1])

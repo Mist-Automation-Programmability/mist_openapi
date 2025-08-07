@@ -1,7 +1,7 @@
 import yaml
 
 schemas = {}
-with open("./mist.openapi.yaml", "r") as f:
+with open("./openapi.yaml", "r") as f:
     data = yaml.load(f, Loader=yaml.loader.SafeLoader)
     PATHS = data.get("paths")
 
@@ -328,7 +328,7 @@ for p in PATHS:
     if not done:
         _set_tag(p, [menu(p)])
 
-with open("mist.openapi_grp1.yaml", "w") as oas_out_file:
+with open("openapi_grp1.yaml", "w") as oas_out_file:
     for item in ORDER:
         yaml.dump({item: data[item]}, oas_out_file)
 

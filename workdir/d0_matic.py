@@ -6,7 +6,7 @@ import yaml
 import os
 import shutil
 
-SPEC_FILE_IN="./mist.openapi.yaml"
+SPEC_FILE_IN="./openapi.yaml"
 SPEC_FOLDER_OUT="../src/spec"
 FILTER_FILE="./.filters"
 
@@ -42,7 +42,7 @@ def check_folder(folder_path):
 #####################################################
 clean_out_folder()
 os.mkdir(f"{SPEC_FOLDER_OUT}/api")
-file = f"{SPEC_FOLDER_OUT}/api/mist.openapi.yaml"
+file = f"{SPEC_FOLDER_OUT}/api/openapi.yaml"
 with open(file, "w")  as oas_out_file:
     for item in ORDER:
         yaml.dump({item: DATA[item]}, oas_out_file)

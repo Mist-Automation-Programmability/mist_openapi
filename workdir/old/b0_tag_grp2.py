@@ -6,8 +6,8 @@ endpoint based on the path
 import yaml
 
 
-SPEC_FILE_IN = "../tmp/mist.openapi_grp1.yaml"
-SPEC_FILE_OUT = "../tmp/mist.openapi_grp2.yaml"
+SPEC_FILE_IN = "../tmp/openapi_grp1.yaml"
+SPEC_FILE_OUT = "../tmp/openapi_grp2.yaml"
 LOGS = []
 
 with open(SPEC_FILE_IN, "r") as f:

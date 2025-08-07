@@ -9,7 +9,7 @@ import sys
 import yaml
 import shutil
 
-SPEC_FILE_IN = "./mist.openapi.yaml"
+SPEC_FILE_IN = "./openapi.yaml"
 SPEC_FILE_OUT = "./mistmcp.openapi.yaml"
 SPEC_FILE_OUT2 = "./mistmcp.openapi.json"
 ROOT_ITEMS = [

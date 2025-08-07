@@ -9,7 +9,7 @@ import sys
 import yaml
 import shutil
 
-SPEC_FILE_IN = "./mist.openapi.yaml"
+SPEC_FILE_IN = "./openapi.yaml"
 TOC_FOLDER = "../src/content/api"
 FILTER_FILE = "./.filters"
 ROOT_ITEMS = [
