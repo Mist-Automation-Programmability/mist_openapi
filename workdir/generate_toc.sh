@@ -4,6 +4,7 @@ PORTAL_FOLDER="../../mistapi-portal/src"
 CONTENT_FOLDER="$PORTAL_FOLDER/content/api"
 SPEC_FOLDER="$PORTAL_FOLDER/spec"
 
+mkdir $OUT_FOLDER
 echo "python3 ./d0_matic.py"
 python3 ./d0_matic.py
 echo "python3 ./d1_matic_toc.py"
@@ -40,4 +41,4 @@ done
 echo "copying new folders"
 cp -r $OUT_FOLDER/spec/* $PORTAL_FOLDER/../spec_in/
 cp -r $OUT_FOLDER/content/api/* $PORTAL_FOLDER/content/api/
-
+rm -rf $OUT_FOLDER
