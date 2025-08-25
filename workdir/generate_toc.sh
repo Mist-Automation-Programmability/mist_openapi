@@ -4,7 +4,7 @@ PORTAL_FOLDER="../../mistapi-portal/src"
 CONTENT_FOLDER="$PORTAL_FOLDER/content/api"
 SPEC_FOLDER="$PORTAL_FOLDER/spec"
 
-mkdir $OUT_FOLDER
+mkdir -p $OUT_FOLDER/spec
 echo "python3 ./d0_matic.py"
 python3 ./d0_matic.py
 echo "python3 ./d1_matic_toc.py"

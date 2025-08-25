@@ -2,7 +2,7 @@ from dis import dis
 import json
 import yaml
 
-POSTMAN_FILE = "../mist.postman.json"
+POSTMAN_FILE = "../mist.postman"
 POSTMAN_USAGE_FILE = "./mist.postman_usage.json"
 
 OAS_FILE = "./openapi.yaml"
@@ -21,7 +21,7 @@ def add_usage():
     display_mess("Loading Postman collection")
     try:
         postman_json = {}
-        with open(f"{POSTMAN_FILE}", 'r') as postman_data:
+        with open(f"{POSTMAN_FILE}.json", 'r') as postman_data:
             postman_json = json.load(postman_data)
         display_success()
     except:
@@ -44,7 +44,7 @@ def add_usage():
 
     display_mess("Saving Postman collection with usage")
     try:
-        with open(f"{POSTMAN_FILE}.new.json", 'w') as postman_data:
+        with open(f"{POSTMAN_FILE}.v2.json", 'w') as postman_data:
             json.dump(postman_json, postman_data)
         display_success()
     except:
@@ -65,18 +65,25 @@ def create_env():
         return
 
     oas_params = oas_json["components"]["parameters"]
+    oas_schemas = oas_json["components"]["schemas"]
     post_params = [{"type": "string","value": "https://api.mist.com","key": "baseUrl"}]
 
     for key in oas_params:
         if oas_params[key]["in"] == "path":
-            if not oas_params[key].get("schema"):
-                print(f"{key} >> No Schema")
-            elif not oas_params[key]["schema"].get("type"):
+
+            p_type = None
+            if oas_params[key].get("schema") and oas_params[key]["schema"].get("type"):
+                p_type = oas_params[key]["schema"]["type"]
+            elif oas_params[key].get("schema") and oas_params[key]["schema"].get("$ref"):
+                if oas_params[key]["schema"]["$ref"] in oas_schemas:
+                    p_type = oas_schemas[oas_params[key]["schema"]["$ref"]].get("type")
+            
+            if not p_type:
                 print(f"{key} >> No Type")
             else:
                 new_param = {
                     "key": oas_params[key]["name"],
-                    "type": oas_params[key]["schema"]["type"],
+                    "type": p_type,
                     "value": oas_params[key]["schema"].get("example", "")
                 }
                 post_params.append(new_param)
