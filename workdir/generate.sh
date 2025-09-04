@@ -28,5 +28,3 @@ sleep 1
 echo "Checking Response Accept Header"
 python3 ./a6_check_response_header.py
 sleep 1
-
-./generate_toc.sh -a
