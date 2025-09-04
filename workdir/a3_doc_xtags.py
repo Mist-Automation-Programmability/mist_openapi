@@ -43,9 +43,11 @@ def register_tags():
                 tag = opereration["tags"][0]
                 cat = tag.split(" ")[0].strip()
                 if cat in out:
-                    if not tag in out[cat]:
-                        if not next(item for item in TAGS if item["name"] == tag):
-                            print(f"MISSING TAG: {tag}")
+                    if tag not in out[cat]:
+                        if not any(item["name"] == tag for item in TAGS):
+                            print(
+                                f"[INFO] Missing tag definition: '{tag}' (path='{path}', verb='{verb}', cat='{cat}')"
+                            )
                         out[cat].append(tag)
                 else:
                     print(f"Missing tag group for {tag}")
