@@ -3,7 +3,7 @@ import json
 import re
 
 SPEC_FILE="./openapi.yaml"
-REF_FILE="./spec_referencies.yaml"
+REF_FILE="./spec_references.yaml"
 R = r'"\$ref": "([^"]*)"'
 
 def _check_refs( comp:dict):
