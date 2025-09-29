@@ -3,11 +3,11 @@ info:
   contact:
     email: tmunzer@juniper.net
     name: Thomas Munzer
-  description: '> Version: **2508.1.22**
+  description: '> Version: **2509.1.0**
 
     >
 
-    > Date: **September 17, 2025**
+    > Date: **September 29, 2025**
 
     <div class="notification"> NOTE:<br>Some important API changes will be introduced.
     Please make sure to read the <a href="https://www.juniper.net/documentation/us/en/software/mist/api/http/guides/important-api-changes">announcements</a>
@@ -51,7 +51,7 @@ info:
     name: MIT
     url: https://raw.githubusercontent.com/tmunzer/Mist-OAS3.0/main/LICENSE
   title: Mist API
-  version: 2508.1.22
+  version: 2509.1.0
 servers:
 - description: Mist Global 01
   url: https://api.mist.com
@@ -4734,13 +4734,20 @@ paths:
       description: 128T devices can be managed/adopted by Mist.
       operationId: getOrg128TRegistrationCommands
       parameters:
-      - description: duration for the token to stay valid. 1 - 365 in days, default
-          is 365
+      - description: duration for the token to stay valid,in seconds. Defaults to
+          1 year (31536000 seconds) if not specified.
         in: query
         name: ttl
         schema:
-          example: 365
+          example: 31536000
           type: integer
+      - description: When specified, only specified assets are allowed for registration.
+          This parameter can and is preferred to be set in HTTP body, especially when
+          the list is long, so that HTTP header size will never exceed limit.
+        in: query
+        name: asset_ids
+        schema:
+          $ref: '#/components/schemas/strings'
       responses:
         '200':
           $ref: '#/components/responses/Router128TRegisterCmd'
@@ -8256,9 +8263,9 @@ paths:
       operationId: searchOrgDeviceLastConfigs
       parameters:
       - in: query
-        name: type
+        name: device_type
         schema:
-          $ref: '#/components/schemas/device_type_default_ap'
+          $ref: '#/components/schemas/last_config_device_type'
       - description: Device MAC address
         in: query
         name: mac
@@ -10472,6 +10479,12 @@ paths:
         schema:
           example: FXLH2015150025
           type: string
+      - description: SKU name of the device
+        in: query
+        name: sku
+        schema:
+          example: EX2300
+          type: string
       - description: Device status
         in: query
         name: status
@@ -12408,6 +12421,83 @@ paths:
       description: Search Org NAC Clients
       operationId: searchOrgNacClients
       parameters:
+      - description: AP MAC connected to by client
+        in: query
+        name: ap
+        schema:
+          type: string
+      - description: Authentication type, e.g. "eap-tls", "eap-peap", "eap-ttls",
+          "eap-teap", "mab", "psk", "device-auth"
+        in: query
+        name: auth_type
+        schema:
+          type: string
+      - description: Filters NAC clients that are integrated with EDR providers
+        in: query
+        name: edr_managed
+        schema:
+          type: boolean
+      - description: EDR provider of client's organization
+        in: query
+        name: edr_provider
+        schema:
+          $ref: '#/components/schemas/edr_provider'
+      - description: EDR Status of the NAC client
+        in: query
+        name: edr_status
+        schema:
+          $ref: '#/components/schemas/edr_status'
+      - description: Client family, e.g. "Phone/Tablet/Wearable", "Access Point"
+        in: query
+        name: family
+        schema:
+          type: string
+      - description: Client hostname, e.g. "my-laptop", "my-phone"
+        in: query
+        name: hostname
+        schema:
+          type: string
+      - description: SSO ID, if present and used
+        in: query
+        name: idp_id
+        schema:
+          type: string
+      - description: MAC address
+        in: query
+        name: mac
+        schema:
+          type: string
+      - description: MDM compliance of client i.e "compliant", "not compliant"
+        in: query
+        name: mdm_compliance
+        schema:
+          type: string
+      - description: "MDM provider of client\u2019s organization eg \"intune\", \"\
+          jamf\""
+        in: query
+        name: mdm_provider
+        schema:
+          type: string
+      - description: Filters NAC clients that are managed by MDM providers
+        in: query
+        name: mdm_managed
+        schema:
+          type: boolean
+      - description: Client manufacturer, e.g. "apple", "cisco", "juniper"
+        in: query
+        name: mfg
+        schema:
+          type: string
+      - description: Client model, e.g. "iPhone 12", "MX100"
+        in: query
+        name: model
+        schema:
+          type: string
+      - description: NAC Policy Rule Name matched
+        in: query
+        name: nacrule_name
+        schema:
+          type: string
       - description: NAC Policy Rule ID, if matched
         in: query
         name: nacrule_id
@@ -12418,17 +12508,6 @@ paths:
         name: nacrule_matched
         schema:
           type: boolean
-      - description: Authentication type, e.g. "eap-tls", "eap-peap", "eap-ttls",
-          "eap-teap", "mab", "psk", "device-auth"
-        in: query
-        name: auth_type
-        schema:
-          type: string
-      - description: Vlan name or ID assigned to the client
-        in: query
-        name: vlan
-        schema:
-          type: string
       - description: Vendor of NAS device
         in: query
         name: nas_vendor
@@ -12439,70 +12518,9 @@ paths:
         name: nas_ip
         schema:
           type: string
-      - description: SSO ID, if present and used
+      - description: Vendor specific Vlan ID in radius requests
         in: query
-        name: idp_id
-        schema:
-          type: string
-      - description: SSID
-        in: query
-        name: ssid
-        schema:
-          type: string
-      - description: Username presented by the client
-        in: query
-        name: username
-        schema:
-          type: string
-      - description: Start time, in epoch
-        in: query
-        name: timestamp
-        schema:
-          type: number
-      - description: Site id if assigned, null if not assigned
-        in: query
-        name: site_id
-        schema:
-          type: string
-      - description: AP MAC connected to by client
-        in: query
-        name: ap
-        schema:
-          type: string
-      - description: MAC address
-        in: query
-        name: mac
-        schema:
-          type: string
-      - description: Filters NAC clients that are managed by MDM providers
-        in: query
-        name: mdm_managed
-        schema:
-          type: boolean
-      - description: Connection status of client i.e "permitted", "denied, "session_stared",
-          "session_ended"
-        in: query
-        name: status
-        schema:
-          $ref: '#/components/schemas/nac_client_last_status'
-      - description: Client type i.e. "wireless", "wired" etc.
-        in: query
-        name: type
-        schema:
-          type: string
-      - description: MDM compliance of client i.e "compliant", "not compliant"
-        in: query
-        name: mdm_compliance
-        schema:
-          type: string
-      - description: Client family, e.g. "Phone/Tablet/Wearable", "Access Point"
-        in: query
-        name: family
-        schema:
-          type: string
-      - description: Client model, e.g. "iPhone 12", "MX100"
-        in: query
-        name: model
+        name: ingress_vlan
         schema:
           type: string
       - description: Client OS, e.g. "iOS 18.1", "Android", "Windows", "Linux"
@@ -12510,20 +12528,31 @@ paths:
         name: os
         schema:
           type: string
-      - description: Client hostname, e.g. "my-laptop", "my-phone"
+      - description: SSID
         in: query
-        name: hostname
+        name: ssid
         schema:
           type: string
-      - description: Client manufacturer, e.g. "apple", "cisco", "juniper"
+      - description: Connection status of client i.e "permitted", "denied, "session_stared",
+          "session_ended"
         in: query
-        name: mfg
+        name: status
+        schema:
+          $ref: '#/components/schemas/nac_client_last_status'
+      - description: partial / full MAC address, last_username, device_mac, nas_ip
+          or last_ap
+        in: query
+        name: text
         schema:
           type: string
-      - description: "MDM provider of client\u2019s organization eg \"intune\", \"\
-          jamf\""
+      - description: Start time, in epoch
         in: query
-        name: mdm_provider
+        name: timestamp
+        schema:
+          type: number
+      - description: Client type i.e. "wireless", "wired" etc.
+        in: query
+        name: type
         schema:
           type: string
       - description: Labels derived from usermac entry
@@ -12531,9 +12560,19 @@ paths:
         name: usermac_label
         schema:
           $ref: '#/components/schemas/strings'
-      - description: Vendor specific Vlan ID in radius requests
+      - description: Username presented by the client
         in: query
-        name: ingress_vlan
+        name: username
+        schema:
+          type: string
+      - description: Vlan name or ID assigned to the client
+        in: query
+        name: vlan
+        schema:
+          type: string
+      - description: Site id if assigned, null if not assigned
+        in: query
+        name: site_id
         schema:
           type: string
       - $ref: '#/components/parameters/limit'
@@ -13002,10 +13041,10 @@ paths:
         name: name
         schema:
           type: string
-      - description: 'if `type`==`match`, Type of NAC Tag. enum: `cert_cn`, `cert_issuer`,
-          `cert_san`, `cert_serial`, `cert_sub`, `cert_template`, `client_mac`, `idp_role`,
-          `ingress_vlan`, `mdm_status`, `nas_ip`, `radius_group`, `realm`, `ssid`,
-          `user_name`, `usermac_label`'
+      - description: 'if `type`==`match`, Type of NAC Tag. enum: `cert_cn`, `cert_eku`,
+          `cert_issuer`, `cert_san`, `cert_serial`, `cert_sub`, `cert_template`, `client_mac`,
+          `edr_health`, `idp_role`, `ingress_vlan`, `mdm_status`, `nas_ip`, `radius_group`,
+          `realm`, `ssid`, `user_name`, `usermac_label`'
         in: query
         name: match
         schema:
@@ -17436,6 +17475,35 @@ paths:
       summary: addOrgOauthAppAccounts
       tags:
       - Orgs Linked Applications
+  /api/v1/orgs/{org_id}/setting/{app_name}/link_accounts/{account_id}:
+    delete:
+      description: Delete Org Level OAuth Application Authorization With Mist Portal
+      operationId: deleteOrgOauthAppAuthorization
+      responses:
+        '200':
+          description: Successful
+        '400':
+          description: Unsuccessful
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: deleteOrgOauthAppAuthorization
+      tags:
+      - Orgs Linked Applications
+    parameters:
+    - $ref: '#/components/parameters/org_id'
+    - description: OAuth application name
+      in: path
+      name: app_name
+      required: true
+      schema:
+        $ref: '#/components/schemas/oauth_app_name'
+    - $ref: '#/components/parameters/account_id'
     put:
       description: 'Update Zoom, Teams, Intune Authorization.
 
@@ -17469,35 +17537,6 @@ paths:
       summary: updateOrgOauthAppAccount
       tags:
       - Orgs Linked Applications
-  /api/v1/orgs/{org_id}/setting/{app_name}/link_accounts/{account_id}:
-    delete:
-      description: Delete Org Level OAuth Application Authorization With Mist Portal
-      operationId: deleteOrgOauthAppAuthorization
-      responses:
-        '200':
-          description: Successful
-        '400':
-          description: Unsuccessful
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: deleteOrgOauthAppAuthorization
-      tags:
-      - Orgs Linked Applications
-    parameters:
-    - $ref: '#/components/parameters/org_id'
-    - description: OAuth application name
-      in: path
-      name: app_name
-      required: true
-      schema:
-        $ref: '#/components/schemas/oauth_app_name'
-    - $ref: '#/components/parameters/account_id'
   /api/v1/orgs/{org_id}/sitegroups:
     get:
       description: Get List of Org Site Groups
@@ -24437,6 +24476,38 @@ paths:
       - Sites Devices - Wireless
     parameters:
     - $ref: '#/components/parameters/site_id'
+  /api/v1/sites/{site_id}/devices/clear_pending_version:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    post:
+      description: Clear device pending fw version (Available on Junos OS EX2300-,
+        EX3400-, EX4000-, EX4100-, EX4400- devices)
+      operationId: clearSiteMultipleDevicePendingVersion
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              examples:
+                cannot-clear-pending-version-on-an-offline-device:
+                  value: cannot clear pending version on an offline device
+                clear-pending-version-not-supported:
+                  value: clear-pending-fw-version not supported
+              schema:
+                type: string
+          description: Bad Request
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: clearSiteMultipleDevicePendingVersion
+      tags:
+      - Utilities LAN
   /api/v1/sites/{site_id}/devices/config_history/count:
     get:
       description: Counts the number of entries in device config history for distinct
@@ -24791,9 +24862,9 @@ paths:
       operationId: searchSiteDeviceLastConfigs
       parameters:
       - in: query
-        name: type
+        name: device_type
         schema:
-          $ref: '#/components/schemas/device_type_default_ap'
+          $ref: '#/components/schemas/last_config_device_type'
       - in: query
         name: mac
         schema:
@@ -24926,6 +24997,38 @@ paths:
       summary: restartSiteMultipleDevices
       tags:
       - Utilities Common
+  /api/v1/sites/{site_id}/devices/restore_backup_version:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    post:
+      description: Restore device backup fw version (Available on Junos OS EX2300-,
+        EX3400-, EX4000-, EX4100-, EX4400- devices)
+      operationId: restoreSiteMultipleDeviceBackupVersion
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              examples:
+                cannot-restore-backup-version-on-an-offline-device:
+                  value: snapshot not supported
+                restore-backup-fw-version-not-supported:
+                  value: cannot snapshot an offline device
+              schema:
+                type: string
+          description: Bad Request
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: restoreSiteMultipleDeviceBackupVersion
+      tags:
+      - Utilities LAN
   /api/v1/sites/{site_id}/devices/search:
     get:
       description: Search Device
@@ -25704,6 +25807,39 @@ paths:
       summary: clearBpduErrorsFromPortsOnSwitch
       tags:
       - Utilities LAN
+  /api/v1/sites/{site_id}/devices/{device_id}/clear_dot1x:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: Clear Dot1x Session. The output will be available through websocket.
+      operationId: clearSiteDeviceDot1xSession
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Example:
+                value:
+                  port_id: ge-0/0/0
+            schema:
+              $ref: '#/components/schemas/clear_dot1x_session'
+        description: Request Body
+      responses:
+        '200':
+          $ref: '#/components/responses/WebsocketSession'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: clearSiteDeviceDot1xSession
+      tags:
+      - Utilities LAN
   /api/v1/sites/{site_id}/devices/{device_id}/clear_mac_table:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -25770,6 +25906,39 @@ paths:
         '429':
           $ref: '#/components/responses/HTTP429'
       summary: clearAllLearnedMacsFromPortOnSwitch
+      tags:
+      - Utilities LAN
+  /api/v1/sites/{site_id}/devices/{device_id}/clear_pending_version:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: Clear device pending fw version (Available on Junos OS EX2300-,
+        EX3400-, EX4000-, EX4100-, EX4400- devices)
+      operationId: clearSiteDevicePendingVersion
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              examples:
+                cannot-clear-pending-version-on-an-offline-device:
+                  value: cannot clear pending version on an offline device
+                clear-pending-version-not-supported:
+                  value: clear-pending-fw-version not supported
+              schema:
+                type: string
+          description: Bad Request
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: clearSiteDevicePendingVersion
       tags:
       - Utilities LAN
   /api/v1/sites/{site_id}/devices/{device_id}/clear_policy_hit_count:
@@ -26554,6 +26723,39 @@ paths:
       summary: restartSiteDevice
       tags:
       - Utilities Common
+  /api/v1/sites/{site_id}/devices/{device_id}/restore_backup_version:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: Restore device backup fw version (Available on Junos OS EX2300-,
+        EX3400-, EX4000-, EX4100-, EX4400- devices)
+      operationId: restoreSiteDeviceBackupVersion
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              examples:
+                cannot-restore-backup-version-on-an-offline-device:
+                  value: cannot restore backup version on an offline device
+                restore-backup-fw-version-not-supported:
+                  value: restore-backup-fw-version not supported
+              schema:
+                type: string
+          description: Bad Request
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: restoreSiteDeviceBackupVersion
+      tags:
+      - Utilities LAN
   /api/v1/sites/{site_id}/devices/{device_id}/run_top:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -26627,35 +26829,6 @@ paths:
       summary: servicePingFromSsr
       tags:
       - Utilities WAN
-  /api/v1/sites/{site_id}/devices/{device_id}/set_ant_mode:
-    parameters:
-    - $ref: '#/components/parameters/site_id'
-    - $ref: '#/components/parameters/device_id'
-    put:
-      description: Set AP Antenna Mode
-      operationId: setSiteApAntennaMode
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ap_antenna_mode'
-        description: Request Body
-      responses:
-        '200':
-          $ref: '#/components/responses/OK'
-        '400':
-          $ref: '#/components/responses/HTTP400'
-        '401':
-          $ref: '#/components/responses/HTTP401'
-        '403':
-          $ref: '#/components/responses/HTTP403'
-        '404':
-          $ref: '#/components/responses/HTTP404'
-        '429':
-          $ref: '#/components/responses/HTTP429'
-      summary: setSiteApAntennaMode
-      tags:
-      - Sites Devices
   /api/v1/sites/{site_id}/devices/{device_id}/set_vc_port_mode:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -27309,7 +27482,7 @@ paths:
       operationId: createSiteDeviceSnapshot
       responses:
         '200':
-          $ref: '#/components/responses/DeviceSnapshot'
+          $ref: '#/components/responses/OK'
         '400':
           content:
             application/json:
@@ -27871,6 +28044,43 @@ paths:
       summary: convertSiteVirtualChassisToVirtualMac
       tags:
       - Sites Devices - Wired - Virtual Chassis
+  /api/v1/sites/{site_id}/devices/{device_id}/vc/switch_master:
+    parameters:
+    - $ref: '#/components/parameters/site_id'
+    - $ref: '#/components/parameters/device_id'
+    post:
+      description: In a pre-provisioned VC, mastership is system-determined. This
+        command allows manual toggling between primary and backup Routing Engines.
+      operationId: toogleSiteDeviceVcRoutingEnginesRole
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          content:
+            application/json:
+              examples:
+                backup-re-not-present:
+                  value: backup routing engine is not present
+                device-is-not-an-oc-device:
+                  value: The device is not an OC device
+                non-provisioned-vc-not-supported:
+                  value: Non-provisioned VC is not supported currently
+                vc-is-currently-disconnected:
+                  value: VC is currently disconnected
+              schema:
+                type: string
+          description: Bad Request
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+      summary: toogleSiteDeviceVcRoutingEnginesRole
+      tags:
+      - Utilities LAN
   /api/v1/sites/{site_id}/devices/{device_id}/vc/vc_port:
     parameters:
     - $ref: '#/components/parameters/site_id'
@@ -30256,60 +30466,45 @@ paths:
       description: Search Site NAC Clients
       operationId: searchSiteNacClients
       parameters:
-      - description: NAC Policy Rule ID, if matched
+      - description: AP MAC connected to by client
         in: query
-        name: nacrule_id
+        name: ap
         schema:
           type: string
-      - description: NAC Policy Rule Matched
-        in: query
-        name: nacrule_matched
-        schema:
-          type: boolean
       - description: Authentication type, e.g. "eap-tls", "eap-peap", "eap-ttls",
           "eap-teap", "mab", "psk", "device-auth"
         in: query
         name: auth_type
         schema:
           type: string
-      - description: Vlan name or ID assigned to the client
+      - description: Filters NAC clients that are integrated with EDR providers
         in: query
-        name: vlan
+        name: edr_managed
+        schema:
+          type: boolean
+      - description: EDR provider of client's organization
+        in: query
+        name: edr_provider
+        schema:
+          $ref: '#/components/schemas/edr_provider'
+      - description: EDR Status of the NAC client
+        in: query
+        name: edr_status
+        schema:
+          $ref: '#/components/schemas/edr_status'
+      - description: Client family, e.g. "Phone/Tablet/Wearable", "Access Point"
+        in: query
+        name: family
         schema:
           type: string
-      - description: Vendor of NAS device
+      - description: Client hostname, e.g. "my-laptop", "my-phone"
         in: query
-        name: nas_vendor
-        schema:
-          type: string
-      - description: IP address of NAS device
-        in: query
-        name: nas_ip
+        name: hostname
         schema:
           type: string
       - description: SSO ID, if present and used
         in: query
         name: idp_id
-        schema:
-          type: string
-      - description: SSID
-        in: query
-        name: ssid
-        schema:
-          type: string
-      - description: Username presented by the client
-        in: query
-        name: username
-        schema:
-          type: string
-      - description: Start time, in epoch
-        in: query
-        name: timestamp
-        schema:
-          type: number
-      - description: AP MAC connected to by client
-        in: query
-        name: ap
         schema:
           type: string
       - description: MAC address
@@ -30322,51 +30517,6 @@ paths:
         name: mdm_managed
         schema:
           type: boolean
-      - description: ID of Mist Edge that the client is connected through
-        in: query
-        name: mxedge_id
-        schema:
-          type: string
-      - description: NAC Policy Rule Name matched
-        in: query
-        name: nacrule_name
-        schema:
-          type: string
-      - description: Connection status of client i.e "permitted", "denied, "session_ended"
-        in: query
-        name: status
-        schema:
-          type: string
-      - description: Client family, e.g. "Phone/Tablet/Wearable", "Access Point"
-        in: query
-        name: family
-        schema:
-          type: string
-      - description: Client model, e.g. "iPhone 12", "MX100"
-        in: query
-        name: model
-        schema:
-          type: string
-      - description: Client OS, e.g. "iOS 18.1", "Android", "Windows", "Linux"
-        in: query
-        name: os
-        schema:
-          type: string
-      - description: Client hostname, e.g. "my-laptop", "my-phone"
-        in: query
-        name: hostname
-        schema:
-          type: string
-      - description: Client manufacturer, e.g. "apple", "cisco", "juniper"
-        in: query
-        name: mfg
-        schema:
-          type: string
-      - description: Client type i.e. "wireless", "wired" etc.
-        in: query
-        name: type
-        schema:
-          type: string
       - description: MDM compliance of client i.e "compliant", "not compliant"
         in: query
         name: mdm_compliance
@@ -30378,14 +30528,95 @@ paths:
         name: mdm_provider
         schema:
           type: string
+      - description: Client manufacturer, e.g. "apple", "cisco", "juniper"
+        in: query
+        name: mfg
+        schema:
+          type: string
+      - description: Client model, e.g. "iPhone 12", "MX100"
+        in: query
+        name: model
+        schema:
+          type: string
+      - description: ID of Mist Edge that the client is connected through
+        in: query
+        name: mxedge_id
+        schema:
+          type: string
+      - description: NAC Policy Rule ID, if matched
+        in: query
+        name: nacrule_id
+        schema:
+          type: string
+      - description: NAC Policy Rule Matched
+        in: query
+        name: nacrule_matched
+        schema:
+          type: boolean
+      - description: NAC Policy Rule Name matched
+        in: query
+        name: nacrule_name
+        schema:
+          type: string
+      - description: Vendor of NAS device
+        in: query
+        name: nas_vendor
+        schema:
+          type: string
+      - description: IP address of NAS device
+        in: query
+        name: nas_ip
+        schema:
+          type: string
+      - description: Vendor specific Vlan ID in radius requests
+        in: query
+        name: ingress_vlan
+        schema:
+          type: string
+      - description: Client OS, e.g. "iOS 18.1", "Android", "Windows", "Linux"
+        in: query
+        name: os
+        schema:
+          type: string
+      - description: SSID
+        in: query
+        name: ssid
+        schema:
+          type: string
+      - description: Connection status of client i.e "permitted", "denied, "session_ended"
+        in: query
+        name: status
+        schema:
+          $ref: '#/components/schemas/nac_client_last_status'
+      - description: partial / full MAC address, last_username, device_mac, nas_ip
+          or last_ap
+        in: query
+        name: text
+        schema:
+          type: string
+      - description: Start time, in epoch
+        in: query
+        name: timestamp
+        schema:
+          type: number
+      - description: Client type i.e. "wireless", "wired" etc.
+        in: query
+        name: type
+        schema:
+          type: string
       - description: Labels derived from usermac entry
         in: query
         name: usermac_label
         schema:
           $ref: '#/components/schemas/strings'
-      - description: Vendor specific Vlan ID in radius requests
+      - description: Username presented by the client
         in: query
-        name: ingress_vlan
+        name: username
+        schema:
+          type: string
+      - description: Vlan name or ID assigned to the client
+        in: query
+        name: vlan
         schema:
           type: string
       - $ref: '#/components/parameters/limit'
@@ -40238,7 +40469,9 @@ components:
         mac: 983a78ea4a44
         meeting_id: b784d744-9a7c-4fad-9af0-f78858a319b1
         results:
-        - audio_in:
+        - ap_num_clients: -0.08802365511655807
+          ap_rtt: 0.09924473613500595
+          audio_in:
             ap_num_clients: -0.6565111
             ap_rtt: 0.16559607
             client_cpu: 3.7028809
@@ -40294,6 +40527,33 @@ components:
             wan_max_download_mbps: 1.4803165
             wan_max_upload_mbps: -0.038184267
             wan_rtt: 46.77899
+          client_cpu: 0.00834270566701889
+          client_n_streams: 0.00734270566701889
+          client_radio_band: 0.5841414928436279
+          client_rssi: 0.7594696879386902
+          client_rx_bytes: 2.365511655807e-05
+          client_rx_rates: 0.02441493794322014
+          client_rx_retries: -0.14325742423534393
+          client_tx_bytes: 0.00102365511655807
+          client_tx_rates: 0.22236637771129608
+          client_tx_retries: 0.3308201730251312
+          client_vpn_distance: -0.0001660545531194657
+          client_wifi_version: 7.0566701889e-07
+          expected: -2.8630001056670187
+          radio_ap_change: 0.01850946433842182
+          radio_bandwidth: -0.021175479516386986
+          radio_channel: 0.11686426401138306
+          radio_rx_failed: 1.1782013177871704
+          radio_tx_power: 0.121039018034935
+          radio_util: 0.2452986091375351
+          radio_util_interference: 3.4367904663085938
+          site_num_clients: 0.055026158690452576
+          site_wan_avg_download_mbps: 3.0566701889e-07
+          site_wan_avg_upload_mbps: 5.566701889e-08
+          site_wan_download_mbps: 8.0566701889e-07
+          site_wan_jitter: 1.00566701889e-06
+          site_wan_rtt: 4.0566701889e-07
+          site_wan_upload_mbps: 2.0566701889e-07
           timestamp: 1695425115
           video_in:
             ap_num_clients: -0.6565111
@@ -40356,7 +40616,9 @@ components:
         mac: 983a78ea4a44
         meeting_id: b784d744-9a7c-4fad-9af0-f78858a319b1
         results:
-        - audio_in:
+        - ap_num_clients: -0.08802365511655807
+          ap_rtt: 0.09924473613500595
+          audio_in:
             ap_num_clients: 45.48306793636746
             ap_rtt: 6.352042701509264
             client_cpu: 9.323452578650581
@@ -40396,6 +40658,33 @@ components:
             site_wan_jitter: 0.7875519659784105
             site_wan_rtt: 15.094849904378256
             site_wan_upload_mpbs: -0.8131117953194512
+          client_cpu: 0.00834270566701889
+          client_n_streams: 0.00734270566701889
+          client_radio_band: 0.5841414928436279
+          client_rssi: 0.7594696879386902
+          client_rx_bytes: 2.365511655807e-05
+          client_rx_rates: 0.02441493794322014
+          client_rx_retries: -0.14325742423534393
+          client_tx_bytes: 0.00102365511655807
+          client_tx_rates: 0.22236637771129608
+          client_tx_retries: 0.3308201730251312
+          client_vpn_distance: -0.0001660545531194657
+          client_wifi_version: 7.0566701889e-07
+          expected: -2.8630001056670187
+          radio_ap_change: 0.01850946433842182
+          radio_bandwidth: -0.021175479516386986
+          radio_channel: 0.11686426401138306
+          radio_rx_failed: 1.1782013177871704
+          radio_tx_power: 0.121039018034935
+          radio_util: 0.2452986091375351
+          radio_util_interference: 3.4367904663085938
+          site_num_clients: 0.055026158690452576
+          site_wan_avg_download_mbps: 3.0566701889e-07
+          site_wan_avg_upload_mbps: 5.566701889e-08
+          site_wan_download_mbps: 8.0566701889e-07
+          site_wan_jitter: 1.00566701889e-06
+          site_wan_rtt: 4.0566701889e-07
+          site_wan_upload_mbps: 2.0566701889e-07
           timestamp: 1695425115
           video_in:
             ap_num_clients: 45.48306793636746
@@ -40514,6 +40803,9 @@ components:
           - /C=US/ST=CA/CN=MyCorp
           client_ip:
           - 10.7.51.74
+          edr_managed: true
+          edr_provider: sentinelone
+          edr_status: sentinelone_healthy
           idp_id: string
           idp_role:
           - string
@@ -42336,11 +42628,6 @@ components:
         key: US
         name: United States
         uses: US_FCC
-    DeviceSnapshotExample:
-      value:
-        status: starting
-        status_id: string
-        timestamp: 0
     DeviceStatsAccessPointStats:
       value:
         auto_upgrade_stat:
@@ -45610,25 +45897,45 @@ components:
         detail: no juniper account linked
     JsiInventoryExample:
       value:
-      - eol_time: 1671062400
-        eos_time: 1828828800
-        model: EX4300-48T
-        serial: PE3721050223
-        sku: EX4300-48T-AFI
+      - device_name: name1
+        eol_time: 1561507200
+        eos_time: 1672012800
+        master: true
+        model: EX2300-24MP
+        org_id: 6e843b41-f953-4af9-80e5-e1a70f65754a
+        serial: XN3123300095
+        sku: EX2300
+        status: connected
+        suggested_version: Latest 21.4R3-Sx
         type: switch
-        warranty_type: Enhanced Hardware Warranty
+        version: 23.4R2-S4.11
+        version_eos_time: 1672012800
+        version_time: 1561507200
+        warranty: Enhanced Hardware Warranty
+        warranty_time: 1672012800
+        warranty_type: WTY00002
     JsiInventorySearchExample:
       value:
         end: 1748023308
         limit: 1000
         results:
-        - eol_time: 1671062400
-          eos_time: 1828828800
-          model: EX4300-48T
-          serial: PE3721050223
-          sku: EX4300-48T-AFI
+        - device_name: name1
+          eol_time: 1561507200
+          eos_time: 1672012800
+          master: true
+          model: EX2300-24MP
+          org_id: 6e843b41-f953-4af9-80e5-e1a70f65754a
+          serial: XN3123300095
+          sku: EX2300
+          status: connected
+          suggested_version: Latest 21.4R3-Sx
           type: switch
-          warranty_type: Enhanced Hardware Warranty
+          version: 23.4R2-S4.11
+          version_eos_time: 1672012800
+          version_time: 1561507200
+          warranty: Enhanced Hardware Warranty
+          warranty_time: 1672012800
+          warranty_type: WTY00002
         start: 1748019708
         total: 1
     JuniperLinkAccountFailedExample:
@@ -46857,6 +47164,14 @@ components:
         values:
         - john
         - staff*
+    NacTagMatchesCertEku:
+      value:
+        match: cert_eku
+        name: EKU-Match
+        type: match
+        values:
+        - 1.3.6.1.4.1.54321.10.1
+        - 1.3.6.1.4.1.54321.20.2
     NacTagMatchesCertIssuer:
       value:
         match: cert_issuer
@@ -46893,6 +47208,21 @@ components:
         values:
         - 1.3.6.1.4.1.311.21.8.4200806.605933.871088.11229391.9863893.29.13545645.4807979
         - 1.3.6.1.4.1.311.21.8.3285427.4093958.2707341.9961608.11572555.6.4903431.2258457
+    NacTagMatchesEdrStatus:
+      value:
+        match: edr_status
+        match_all: false
+        name: edr_health
+        type: match
+        values:
+        - sentinelone_healthy
+        - sentinelone_infected
+        - crowdstrike_low
+        - crowdstrike_medium
+        - crowdstrike_high
+        - crowdstrike_critical
+        - crowdstrike_informational
+        - unknown
     NacTagMatchesHostname:
       value:
         match: hostname
@@ -47563,12 +47893,14 @@ components:
           enable_probe: true
           region: americas
           regions:
-            us-southwest:
+            us-west-1:
+              aggregate_region: us-southwest
               allocated_bandwidth: 50
+              name: US West
           service_account_name: Corp SA
           service_connections:
           - MCD_LAB_SC_1: null
-            region: us-southwest
+            region: us-west-1
           tsg_id: '189953456'
         linked: true
     OauthAppLinkSentinelOne:
@@ -47600,6 +47932,11 @@ components:
           linked_by: Testname1
           linked_timestamp: 1702284364
           name: Test Company1 Ltd
+          webhook_auth_type: Basic
+          webhook_enabled: true
+          webhook_password: password_1234
+          webhook_url: https://websync.nac-staging.mistsys.com/v1/S_41b2525af1d8dcbe9005/f43ea4c48f22/vmware/mdm
+          webhook_username: username_1234
         - account_id: m56ea4c4-8a10-4189-9214-113a8c7b8m82
           error: Get token failed, please re-link VMware
           instance_url: as561.airwatchportals.com
@@ -47608,6 +47945,11 @@ components:
           linked_by: Testname2
           linked_timestamp: 1702284364
           name: Test Company2 Ltd
+          webhook_auth_type: Basic
+          webhook_enabled: true
+          webhook_password: password_1234
+          webhook_url: https://websync.nac-staging.mistsys.com/v1/S_41b2525af1d8dcbe9005/f43ea4c48f22/vmware/mdm
+          webhook_username: username_1234
         linked: true
     OauthAppLinkZDX:
       value:
@@ -47625,7 +47967,7 @@ components:
         - account_id: KkEM7orQSIWHZNFzwMLuRA
           company: Test Company1 Ltd
           last_status: success
-          last_sync: 1665465339000
+          last_sync: 1665465339
           linked_by: Testname1
           max_daily_api_requests: 1500
         - account_id: kojzWgIJQ0ujR73VvydOdg
@@ -47635,13 +47977,13 @@ components:
           - OAuth token refresh failed, please re-link your account
           - API daily rate limit reached for your account
           last_status: failed
-          last_sync: 1665465346000
+          last_sync: 1665465346
           linked_by: Testname2
           max_daily_api_requests: 5000
         - account_id: iojzXIJWEuiD73ZvydOfg
           company: Test Company3 Ltd
           last_status: failed
-          last_sync: 1665465538000
+          last_sync: 1665465538
           linked_by: Testname3
           max_daily_api_requests: 3500
         authorization_url: https://zoom.us/oauth/authorize?response_type=code&client_id=YDyajBmJREjwkyb3TPAbA&redirect_uri=https%3A%2F%2Fapi.local%2Fapi%2Fv1%2Forg%2Fb4e16c72-d50e-4c03-a952-a3217e231e2c%2Foauth2%2Fapp%2Fzoom%2Fcallback&state=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2NDk3NjE0MDQsImZvcndhcmQiOiJodHRwczovL2NsaWVudGZvcndhcmR1cmwuY29tIn0.RIE4XTU5kpF4nKIy7_enJ0PpOCyTTp6DLm9PZsdncpI
@@ -51991,6 +52333,7 @@ components:
           vc_state: present
           version: 21.4R3-S4.18
         model: EX2300-48P
+        num_routing_engines: 1
         org_id: 1e9a61a9-bc42-42ca-bf67-1ad87443d9b8
         serial: JW3619300157
         site_id: ab0aca7a-d45c-469b-b3bb-4fe240642d0b
@@ -54818,21 +55161,6 @@ components:
           schema:
             $ref: '#/components/schemas/response_device_radio_channels'
       description: OK
-    DeviceSnapshot:
-      content:
-        application/json:
-          examples:
-            Example:
-              $ref: '#/components/examples/DeviceSnapshotExample'
-          schema:
-            $ref: '#/components/schemas/response_device_snapshot'
-        application/vnd.api+json:
-          examples:
-            Example:
-              $ref: '#/components/examples/DeviceSnapshotExample'
-          schema:
-            $ref: '#/components/schemas/response_device_snapshot'
-      description: OK
     DeviceStats:
       content:
         application/json:
@@ -56389,6 +56717,8 @@ components:
               $ref: '#/components/examples/NacTagEgressVlanNames'
             Matches Cert CN:
               $ref: '#/components/examples/NacTagMatchesCertCN'
+            Matches Cert EKU:
+              $ref: '#/components/examples/NacTagMatchesCertEku'
             Matches Cert Issuer:
               $ref: '#/components/examples/NacTagMatchesCertIssuer'
             Matches Cert SAN:
@@ -56399,6 +56729,8 @@ components:
               $ref: '#/components/examples/NacTagMatchesCertSub'
             Matches Cert Template:
               $ref: '#/components/examples/NacTagMatchesCertTemplate'
+            Matches EDR Status:
+              $ref: '#/components/examples/NacTagMatchesEdrStatus'
             Matches Hostname:
               $ref: '#/components/examples/NacTagMatchesHostname'
             Matches Radius Group:
@@ -59476,6 +59808,11 @@ components:
           description: Linked app(zoom/teams/intune) account id
           example: iojzXIJWEuiD73ZvydOfg
           type: string
+        discard_guest_info:
+          description: Optional, for Zoom/Teams. Whether to redact identifying information
+            for call participants that are not part of the Zoom/Teams account identified
+            by `account_id`
+          type: boolean
         max_daily_api_requests:
           description: Zoom daily api request quota, https://developers.zoom.us/docs/api/rest/rate-limits/
           example: 5000
@@ -59602,14 +59939,41 @@ components:
           description: Customer account username
           readOnly: true
           type: string
+        webhook_auth_type:
+          description: For VMWare accounts only
+          example: Basic
+          type: string
+        webhook_enabled:
+          description: For VMWare accounts only
+          type: boolean
+        webhook_password:
+          description: For VMWare accounts only
+          example: password_1234
+          type: string
+        webhook_url:
+          description: For VMWare accounts only
+          example: https://websync.nac-staging.mistsys.com/v1/S_41b2525af1d8dcbe9005/f43ea4c48f22/vmware/mdm
+          type: string
+        webhook_username:
+          description: For VMWare accounts only
+          example: username_1234
+          type: string
       type: object
     account_oauth_info_account_region:
       properties:
+        aggregate_region:
+          description: Bandwidth Aggregate region for this region
+          example: us-southwest
+          type: string
         allocated_bandwidth:
           description: Allocated bandwidth for the region, in Mbps
           example: 1000
           readOnly: true
           type: integer
+        name:
+          description: Display name for this region
+          example: US West
+          type: string
       type: object
     account_oauth_info_account_regions:
       additionalProperties:
@@ -59733,10 +60097,14 @@ components:
         instance_url:
           description: Customer account VMware instance URL
           type: string
+        webhook_enabled:
+          description: Enables or disables the webhook integration
+          type: boolean
       required:
       - instance_url
       - client_secret
       - client_id
+      - webhook_enabled
       type: object
     account_zdx_config:
       description: OAuth linked ZDX apps account details
@@ -60649,11 +61017,6 @@ components:
           nullable: true
           type: integer
       type: object
-    ap_antenna_mode:
-      properties:
-        ant_mode:
-          $ref: '#/components/schemas/ant_mode'
-      type: object
     ap_centrak:
       properties:
         enabled:
@@ -61511,6 +61874,8 @@ components:
           example: 5
           minimum: 0
           type: integer
+        ant_mode:
+          $ref: '#/components/schemas/ant_mode'
         antenna_mode:
           $ref: '#/components/schemas/ap_radio_antenna_mode'
         band_24:
@@ -63377,10 +63742,97 @@ components:
       type: array
     call_troubleshoot_summary:
       properties:
+        ap_num_clients:
+          example: -0.08802365511655807
+          type: number
+        ap_rtt:
+          example: 0.09924473613500595
+          type: number
         audio_in:
           $ref: '#/components/schemas/call_troubleshoot_summary_data'
         audio_out:
           $ref: '#/components/schemas/call_troubleshoot_summary_data'
+        client_cpu:
+          example: 0.00834270566701889
+          type: number
+        client_n_streams:
+          example: 0.00734270566701889
+          type: number
+        client_radio_band:
+          example: 0.5841414928436279
+          type: number
+        client_rssi:
+          example: 0.7594696879386902
+          type: number
+        client_rx_bytes:
+          example: 2.365511655807e-05
+          type: number
+        client_rx_rates:
+          example: 0.02441493794322014
+          type: number
+        client_rx_retries:
+          example: -0.14325742423534393
+          type: number
+        client_tx_bytes:
+          example: 0.00102365511655807
+          type: number
+        client_tx_rates:
+          example: 0.22236637771129608
+          type: number
+        client_tx_retries:
+          example: 0.3308201730251312
+          type: number
+        client_vpn_distance:
+          example: -0.0001660545531194657
+          type: number
+        client_wifi_version:
+          example: 7.0566701889e-07
+          type: number
+        expected:
+          example: -2.8630001056670187
+          type: number
+        radio_ap_change:
+          example: 0.01850946433842182
+          type: number
+        radio_bandwidth:
+          example: -0.021175479516386986
+          type: number
+        radio_channel:
+          example: 0.11686426401138306
+          type: number
+        radio_rx_failed:
+          example: 1.1782013177871704
+          type: number
+        radio_tx_power:
+          example: 0.121039018034935
+          type: number
+        radio_util:
+          example: 0.2452986091375351
+          type: number
+        radio_util_interference:
+          example: 3.4367904663085938
+          type: number
+        site_num_clients:
+          example: 0.055026158690452576
+          type: number
+        site_wan_avg_download_mbps:
+          example: 3.0566701889e-07
+          type: number
+        site_wan_avg_upload_mbps:
+          example: 5.566701889e-08
+          type: number
+        site_wan_download_mbps:
+          example: 8.0566701889e-07
+          type: number
+        site_wan_jitter:
+          example: 1.00566701889e-06
+          type: number
+        site_wan_rtt:
+          example: 4.0566701889e-07
+          type: number
+        site_wan_upload_mbps:
+          example: 2.0566701889e-07
+          type: number
         timestamp:
           $ref: '#/components/schemas/timestamp'
         video_in:
@@ -64135,6 +64587,14 @@ components:
       - inventory
       - license
       type: string
+    clear_dot1x_session:
+      properties:
+        port_id:
+          description: ID of the port where the dot1x session must be cleared. If
+            not provided, the sessions on all the port will be cleared.
+          example: ge-0/0/0
+          type: string
+      type: object
     client_cert_serial_numbers:
       example:
         serial_numbers:
@@ -64156,9 +64616,12 @@ components:
         `WPA3-SAE-PSK`'
       enum:
       - WPA2-PSK
+      - WPA2-PSK/CCMP
       - WPA2-PSK-FT
       - WPA2-PSK-SHA256
       - WPA3-EAP-SHA256
+      - WPA3-EAP-SHA256/CCMP
+      - WPA3-EAP-FT/GCMP256
       - WPA3-SAE-FT
       - WPA3-SAE-PSK
       example: WPA2-PSK
@@ -64181,6 +64644,12 @@ components:
           $ref: '#/components/schemas/nac_client_ip'
         device_mac:
           $ref: '#/components/schemas/nac_device_mac'
+        edr_managed:
+          type: boolean
+        edr_provider:
+          $ref: '#/components/schemas/edr_provider'
+        edr_status:
+          $ref: '#/components/schemas/edr_status'
         group:
           type: string
         idp_id:
@@ -66704,6 +67173,10 @@ components:
     dhcpd_config_fixed_binding:
       properties:
         ip:
+          example: 192.168.70.35
+          type: string
+        ip6:
+          example: 2607:f8b0:4005:808::2
           type: string
         name:
           type: string
@@ -67184,6 +67657,25 @@ components:
       - cloud_psks
       - radius
       example: cloud_psks
+      type: string
+    edr_provider:
+      description: '`enum: `sentinelone`, `crowdstrike`'
+      enum:
+      - crowdstrike
+      - sentinelone
+      type: string
+    edr_status:
+      description: 'EDR Status of the NAC client. enum: `sentinelone_healthy`, `sentinelone_infected`,
+        `crowdstrike_low`, `crowdstrike_medium`, `crowdstrike_high`, `crowdstrike_critical`,
+        `crowdstrike_informational`'
+      enum:
+      - sentinelone_healthy
+      - sentinelone_infected
+      - crowdstrike_low
+      - crowdstrike_medium
+      - crowdstrike_high
+      - crowdstrike_critical
+      - crowdstrike_informational
       type: string
     email_string:
       properties:
@@ -68539,6 +69031,12 @@ components:
         wan_ext_ip:
           description: Only if `usage`==`wan`, optional. If spoke should reach this
             port by a different IP
+          example: 64.2.4.3
+          type: string
+        wan_ext_ip6:
+          description: Only if `usage`==`wan`, optional. If spoke should reach this
+            port by a different IPv6
+          example: 2601:1700:43c0:dc0::10
           type: string
         wan_extra_routes:
           additionalProperties:
@@ -68766,6 +69264,10 @@ components:
           default: false
           description: Or to disable the source-nat
           type: boolean
+        nat6_pool:
+          description: If alternative nat_pool is desired
+          example: 2601:1700:43c0:dc0:20c:29ff:fea7:93bc/126
+          type: string
         nat_pool:
           description: If alternative nat_pool is desired
           example: 64.2.4.0/30
@@ -68917,6 +69419,12 @@ components:
           $ref: '#/components/schemas/tunnel_provider_options'
         type:
           $ref: '#/components/schemas/gateway_template_type'
+        url_filtering_deny_msg:
+          default: Access to this URL Category has been blocked
+          description: When a service policy denies a app_category, what message to
+            show in user's browser
+          example: Access to this URL Category has been blocked
+          type: string
         vrf_config:
           $ref: '#/components/schemas/vrf_config'
         vrf_instances:
@@ -70040,23 +70548,52 @@ components:
       type: array
     js_inventory_item:
       properties:
+        device_name:
+          description: Name of the device
+          type: string
         eol_time:
           description: End of life time
           type: integer
         eos_time:
           description: End of support time
           type: integer
+        master:
+          description: Indicates whether it is Master
+          type: boolean
         model:
           description: Model of the install base inventory
           type: string
+        org_id:
+          $ref: '#/components/schemas/org_id'
         serial:
           description: Serial Number of the inventory
           type: string
         sku:
           description: Serviceable device stock
           type: string
+        status:
+          description: Status of the connected device
+          type: string
+        suggested_version:
+          description: Suggested SW version
+          type: string
         type:
           $ref: '#/components/schemas/device_type'
+        version:
+          description: SW version running
+          type: string
+        version_eos_time:
+          description: End of Service of version
+          type: integer
+        version_time:
+          description: FRS date of the version
+          type: integer
+        warranty:
+          description: warranty description
+          type: string
+        warranty_time:
+          description: Time when warranty needs to be renewed
+          type: integer
         warranty_type:
           $ref: '#/components/schemas/jsi_warranty_type'
       type: object
@@ -70096,15 +70633,19 @@ components:
         $ref: '#/components/schemas/jse_device'
       type: array
     jsi_inventory_count_distinct:
-      description: 'enum: `model`, `account_id`, `type`, `version`, `warranty_type`,
-        `status`'
+      description: 'enum: `account_id`, `eol_time`, `eos_time`, `version_time`, `model`,
+        `sku`, `status`, `type`, `version`, `warranty_type'
       enum:
-      - model
       - account_id
+      - eol_time
+      - eos_time
+      - version_time
+      - model
+      - sku
+      - status
       - type
       - version
       - warranty_type
-      - status
       type: string
     jsi_warranty_type:
       description: "Warranty type for Juniper Support Insight (JSI) devices. The warranty\
@@ -70142,6 +70683,25 @@ components:
       items:
         $ref: '#/components/schemas/juniper_account'
       type: array
+    juniper_srx_auto_upgrade:
+      description: auto_upgrade device first time it is onboarded
+      properties:
+        custom_versions:
+          $ref: '#/components/schemas/juniper_srx_auto_upgrade_custom_versions'
+        enabled:
+          default: false
+          type: boolean
+        snapshot:
+          default: false
+          type: boolean
+      type: object
+    juniper_srx_auto_upgrade_custom_versions:
+      additionalProperties:
+        description: Firmware version to deploy on the specified SRX hardware
+        example: 23.4R2-S2.1
+        type: string
+      description: Property key is the SRX Hardware model (e.g. "SRX4600")
+      type: object
     junos_ip_config:
       description: Junos IP Config
       properties:
@@ -70460,6 +71020,15 @@ components:
     last_client_ip:
       description: The last known IP Address for the client
       example: 10.100.0.157
+      type: string
+    last_config_device_type:
+      default: ap
+      description: 'enum: `ap`, `gateway`, `mxedge`, `switch`'
+      enum:
+      - ap
+      - gateway
+      - switch
+      - mxedge
       type: string
     last_device:
       description: Latest type of device we identified (e.g. iPhone, Mac, ...)
@@ -71837,11 +72406,19 @@ components:
           default: 1812
           description: Auth port of RADIUS server
           type: integer
+        retry:
+          default: 2
+          description: Authentication request retry
+          type: integer
         secret:
           description: Secret of RADIUS server
           type: string
         ssids:
           $ref: '#/components/schemas/mxcluster_radsec_auth_server_ssids'
+        timeout:
+          default: 5
+          description: Authentication request timeout, in seconds
+          type: integer
       type: object
     mxcluster_radsec_auth_server_ssids:
       description: List of ssids that will use this server if match_ssid is true and
@@ -72999,6 +73576,10 @@ components:
             authentication
           example: https://yourorg.com/external-guest-portal
           type: string
+        force_reconnect:
+          dsecription: disconnect the client (to workaround client-side issues with
+            reauth)
+          type: boolean
         forward:
           description: If `auth`==`none` or `auth`==`multi`, whether to forward the
             user to the guest portal after authentication
@@ -73284,13 +73865,13 @@ components:
           description: "This field is applicable only when `type`==`match`\n  * `false`:\
             \ means it is sufficient to match any of the values (i.e., match-any behavior)\n\
             \  * `true`: means all values should be matched (i.e., match-all behavior)\n\
-            \n\nCurrently it makes sense to set this field to `true` only if the `match`==`idp_role`\
-            \ or `match`==`usermac_label`"
+            \n\nCurrently it makes sense to set this field to `true` only if the `match`==`idp_role`,\
+            \ `match`==`usermac_label` and `edr_status`"
           type: boolean
         modified_time:
           $ref: '#/components/schemas/modified_time'
         nacportal_id:
-          $ref: '#/components/schemas/nac_tag_nacportal_id'
+          $ref: '#/components/schemas/redirect_nacportal_id'
         name:
           minLength: 1
           type: string
@@ -73337,18 +73918,20 @@ components:
       - type: string
       description: If `type`==`gbp_tag`
     nac_tag_match:
-      description: 'if `type`==`match`. enum: `cert_cn`, `cert_issuer`, `cert_san`,
-        `cert_serial`, `cert_sub`, `cert_template`, `client_mac`, `hostname`, `idp_role`,
-        `ingress_vlan`, `mdm_status`, `nas_ip`, `radius_group`, `realm`, `ssid`, `user_name`,
-        `usermac_label`'
+      description: 'if `type`==`match`. enum: `cert_cn`, `cert_eku`, `cert_issuer`,
+        `cert_san`, `cert_serial`, `cert_sub`, `cert_template`, `client_mac`, `edr_health`,
+        `hostname`, `idp_role`, `ingress_vlan`, `mdm_status`, `nas_ip`, `radius_group`,
+        `realm`, `ssid`, `user_name`, `usermac_label`'
       enum:
       - cert_cn
+      - cert_eku
       - cert_issuer
       - cert_san
       - cert_serial
       - cert_sub
       - cert_template
       - client_mac
+      - edr_health
       - hostname
       - idp_role
       - ingress_vlan
@@ -73360,12 +73943,6 @@ components:
       - user_name
       - usermac_label
       minLength: 1
-      type: string
-    nac_tag_nacportal_id:
-      description: If `type`==`redirect_guest_portal`, the ID of the guest portal
-        to redirect to
-      example: 1e970fec-0a7a-4d73-a472-3ef3b6a456aa
-      format: uuid
       type: string
     nac_tag_radius_attrs:
       description: "If `type`==`radius_attrs`, user can specify a list of one or more\
@@ -73393,7 +73970,7 @@ components:
       type: array
     nac_tag_type:
       description: 'enum: `egress_vlan_names`, `gbp_tag`, `match`, `radius_attrs`,
-        `radius_group`, `radius_vendor_attrs`, `redirect_guest_portal`, `session_timeout`,
+        `radius_group`, `radius_vendor_attrs`, `redirect_nacportal_id`, `session_timeout`,
         `username_attr`, `vlan`'
       enum:
       - egress_vlan_names
@@ -73402,7 +73979,7 @@ components:
       - radius_attrs
       - radius_group
       - radius_vendor_attrs
-      - redirect_guest_portal
+      - redirect_nacportal_id
       - session_timeout
       - username_attr
       - vlan
@@ -73822,6 +74399,10 @@ components:
       items:
         type: string
       type: array
+    number_or_null:
+      oneOf:
+      - type: number
+      - type: 'null'
     oauth_account_errors:
       example:
       - OAuth token refresh failed, please re-link your account
@@ -74195,22 +74776,40 @@ components:
       type: string
     org_nac_clients_count_distinct:
       default: type
-      description: 'enum: `auth_type`, `last_ap`, `last_nacrule_id`, `last_nas_vendor`,
-        `last_ssid`, `last_status`, `last_username`, `last_vlan`, `mac`, `mdm_compliance`,
-        `mdm_provider`, `type`'
+      description: 'enum: `ap`, `auth_type`, `device_mac`, `edr_managed`, `edr_provider`,
+        `edr_status`, `family`, `hostname`, `idp_id`, `mfg`, `mdm_compliance`, `mdm_managed`,
+        `mdm_provider`, `model`, `mxedge_id`, `nacrule_matched`, `nacrule_name`, `nacrule_id`,
+        `nas_ip`, `nas_vendor`, `os`, `site_id`, `ssid`, `status`, `type`, `usermac_label`,
+        `username`, `vlan`'
       enum:
+      - ap
       - auth_type
-      - last_ap
-      - last_nacrule_id
-      - last_nas_vendor
-      - last_ssid
-      - last_status
-      - last_username
-      - last_vlan
-      - mac
+      - device_mac
+      - edr_managed
+      - edr_provider
+      - edr_status
+      - family
+      - hostname
+      - idp_id
+      - mfg
       - mdm_compliance
+      - mdm_managed
       - mdm_provider
+      - model
+      - mxedge_id
+      - nacrule_matched
+      - nacrule_name
+      - nacrule_id
+      - nas_ip
+      - nas_vendor
+      - os
+      - site_id
+      - ssid
+      - status
       - type
+      - usermac_label
+      - username
+      - vlan
       type: string
     org_otherdevices_events_count_distinct:
       default: mac
@@ -74358,6 +74957,8 @@ components:
           $ref: '#/components/schemas/org_setting_jcloud_ra'
         juniper:
           $ref: '#/components/schemas/account_juniper_info'
+        juniper_srx:
+          $ref: '#/components/schemas/org_setting_juniper_srx'
         junos_shell_access:
           $ref: '#/components/schemas/org_setting_junos_shell_access'
         marvis:
@@ -74413,6 +75014,9 @@ components:
           maximum: 480
           minimum: 0
           type: integer
+        ui_no_tracking:
+          default: false
+          type: boolean
         vpn_options:
           $ref: '#/components/schemas/org_setting_vpn_options'
         wan_pma:
@@ -74709,6 +75313,11 @@ components:
         org_id:
           description: JCloud Routing Assurance Org ID
           type: string
+      type: object
+    org_setting_juniper_srx:
+      properties:
+        auto_upgrade:
+          $ref: '#/components/schemas/juniper_srx_auto_upgrade'
       type: object
     org_setting_junos_shell_access:
       description: "junos_shell_access: Manages role-based web-shell access.  \nWhen\
@@ -75007,6 +75616,9 @@ components:
           maximum: 2147483647
           minimum: 1
           type: integer
+        enable_ipv6:
+          default: false
+          type: boolean
         st_subnet:
           default: 10.224.0.0/12
           description: requiring /12 or bigger to support 16 private IPs for 65535
@@ -76126,6 +76738,10 @@ components:
           default: << provide your Terms of Service here >>
           description: terms and service text displayed in footer if tos is enabled
           type: string
+        tosUrl:
+          description: customized url for defining terms of service
+          example: https://company.com/wifi-policy
+          type: string
       type: object
     psk_portal_type:
       description: 'for personal psk portal. enum: `admin`, `byod`'
@@ -76446,6 +77062,12 @@ components:
       required:
       - email
       type: object
+    redirect_nacportal_id:
+      description: If `type`==`redirect_nacportal_id`, the ID of the NAC portal to
+        redirect to
+      example: 1e970fec-0a7a-4d73-a472-3ef3b6a456aa
+      format: uuid
+      type: string
     remote_syslog:
       properties:
         archive:
@@ -77553,25 +78175,6 @@ components:
       - $ref: '#/components/schemas/ap_search'
       - $ref: '#/components/schemas/switch_search'
       - $ref: '#/components/schemas/gateway_search'
-    response_device_snapshot:
-      properties:
-        status:
-          $ref: '#/components/schemas/response_device_snapshot_status'
-        status_id:
-          description: Internal status id
-          type: string
-        timestamp:
-          $ref: '#/components/schemas/timestamp'
-      type: object
-    response_device_snapshot_status:
-      description: 'enum: `error`, `inprogress`, `scheduled`, `starting`, `success`'
-      enum:
-      - error
-      - inprogress
-      - scheduled
-      - starting
-      - success
-      type: string
     response_device_upgrade:
       properties:
         status:
@@ -79932,6 +80535,10 @@ components:
         model:
           readOnly: true
           type: string
+        num_routing_engines:
+          description: routing-engine count
+          example: 1
+          type: integer
         org_id:
           $ref: '#/components/schemas/org_id'
         serial:
@@ -81787,6 +82394,8 @@ components:
       type: array
     setting_ssr:
       properties:
+        auto_upgrade:
+          $ref: '#/components/schemas/setting_ssr_auto_upgrade'
         conductor_hosts:
           $ref: '#/components/schemas/setting_ssr_conductor_hosts'
         conductor_token:
@@ -81795,6 +82404,26 @@ components:
         disable_stats:
           description: Disable stats collection on SSR devices
           type: boolean
+        proxy:
+          $ref: '#/components/schemas/proxy'
+      type: object
+    setting_ssr_auto_upgrade:
+      description: auto_upgrade device first time it is onboarded
+      properties:
+        channel:
+          $ref: '#/components/schemas/ssr_upgrade_channel'
+        custom_versions:
+          $ref: '#/components/schemas/setting_ssr_auto_upgrade_custom_versions'
+        enabled:
+          default: false
+          type: boolean
+      type: object
+    setting_ssr_auto_upgrade_custom_versions:
+      additionalProperties:
+        description: Firmware version to deploy on the specified SSR model
+        example: 6.3.0-107.r1
+        type: string
+      description: Property key is the SSR model (e.g. "SSR130").
       type: object
     setting_ssr_conductor_hosts:
       description: List of Conductor IP Addresses or Hosts to be used by the SSR Devices
@@ -82348,22 +82977,39 @@ components:
       type: string
     site_nac_clients_count_distinct:
       default: type
-      description: 'enum: `auth_type`, `last_ap`, `last_nacrule_id`, `last_nas_vendor`,
-        `last_ssid`, `last_status`, `last_username`, `last_vlan`, `mac`, `mdm_compliance`,
-        `mdm_provider`, `type`'
+      description: 'enum: `ap`, `auth_type`, `device_mac`, `edr_managed`, `edr_provider`,
+        `edr_status`, `family`, `hostname`, `idp_id`, `mfg`, `mdm_compliance`, `mdm_managed`,
+        `mdm_provider`, `model`, `mxedge_id`, `nacrule_matched`, `nacrule_name`, `nacrule_id`,
+        `nas_ip`, `nas_vendor`, `os`, `ssid`, `status`, `type`, `usermac_label`, `username`,
+        `vlan`'
       enum:
+      - ap
       - auth_type
-      - last_ap
-      - last_nacrule_id
-      - last_nas_vendor
-      - last_ssid
-      - last_status
-      - last_username
-      - last_vlan
-      - mac
+      - device_mac
+      - edr_managed
+      - edr_provider
+      - edr_status
+      - family
+      - hostname
+      - idp_id
+      - mfg
       - mdm_compliance
+      - mdm_managed
       - mdm_provider
+      - model
+      - mxedge_id
+      - nacrule_matched
+      - nacrule_name
+      - nacrule_id
+      - nas_ip
+      - nas_vendor
+      - os
+      - ssid
+      - status
       - type
+      - usermac_label
+      - username
+      - vlan
       type: string
     site_occupancy_analytics:
       description: Occupancy Analytics settings
@@ -83668,9 +84314,7 @@ components:
       type: object
     sle_classifier_samples_degraded:
       items:
-        oneOf:
-        - type: number
-        - type: 'null'
+        $ref: '#/components/schemas/number_or_null'
       type: array
     sle_classifier_samples_duration:
       items:
@@ -83678,9 +84322,7 @@ components:
       type: array
     sle_classifier_samples_total:
       items:
-        oneOf:
-        - type: number
-        - type: 'null'
+        $ref: '#/components/schemas/number_or_null'
       type: array
     sle_classifier_summary:
       properties:
@@ -84446,21 +85088,15 @@ components:
       type: object
     sle_summary_sle_samples_degraded:
       items:
-        oneOf:
-        - type: number
-        - type: 'null'
+        $ref: '#/components/schemas/number_or_null'
       type: array
     sle_summary_sle_samples_total:
       items:
-        oneOf:
-        - type: number
-        - type: 'null'
+        $ref: '#/components/schemas/number_or_null'
       type: array
     sle_summary_sle_samples_value:
       items:
-        oneOf:
-        - type: number
-        - type: 'null'
+        $ref: '#/components/schemas/number_or_null'
       type: array
     sle_threshold:
       properties:
@@ -85261,9 +85897,17 @@ components:
           default: false
           description: Whether to require Message-Authenticator in requests
           type: boolean
+        retry:
+          default: 2
+          description: Authentication request retry
+          type: integer
         secret:
           example: testing123
           type: string
+        timeout:
+          default: 5
+          description: Authentication request timeout, in seconds
+          type: integer
       type: object
     sso_mxedge_proxy_auth_servers:
       items:
@@ -85472,6 +86116,8 @@ components:
         package:
           readOnly: true
           type: string
+        tags:
+          $ref: '#/components/schemas/strings'
         version:
           readOnly: true
           type: string
@@ -89870,6 +90516,8 @@ components:
           $ref: '#/components/schemas/wired_port_config'
         port_mirroring:
           $ref: '#/components/schemas/switch_port_mirroring'
+        stp_config:
+          $ref: '#/components/schemas/switch_stp_config'
         switch_mgmt:
           $ref: '#/components/schemas/switch_mgmt'
       type: object
@@ -90277,7 +90925,7 @@ components:
       properties:
         all_networks:
           default: false
-          description: Only if `mode`==`trunk` whether to trunk all network/vlans
+          description: Only if `mode`==`trunk`. Whether to trunk all network/vlans
           type: boolean
         allow_dhcpd:
           description: Only if `mode`!=`dynamic`. If DHCP snooping is enabled, whether
@@ -90292,12 +90940,12 @@ components:
           type: boolean
         bypass_auth_when_server_down:
           default: false
-          description: Only if `mode`!=`dynamic` and `port_auth`==`dot1x` bypass auth
-            for known clients if set to true when RADIUS server is down
+          description: Only if `mode`!=`dynamic` and `port_auth`==`dot1x`. Bypass
+            auth for known clients if set to true when RADIUS server is down
           type: boolean
         bypass_auth_when_server_down_for_unknown_client:
           default: false
-          description: Only if `mode`!=`dynamic` and `port_auth`=`dot1x` bypass auth
+          description: Only if `mode`!=`dynamic` and `port_auth`=`dot1x`. Bypass auth
             for all (including unknown clients) if set to true when RADIUS server
             is down
           type: boolean
@@ -90311,12 +90959,12 @@ components:
           type: string
         disable_autoneg:
           default: false
-          description: Only if `mode`!=`dynamic` if speed and duplex are specified,
+          description: Only if `mode`!=`dynamic`. If speed and duplex are specified,
             whether to disable autonegotiation
           type: boolean
         disabled:
           default: false
-          description: Only if `mode`!=`dynamic` whether the port is disabled
+          description: Only if `mode`!=`dynamic`. Whether the port is disabled
           type: boolean
         duplex:
           $ref: '#/components/schemas/switch_port_usage_duplex'
@@ -90324,7 +90972,7 @@ components:
           $ref: '#/components/schemas/switch_port_usage_dynamic_vlan_networks'
         enable_mac_auth:
           default: false
-          description: Only if `mode`!=`dynamic` and `port_auth`==`dot1x` whether
+          description: Only if `mode`!=`dynamic` and `port_auth`==`dot1x`. Whether
             to enable MAC Auth
           type: boolean
         enable_qos:
@@ -90332,21 +90980,22 @@ components:
           description: Only if `mode`!=`dynamic`
           type: boolean
         guest_network:
-          description: Only if `mode`!=`dynamic` and `port_auth`==`dot1x` which network
+          description: Only if `mode`!=`dynamic` and `port_auth`==`dot1x`. Which network
             to put the device into if the device cannot do dot1x. default is null
             (i.e. not allowed)
           nullable: true
           type: string
         inter_isolation_network_link:
           default: false
-          description: '`inter_switch_link` is used together with `isolation` under
-            networks. NOTE: `inter_switch_link` works only between Juniper device.
-            This has to be applied to both ports connected together'
+          description: 'Only if `mode`!=`dynamic`. `inter_switch_link` is used together
+            with `isolation` under networks. NOTE: `inter_switch_link` works only
+            between Juniper device. This has to be applied to both ports connected
+            together'
           type: boolean
         inter_switch_link:
           default: false
-          description: 'Only if `mode`!=`dynamic` inter_switch_link is used together
-            with "isolation" under networks. NOTE: inter_switch_link works only between
+          description: 'Only if `mode`!=`dynamic`. `inter_switch_link` is used together
+            with `isolation` under networks. NOTE: inter_switch_link works only between
             Juniper device. This has to be applied to both ports connected together'
           type: boolean
         mac_auth_only:
@@ -90369,18 +91018,18 @@ components:
           $ref: '#/components/schemas/switch_port_usage_networks'
         persist_mac:
           default: false
-          description: Only if `mode`==`access` and `port_auth`!=`dot1x` whether the
-            port should retain dynamically learned MAC addresses
+          description: Only if `mode`==`access` and `port_auth`!=`dot1x`. Whether
+            the port should retain dynamically learned MAC addresses
           type: boolean
         poe_disabled:
           default: false
-          description: Only if `mode`!=`dynamic` whether PoE capabilities are disabled
+          description: Only if `mode`!=`dynamic`. Whether PoE capabilities are disabled
             for a port
           type: boolean
         port_auth:
           $ref: '#/components/schemas/switch_port_usage_dot1x'
         port_network:
-          description: Only if `mode`!=`dynamic` native network/vlan for untagged
+          description: Only if `mode`!=`dynamic`. Native network/vlan for untagged
             traffic
           type: string
         reauth_interval:
@@ -90390,12 +91039,12 @@ components:
         rules:
           $ref: '#/components/schemas/switch_port_usage_dynamic_rules'
         server_fail_network:
-          description: Only if `mode`!=`dynamic` and `port_auth`==`dot1x` sets server
+          description: Only if `mode`!=`dynamic` and `port_auth`==`dot1x`. Sets server
             fail fallback vlan
           nullable: true
           type: string
         server_reject_network:
-          description: Only if `mode`!=`dynamic` and `port_auth`==`dot1x` when radius
+          description: Only if `mode`!=`dynamic` and `port_auth`==`dot1x`. When radius
             server reject / fails
           nullable: true
           type: string
@@ -90403,16 +91052,29 @@ components:
           $ref: '#/components/schemas/switch_port_usage_speed'
         storm_control:
           $ref: '#/components/schemas/switch_port_usage_storm_control'
+        stp_disable:
+          default: false
+          description: Only if `mode`!=`dynamic` and `stp_required`==`false`. Drop
+            bridge protocol data units (BPDUs ) that enter any interface or a specified
+            interface
+          type: boolean
         stp_edge:
           default: false
-          description: Only if `mode`!=`dynamic` when enabled, the port is not expected
+          description: Only if `mode`!=`dynamic`. When enabled, the port is not expected
             to receive BPDU frames
           type: boolean
         stp_no_root_port:
           default: false
+          description: Only if `mode`!=`dynamic`
           type: boolean
         stp_p2p:
           default: false
+          description: Only if `mode`!=`dynamic`
+          type: boolean
+        stp_required:
+          default: false
+          description: Only if `mode`!=`dynamic`. Whether to remain in block state
+            if no BPDU is received
           type: boolean
         ui_evpntopo_id:
           description: Optional for Campus Fabric Core-Distribution ESI-LAG profile.
@@ -90425,21 +91087,21 @@ components:
           description: If this is connected to a vstp network
           type: boolean
         voip_network:
-          description: Only if `mode`!=`dynamic` network/vlan for voip traffic, must
+          description: Only if `mode`!=`dynamic`. Network/vlan for voip traffic, must
             also set port_network. to authenticate device, set port_auth
           nullable: true
           type: string
       type: object
     switch_port_usage_dot1x:
-      description: 'Only if `mode`!=`dynamic` if dot1x is desired, set to dot1x. enum:
-        `dot1x`'
+      description: 'Only if `mode`!=`dynamic`. If dot1x is desired, set to dot1x.
+        enum: `dot1x`'
       enum:
       - dot1x
       nullable: true
       type: string
     switch_port_usage_duplex:
       default: auto
-      description: 'Only if `mode`!=`dynamic`, link connection mode. enum: `auto`,
+      description: 'Only if `mode`!=`dynamic`. Link connection mode. enum: `auto`,
         `full`, `half`'
       enum:
       - auto
@@ -90973,6 +91635,7 @@ components:
         $ref: '#/components/schemas/vlan_id_with_variable'
       type: array
     synthetictest_config_vlans:
+      deprecated: true
       items:
         $ref: '#/components/schemas/synthetictest_config_vlan'
       type: array
@@ -91519,10 +92182,97 @@ components:
       type: number
     troubleshoot_call_item:
       properties:
+        ap_num_clients:
+          example: -0.08802365511655807
+          type: number
+        ap_rtt:
+          example: 0.09924473613500595
+          type: number
         audio_in:
           $ref: '#/components/schemas/call_troubleshoot_data'
         audio_out:
           $ref: '#/components/schemas/call_troubleshoot_data'
+        client_cpu:
+          example: 0.00834270566701889
+          type: number
+        client_n_streams:
+          example: 0.00734270566701889
+          type: number
+        client_radio_band:
+          example: 0.5841414928436279
+          type: number
+        client_rssi:
+          example: 0.7594696879386902
+          type: number
+        client_rx_bytes:
+          example: 2.365511655807e-05
+          type: number
+        client_rx_rates:
+          example: 0.02441493794322014
+          type: number
+        client_rx_retries:
+          example: -0.14325742423534393
+          type: number
+        client_tx_bytes:
+          example: 0.00102365511655807
+          type: number
+        client_tx_rates:
+          example: 0.22236637771129608
+          type: number
+        client_tx_retries:
+          example: 0.3308201730251312
+          type: number
+        client_vpn_distance:
+          example: -0.0001660545531194657
+          type: number
+        client_wifi_version:
+          example: 7.0566701889e-07
+          type: number
+        expected:
+          example: -2.8630001056670187
+          type: number
+        radio_ap_change:
+          example: 0.01850946433842182
+          type: number
+        radio_bandwidth:
+          example: -0.021175479516386986
+          type: number
+        radio_channel:
+          example: 0.11686426401138306
+          type: number
+        radio_rx_failed:
+          example: 1.1782013177871704
+          type: number
+        radio_tx_power:
+          example: 0.121039018034935
+          type: number
+        radio_util:
+          example: 0.2452986091375351
+          type: number
+        radio_util_interference:
+          example: 3.4367904663085938
+          type: number
+        site_num_clients:
+          example: 0.055026158690452576
+          type: number
+        site_wan_avg_download_mbps:
+          example: 3.0566701889e-07
+          type: number
+        site_wan_avg_upload_mbps:
+          example: 5.566701889e-08
+          type: number
+        site_wan_download_mbps:
+          example: 8.0566701889e-07
+          type: number
+        site_wan_jitter:
+          example: 1.00566701889e-06
+          type: number
+        site_wan_rtt:
+          example: 4.0566701889e-07
+          type: number
+        site_wan_upload_mbps:
+          example: 2.0566701889e-07
+          type: number
         timestamp:
           $ref: '#/components/schemas/timestamp'
         video_in:
