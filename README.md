@@ -1,4 +1,9 @@
-<img src="https://img.shields.io/swagger/valid/3.0?specUrl=https%3A%2F%2Fraw.githubusercontent.com%2Ftmunzer%2FMist-OAS%2Fmain%2Fmist.openapi.yml"> <img src="https://img.shields.io/github/license/tmunzer/Mist-OAS">
+
+> [!CAUTION]
+> This repository is beeing moved to the https://github.com/mistsys/mist_openapi/ and will be deprecated soon.
+
+
+<img src="https://img.shields.io/swagger/valid/3.0?specUrl=https%3A%2F%2Fraw.githubusercontent.com%2Ftmunzer%2FMist-OAS%2Fmain%2Fmist.openapi.yaml"> <img src="https://img.shields.io/github/license/tmunzer/Mist-OAS">
 
 # Juniper-Mist OpenAPI 3.0 Specifications
 
